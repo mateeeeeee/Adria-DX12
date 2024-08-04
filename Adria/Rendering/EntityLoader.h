@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 #include "Components.h"
-#include "Utilities/Heightmap.h"
 #include "Math/NormalsUtil.h"
+#include "Utilities/Heightmap.h"
 #include "entt/entity/registry.hpp"
 
 namespace adria

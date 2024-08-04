@@ -6,17 +6,16 @@ namespace adria
 {
 	struct WindowEventData
 	{
-		void* handle	    = nullptr;
-		uint32 msg			= 0;
-        uint64 wparam       = 0;
-        int64 lparam        = 0;
-		float width		    = 0.0f;
-		float height		= 0.0f;
+		void*  handle	= nullptr;
+		uint32 msg		= 0;
+        uint64 wparam	= 0;
+        int64  lparam	= 0;
+		float  width	= 0.0f;
+		float  height	= 0.0f;
 	};
 
     struct WindowInit
     {
-        HINSTANCE instance;
         char const* title;
         uint32 width, height;
         bool maximize;
@@ -26,8 +25,6 @@ namespace adria
 
 	class Window
 	{
-		friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 	public:
 		Window(WindowInit const& init);
 		~Window();
@@ -45,13 +42,10 @@ namespace adria
 		bool  IsActive() const;
 
 		WindowEvent& GetWindowEvent() { return window_event; }
+		void BroadcastEvent(WindowEventData const&);
 
 	private:
-		HINSTANCE hinstance = nullptr;
 		HWND hwnd = nullptr;
 		WindowEvent window_event;
-
-	private:
-		void BroadcastEvent(WindowEventData const&);
 	};
 }

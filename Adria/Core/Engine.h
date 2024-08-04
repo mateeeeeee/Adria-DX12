@@ -20,7 +20,6 @@ namespace adria
 	{
 		std::string scene_file = "scene.json";
 		Window* window = nullptr;
-		//gfx options
 		bool vsync = false;
 		bool debug_device = false;
 		bool gpu_validation = false;

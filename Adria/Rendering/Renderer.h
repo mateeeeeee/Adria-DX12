@@ -170,7 +170,7 @@ namespace adria
 
 		//volumetric
 		uint32			         volumetric_lights = 0;
-		VolumetricPath		 volumetric_path_type = VolumetricPath::Raymarching2D;
+		VolumetricPath			 volumetric_path_type = VolumetricPath::Raymarching2D;
 		//misc
 		ViewportData			 viewport_data;
 

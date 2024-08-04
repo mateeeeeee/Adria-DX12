@@ -41,7 +41,6 @@ int APIENTRY wWinMain(
 
 		std::string title_str = title.AsStringOr("Adria").c_str();
         WindowInit window_init{};
-        window_init.instance = hInstance;
         window_init.width = width.AsIntOr(1080);
         window_init.height = height.AsIntOr(720);
         window_init.title = title_str.c_str();

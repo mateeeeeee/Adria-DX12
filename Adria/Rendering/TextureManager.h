@@ -1,9 +1,4 @@
 #pragma once
-#include <string>
-#include <array>
-#include <d3d12.h>
-#include <variant>
-#include <memory>
 #include "TextureHandle.h"
 #include "Graphics/GfxDescriptor.h"
 #include "Utilities/Singleton.h"

@@ -6,19 +6,16 @@ namespace adria
 {
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
-		LRESULT result = 0ll;
-
-		LONG_PTR window_address = GetWindowLongPtr(hwnd, GWLP_USERDATA);
-		Window* this_window = reinterpret_cast<Window*>(window_address);
-
+		Window* this_window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 		WindowEventData window_data{};
 		window_data.handle = hwnd;
-		window_data.msg = static_cast<uint32>(msg);
+		window_data.msg  = static_cast<uint32>(msg);
 		window_data.wparam = static_cast<uint64>(w_param);
 		window_data.lparam = static_cast<int64>(l_param);
 		window_data.width = this_window ? static_cast<float>(this_window->Width()) : 0.0f;
 		window_data.height = this_window ? static_cast<float>(this_window->Height()) : 0.0f;
 
+		LRESULT result = 0ll;
 		if (msg == WM_CLOSE || msg == WM_DESTROY)
 		{
 			PostQuitMessage(0);
@@ -30,7 +27,6 @@ namespace adria
 			window_data.height = static_cast<float>((l_param >> 16) & 0xffff);
 		}
 		else result = DefWindowProc(hwnd, msg, w_param, l_param);
-
         if (this_window) this_window->BroadcastEvent(window_data);
 		return result;
 	}
@@ -38,11 +34,11 @@ namespace adria
 
     Window::Window(WindowInit const& init)
     {
-        hinstance = init.instance;
+        HINSTANCE hinstance = GetModuleHandle(NULL);
         const std::wstring window_title = ToWideString(init.title);
-        const uint32 window_width = init.width;
-        const uint32 window_height = init.height;
-        const LPCWSTR class_name = L"WindowClass";
+        const uint32  window_width = init.width;
+        const uint32  window_height = init.height;
+        const LPCWSTR class_name = L"AdriaClass";
 
         WNDCLASSEX wcex{};
         wcex.cbSize = sizeof(WNDCLASSEX);
@@ -59,7 +55,6 @@ namespace adria
         wcex.hIconSm = nullptr;
 
         if (!RegisterClassExW(&wcex)) MessageBoxA(nullptr, "Window class registration failed!", "Fatal Error!", MB_ICONEXCLAMATION | MB_OK);
-
         hwnd = CreateWindowExW
         (
             0, class_name,
