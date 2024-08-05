@@ -32,9 +32,7 @@ namespace adria
 		SkyboxParameters skybox_params;
 		CameraParameters camera_params;
 	};
-	namespace
-	{
-		std::optional<SceneConfig> ParseSceneConfig(std::string const& scene_file)
+	static std::optional<SceneConfig> ParseSceneConfig(std::string const& scene_file)
 		{
 			SceneConfig config{};
 			json models, lights, camera, skybox;
@@ -224,14 +222,20 @@ namespace adria
 
 			return config;
 		}
-	}
 
-	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, window { init.window }
+	static TAutoConsoleVariable<bool> vsync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
+
+	Engine::Engine(EngineInit const& init) : window { init.window }
 	{
+		vsync->Set(init.vsync);
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
-		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_device = init.debug_device, .dred = init.dred,
-														     .gpu_validation = init.gpu_validation, .pix = init.pix, .aftermath = init.aftermath });
+		GfxOptions gfx_options
+		{
+			.debug_device = init.debug_device, .dred = init.dred,
+			.gpu_validation = init.gpu_validation, .pix = init.pix, .aftermath = init.aftermath
+		};
+		gfx = std::make_unique<GfxDevice>(window, gfx_options);
 		ShaderManager::Initialize();
 		g_TextureManager.Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
@@ -282,12 +286,11 @@ namespace adria
 		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
 	}
-
 	void Engine::Render()
 	{
 		gfx->BeginFrame();
 		renderer->Render();
-		gfx->EndFrame(vsync);
+		gfx->EndFrame(vsync.Get());
 	}
 
 	void Engine::SetViewportData(std::optional<ViewportData> _viewport_data)
@@ -356,6 +359,4 @@ namespace adria
 			g_ConsoleManager.ProcessInput(line);
 		}
 	}
-
 }
-

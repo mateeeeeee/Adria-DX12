@@ -21,7 +21,7 @@ namespace adria
 	static TAutoConsoleVariable<bool> cvar_taa("r.TAA", false, "Enable or Disable TAA");
 	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Fog");
 	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
-	static TAutoConsoleVariable<bool> cvar_motion_blur("r.TAA", false, "Enable or Disable Motion Blur");
+	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
 	static TAutoConsoleVariable<bool> cvar_autoexposure("r.AutoExposure", false, "Enable or Disable Auto Exposure");
 	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
 

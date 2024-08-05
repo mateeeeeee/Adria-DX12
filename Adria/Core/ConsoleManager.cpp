@@ -162,6 +162,90 @@ namespace adria
 			}
 			return false;
 		}
+		virtual bool Set(bool bool_value) override
+		{
+			if constexpr (std::is_same_v<T, bool>)
+			{
+				value = bool_value;
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, int>)
+			{
+				value = detail::ConsoleVariableConversionHelper<bool>::GetInt(bool_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, float>)
+			{
+				value = detail::ConsoleVariableConversionHelper<bool>::GetFloat(bool_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				value = detail::ConsoleVariableConversionHelper<bool>::GetString(bool_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			return false;
+		}
+		virtual bool Set(int int_value) override
+		{
+			if constexpr (std::is_same_v<T, int>)
+			{
+				value = int_value;
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				value = detail::ConsoleVariableConversionHelper<int>::GetInt(int_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, float>)
+			{
+				value = detail::ConsoleVariableConversionHelper<int>::GetFloat(int_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				value = detail::ConsoleVariableConversionHelper<int>::GetString(int_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			return false;
+		}
+		virtual bool Set(float float_value) override
+		{
+			if constexpr (std::is_same_v<T, float>)
+			{
+				value = float_value;
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, int>)
+			{
+				value = detail::ConsoleVariableConversionHelper<float>::GetInt(float_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				value = detail::ConsoleVariableConversionHelper<float>::GetBool(float_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				value = detail::ConsoleVariableConversionHelper<float>::GetString(float_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			return false;
+		}
 
 		virtual bool GetBool() const override { return detail::ConsoleVariableConversionHelper<T>::GetBool(value); }
 		virtual int32 GetInt() const override { return detail::ConsoleVariableConversionHelper<T>::GetInt(value); }
@@ -232,6 +316,91 @@ namespace adria
 			}
 			return false;
 		}
+		virtual bool Set(bool bool_value) override
+		{
+			if constexpr (std::is_same_v<T, bool>)
+			{
+				value = bool_value;
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, int>)
+			{
+				value = detail::ConsoleVariableConversionHelper<bool>::GetInt(bool_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, float>)
+			{
+				value = detail::ConsoleVariableConversionHelper<bool>::GetFloat(bool_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				value = detail::ConsoleVariableConversionHelper<bool>::GetString(bool_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			return false;
+		}
+		virtual bool Set(int int_value) override
+		{
+			if constexpr (std::is_same_v<T, int>)
+			{
+				value = int_value;
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				value = detail::ConsoleVariableConversionHelper<int>::GetInt(int_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, float>)
+			{
+				value = detail::ConsoleVariableConversionHelper<int>::GetFloat(int_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				value = detail::ConsoleVariableConversionHelper<int>::GetString(int_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			return false;
+		}
+		virtual bool Set(float float_value) override
+		{
+			if constexpr (std::is_same_v<T, float>)
+			{
+				value = float_value;
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, int>)
+			{
+				value = detail::ConsoleVariableConversionHelper<float>::GetInt(float_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				value = detail::ConsoleVariableConversionHelper<float>::GetBool(float_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			else if constexpr (std::is_same_v<T, std::string>)
+			{
+				value = detail::ConsoleVariableConversionHelper<float>::GetString(float_value);
+				OnChangedDelegate().Broadcast(this);
+				return true;
+			}
+			return false;
+		}
+
 
 		virtual bool GetBool() const override { return detail::ConsoleVariableConversionHelper<T>::GetBool(value); }
 		virtual int32 GetInt() const override { return detail::ConsoleVariableConversionHelper<T>::GetInt(value); }

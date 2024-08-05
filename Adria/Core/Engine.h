@@ -50,7 +50,6 @@ namespace adria
 		std::unique_ptr<EntityLoader> entity_loader;
 
 		ViewportData viewport_data;
-		bool vsync;
 
 	private:
 		void InitializeScene(SceneConfig const& config);

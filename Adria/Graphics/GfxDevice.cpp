@@ -211,20 +211,20 @@ namespace adria
 			GfxVendorId_AMD = 0x1002,
 			GfxVendorId_Nvidia = 0x10de,
 			GfxVendorId_Intel = 0x8086,
-			GfxVendeor_Microsoft = 0x1414
+			GfxVendorId_Microsoft = 0x1414
 		};
-		GfxVendor GetGfxVendor(uint32 vendor_id)
+		inline GfxVendor GetGfxVendor(uint32 vendor_id)
 		{
 			switch (vendor_id)
 			{
 			case GfxVendorId_AMD: return GfxVendor::AMD;
 			case GfxVendorId_Nvidia: return GfxVendor::Nvidia;
 			case GfxVendorId_Intel: return GfxVendor::Intel;
-			case GfxVendeor_Microsoft: return GfxVendor::Microsoft;
+			case GfxVendorId_Microsoft: return GfxVendor::Microsoft;
 			}
 			return GfxVendor::Unknown;
 		}
-		char const* GetGfxVendorName(GfxVendor gfx_vendor)
+		inline char const* GetGfxVendorName(GfxVendor gfx_vendor)
 		{
 			switch (gfx_vendor)
 			{

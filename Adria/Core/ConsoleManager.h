@@ -137,7 +137,7 @@ namespace adria
 	{
 	public:
 		TAutoConsoleVariable(char const* name, T default_value, char const* help) : AutoConsoleVariable(name, default_value, help) {}
-		TAutoConsoleVariable(char const* name, T default_value, char const* help, ConsoleVariableDelegate const& callback) 
+		TAutoConsoleVariable(char const* name, T default_value, char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleVariable(name, default_value, help, callback) {}
 
 		T Get() const

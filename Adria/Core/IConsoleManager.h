@@ -38,6 +38,9 @@ namespace adria
 	{
 	public:
 		virtual bool Set(char const* value) = 0;
+		virtual bool Set(bool value) = 0;
+		virtual bool Set(int value) = 0;
+		virtual bool Set(float value) = 0;
 
 		virtual bool IsBool() const { return false; }
 		virtual bool IsInt() const { return false; }
@@ -66,7 +69,7 @@ namespace adria
 		virtual bool Execute(std::span<char const*> args) = 0;
 	};
 
-	class IConsoleManager 
+	class IConsoleManager
 	{
 	public:
 
