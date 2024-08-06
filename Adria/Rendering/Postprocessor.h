@@ -155,7 +155,7 @@ namespace adria
 		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 		Reflections reflections = Reflections::None;
 		UpscalerType upscaler = UpscalerType::None;
-		DepthOfField dof = DepthOfField::None;
+		DepthOfField depth_of_field = DepthOfField::None;
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
 
 		bool fog = false;

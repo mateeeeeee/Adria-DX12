@@ -74,10 +74,7 @@ namespace adria
 		{
 			renderer_output = type;
 		}
-		void SetLightingPath(LightingPath path)
-		{
-			lighting_path = path;
-		}
+		void SetLightingPath(LightingPath path);
 		void SetViewportData(ViewportData const& vp);
 
 	private:
@@ -148,10 +145,8 @@ namespace adria
 		bool update_picking_data = false;
 		PickingData picking_data;
 
-		LightingPath lighting_path = LightingPath::Deferred;
+		LightingPath	 lighting_path = LightingPath::Deferred;
 		RendererOutput   renderer_output = RendererOutput::Final;
-		bool use_gpu_driven_rendering = true;
-		bool use_ddgi = true;
 
 		//weather
         SkyType					 sky_type = SkyType::HosekWilkie;
@@ -159,7 +154,6 @@ namespace adria
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
 		Vector3					 sun_direction;
-		bool					 rain_enabled = false;
 
 		//screenshot
 		bool						take_screenshot = false;
@@ -170,7 +164,7 @@ namespace adria
 
 		//volumetric
 		uint32			         volumetric_lights = 0;
-		VolumetricPath			 volumetric_path_type = VolumetricPath::Raymarching2D;
+		VolumetricPath			 volumetric_path = VolumetricPath::Raymarching2D;
 		//misc
 		ViewportData			 viewport_data;
 

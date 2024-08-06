@@ -10,9 +10,8 @@ namespace adria
 	{
 	public:
 		RenderGraphBlackboard() = default;
+		ADRIA_NONCOPYABLE(RenderGraphBlackboard)
 		~RenderGraphBlackboard() = default;
-		RenderGraphBlackboard(RenderGraphBlackboard const&) = delete;
-		RenderGraphBlackboard& operator=(RenderGraphBlackboard const&) = delete;
 
 		template<typename T>
 		T& Add(T&& data)

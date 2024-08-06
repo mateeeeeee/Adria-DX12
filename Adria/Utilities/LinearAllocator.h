@@ -10,10 +10,7 @@ namespace adria
 		LinearAllocator(OffsetType max_size, OffsetType reserve = 0) noexcept :
 			max_size{ max_size }, reserve{ reserve }, top{ reserve }
 		{}
-		LinearAllocator(LinearAllocator const&) = default;
-		LinearAllocator& operator = (LinearAllocator const&) = delete;
-		LinearAllocator(LinearAllocator&&) = default;
-		LinearAllocator& operator=(LinearAllocator&&) = delete;
+		ADRIA_DEFAULT_COPYABLE_MOVABLE(LinearAllocator)
 		~LinearAllocator() = default;
 
 		OffsetType Allocate(OffsetType size, OffsetType align = 0)
@@ -40,8 +37,8 @@ namespace adria
 		OffsetType UsedSize() const { return top; }
 
 	private:
-		OffsetType const max_size;
-		OffsetType const reserve;
+		OffsetType max_size;
+		OffsetType reserve;
 		OffsetType top;
 	};
 }

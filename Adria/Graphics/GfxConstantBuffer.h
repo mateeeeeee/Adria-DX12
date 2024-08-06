@@ -27,13 +27,9 @@ namespace adria
 			ADRIA_ASSERT(cbuffer->IsMapped());
 			mapped_data = cbuffer->GetMappedData<uint8>();
 		}
-
-		GfxConstantBuffer(GfxConstantBuffer const&) = delete;
+		ADRIA_NONCOPYABLE(GfxConstantBuffer)
 		GfxConstantBuffer(GfxConstantBuffer&& o) noexcept;
-
-		GfxConstantBuffer& operator=(GfxConstantBuffer const&) = delete;
 		GfxConstantBuffer& operator=(GfxConstantBuffer&&) = delete;
-
 		~GfxConstantBuffer();
 
 		void Update(BufferType const& data, uint32 cbuffer_index);

@@ -107,11 +107,7 @@ namespace adria
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer); //constructor used by swapchain for creating backbuffer texture
-
-		GfxTexture(GfxTexture const&) = delete;
-		GfxTexture& operator=(GfxTexture const&) = delete;
-		GfxTexture(GfxTexture&&) = delete;
-		GfxTexture& operator=(GfxTexture&&) = delete;
+		ADRIA_NONCOPYABLE_NONMOVABLE(GfxTexture)
 		~GfxTexture();
 
 		ID3D12Resource* GetNative() const;

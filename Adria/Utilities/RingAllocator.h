@@ -31,44 +31,7 @@ namespace adria
 			used_size{ reserve }
 		{}
 
-		RingAllocator(RingAllocator&& rhs) noexcept :
-			completed_frames{ std::move(rhs.completed_frames) },
-			reserve{ rhs.reserve },
-			tail{ rhs.tail },
-			head{ rhs.head },
-			max_size{ rhs.max_size },
-			used_size{ rhs.used_size },
-			current_frame_size{ rhs.current_frame_size }
-		{
-			rhs.reserve = 0;
-			rhs.tail = 0;
-			rhs.head = 0;
-			rhs.max_size = 0;
-			rhs.used_size = 0;
-			rhs.current_frame_size = 0;
-		}
-
-		RingAllocator& operator=(RingAllocator&& rhs) noexcept
-		{
-			completed_frames = std::move(rhs.completed_frames);
-			tail = rhs.tail;
-			head = rhs.head;
-			max_size = rhs.max_size;
-			used_size = rhs.used_size;
-			reserve = rhs.reserve;
-			current_frame_size = rhs.current_frame_size;
-
-			rhs.reserve = 0;
-			rhs.max_size = 0;
-			rhs.tail = 0;
-			rhs.head = 0;
-			rhs.used_size = 0;
-			rhs.current_frame_size = 0;
-
-			return *this;
-		}
-		RingAllocator(RingAllocator const&) = delete;
-		RingAllocator& operator = (RingAllocator const&) = delete;
+		ADRIA_DEFAULT_COPYABLE_MOVABLE(RingAllocator)
 		~RingAllocator() = default;
 
 		OffsetType Allocate(OffsetType size, OffsetType align = 0)

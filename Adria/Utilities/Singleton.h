@@ -6,8 +6,7 @@ namespace adria
 	class Singleton
 	{
 	public:
-		Singleton(Singleton const&) = delete;
-		Singleton& operator=(Singleton const&) = delete;
+		ADRIA_NONCOPYABLE(Singleton)
 
 		static T& Get()
 		{

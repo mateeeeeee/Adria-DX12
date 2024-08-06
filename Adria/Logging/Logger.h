@@ -29,10 +29,7 @@ namespace adria
 	{
 	public:
 		LogManager();
-		LogManager(LogManager const&) = delete;
-		LogManager& operator=(LogManager const&) = delete;
-		LogManager(LogManager&&) = delete;
-		LogManager& operator=(LogManager&&) = delete;
+		ADRIA_NONCOPYABLE_NONMOVABLE(LogManager)
 		~LogManager();
 
 		void Register(ILogger* logger);

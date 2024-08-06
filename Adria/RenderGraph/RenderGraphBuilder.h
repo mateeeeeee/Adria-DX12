@@ -82,8 +82,7 @@ namespace adria
 
 	public:
 		RenderGraphBuilder() = delete;
-		RenderGraphBuilder(RenderGraphBuilder const&) = delete;
-		RenderGraphBuilder& operator=(RenderGraphBuilder const&) = delete;
+		ADRIA_NONCOPYABLE(RenderGraphBuilder)
 
 		bool IsTextureDeclared(RGResourceName name) const;
 		bool IsBufferDeclared(RGResourceName name) const;

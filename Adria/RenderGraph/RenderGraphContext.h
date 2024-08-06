@@ -81,8 +81,7 @@ namespace adria
 		friend RenderGraph;
 	public:
 		RenderGraphContext() = delete;
-		RenderGraphContext(RenderGraphContext const&) = delete;
-		RenderGraphContext& operator=(RenderGraphContext const&) = delete;
+		ADRIA_NONCOPYABLE(RenderGraphContext)
 
 		RGBlackboard& GetBlackboard();
 

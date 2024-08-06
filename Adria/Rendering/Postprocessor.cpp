@@ -18,12 +18,14 @@ namespace adria
 	static TAutoConsoleVariable<int>  cvar_upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
 	static TAutoConsoleVariable<int>  cvar_depth_of_field("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
 	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
+	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
 	static TAutoConsoleVariable<bool> cvar_taa("r.TAA", false, "Enable or Disable TAA");
-	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Fog");
+	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Film Effects");
 	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
 	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
 	static TAutoConsoleVariable<bool> cvar_autoexposure("r.AutoExposure", false, "Enable or Disable Auto Exposure");
 	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
+	static TAutoConsoleVariable<bool> cvar_clouds("r.Clouds", true, "Enable or Disable Clouds");
 
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
@@ -45,7 +47,7 @@ namespace adria
 			cvar_ambient_occlusion->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusion>(cvar->GetInt()); }));
 			cvar_reflections->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { reflections = static_cast<Reflections>(cvar->GetInt()); }));
 			cvar_upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { upscaler = static_cast<UpscalerType>(cvar->GetInt()); }));
-			cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { dof = static_cast<DepthOfField>(cvar->GetInt()); }));
+			cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { depth_of_field = static_cast<DepthOfField>(cvar->GetInt()); }));
 			cvar_fxaa->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
 				{
 					if (cvar->GetBool()) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_FXAA);
@@ -61,6 +63,7 @@ namespace adria
 			cvar_motion_blur->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ motion_blur = cvar->GetBool(); }));
 			cvar_autoexposure->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ automatic_exposure = cvar->GetBool(); }));
 			cvar_cas->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ cas = cvar->GetBool(); }));
+			cvar_clouds->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ clouds = cvar->GetBool(); }));
 		}
 	}
 
@@ -134,7 +137,7 @@ namespace adria
 		if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
 
-		switch (dof)
+		switch (depth_of_field)
 		{
 		case DepthOfField::Simple:
 		{
@@ -311,7 +314,7 @@ namespace adria
 				static int current_ao_type = (int)ambient_occlusion;
 				static int current_upscaler = (int)upscaler;
 				static int current_reflection_type = (int)reflections;
-				static int current_dof_type = (int)dof;
+				static int current_dof_type = (int)depth_of_field;
 				static bool fxaa = anti_aliasing & AntiAliasing_FXAA;
 				static bool taa = anti_aliasing & AntiAliasing_TAA;
 
@@ -321,6 +324,7 @@ namespace adria
 					{
 						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
 						ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
+						cvar_ambient_occlusion->Set(current_ao_type);
 					}
 					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0FSR3\0XeSS\0DLSS3\0", 5))
 					{
@@ -331,6 +335,7 @@ namespace adria
 							current_upscaler = 0;
 							ADRIA_LOG(WARNING, "DLSS3 is not supported on this device!");
 						}
+						cvar_upscaler->Set(current_upscaler);
 
 						switch (upscaler)
 						{
@@ -345,26 +350,32 @@ namespace adria
 					{
 						if (!ray_tracing_supported && current_reflection_type == 2) current_reflection_type = 1;
 						reflections = static_cast<Reflections>(current_reflection_type);
+						cvar_reflections->Set(current_reflection_type);
 					}
 					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0FFX\0", 3))
 					{
-						dof = static_cast<DepthOfField>(current_dof_type);
+						depth_of_field = static_cast<DepthOfField>(current_dof_type);
+						cvar_depth_of_field->Set(current_dof_type);
 					}
 
-					ImGui::Checkbox("Automatic Exposure", &automatic_exposure);
-					ImGui::Checkbox("Volumetric Clouds", &clouds);
-					ImGui::Checkbox("Bloom", &bloom);
-					ImGui::Checkbox("Motion Blur", &motion_blur);
-					ImGui::Checkbox("Film Effects", &film_effects);
-					ImGui::Checkbox("Fog", &fog);
+					if (ImGui::Checkbox("Automatic Exposure", &automatic_exposure)) cvar_autoexposure->Set(automatic_exposure);
+					if (ImGui::Checkbox("Volumetric Clouds", &clouds)) cvar_clouds->Set(clouds);
+					if (ImGui::Checkbox("Bloom", &bloom)) cvar_bloom->Set(bloom);
+
+					if (ImGui::Checkbox("Motion Blur", &motion_blur)) cvar_motion_blur->Set(motion_blur);
+					if (ImGui::Checkbox("Film Effects", &film_effects)) cvar_film_effects->Set(film_effects);
+					if (ImGui::Checkbox("Fog", &fog)) cvar_fog->Set(fog);
 
 					if (ImGui::TreeNode("Anti-Aliasing"))
 					{
-						ImGui::Checkbox("FXAA", &fxaa);
-						ImGui::Checkbox("TAA", &taa);
+						if (ImGui::Checkbox("FXAA", &fxaa)) cvar_fxaa->Set(fxaa);
+						if (ImGui::Checkbox("TAA", &taa)) cvar_taa->Set(taa);
 						ImGui::TreePop();
 					}
-					if (taa) ImGui::Checkbox("CAS", &cas);
+					if (taa)
+					{
+						if (ImGui::Checkbox("CAS", &cas)) cvar_cas->Set(cas);
+					}
 
 					ImGui::TreePop();
 				}

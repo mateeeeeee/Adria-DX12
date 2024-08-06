@@ -35,8 +35,7 @@ namespace adria
 	public:
 
 		GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data = {});
-		GfxBuffer(GfxBuffer const&) = delete;
-		GfxBuffer& operator=(GfxBuffer const&) = delete;
+		ADRIA_NONCOPYABLE_NONMOVABLE(GfxBuffer)
 		~GfxBuffer();
 
 		ID3D12Resource* GetNative() const;
