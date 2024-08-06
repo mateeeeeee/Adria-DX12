@@ -49,14 +49,14 @@ int APIENTRY wWinMain(
         g_Input.Initialize(&window);
 
         EngineInit engine_init{};
-        engine_init.vsync = vsync;
-        engine_init.debug_device = debug_device;
-        engine_init.dred = dred_debug;
-        engine_init.gpu_validation = gpu_validation;
-        engine_init.pix = pix;
-        engine_init.aftermath = aftermath;
         engine_init.scene_file = scene.AsStringOr("sponza.json");
 		engine_init.window = &window;
+		engine_init.gfx_options.vsync = vsync;
+		engine_init.gfx_options.debug_device = debug_device;
+		engine_init.gfx_options.dred = dred_debug;
+		engine_init.gfx_options.gpu_validation = gpu_validation;
+		engine_init.gfx_options.pix = pix;
+		engine_init.gfx_options.aftermath = aftermath;
 
         EditorInit editor_init{ .engine_init = engine_init };
         g_Editor.Init(std::move(editor_init));

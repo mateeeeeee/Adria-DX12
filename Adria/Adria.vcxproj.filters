@@ -1131,6 +1131,9 @@
     <ClInclude Include="Core\ConsoleManager.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxOptions.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

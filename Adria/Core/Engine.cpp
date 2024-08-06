@@ -223,19 +223,12 @@ namespace adria
 			return config;
 		}
 
-	static TAutoConsoleVariable<bool> vsync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
 
 	Engine::Engine(EngineInit const& init) : window { init.window }
 	{
-		vsync->Set(init.vsync);
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
-		GfxOptions gfx_options
-		{
-			.debug_device = init.debug_device, .dred = init.dred,
-			.gpu_validation = init.gpu_validation, .pix = init.pix, .aftermath = init.aftermath
-		};
-		gfx = std::make_unique<GfxDevice>(window, gfx_options);
+		gfx = std::make_unique<GfxDevice>(window, init.gfx_options);
 		ShaderManager::Initialize();
 		g_TextureManager.Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
@@ -290,14 +283,14 @@ namespace adria
 	{
 		gfx->BeginFrame();
 		renderer->Render();
-		gfx->EndFrame(vsync.Get());
+		gfx->EndFrame();
 	}
 
-	void Engine::SetViewportData(std::optional<ViewportData> _viewport_data)
+	void Engine::SetViewportData(ViewportData* _viewport_data)
 	{
-		if (_viewport_data.has_value())
+		if (_viewport_data)
 		{
-			viewport_data = _viewport_data.value();
+			viewport_data = *_viewport_data;
 		}
 		else
 		{
@@ -331,7 +324,7 @@ namespace adria
 		for (auto const& light : config.scene_lights) entity_loader->LoadLight(light);
 
 		auto ray_tracing_view = reg.view<Mesh, RayTracing>();
-		for (auto entity : ray_tracing_view)
+		for (auto entity : reg.view<Mesh, RayTracing>())
 		{
 			auto const& mesh = ray_tracing_view.get<Mesh>(entity);
 			GfxBuffer* buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);

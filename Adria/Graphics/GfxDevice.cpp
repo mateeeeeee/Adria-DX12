@@ -16,10 +16,11 @@
 #include "d3dx12.h"
 #include "Logging/Logger.h"
 #include "Core/Window.h"
+#include "Core/ConsoleManager.h"
 
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
-extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
+extern "C" { __declspec(dllexport) extern LPCSTR D3D12SDKPath = ".\\D3D12\\"; }
 extern "C" { __declspec(dllexport) extern UINT NvOptimusEnablement = true; }
 
 namespace adria
@@ -237,6 +238,8 @@ namespace adria
 		}
 	}
 
+	static TAutoConsoleVariable<bool> vsync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
+
 	GfxDevice::DRED::DRED(GfxDevice* gfx)
 	{
 		dred_fence.Create(gfx, "DRED Fence");
@@ -255,6 +258,7 @@ namespace adria
 	GfxDevice::GfxDevice(Window* window, GfxOptions const& options)
 		: frame_index(0)
 	{
+		vsync->Set(options.vsync);
 		hwnd = window->Handle();
 		width = window->Width();
 		height = window->Height();
@@ -416,7 +420,7 @@ namespace adria
 		graphics_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 		copy_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 	}
-	void GfxDevice::EndFrame(bool vsync)
+	void GfxDevice::EndFrame()
 	{
 		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 
@@ -427,7 +431,7 @@ namespace adria
 		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
 
-		bool present_successful = swapchain->Present(vsync);
+		bool present_successful = swapchain->Present(vsync.Get());
 		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
 		{
 			nsight_aftermath->HandleGpuCrash();

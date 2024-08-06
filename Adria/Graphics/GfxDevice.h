@@ -15,6 +15,7 @@
 #define D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED
 #include "D3D12MemAlloc.h"
 
+#include "GfxOptions.h"
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
 #include "GfxCapabilities.h"
@@ -70,14 +71,6 @@ namespace adria
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<false>;
 #endif
 
-	struct GfxOptions
-	{
-		bool debug_device = false;
-		bool dred = false;
-		bool gpu_validation = false;
-		bool pix = false;
-		bool aftermath = false;
-	};
 	struct GPUMemoryUsage
 	{
 		uint64 usage;
@@ -109,7 +102,7 @@ namespace adria
 		uint32 GetFrameIndex() const;
 
 		void BeginFrame();
-		void EndFrame(bool vsync = false);
+		void EndFrame();
 		void TakePixCapture(char const* capture_name, uint32 num_frames);
 
 		void* GetHwnd() const { return hwnd; }

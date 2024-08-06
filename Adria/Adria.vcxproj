@@ -382,6 +382,7 @@
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h" />
+    <ClInclude Include="Graphics\GfxOptions.h" />
     <ClInclude Include="Graphics\GfxPipelineStatePermutations.h" />
     <ClInclude Include="Graphics\GfxQueryHeap.h" />
     <ClInclude Include="Graphics\GfxRayTracingAS.h" />

@@ -84,8 +84,8 @@ namespace adria
 	void Editor::Run()
 	{
 		HandleInput();
-		if (gui->IsVisible()) engine->SetViewportData(viewport_data);
-		else engine->SetViewportData(std::nullopt);
+		if (gui->IsVisible()) engine->SetViewportData(&viewport_data);
+		else engine->SetViewportData(nullptr);
 
 		engine->Run();
 

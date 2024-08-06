@@ -1,6 +1,5 @@
 #pragma once
-#include <memory>
-#include <optional>
+#include "Graphics/GfxOptions.h"
 #include "Rendering/ViewportData.h"
 #include "entt/entity/registry.hpp"
 
@@ -20,12 +19,7 @@ namespace adria
 	{
 		std::string scene_file = "scene.json";
 		Window* window = nullptr;
-		bool vsync = false;
-		bool debug_device = false;
-		bool gpu_validation = false;
-		bool dred = false;
-		bool pix = false;
-		bool aftermath = false;
+		GfxOptions gfx_options;
 	};
 
 	class Engine
@@ -58,7 +52,7 @@ namespace adria
 		void Update(float dt);
 		void Render();
 
-		void SetViewportData(std::optional<ViewportData> viewport_data);
+		void SetViewportData(ViewportData* viewport_data);
 		void RegisterEditorEventCallbacks(EditorEvents&);
 	};
 }
