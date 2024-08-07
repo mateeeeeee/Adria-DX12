@@ -13,6 +13,42 @@ using namespace DirectX;
 
 namespace adria
 {
+	enum class AmbientOcclusion : uint8
+	{
+		None,
+		SSAO,
+		HBAO,
+		CACAO,
+		RTAO
+	};
+	enum class Upscaler : uint8
+	{
+		None,
+		FSR2,
+		FSR3,
+		XeSS,
+		DLSS3,
+	};
+	enum class Reflections : uint8
+	{
+		None,
+		SSR,
+		RTR
+	};
+	enum class DepthOfField : uint8
+	{
+		None,
+		Simple,
+		FFX
+	};
+	enum AntiAliasing : uint8
+	{
+		AntiAliasing_None = 0x0,
+		AntiAliasing_FXAA = 0x1,
+		AntiAliasing_TAA = 0x2
+	};
+
+
 	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
 	static TAutoConsoleVariable<int>  cvar_reflections("r.Reflections", 0, "0 - No Reflections, 1 - SSR, 2 - RTR");
 	static TAutoConsoleVariable<int>  cvar_upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
@@ -27,7 +63,6 @@ namespace adria
 	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
 	static TAutoConsoleVariable<bool> cvar_clouds("r.Clouds", true, "Enable or Disable Clouds");
 
-
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(gfx, width, height),
@@ -37,16 +72,18 @@ namespace adria
 		velocity_buffer_pass(gfx, width, height), motion_blur_pass(gfx, width, height), taa_pass(gfx, width, height),
 		god_rays_pass(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
 		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), rtr_pass(gfx, width, height), sun_pass(reg, gfx, width, height),
-		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height),  cas_pass(gfx, width, height), cacao_pass(gfx, width, height)
+		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height),  cas_pass(gfx, width, height), cacao_pass(gfx, width, height),
+		ambient_occlusion(AmbientOcclusion::SSAO), reflections(Reflections::None), upscaler(Upscaler::None), depth_of_field(DepthOfField::None),
+		anti_aliasing(AntiAliasing_FXAA)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
-		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
+		AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&PostProcessor::OnRenderResolutionChanged, *this));
 
 		//cvars
 		{
 			cvar_ambient_occlusion->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusion>(cvar->GetInt()); }));
 			cvar_reflections->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { reflections = static_cast<Reflections>(cvar->GetInt()); }));
-			cvar_upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { upscaler = static_cast<UpscalerType>(cvar->GetInt()); }));
+			cvar_upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { upscaler = static_cast<Upscaler>(cvar->GetInt()); }));
 			cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { depth_of_field = static_cast<DepthOfField>(cvar->GetInt()); }));
 			cvar_fxaa->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
 				{
@@ -154,11 +191,11 @@ namespace adria
 
 		switch (upscaler)
 		{
-		case UpscalerType::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
-		case UpscalerType::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
-		case UpscalerType::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
-		case UpscalerType::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
-		case UpscalerType::None:
+		case Upscaler::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
+		case Upscaler::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
+		case Upscaler::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
+		case Upscaler::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
+		case Upscaler::None:
 		{
 			if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 			{
@@ -173,7 +210,7 @@ namespace adria
 		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
 
-		if (cas && upscaler == UpscalerType::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
+		if (cas && upscaler == Upscaler::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 		{
 			final_resource = cas_pass.AddPass(rg, final_resource);
 		}
@@ -199,11 +236,11 @@ namespace adria
 		display_width = w, display_height = h;
 		switch (upscaler)
 		{
-		case UpscalerType::FSR2:  fsr2_pass.OnResize(w, h); break;
-		case UpscalerType::FSR3:  fsr3_pass.OnResize(w, h); break;
-		case UpscalerType::XeSS:  xess_pass.OnResize(w, h); break;
-		case UpscalerType::DLSS3: dlss3_pass.OnResize(w, h); break;
-		case UpscalerType::None:  upscaler_disabled_event.Broadcast(display_width, display_height); break;
+		case Upscaler::FSR2:  fsr2_pass.OnResize(w, h); break;
+		case Upscaler::FSR3:  fsr3_pass.OnResize(w, h); break;
+		case Upscaler::XeSS:  xess_pass.OnResize(w, h); break;
+		case Upscaler::DLSS3: dlss3_pass.OnResize(w, h); break;
+		case Upscaler::None:  upscaler_disabled_event.Broadcast(display_width, display_height); break;
 		}
 
 		taa_pass.OnResize(w, h);
@@ -328,10 +365,10 @@ namespace adria
 					}
 					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0FSR3\0XeSS\0DLSS3\0", 5))
 					{
-						upscaler = static_cast<UpscalerType>(current_upscaler);
-						if (upscaler == UpscalerType::DLSS3 && !dlss3_pass.IsSupported())
+						upscaler = static_cast<Upscaler>(current_upscaler);
+						if (upscaler == Upscaler::DLSS3 && !dlss3_pass.IsSupported())
 						{
-							upscaler = UpscalerType::None;
+							upscaler = Upscaler::None;
 							current_upscaler = 0;
 							ADRIA_LOG(WARNING, "DLSS3 is not supported on this device!");
 						}
@@ -339,11 +376,11 @@ namespace adria
 
 						switch (upscaler)
 						{
-						case UpscalerType::FSR2:  fsr2_pass.OnResize(display_width, display_height); break;
-						case UpscalerType::FSR3:  fsr3_pass.OnResize(display_width, display_height); break;
-						case UpscalerType::XeSS:  xess_pass.OnResize(display_width, display_height); break;
-						case UpscalerType::DLSS3: dlss3_pass.OnResize(display_width, display_height); break;
-						case UpscalerType::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
+						case Upscaler::FSR2:  fsr2_pass.OnResize(display_width, display_height); break;
+						case Upscaler::FSR3:  fsr3_pass.OnResize(display_width, display_height); break;
+						case Upscaler::XeSS:  xess_pass.OnResize(display_width, display_height); break;
+						case Upscaler::DLSS3: dlss3_pass.OnResize(display_width, display_height); break;
+						case Upscaler::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
 						}
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
@@ -388,5 +425,11 @@ namespace adria
 
 			}, GUICommandGroup_None);
 	}
+
+	bool PostProcessor::HasUpscaler() const
+	{
+		return upscaler != Upscaler::None;
+	}
+
 }
 
