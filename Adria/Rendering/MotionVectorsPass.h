@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderGraph/RenderGraphResourceId.h"
+#include "PostEffect.h"
 
 namespace adria
 {
@@ -7,13 +7,14 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class MotionVectorsPass
+	class MotionVectorsPass : public PostEffect
 	{
 	public:
 		MotionVectorsPass(GfxDevice* gfx, uint32 w, uint32 h);
 
-		void AddPass(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h);
+		virtual bool IsEnabled(PostProcessor*) const override;
+		virtual void AddPass(RenderGraph& rg, PostProcessor*) override;
+		virtual void OnResize(uint32 w, uint32 h) override;
 
 	private:
 		GfxDevice* gfx;

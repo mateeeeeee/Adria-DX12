@@ -388,5 +388,11 @@ namespace adria
 
 			}, GUICommandGroup_None);
 	}
+
+	void PostProcessor::CreatePostEffects()
+	{
+
+	}
+
 }
 

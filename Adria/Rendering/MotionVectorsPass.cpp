@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
+#include "Postprocessor.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
@@ -16,7 +17,12 @@ namespace adria
 		CreatePSO();
 	}
 
-	void MotionVectorsPass::AddPass(RenderGraph& rg)
+	bool MotionVectorsPass::IsEnabled(PostProcessor* postprocessor) const
+	{
+		return postprocessor->NeedsVelocityBuffer();
+	}
+
+	void MotionVectorsPass::AddPass(RenderGraph& rg, PostProcessor*)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct MotionVectorsPassData

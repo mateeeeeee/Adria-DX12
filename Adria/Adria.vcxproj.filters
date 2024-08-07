@@ -1134,6 +1134,9 @@
     <ClInclude Include="Graphics\GfxOptions.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\PostEffect.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

@@ -43,6 +43,9 @@ namespace adria
 	class GfxBuffer;
 	struct Light;
 	class RainEvent;
+	class PostEffect;
+
+	using RenderResolutionChangedDelegate = Delegate<void(uint32, uint32)>;
 
 	class PostProcessor
 	{
@@ -81,6 +84,12 @@ namespace adria
 			AntiAliasing_TAA = 0x2
 		};
 
+		enum class PostEffectType
+		{
+			VelocityBuffer,
+			Count
+		};
+
 		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32)
 
 	public:
@@ -89,25 +98,25 @@ namespace adria
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
+		
+		RGResourceName GetFinalResource() const;
 
-		template<typename T, typename... Args>
-		void AddRenderResolutionChangedCallback(void(T::* mem_pfn)(Args...), T& instance)
+		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
 		{
-			fsr2_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
-			fsr3_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
-			xess_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
-			dlss3_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
-			upscaler_disabled_event.AddMember(mem_pfn, instance);
+			fsr2_pass.GetRenderResolutionChangedEvent().Add(delegate);
+			fsr3_pass.GetRenderResolutionChangedEvent().Add(delegate);
+			xess_pass.GetRenderResolutionChangedEvent().Add(delegate);
+			dlss3_pass.GetRenderResolutionChangedEvent().Add(delegate);
+			upscaler_disabled_event.Add(delegate);
 		}
 
 		void OnRainEvent(bool enabled);
-		RGResourceName GetFinalResource() const;
-
 		void OnResize(uint32 w, uint32 h);
 		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
+		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
 
 	private:
 		GfxDevice* gfx;
@@ -119,6 +128,8 @@ namespace adria
 
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;
+
+		std::vector<PostEffect*> post_effects;
 
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -171,10 +182,10 @@ namespace adria
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
-		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
 		bool HasUpscaler() const { return upscaler != UpscalerType::None; }
 		bool HasTAA() const;
 
 		void PostprocessorGUI();
+		void CreatePostEffects();
 	};
 }
