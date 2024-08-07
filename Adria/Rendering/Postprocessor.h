@@ -43,53 +43,16 @@ namespace adria
 	class GfxBuffer;
 	struct Light;
 	class RainEvent;
-	class PostEffect;
+	enum class AmbientOcclusion : uint8;
+	enum class Upscaler : uint8;
+	enum class Reflections : uint8;
+	enum class DepthOfField : uint8;
+	enum AntiAliasing : uint8;
 
 	using RenderResolutionChangedDelegate = Delegate<void(uint32, uint32)>;
 
 	class PostProcessor
 	{
-		enum class AmbientOcclusion : uint8
-		{
-			None,
-			SSAO,
-			HBAO,
-			CACAO,
-			RTAO
-		};
-		enum class UpscalerType : uint8
-		{
-			None,
-			FSR2,
-			FSR3,
-			XeSS,
-			DLSS3,
-		};
-		enum class Reflections : uint8
-		{
-			None,
-			SSR,
-			RTR
-		};
-		enum class DepthOfField : uint8
-		{
-			None,
-			Simple,
-			FFX
-		};
-		enum AntiAliasing : uint8
-		{
-			AntiAliasing_None = 0x0,
-			AntiAliasing_FXAA = 0x1,
-			AntiAliasing_TAA = 0x2
-		};
-
-		enum class PostEffectType
-		{
-			VelocityBuffer,
-			Count
-		};
-
 		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32)
 
 	public:
@@ -98,8 +61,6 @@ namespace adria
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
-		
-		RGResourceName GetFinalResource() const;
 
 		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
 		{
@@ -111,12 +72,13 @@ namespace adria
 		}
 
 		void OnRainEvent(bool enabled);
+		RGResourceName GetFinalResource() const;
+
 		void OnResize(uint32 w, uint32 h);
 		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
-		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
 
 	private:
 		GfxDevice* gfx;
@@ -128,8 +90,6 @@ namespace adria
 
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;
-
-		std::vector<PostEffect*> post_effects;
 
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -161,13 +121,11 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
-		bool ray_tracing_supported = false;
-
-		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
-		Reflections reflections = Reflections::None;
-		UpscalerType upscaler = UpscalerType::None;
-		DepthOfField depth_of_field = DepthOfField::None;
-		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
+		AmbientOcclusion ambient_occlusion;
+		Reflections reflections;
+		Upscaler upscaler;
+		DepthOfField depth_of_field;
+		AntiAliasing anti_aliasing;
 
 		bool fog = false;
 		bool film_effects = false;
@@ -178,14 +136,15 @@ namespace adria
 		bool cas = false;
 
 		UpscalerDisabledEvent upscaler_disabled_event;
+		bool ray_tracing_supported = false;
 
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
-		bool HasUpscaler() const { return upscaler != UpscalerType::None; }
+		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
+		bool HasUpscaler() const;
 		bool HasTAA() const;
 
 		void PostprocessorGUI();
-		void CreatePostEffects();
 	};
 }

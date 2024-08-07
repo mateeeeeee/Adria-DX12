@@ -19,11 +19,6 @@ namespace adria
 	class PostEffectGroup final : public PostEffect
 	{
 	public:
-		~PostEffectGroup()
-		{
-			for (PostEffect* post_effect : post_effects) delete post_effect;
-			post_effects.clear();
-		}
 
 		virtual bool IsEnabled(PostProcessor* postprocessor) const override
 		{
@@ -31,22 +26,22 @@ namespace adria
 			return post_effects[post_effect_idx]->IsEnabled(postprocessor);
 		}
 
-		virtual RGResourceName AddPass(RenderGraph& rg, RGResourceName source) override
+		virtual void AddPass(RenderGraph& rg, PostProcessor* pp) override
 		{
 			ADRIA_ASSERT(post_effect_idx < post_effects.size());
-			return post_effects[post_effect_idx]->AddPass(rg, source);
+			post_effects[post_effect_idx]->AddPass(rg, pp);
 		}
 		virtual void OnResize(uint32 w, uint32 h) override
 		{
-			for (PostEffect* post_effect : post_effects) post_effect->OnResize(w, h);
+			for (auto& post_effect : post_effects) post_effect->OnResize(w, h);
 		}
 		virtual void OnSceneInitialized() override
 		{
-			for (PostEffect* post_effect : post_effects) post_effect->OnSceneInitialized();
+			for (auto& post_effect : post_effects) post_effect->OnSceneInitialized();
 		}
 
 	protected:
-		std::vector<PostEffect*> post_effects;
+		std::vector<std::unique_ptr<PostEffect>> post_effects;
 		uint32 post_effect_idx;
 	};
 }
