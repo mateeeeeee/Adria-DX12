@@ -35,10 +35,10 @@ namespace adria
 				hbao_desc.width = width;
 				hbao_desc.height = height;
 
-				builder.DeclareTexture(RG_RES_NAME(HBAO_Output), hbao_desc);
-				data.output_uav = builder.WriteTexture(RG_RES_NAME(HBAO_Output));
-				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				builder.DeclareTexture(RG_NAME(HBAO_Output), hbao_desc);
+				data.output_uav = builder.WriteTexture(RG_NAME(HBAO_Output));
+				data.gbuffer_normal_srv = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.depth_stencil_srv = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -80,7 +80,7 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
 
-		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");
+		blur_pass.AddPass(rendergraph, RG_NAME(HBAO_Output), RG_NAME(AmbientOcclusion), " HBAO");
 		
 		GUI_Command([&]()
 			{

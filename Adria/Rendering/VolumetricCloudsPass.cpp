@@ -28,7 +28,7 @@ namespace adria
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.ImportTexture(RG_RES_NAME(PreviousCloudsOutput), prev_clouds.get());
+		rg.ImportTexture(RG_NAME(PreviousCloudsOutput), prev_clouds.get());
 
 		static bool first_frame = true;
 		if (first_frame || should_generate_textures)
@@ -39,9 +39,9 @@ namespace adria
 				CreateCloudTextures();
 				should_generate_textures = false;
 			}
-			rg.ImportTexture(RG_RES_NAME(CloudShape), cloud_shape_noise.get());
-			rg.ImportTexture(RG_RES_NAME(CloudDetail), cloud_detail_noise.get()); 
-			rg.ImportTexture(RG_RES_NAME(CloudType), cloud_type.get()); 
+			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
+			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get()); 
+			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get()); 
 
 			struct CloudNoiseConstants
 			{
@@ -60,7 +60,7 @@ namespace adria
 				rg.AddPass<CloudShapePassData>("Compute Cloud Shape",
 					[=](CloudShapePassData& data, RenderGraphBuilder& builder)
 					{
-						data.shape = builder.WriteTexture(RG_RES_NAME(CloudShape), i, 1);
+						data.shape = builder.WriteTexture(RG_NAME(CloudShape), i, 1);
 					},
 					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 					{
@@ -95,7 +95,7 @@ namespace adria
 				rg.AddPass<CloudShapePassData>("Compute Cloud Detail",
 					[=](CloudShapePassData& data, RenderGraphBuilder& builder)
 					{
-						data.detail = builder.WriteTexture(RG_RES_NAME(CloudDetail), i, 1);
+						data.detail = builder.WriteTexture(RG_NAME(CloudDetail), i, 1);
 					},
 					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 					{
@@ -128,7 +128,7 @@ namespace adria
 			rg.AddPass<CloudTypePassData>("Compute Cloud Type",
 				[=](CloudTypePassData& data, RenderGraphBuilder& builder)
 				{
-					data.type = builder.WriteTexture(RG_RES_NAME(CloudType));
+					data.type = builder.WriteTexture(RG_NAME(CloudType));
 				},
 				[=](CloudTypePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 				{
@@ -153,9 +153,9 @@ namespace adria
 		}
 		else
 		{
-			rg.ImportTexture(RG_RES_NAME(CloudShape), cloud_shape_noise.get());
-			rg.ImportTexture(RG_RES_NAME(CloudDetail), cloud_detail_noise.get());
-			rg.ImportTexture(RG_RES_NAME(CloudType), cloud_type.get());
+			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
+			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get());
+			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get());
 		}
 
 		struct VolumetricCloudsPassData
@@ -175,12 +175,12 @@ namespace adria
 				clouds_output_desc.height = height >> resolution;
 				clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(CloudsOutput));
-				data.type = builder.ReadTexture(RG_RES_NAME(CloudType), ReadAccess_NonPixelShader);
-				data.shape = builder.ReadTexture(RG_RES_NAME(CloudShape), ReadAccess_NonPixelShader);
-				data.detail = builder.ReadTexture(RG_RES_NAME(CloudDetail), ReadAccess_NonPixelShader);
-				data.prev_output = builder.ReadTexture(RG_RES_NAME(PreviousCloudsOutput), ReadAccess_NonPixelShader);
+				builder.DeclareTexture(RG_NAME(CloudsOutput), clouds_output_desc);
+				data.output = builder.WriteTexture(RG_NAME(CloudsOutput));
+				data.type = builder.ReadTexture(RG_NAME(CloudType), ReadAccess_NonPixelShader);
+				data.shape = builder.ReadTexture(RG_NAME(CloudShape), ReadAccess_NonPixelShader);
+				data.detail = builder.ReadTexture(RG_NAME(CloudDetail), ReadAccess_NonPixelShader);
+				data.prev_output = builder.ReadTexture(RG_NAME(PreviousCloudsOutput), ReadAccess_NonPixelShader);
 			},
 			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -285,8 +285,8 @@ namespace adria
 			rg.AddPass<CopyCloudsPassData>("Clouds Copy Pass",
 				[=](CopyCloudsPassData& data, RenderGraphBuilder& builder)
 				{
-					data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PreviousCloudsOutput));
-					data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(CloudsOutput));
+					data.copy_dst = builder.WriteCopyDstTexture(RG_NAME(PreviousCloudsOutput));
+					data.copy_src = builder.ReadCopySrcTexture(RG_NAME(CloudsOutput));
 				},
 				[=](CopyCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
@@ -296,7 +296,7 @@ namespace adria
 				}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 		}
 
-		AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
+		AddCombinePass(rg, RG_NAME(PostprocessMain));
 
 		GUI_Command([&]() 
 			{
@@ -353,8 +353,8 @@ namespace adria
 			[=](CloudsCombinePassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
-				data.clouds_src = builder.ReadTexture(RG_RES_NAME(CloudsOutput), ReadAccess_PixelShader);
+				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.clouds_src = builder.ReadTexture(RG_NAME(CloudsOutput), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
 			[=](CloudsCombinePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

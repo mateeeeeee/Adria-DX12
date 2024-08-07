@@ -90,7 +90,7 @@ namespace adria
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
-		rg.ImportTexture(RG_RES_NAME(FogLightInjectionTargetHistory), light_injection_target_history.get());
+		rg.ImportTexture(RG_NAME(FogLightInjectionTargetHistory), light_injection_target_history.get());
 
 		struct LightInjectionPassData
 		{
@@ -111,10 +111,10 @@ namespace adria
 				light_injection_target_desc.height = voxel_grid_height;
 				light_injection_target_desc.depth = VOXEL_GRID_SIZE_Z;
 				light_injection_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(FogLightInjectionTarget), light_injection_target_desc);
+				builder.DeclareTexture(RG_NAME(FogLightInjectionTarget), light_injection_target_desc);
 
-				data.light_injection_target = builder.WriteTexture(RG_RES_NAME(FogLightInjectionTarget));
-				data.light_injection_target_history = builder.ReadTexture(RG_RES_NAME(FogLightInjectionTargetHistory));
+				data.light_injection_target = builder.WriteTexture(RG_NAME(FogLightInjectionTarget));
+				data.light_injection_target_history = builder.ReadTexture(RG_NAME(FogLightInjectionTargetHistory));
 			},
 			[=](LightInjectionPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -150,7 +150,7 @@ namespace adria
 								   DivideAndRoundUp(light_injection_target_history->GetDepth(), 8));
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		rg.ExportTexture(RG_RES_NAME(FogLightInjectionTarget), light_injection_target_history.get());
+		rg.ExportTexture(RG_NAME(FogLightInjectionTarget), light_injection_target_history.get());
 	}
 
 	void VolumetricFogPass::AddScatteringIntegrationPass(RenderGraph& rg)
@@ -175,10 +175,10 @@ namespace adria
 				voxel_desc.height = voxel_grid_height;
 				voxel_desc.depth = VOXEL_GRID_SIZE_Z;
 				voxel_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(FogFinal), voxel_desc);
+				builder.DeclareTexture(RG_NAME(FogFinal), voxel_desc);
 
-				data.integrated_scattering = builder.WriteTexture(RG_RES_NAME(FogFinal));
-				data.injected_light = builder.ReadTexture(RG_RES_NAME(FogLightInjectionTarget));
+				data.integrated_scattering = builder.WriteTexture(RG_NAME(FogFinal));
+				data.injected_light = builder.ReadTexture(RG_NAME(FogLightInjectionTarget));
 			},
 			[=](ScatteringIntegrationPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -221,9 +221,9 @@ namespace adria
 		rg.AddPass<CombinePassData>("Volumetric Fog Combine Pass",
 			[=](CombinePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				data.fog = builder.ReadTexture(RG_RES_NAME(FogFinal), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.fog = builder.ReadTexture(RG_NAME(FogFinal), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
 			[=](CombinePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

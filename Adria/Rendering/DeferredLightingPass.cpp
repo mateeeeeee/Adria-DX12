@@ -41,15 +41,15 @@ namespace adria
 				hdr_desc.width = width;
 				hdr_desc.height = height;
 				hdr_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), hdr_desc);
+				builder.DeclareTexture(RG_NAME(HDR_RenderTarget), hdr_desc);
 
-				data.output			  = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
-				data.gbuffer_normal   = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.gbuffer_albedo   = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
-				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
-				data.depth			  = builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_NonPixelShader);
+				data.output			  = builder.WriteTexture(RG_NAME(HDR_RenderTarget));
+				data.gbuffer_normal   = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.gbuffer_albedo   = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.depth			  = builder.ReadTexture(RG_NAME(DepthStencil),  ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
 
 				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);

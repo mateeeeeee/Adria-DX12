@@ -33,7 +33,7 @@ namespace adria
 				if (skybox.active)
 				{
 					GfxTexture* skybox_texture = g_TextureManager.GetTexture(skybox.cubemap_texture);
-					rg.ImportTexture(RG_RES_NAME(Sky), skybox_texture);
+					rg.ImportTexture(RG_NAME(Sky), skybox_texture);
 					break;
 				}
 			}
@@ -46,11 +46,11 @@ namespace adria
 			RGTextureReadWriteId sky_uav;
 		};
 
-		rg.ImportTexture(RG_RES_NAME(Sky), sky_texture.get());
+		rg.ImportTexture(RG_NAME(Sky), sky_texture.get());
 		rg.AddPass<ComputeSkyPassData>("Compute Sky Pass",
 			[=](ComputeSkyPassData& data, RenderGraphBuilder& builder)
 			{
-				data.sky_uav = builder.WriteTexture(RG_RES_NAME(Sky));
+				data.sky_uav = builder.WriteTexture(RG_NAME(Sky));
 			},
 			[&](ComputeSkyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -115,9 +115,9 @@ namespace adria
 		rg.AddPass<void>("Draw Sky Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				std::ignore = builder.ReadTexture(RG_RES_NAME(Sky));
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				std::ignore = builder.ReadTexture(RG_NAME(Sky));
+				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.ReadDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)

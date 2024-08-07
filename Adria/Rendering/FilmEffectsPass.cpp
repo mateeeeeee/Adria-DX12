@@ -31,8 +31,8 @@ namespace adria
 				film_effects_desc.width = width;
 				film_effects_desc.height = height;
 
-				builder.DeclareTexture(RG_RES_NAME(FilmEffectsOutput), film_effects_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(FilmEffectsOutput));
+				builder.DeclareTexture(RG_NAME(FilmEffectsOutput), film_effects_desc);
+				data.output = builder.WriteTexture(RG_NAME(FilmEffectsOutput));
 				data.input = builder.ReadTexture(input);
 			},
 			[=](FilmEffectsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
@@ -114,7 +114,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessor
 		);
 
-		return RG_RES_NAME(FilmEffectsOutput);
+		return RG_NAME(FilmEffectsOutput);
 	}
 
 	void FilmEffectsPass::OnResize(uint32 w, uint32 h)

@@ -26,8 +26,8 @@ namespace adria
 			[=](FXAAPassData& data, RenderGraphBuilder& builder)
 			{
 				data.ldr = builder.ReadTexture(input, ReadAccess_NonPixelShader);
-				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
-				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
+				ADRIA_ASSERT(builder.IsTextureDeclared(RG_NAME(FinalTexture)));
+				data.output = builder.WriteTexture(RG_NAME(FinalTexture));
 			},
 			[=](FXAAPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

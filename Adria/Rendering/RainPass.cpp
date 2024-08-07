@@ -40,7 +40,7 @@ namespace adria
 	void RainPass::AddPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.ImportBuffer(RG_RES_NAME(RainDataBuffer), rain_data_buffer.get());
+		rg.ImportBuffer(RG_NAME(RainDataBuffer), rain_data_buffer.get());
 
 		if (!pause_simulation)
 		{
@@ -51,7 +51,7 @@ namespace adria
 			rg.AddPass<RainSimulationPassData>("Rain Simulation Pass",
 				[=](RainSimulationPassData& data, RenderGraphBuilder& builder)
 				{
-					data.rain_data_buffer = builder.WriteBuffer(RG_RES_NAME(RainDataBuffer));
+					data.rain_data_buffer = builder.WriteBuffer(RG_NAME(RainDataBuffer));
 				},
 				[=](RainSimulationPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
@@ -91,9 +91,9 @@ namespace adria
 		rg.AddPass<RainDrawPassData>("Rain Draw Pass",
 			[=](RainDrawPassData& data, RenderGraphBuilder& builder)
 			{
-				data.rain_data_buffer = builder.ReadBuffer(RG_RES_NAME(RainDataBuffer), ReadAccess_NonPixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.rain_data_buffer = builder.ReadBuffer(RG_NAME(RainDataBuffer), ReadAccess_NonPixelShader);
+				builder.WriteRenderTarget(RG_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RainDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

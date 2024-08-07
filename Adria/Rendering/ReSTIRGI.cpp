@@ -66,23 +66,23 @@ namespace adria
 		rg.AddPass<InitialSamplingPassData>("RESTIR GI Initial Sampling Pass",
 			[=](InitialSamplingPassData& data, RenderGraphBuilder& builder)
 			{
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
-				data.prev_depth = builder.ReadTexture(RG_RES_NAME(DepthHistory));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
+				data.normal = builder.ReadTexture(RG_NAME(GBufferNormal));
+				data.prev_depth = builder.ReadTexture(RG_NAME(DepthHistory));
 
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width = half_width;
 				irradiance_desc.height = half_height;
 				irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(ReSTIR_Irradiance), irradiance_desc);
-				data.irradiance = builder.WriteTexture(RG_RES_NAME(ReSTIR_Irradiance));
+				builder.DeclareTexture(RG_NAME(ReSTIR_Irradiance), irradiance_desc);
+				data.irradiance = builder.WriteTexture(RG_NAME(ReSTIR_Irradiance));
 
 				RGTextureDesc ray_direction_desc{};
 				ray_direction_desc.width = half_width;
 				ray_direction_desc.height = half_height;
 				ray_direction_desc.format = GfxFormat::R32G32_UINT;
-				builder.DeclareTexture(RG_RES_NAME(ReSTIR_RayDirection), irradiance_desc);
-				data.ray_direction = builder.WriteTexture(RG_RES_NAME(ReSTIR_RayDirection));
+				builder.DeclareTexture(RG_NAME(ReSTIR_RayDirection), irradiance_desc);
+				data.ray_direction = builder.WriteTexture(RG_NAME(ReSTIR_RayDirection));
 			},
 			[=](InitialSamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{

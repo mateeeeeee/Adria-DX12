@@ -40,10 +40,10 @@ namespace adria
 	{
 		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
-		rendergraph.ImportBuffer(RG_RES_NAME(ClustersBuffer), &clusters);
-		rendergraph.ImportBuffer(RG_RES_NAME(LightCounter), &light_counter);
-		rendergraph.ImportBuffer(RG_RES_NAME(LightGrid), &light_grid);
-		rendergraph.ImportBuffer(RG_RES_NAME(LightList), &light_list);
+		rendergraph.ImportBuffer(RG_NAME(ClustersBuffer), &clusters);
+		rendergraph.ImportBuffer(RG_NAME(LightCounter), &light_counter);
+		rendergraph.ImportBuffer(RG_NAME(LightGrid), &light_grid);
+		rendergraph.ImportBuffer(RG_NAME(LightList), &light_list);
 
 		struct ClusterBuildingPassData
 		{
@@ -55,7 +55,7 @@ namespace adria
 			rendergraph.AddPass<ClusterBuildingPassData>("Cluster Building Pass",
 				[=](ClusterBuildingPassData& data, RenderGraphBuilder& builder)
 				{
-					data.clusters = builder.WriteBuffer(RG_RES_NAME(ClustersBuffer));
+					data.clusters = builder.WriteBuffer(RG_NAME(ClustersBuffer));
 				},
 				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
@@ -80,10 +80,10 @@ namespace adria
 		rendergraph.AddPass<ClusterCullingPassData>("Cluster Culling Pass",
 			[=](ClusterCullingPassData& data, RenderGraphBuilder& builder)
 			{
-				data.clusters = builder.ReadBuffer(RG_RES_NAME(ClustersBuffer), ReadAccess_NonPixelShader);
-				data.light_counter = builder.WriteBuffer(RG_RES_NAME(LightCounter));
-				data.light_grid = builder.WriteBuffer(RG_RES_NAME(LightGrid));
-				data.light_list = builder.WriteBuffer(RG_RES_NAME(LightList));
+				data.clusters = builder.ReadBuffer(RG_NAME(ClustersBuffer), ReadAccess_NonPixelShader);
+				data.light_counter = builder.WriteBuffer(RG_NAME(LightCounter));
+				data.light_grid = builder.WriteBuffer(RG_NAME(LightGrid));
+				data.light_list = builder.WriteBuffer(RG_NAME(LightList));
 			},
 			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -136,20 +136,20 @@ namespace adria
 				hdr_desc.height = height;
 				hdr_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				hdr_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), hdr_desc);
+				builder.DeclareTexture(RG_NAME(HDR_RenderTarget), hdr_desc);
 
-				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
-				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				data.light_grid = builder.ReadBuffer(RG_RES_NAME(LightGrid), ReadAccess_PixelShader);
-				data.light_list = builder.ReadBuffer(RG_RES_NAME(LightList), ReadAccess_PixelShader);
-				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_PixelShader);
+				data.gbuffer_albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_PixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.light_grid = builder.ReadBuffer(RG_NAME(LightGrid), ReadAccess_PixelShader);
+				data.light_list = builder.ReadBuffer(RG_NAME(LightList), ReadAccess_PixelShader);
+				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion)))
-					data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion)))
+					data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
 
-				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
+				data.output = builder.WriteTexture(RG_NAME(HDR_RenderTarget));
 			},
 			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

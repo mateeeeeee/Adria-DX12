@@ -38,9 +38,9 @@ namespace adria
 			[=](FFXCASPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(input);
-				builder.DeclareTexture(RG_RES_NAME(FFXCASOutput), ffx_dof_desc);
+				builder.DeclareTexture(RG_NAME(FFXCASOutput), ffx_dof_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(FFXCASOutput));
+				data.output = builder.WriteTexture(RG_NAME(FFXCASOutput));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 			},
 			[=](FFXCASPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
@@ -70,7 +70,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_RES_NAME(FFXCASOutput);
+		return RG_NAME(FFXCASOutput);
 	}
 
 	void FFXCASPass::OnResize(uint32 w, uint32 h)

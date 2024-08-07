@@ -120,8 +120,8 @@ namespace adria
 		rg.AddPass<EditorPassData>("Editor Pass",
 			[=](EditorPassData& data, RenderGraphBuilder& builder)
 			{
-				data.src = builder.ReadTexture(RG_RES_NAME(FinalTexture));
-				data.rt = builder.WriteRenderTarget(RG_RES_NAME(Backbuffer), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.src = builder.ReadTexture(RG_NAME(FinalTexture));
+				data.rt = builder.WriteRenderTarget(RG_NAME(Backbuffer), RGLoadStoreAccessOp::Preserve_Preserve);
 				Vector2u display_resolution = engine->renderer->GetDisplayResolution();
 				builder.SetViewport(display_resolution.x, display_resolution.y);
 			},

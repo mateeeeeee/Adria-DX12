@@ -32,8 +32,8 @@ namespace adria
 		rg.AddPass<LensFlarePassData>("Lens Flare Pass",
 			[=](LensFlarePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(PostprocessMain), RGLoadStoreAccessOp::Preserve_Preserve);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(RG_NAME(PostprocessMain), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
 			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
@@ -115,8 +115,8 @@ namespace adria
 		rg.AddPass<LensFlarePassData>("Lens Flare 2 Pass",
 			[=](LensFlarePassData& data, RenderGraphBuilder& builder)
 			{
-				data.output = builder.WriteTexture(RG_RES_NAME(PostprocessMain));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(PostprocessMain));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

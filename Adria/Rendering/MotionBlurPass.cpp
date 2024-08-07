@@ -33,10 +33,10 @@ namespace adria
 				motion_blur_desc.height = height;
 				motion_blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(MotionBlurOutput), motion_blur_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(MotionBlurOutput));
+				builder.DeclareTexture(RG_NAME(MotionBlurOutput), motion_blur_desc);
+				data.output = builder.WriteTexture(RG_NAME(MotionBlurOutput));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
-				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 			},
 			[=](MotionBlurPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -68,7 +68,7 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		return RG_RES_NAME(MotionBlurOutput);
+		return RG_NAME(MotionBlurOutput);
 	}
 
 	void MotionBlurPass::OnResize(uint32 w, uint32 h)

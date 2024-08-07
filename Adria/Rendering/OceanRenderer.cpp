@@ -40,11 +40,11 @@ namespace adria
 			}
 		}
 
-		rendergraph.ImportTexture(RG_RES_NAME(InitialSpectrum), initial_spectrum.get());
-		rendergraph.ImportTexture(RG_RES_NAME(PongPhase), ping_pong_phase_textures[pong_phase].get());
-		rendergraph.ImportTexture(RG_RES_NAME(PingPhase), ping_pong_phase_textures[!pong_phase].get());
-		rendergraph.ImportTexture(RG_RES_NAME(PongSpectrum), ping_pong_spectrum_textures[pong_spectrum].get());
-		rendergraph.ImportTexture(RG_RES_NAME(PingSpectrum), ping_pong_spectrum_textures[!pong_spectrum].get());
+		rendergraph.ImportTexture(RG_NAME(InitialSpectrum), initial_spectrum.get());
+		rendergraph.ImportTexture(RG_NAME(PongPhase), ping_pong_phase_textures[pong_phase].get());
+		rendergraph.ImportTexture(RG_NAME(PingPhase), ping_pong_phase_textures[!pong_phase].get());
+		rendergraph.ImportTexture(RG_NAME(PongSpectrum), ping_pong_spectrum_textures[pong_spectrum].get());
+		rendergraph.ImportTexture(RG_NAME(PingSpectrum), ping_pong_spectrum_textures[!pong_spectrum].get());
 
 		if (recreate_initial_spectrum)
 		{
@@ -55,7 +55,7 @@ namespace adria
 			rendergraph.AddPass<InitialSpectrumPassData>("Spectrum Creation Pass",
 				[=](InitialSpectrumPassData& data, RenderGraphBuilder& builder)
 				{
-					data.initial_spectrum = builder.WriteTexture(RG_RES_NAME(InitialSpectrum));
+					data.initial_spectrum = builder.WriteTexture(RG_NAME(InitialSpectrum));
 				},
 				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
@@ -89,8 +89,8 @@ namespace adria
 		rendergraph.AddPass<PhasePassData>("Phase Pass",
 			[=](PhasePassData& data, RenderGraphBuilder& builder)
 			{
-				data.phase_srv = builder.ReadTexture(RG_RES_NAME(PongPhase), ReadAccess_NonPixelShader);
-				data.phase_uav = builder.WriteTexture(RG_RES_NAME(PingPhase));
+				data.phase_srv = builder.ReadTexture(RG_NAME(PongPhase), ReadAccess_NonPixelShader);
+				data.phase_uav = builder.WriteTexture(RG_NAME(PingPhase));
 			},
 			[=](PhasePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -128,9 +128,9 @@ namespace adria
 		rendergraph.AddPass<SpectrumPassData>("Spectrum Pass",
 			[=](SpectrumPassData& data, RenderGraphBuilder& builder)
 			{
-				data.phase_srv = builder.ReadTexture(RG_RES_NAME(PongPhase), ReadAccess_NonPixelShader);
-				data.initial_spectrum_srv = builder.ReadTexture(RG_RES_NAME(InitialSpectrum), ReadAccess_NonPixelShader);
-				data.spectrum_uav = builder.WriteTexture(RG_RES_NAME(PongSpectrum));
+				data.phase_srv = builder.ReadTexture(RG_NAME(PongPhase), ReadAccess_NonPixelShader);
+				data.initial_spectrum_srv = builder.ReadTexture(RG_NAME(InitialSpectrum), ReadAccess_NonPixelShader);
+				data.spectrum_uav = builder.WriteTexture(RG_NAME(PongSpectrum));
 			},
 			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -181,8 +181,8 @@ namespace adria
 			rendergraph.AddPass<FFTHorizontalPassData>("FFT Horizontal Pass",
 				[=, pong_spectrum = this->pong_spectrum](FFTHorizontalPassData& data, RenderGraphBuilder& builder)
 				{
-					RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PongSpectrum) : RG_RES_NAME(PingSpectrum);
-					RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PingSpectrum) : RG_RES_NAME(PongSpectrum);
+					RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_NAME(PongSpectrum) : RG_NAME(PingSpectrum);
+					RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_NAME(PingSpectrum) : RG_NAME(PongSpectrum);
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
@@ -221,8 +221,8 @@ namespace adria
 			rendergraph.AddPass<FFTVerticalPassData>("FFT Vertical Pass",
 				[=, pong_spectrum = this->pong_spectrum](FFTVerticalPassData& data, RenderGraphBuilder& builder)
 				{
-					RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PongSpectrum) : RG_RES_NAME(PingSpectrum);
-					RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PingSpectrum) : RG_RES_NAME(PongSpectrum);
+					RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_NAME(PongSpectrum) : RG_NAME(PingSpectrum);
+					RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_NAME(PingSpectrum) : RG_NAME(PongSpectrum);
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
@@ -262,11 +262,11 @@ namespace adria
 				ocean_desc.width = FFT_RESOLUTION;
 				ocean_desc.height = FFT_RESOLUTION;
 				ocean_desc.format = GfxFormat::R32G32B32A32_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(OceanNormals), ocean_desc);
+				builder.DeclareTexture(RG_NAME(OceanNormals), ocean_desc);
 
-				RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PongSpectrum) : RG_RES_NAME(PingSpectrum);
+				RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_NAME(PongSpectrum) : RG_NAME(PingSpectrum);
 				data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
-				data.normals_uav = builder.WriteTexture(RG_RES_NAME(OceanNormals));
+				data.normals_uav = builder.WriteTexture(RG_NAME(OceanNormals));
 			},
 			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -303,11 +303,11 @@ namespace adria
 		rendergraph.AddPass<OceanDrawPassData>("Ocean Draw Pass",
 			[=](OceanDrawPassData& data, RenderGraphBuilder& builder)
 			{
-				RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PingSpectrum) : RG_RES_NAME(PongSpectrum);
+				RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_NAME(PingSpectrum) : RG_NAME(PongSpectrum);
 				data.displacement = builder.ReadTexture(ping_spectrum_texture, ReadAccess_NonPixelShader);
-				data.normals = builder.ReadTexture(RG_RES_NAME(OceanNormals), ReadAccess_PixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.normals = builder.ReadTexture(RG_NAME(OceanNormals), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](OceanDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

@@ -32,9 +32,9 @@ namespace adria
 				velocity_buffer_desc.height = height;
 				velocity_buffer_desc.format = GfxFormat::R16G16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(VelocityBuffer), velocity_buffer_desc);
-				data.velocity = builder.WriteTexture(RG_RES_NAME(VelocityBuffer));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				builder.DeclareTexture(RG_NAME(VelocityBuffer), velocity_buffer_desc);
+				data.velocity = builder.WriteTexture(RG_NAME(VelocityBuffer));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](MotionVectorsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

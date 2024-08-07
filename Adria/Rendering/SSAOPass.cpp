@@ -58,10 +58,10 @@ namespace adria
 				ssao_desc.width = width >> ssao_resolution.Get();
 				ssao_desc.height = height >> ssao_resolution.Get();
 
-				builder.DeclareTexture(RG_RES_NAME(SSAO_Output), ssao_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(SSAO_Output));
-				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				builder.DeclareTexture(RG_NAME(SSAO_Output), ssao_desc);
+				data.output = builder.WriteTexture(RG_NAME(SSAO_Output));
+				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[&](SSAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -106,7 +106,7 @@ namespace adria
 
 			}, RGPassType::Compute);
 
-		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
+		blur_pass.AddPass(rendergraph, RG_NAME(SSAO_Output), RG_NAME(AmbientOcclusion), " SSAO");
 
 		GUI_Command([&]() 
 			{

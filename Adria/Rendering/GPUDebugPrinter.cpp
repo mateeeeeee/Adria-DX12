@@ -223,7 +223,7 @@ namespace adria
 
 	void GPUDebugPrinter::AddClearPass(RenderGraph& rg)
 	{
-		rg.ImportBuffer(RG_RES_NAME(PrintfBuffer), printf_buffer.get());
+		rg.ImportBuffer(RG_NAME(PrintfBuffer), printf_buffer.get());
 		struct ClearPrintfBufferPassData
 		{
 			RGBufferReadWriteId printf_buffer;
@@ -231,7 +231,7 @@ namespace adria
 		rg.AddPass<ClearPrintfBufferPassData>("Clear Printf Buffer Pass",
 			[=](ClearPrintfBufferPassData& data, RenderGraphBuilder& builder)
 			{
-				data.printf_buffer = builder.WriteBuffer(RG_RES_NAME(PrintfBuffer));
+				data.printf_buffer = builder.WriteBuffer(RG_NAME(PrintfBuffer));
 			},
 			[=](ClearPrintfBufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -249,8 +249,8 @@ namespace adria
 		rg.AddPass<CopyPrintfBufferPassData>("Copy Printf Buffer Pass",
 			[=](CopyPrintfBufferPassData& data, RenderGraphBuilder& builder)
 			{
-				data.printf_buffer = builder.ReadCopySrcBuffer(RG_RES_NAME(PrintfBuffer));
-				std::ignore = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture)); //forcing dependency with the final texture so the printf pass doesn't run before some other pass
+				data.printf_buffer = builder.ReadCopySrcBuffer(RG_NAME(PrintfBuffer));
+				std::ignore = builder.ReadCopySrcTexture(RG_NAME(FinalTexture)); //forcing dependency with the final texture so the printf pass doesn't run before some other pass
 			},
 			[&](CopyPrintfBufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

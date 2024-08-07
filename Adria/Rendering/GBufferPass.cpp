@@ -33,21 +33,21 @@ namespace adria
 				gbuffer_desc.format = GfxFormat::R8G8B8A8_UNORM;
 				gbuffer_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
-				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
-				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
-				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
+				builder.DeclareTexture(RG_NAME(GBufferNormal), gbuffer_desc);
+				builder.DeclareTexture(RG_NAME(GBufferAlbedo), gbuffer_desc);
+				builder.DeclareTexture(RG_NAME(GBufferEmissive), gbuffer_desc);
 
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
 
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
 				depth_desc.height = height;
 				depth_desc.format = GfxFormat::R32_TYPELESS;
 				depth_desc.clear_value = GfxClearValue(0.0f, 0);
-				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.DeclareTexture(RG_NAME(DepthStencil), depth_desc);
+				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)

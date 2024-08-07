@@ -79,7 +79,7 @@ namespace adria
 		uint32 target_dim_x = std::max(1u, width >> pass_idx);
 		uint32 target_dim_y = std::max(1u, height >> pass_idx);
 
-		RGResourceName output = RG_RES_NAME_IDX(BloomDownsample, pass_idx);
+		RGResourceName output = RG_NAME_IDX(BloomDownsample, pass_idx);
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct BloomDownsamplePassData
@@ -149,7 +149,7 @@ namespace adria
 		uint32 target_dim_x = std::max(1u, width >> pass_idx);
 		uint32 target_dim_y = std::max(1u, height >> pass_idx);
 
-		RGResourceName output = pass_idx != 1 ? RG_RES_NAME_IDX(BloomUpsample, pass_idx) : RG_RES_NAME(Bloom);
+		RGResourceName output = pass_idx != 1 ? RG_NAME_IDX(BloomUpsample, pass_idx) : RG_NAME(Bloom);
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		std::string pass_name = std::format("Bloom Upsample Pass {}", pass_idx);

@@ -31,9 +31,9 @@ namespace adria
 		rendergraph.AddPass<DecalsPassData>("Decals Pass",
 			[=](DecalsPassData& data, RenderGraphBuilder& builder)
 			{
-				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.depth_srv = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(RG_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](DecalsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

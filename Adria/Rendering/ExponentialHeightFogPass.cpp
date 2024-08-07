@@ -38,10 +38,10 @@ namespace adria
 				fog_output_desc.height = height;
 				fog_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(FogOutput), fog_output_desc);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				builder.DeclareTexture(RG_NAME(FogOutput), fog_output_desc);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
-				data.output = builder.WriteTexture(RG_RES_NAME(FogOutput));
+				data.output = builder.WriteTexture(RG_NAME(FogOutput));
 				builder.SetViewport(width, height);
 			},
 			[=](ExponentialHeightFogPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
@@ -108,7 +108,7 @@ namespace adria
 					ImGui::Separator();
 				}
 			}, GUICommandGroup_PostProcessor);
-		return RG_RES_NAME(FogOutput);
+		return RG_NAME(FogOutput);
 	}
 
 	void ExponentialHeightFogPass::OnResize(uint32 w, uint32 h)

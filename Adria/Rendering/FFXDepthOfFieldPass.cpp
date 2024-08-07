@@ -40,11 +40,11 @@ namespace adria
 			[=](FFXDoFPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(input);
-				builder.DeclareTexture(RG_RES_NAME(FFXDoFOutput), ffx_dof_desc);
+				builder.DeclareTexture(RG_NAME(FFXDoFOutput), ffx_dof_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(FFXDoFOutput));
+				data.output = builder.WriteTexture(RG_NAME(FFXDoFOutput));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](FFXDoFPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -96,7 +96,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_RES_NAME(FFXDoFOutput);
+		return RG_NAME(FFXDoFOutput);
 	}
 
 	void FFXDepthOfFieldPass::OnResize(uint32 w, uint32 h)

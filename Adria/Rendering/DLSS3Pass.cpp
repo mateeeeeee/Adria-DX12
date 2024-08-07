@@ -60,12 +60,12 @@ namespace adria
 				dlss3_desc.width = display_width;
 				dlss3_desc.height = display_height;
 				dlss3_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(DLSS3Output), dlss3_desc);
+				builder.DeclareTexture(RG_NAME(DLSS3Output), dlss3_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(DLSS3Output));
+				data.output = builder.WriteTexture(RG_NAME(DLSS3Output));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
-				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](DLSS3PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -113,7 +113,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_RES_NAME(DLSS3Output);
+		return RG_NAME(DLSS3Output);
 	}
 
 	bool DLSS3Pass::InitializeNVSDK_NGX()

@@ -100,8 +100,8 @@ namespace adria
 		float random_angle = rng() * pi<float> * 2.0f;
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
-		rg.ImportTexture(RG_RES_NAME(DDGIDistanceHistory), ddgi_volume.distance_history.get());
+		rg.ImportTexture(RG_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
+		rg.ImportTexture(RG_NAME(DDGIDistanceHistory), ddgi_volume.distance_history.get());
 
 		struct DDGIBlackboardData
 		{
@@ -122,11 +122,11 @@ namespace adria
 				ray_buffer_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				ray_buffer_desc.stride = GetGfxFormatStride(ray_buffer_desc.format);
 				ray_buffer_desc.size = ray_buffer_desc.stride * num_probes_flat * ddgi_volume.max_num_rays;
-				builder.DeclareBuffer(RG_RES_NAME(DDGIRayBuffer), ray_buffer_desc);
+				builder.DeclareBuffer(RG_NAME(DDGIRayBuffer), ray_buffer_desc);
 
-				data.ray_buffer = builder.WriteBuffer(RG_RES_NAME(DDGIRayBuffer));
-				data.irradiance_history = builder.ReadTexture(RG_RES_NAME(DDGIIrradianceHistory));
-				data.distance_history = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
+				data.ray_buffer = builder.WriteBuffer(RG_NAME(DDGIRayBuffer));
+				data.irradiance_history = builder.ReadTexture(RG_NAME(DDGIIrradianceHistory));
+				data.distance_history = builder.ReadTexture(RG_NAME(DDGIDistanceHistory));
 			},
 			[=](DDGIRayTracePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
@@ -177,11 +177,11 @@ namespace adria
 				irradiance_desc.width  = irradiance_dimensions.x;
 				irradiance_desc.height = irradiance_dimensions.y;
 				irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(DDGIIrradiance), irradiance_desc);
+				builder.DeclareTexture(RG_NAME(DDGIIrradiance), irradiance_desc);
 
-				data.irradiance		= builder.WriteTexture(RG_RES_NAME(DDGIIrradiance));
-				data.ray_buffer		= builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
-				data.irradiance_history = builder.ReadTexture(RG_RES_NAME(DDGIIrradianceHistory));
+				data.irradiance		= builder.WriteTexture(RG_NAME(DDGIIrradiance));
+				data.ray_buffer		= builder.ReadBuffer(RG_NAME(DDGIRayBuffer));
+				data.irradiance_history = builder.ReadTexture(RG_NAME(DDGIIrradianceHistory));
 			},
 			[=](DDGIUpdateIrradiancePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
@@ -229,11 +229,11 @@ namespace adria
 				distance_desc.width = distance_dimensions.x;
 				distance_desc.height = distance_dimensions.y;
 				distance_desc.format = GfxFormat::R16G16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), distance_desc);
+				builder.DeclareTexture(RG_NAME(DDGIDistance), distance_desc);
 
-				data.distance = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
-				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
-				data.distance_history = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
+				data.distance = builder.WriteTexture(RG_NAME(DDGIDistance));
+				data.ray_buffer = builder.ReadBuffer(RG_NAME(DDGIRayBuffer));
+				data.distance_history = builder.ReadTexture(RG_NAME(DDGIDistanceHistory));
 			},
 			[=](DDGIUpdateDistancePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
@@ -267,8 +267,8 @@ namespace adria
 				cmd_list->TextureBarrier(ctx.GetTexture(*data.distance), GfxResourceState::ComputeUAV, GfxResourceState::ComputeUAV);
 			}, RGPassType::Compute);
 
-		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
-		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
+		rg.ExportTexture(RG_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
+		rg.ExportTexture(RG_NAME(DDGIDistance), ddgi_volume.distance_history.get());
 
 		GUI_Command([&]()
 			{
@@ -307,8 +307,8 @@ namespace adria
 		rg.AddPass<void>("DDGI Visualize Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable

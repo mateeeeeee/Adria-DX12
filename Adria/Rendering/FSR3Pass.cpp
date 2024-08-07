@@ -71,12 +71,12 @@ namespace adria
 				fsr3_desc.width = display_width;
 				fsr3_desc.height = display_height;
 				fsr3_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(FSR3Output), fsr3_desc);
+				builder.DeclareTexture(RG_NAME(FSR3Output), fsr3_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(FSR3Output));
+				data.output = builder.WriteTexture(RG_NAME(FSR3Output));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
-				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](FSR3PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -139,7 +139,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_RES_NAME(FSR3Output);
+		return RG_NAME(FSR3Output);
 	}
 
 	void FSR3Pass::CreateContext()

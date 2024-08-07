@@ -35,10 +35,10 @@ namespace adria
 				volumetric_output_desc.width = width >> resolution;
 				volumetric_output_desc.height = height >> resolution;
 				volumetric_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(VolumetricLightOutput), volumetric_output_desc);
+				builder.DeclareTexture(RG_NAME(VolumetricLightOutput), volumetric_output_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(VolumetricLightOutput));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(VolumetricLightOutput));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 
 				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);
 			},
@@ -68,7 +68,7 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
 			}, RGPassType::Compute);
 
-		copy_to_texture_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(VolumetricLightOutput), BlendMode::AdditiveBlend);
+		copy_to_texture_pass.AddPass(rendergraph, RG_NAME(HDR_RenderTarget), RG_NAME(VolumetricLightOutput), BlendMode::AdditiveBlend);
 
 		GUI_Command([&]()
 			{

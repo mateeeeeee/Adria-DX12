@@ -80,12 +80,12 @@ namespace adria
 				xess_desc.width = display_width;
 				xess_desc.height = display_height;
 				xess_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(XeSSOutput), xess_desc);
+				builder.DeclareTexture(RG_NAME(XeSSOutput), xess_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(XeSSOutput));
+				data.output = builder.WriteTexture(RG_NAME(XeSSOutput));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
-				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](XeSSPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -134,7 +134,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_RES_NAME(XeSSOutput);
+		return RG_NAME(XeSSOutput);
 	}
 
 	void XeSSPass::XeSSInit()

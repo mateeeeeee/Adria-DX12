@@ -52,11 +52,11 @@ namespace adria
 		auto [V, P] = RainBlockerMatrices(Vector4(frame_data.camera_position), BLOCKER_DIM);
 		view_projection = V * P;
 
-		rendergraph.ImportTexture(RG_RES_NAME(RainBlocker), blocker_map.get());
+		rendergraph.ImportTexture(RG_NAME(RainBlocker), blocker_map.get());
 		rendergraph.AddPass<void>("Rain Blocker Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				builder.WriteDepthStencil(RG_RES_NAME(RainBlocker), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteDepthStencil(RG_NAME(RainBlocker), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(BLOCKER_DIM, BLOCKER_DIM);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)

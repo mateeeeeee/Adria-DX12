@@ -32,7 +32,7 @@ namespace adria
 		rg.AddPass<RayTracedShadowsPassData>("Ray Traced Shadows Pass",
 			[=](RayTracedShadowsPassData& data, RGBuilder& builder)
 			{
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

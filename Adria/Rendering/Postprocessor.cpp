@@ -112,11 +112,11 @@ namespace adria
 				if (light_data.god_rays)
 				{
 					god_rays_pass.AddPass(rg, light_data);
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
 				}
 				else
 				{
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(SunOutput), BlendMode::AdditiveBlend);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_NAME(SunOutput), BlendMode::AdditiveBlend);
 				}
 				break;
 			}
@@ -141,8 +141,8 @@ namespace adria
 		{
 		case DepthOfField::Simple:
 		{
-			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
-			final_resource = dof_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput));
+			blur_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput), " DoF ");
+			final_resource = dof_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput));
 		}
 		break;
 		case DepthOfField::FFX:
@@ -162,8 +162,8 @@ namespace adria
 		{
 			if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 			{
-				rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
-				final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
+				rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
+				final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
 				rg.ExportTexture(final_resource, history_buffer.get());
 			}
 		}
@@ -180,8 +180,8 @@ namespace adria
 
 		if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
 		{
-			tonemap_pass.AddPass(rg, final_resource, RG_RES_NAME(TonemapOutput));
-			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));
+			tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
+			fxaa_pass.AddPass(rg, RG_NAME(TonemapOutput));
 		}
 		else
 		{
@@ -293,9 +293,9 @@ namespace adria
 				postprocess_desc.height = render_height;
 				postprocess_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
-				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
+				builder.DeclareTexture(RG_NAME(PostprocessMain), postprocess_desc);
+				data.copy_dst = builder.WriteCopyDstTexture(RG_NAME(PostprocessMain));
+				data.copy_src = builder.ReadCopySrcTexture(RG_NAME(HDR_RenderTarget));
 			},
 			[=](CopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -304,7 +304,7 @@ namespace adria
 				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::None);
 
-		return RG_RES_NAME(PostprocessMain);
+		return RG_NAME(PostprocessMain);
 	}
 
 	void PostProcessor::PostprocessorGUI()

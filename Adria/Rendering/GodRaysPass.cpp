@@ -37,9 +37,9 @@ namespace adria
 				god_rays_desc.width = width;
 				god_rays_desc.height = height;
 
-				builder.DeclareTexture(RG_RES_NAME(GodRaysOutput), god_rays_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(GodRaysOutput));
-				data.sun = builder.ReadTexture(RG_RES_NAME(SunOutput));
+				builder.DeclareTexture(RG_NAME(GodRaysOutput), god_rays_desc);
+				data.output = builder.WriteTexture(RG_NAME(GodRaysOutput));
+				data.sun = builder.ReadTexture(RG_NAME(SunOutput));
 			},
 			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

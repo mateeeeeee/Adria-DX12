@@ -58,8 +58,8 @@ namespace adria
 				desc.size = desc.stride * 256;
 				desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
 				desc.resource_usage = GfxResourceUsage::Default;
-				builder.DeclareBuffer(RG_RES_NAME(HistogramBuffer), desc);
-				data.histogram_buffer = builder.WriteBuffer(RG_RES_NAME(HistogramBuffer));
+				builder.DeclareBuffer(RG_NAME(HistogramBuffer), desc);
+				data.histogram_buffer = builder.WriteBuffer(RG_NAME(HistogramBuffer));
 			},
 			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -111,12 +111,12 @@ namespace adria
 		rg.AddPass<HistogramReductionData>("Histogram Reduction Pass",
 			[=](HistogramReductionData& data, RenderGraphBuilder& builder)
 			{
-				data.histogram_buffer = builder.ReadBuffer(RG_RES_NAME(HistogramBuffer));
+				data.histogram_buffer = builder.ReadBuffer(RG_NAME(HistogramBuffer));
 				RGTextureDesc desc{};
 				desc.width = desc.height = 1;
 				desc.format = GfxFormat::R16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(AverageLuminance), desc);
-				data.avg_luminance = builder.WriteTexture(RG_RES_NAME(AverageLuminance));
+				builder.DeclareTexture(RG_NAME(AverageLuminance), desc);
+				data.avg_luminance = builder.WriteTexture(RG_NAME(AverageLuminance));
 			},
 			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -153,14 +153,14 @@ namespace adria
 		rg.AddPass<ExposureData>("Exposure Pass",
 			[&](ExposureData& data, RenderGraphBuilder& builder)
 			{
-				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(AverageLuminance)));
-				data.avg_luminance = builder.ReadTexture(RG_RES_NAME(AverageLuminance));
+				ADRIA_ASSERT(builder.IsTextureDeclared(RG_NAME(AverageLuminance)));
+				data.avg_luminance = builder.ReadTexture(RG_NAME(AverageLuminance));
 
 				RGTextureDesc desc{};
 				desc.width = desc.height = 1;
 				desc.format = GfxFormat::R16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(Exposure), desc);
-				data.exposure = builder.WriteTexture(RG_RES_NAME(Exposure));
+				builder.DeclareTexture(RG_NAME(Exposure), desc);
+				data.exposure = builder.WriteTexture(RG_NAME(Exposure));
 			},
 			[=](ExposureData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -201,7 +201,7 @@ namespace adria
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		if (show_histogram) rg.ExportBuffer(RG_RES_NAME(HistogramBuffer), histogram_copy.get());
+		if (show_histogram) rg.ExportBuffer(RG_NAME(HistogramBuffer), histogram_copy.get());
 
 		GUI_Command([&]()
 			{

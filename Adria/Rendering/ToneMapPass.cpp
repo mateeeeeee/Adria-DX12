@@ -36,15 +36,15 @@ namespace adria
 			{
 				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_NAME(Exposure), ReadAccess_NonPixelShader);
 				else data.exposure.Invalidate();
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(Bloom))) 
-					data.bloom = builder.ReadTexture(RG_RES_NAME(Bloom), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(Bloom))) 
+					data.bloom = builder.ReadTexture(RG_NAME(Bloom), ReadAccess_NonPixelShader);
 				else data.bloom.Invalidate();
 
-				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
-				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
+				ADRIA_ASSERT(builder.IsTextureDeclared(RG_NAME(FinalTexture)));
+				data.output = builder.WriteTexture(RG_NAME(FinalTexture));
 			},
 			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -121,11 +121,11 @@ namespace adria
 
 				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_NAME(Exposure), ReadAccess_NonPixelShader);
 				else data.exposure.Invalidate();
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(Bloom))) 
-					data.bloom = builder.ReadTexture(RG_RES_NAME(Bloom), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(Bloom))) 
+					data.bloom = builder.ReadTexture(RG_NAME(Bloom), ReadAccess_NonPixelShader);
 				else data.bloom.Invalidate();
 
 				data.output = builder.WriteTexture(output);

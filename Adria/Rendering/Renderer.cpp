@@ -137,8 +137,8 @@ namespace adria
 		}
 		rg_blackboard.Add<FrameBlackboardData>(std::move(frame_data));
 
-		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
-		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
+		render_graph.ImportTexture(RG_NAME(Backbuffer), gfx->GetBackbuffer());
+		render_graph.ImportTexture(RG_NAME(FinalTexture), final_texture.get());
 
 		gpu_debug_printer.AddClearPass(render_graph);
 		if (lighting_path == LightingPath::PathTracing) Render_PathTracing(render_graph);
@@ -506,7 +506,7 @@ namespace adria
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
 		path_tracer.AddPass(render_graph);
-		postprocessor.AddTonemapPass(render_graph, RG_RES_NAME(PT_Output));
+		postprocessor.AddTonemapPass(render_graph, RG_NAME(PT_Output));
 	}
 
 	void Renderer::RendererGUI()
@@ -594,8 +594,8 @@ namespace adria
 		rg.AddPass<CopyToBackbufferPassData>("Copy to Backbuffer Pass",
 			[=](CopyToBackbufferPassData& data, RenderGraphBuilder& builder)
 			{
-				data.dst = builder.WriteCopyDstTexture(RG_RES_NAME(Backbuffer));
-				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
+				data.dst = builder.WriteCopyDstTexture(RG_NAME(Backbuffer));
+				data.src = builder.ReadCopySrcTexture(RG_NAME(FinalTexture));
 			},
 			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -623,7 +623,7 @@ namespace adria
 			screenshot_desc.resource_usage = GfxResourceUsage::Readback;
 			screenshot_buffer = gfx->CreateBuffer(screenshot_desc);
 		}
-		rg.ImportBuffer(RG_RES_NAME(ScreenshotBuffer), screenshot_buffer.get());
+		rg.ImportBuffer(RG_NAME(ScreenshotBuffer), screenshot_buffer.get());
 
 		struct ScreenshotPassData
 		{
@@ -633,8 +633,8 @@ namespace adria
 		rg.AddPass<ScreenshotPassData>("Screenshot Pass",
 			[=](ScreenshotPassData& data, RenderGraphBuilder& builder)
 			{
-				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(ScreenshotBuffer));
-				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
+				data.dst = builder.WriteCopyDstBuffer(RG_NAME(ScreenshotBuffer));
+				data.src = builder.ReadCopySrcTexture(RG_NAME(FinalTexture));
 			},
 			[=](ScreenshotPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

@@ -42,12 +42,12 @@ namespace adria
 				desc.width = width;
 				desc.height = height;
 				desc.format = GfxFormat::R8G8B8A8_UNORM;
-				builder.DeclareTexture(RG_RES_NAME(RTR_OutputNoisy), desc);
+				builder.DeclareTexture(RG_NAME(RTR_OutputNoisy), desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
-				data.diffuse = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
+				data.output = builder.WriteTexture(RG_NAME(RTR_OutputNoisy));
+				data.normal = builder.ReadTexture(RG_NAME(GBufferNormal));
+				data.diffuse = builder.ReadTexture(RG_NAME(GBufferAlbedo));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
 			},
 			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -84,7 +84,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
 			}, RGPassType::Compute, RGPassFlags::None);
-		blur_pass.AddPass(rg, RG_RES_NAME(RTR_OutputNoisy), RG_RES_NAME(RTR_Output), "RTR Denoise");
+		blur_pass.AddPass(rg, RG_NAME(RTR_OutputNoisy), RG_NAME(RTR_Output), "RTR Denoise");
 
 		GUI_Command([&]()
 			{
@@ -96,7 +96,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor
 		);
-		return RG_RES_NAME(RTR_Output);
+		return RG_NAME(RTR_Output);
 	}
 
 	void RayTracedReflectionsPass::OnResize(uint32 w, uint32 h)

@@ -37,8 +37,8 @@ namespace adria
 			{
 				RGTextureDesc blur_desc = builder.GetTextureDesc(src_texture);
 
-				builder.DeclareTexture(RG_RES_NAME_IDX(Intermediate, counter), blur_desc);
-				data.dst_texture = builder.WriteTexture(RG_RES_NAME_IDX(Intermediate, counter));
+				builder.DeclareTexture(RG_NAME_IDX(Intermediate, counter), blur_desc);
+				data.dst_texture = builder.WriteTexture(RG_NAME_IDX(Intermediate, counter));
 				data.src_texture = builder.ReadTexture(src_texture, ReadAccess_NonPixelShader);
 				builder.SetViewport(width, height);
 			},
@@ -77,7 +77,7 @@ namespace adria
 				RGTextureDesc blur_desc = builder.GetTextureDesc(src_texture);
 				builder.DeclareTexture(blurred_texture, blur_desc);
 				data.dst_texture = builder.WriteTexture(blurred_texture);
-				data.src_texture = builder.ReadTexture(RG_RES_NAME_IDX(Intermediate, counter), ReadAccess_NonPixelShader);
+				data.src_texture = builder.ReadTexture(RG_NAME_IDX(Intermediate, counter), ReadAccess_NonPixelShader);
 			},
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

@@ -96,8 +96,8 @@ namespace adria
 			{
 				RGBufferDesc bokeh_counter_desc{};
 				bokeh_counter_desc.size = sizeof(uint32);
-				builder.DeclareBuffer(RG_RES_NAME(BokehCounter), bokeh_counter_desc);
-				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehCounter));
+				builder.DeclareBuffer(RG_NAME(BokehCounter), bokeh_counter_desc);
+				data.dst = builder.WriteCopyDstBuffer(RG_NAME(BokehCounter));
 			},
 			[=](BokehCounterResetPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -120,10 +120,10 @@ namespace adria
 				bokeh_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
 				bokeh_desc.stride = sizeof(Bokeh);
 				bokeh_desc.size = bokeh_desc.stride * width * height;
-				builder.DeclareBuffer(RG_RES_NAME(Bokeh), bokeh_desc);
-				data.bokeh = builder.WriteBuffer(RG_RES_NAME(Bokeh), RG_RES_NAME(BokehCounter));
+				builder.DeclareBuffer(RG_NAME(Bokeh), bokeh_desc);
+				data.bokeh = builder.WriteBuffer(RG_NAME(Bokeh), RG_NAME(BokehCounter));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -172,12 +172,12 @@ namespace adria
 			RGBufferCopySrcId src;
 			RGBufferCopyDstId dst;
 		};
-		rg.ImportBuffer(RG_RES_NAME(BokehIndirectDraw), bokeh_indirect_buffer.get());
+		rg.ImportBuffer(RG_NAME(BokehIndirectDraw), bokeh_indirect_buffer.get());
 		rg.AddPass<BokehCopyToIndirectBufferPass>("Bokeh Indirect Buffer Pass",
 			[=](BokehCopyToIndirectBufferPass& data, RenderGraphBuilder& builder)
 			{
-				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehIndirectDraw));
-				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(BokehCounter));
+				data.dst = builder.WriteCopyDstBuffer(RG_NAME(BokehIndirectDraw));
+				data.src = builder.ReadCopySrcBuffer(RG_NAME(BokehCounter));
 			},
 			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -200,8 +200,8 @@ namespace adria
 			[=](BokehDrawPassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(last_resource, RGLoadStoreAccessOp::Preserve_Preserve);
-				data.bokeh_stack = builder.ReadBuffer(RG_RES_NAME(Bokeh), ReadAccess_PixelShader);
-				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(BokehIndirectDraw));
+				data.bokeh_stack = builder.ReadBuffer(RG_NAME(Bokeh), ReadAccess_PixelShader);
+				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_NAME(BokehIndirectDraw));
 				builder.SetViewport(width, height);
 			},
 			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

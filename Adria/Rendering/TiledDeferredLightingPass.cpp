@@ -46,20 +46,20 @@ namespace adria
 				hdr_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				hdr_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
-				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), hdr_desc);
-				builder.DeclareTexture(RG_RES_NAME(TiledDebugTarget), hdr_desc);
+				builder.DeclareTexture(RG_NAME(HDR_RenderTarget), hdr_desc);
+				builder.DeclareTexture(RG_NAME(TiledDebugTarget), hdr_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
-				data.debug_output = builder.WriteTexture(RG_RES_NAME(TiledDebugTarget));
-				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
-				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(HDR_RenderTarget));
+				data.debug_output = builder.WriteTexture(RG_NAME(TiledDebugTarget));
+				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.gbuffer_albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion)))
-					data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion)))
+					data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
 
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -105,7 +105,7 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		if (visualize_tiled)  copy_to_texture_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledDebugTarget), BlendMode::AdditiveBlend);
+		if (visualize_tiled)  copy_to_texture_pass.AddPass(rendergraph, RG_NAME(HDR_RenderTarget), RG_NAME(TiledDebugTarget), BlendMode::AdditiveBlend);
 
 		GUI_Command([&]()
 			{

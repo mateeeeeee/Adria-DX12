@@ -61,8 +61,8 @@ namespace adria
 		rg.AddPass<void>("Debug Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.ReadDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)

@@ -41,11 +41,11 @@ namespace adria
 				pick_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
 				pick_buffer_desc.stride = sizeof(PickingData);
 				pick_buffer_desc.size = pick_buffer_desc.stride;
-				builder.DeclareBuffer(RG_RES_NAME(PickBuffer), pick_buffer_desc);
+				builder.DeclareBuffer(RG_NAME(PickBuffer), pick_buffer_desc);
 
-				data.pick_buffer = builder.WriteBuffer(RG_RES_NAME(PickBuffer));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.pick_buffer = builder.WriteBuffer(RG_NAME(PickBuffer));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
 			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -86,7 +86,7 @@ namespace adria
 		rg.AddPass<PickingPassCopyData>("Picking Pass Copy",
 			[=](PickingPassCopyData& data, RenderGraphBuilder& builder)
 			{
-				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(PickBuffer));
+				data.src = builder.ReadCopySrcBuffer(RG_NAME(PickBuffer));
 			},
 			[=, backbuffer_index = gfx->GetBackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

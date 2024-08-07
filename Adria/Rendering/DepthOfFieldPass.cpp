@@ -41,11 +41,11 @@ namespace adria
 				dof_output_desc.height = height;
 				dof_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(DepthOfFieldOutput));
+				builder.DeclareTexture(RG_NAME(DepthOfFieldOutput), dof_output_desc);
+				data.output = builder.WriteTexture(RG_NAME(DepthOfFieldOutput));
 				data.input = builder.ReadTexture(input, ReadAccess_PixelShader);
 				data.blurred_input = builder.ReadTexture(blurred_input, ReadAccess_PixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
 			},
 			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -93,7 +93,7 @@ namespace adria
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_RES_NAME(DepthOfFieldOutput);
+		return RG_NAME(DepthOfFieldOutput);
 	}
 
 	void DepthOfFieldPass::OnResize(uint32 w, uint32 h)

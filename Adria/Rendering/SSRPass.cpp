@@ -37,12 +37,12 @@ namespace adria
 				ssr_output_desc.height = height;
 				ssr_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(SSR_Output), ssr_output_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(SSR_Output));
+				builder.DeclareTexture(RG_NAME(SSR_Output), ssr_output_desc);
+				data.output = builder.WriteTexture(RG_NAME(SSR_Output));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
-				data.normals = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.roughness = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.normals = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.roughness = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](SSRPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -92,7 +92,7 @@ namespace adria
 				ImGui::Separator();
 			}
 			}, GUICommandGroup_PostProcessor);
-		return RG_RES_NAME(SSR_Output);
+		return RG_NAME(SSR_Output);
 	}
 
 	void SSRPass::OnResize(uint32 w, uint32 h)

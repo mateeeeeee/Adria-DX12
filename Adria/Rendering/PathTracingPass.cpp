@@ -34,7 +34,7 @@ namespace adria
 			RGTextureReadWriteId accumulation;
 		};
 
-		rg.ImportTexture(RG_RES_NAME(AccumulationTexture), accumulation_texture.get());
+		rg.ImportTexture(RG_NAME(AccumulationTexture), accumulation_texture.get());
 		rg.AddPass<PathTracingPassData>("Path Tracing Pass",
 			[=](PathTracingPassData& data, RGBuilder& builder)
 			{
@@ -43,10 +43,10 @@ namespace adria
 				render_target_desc.width = width;
 				render_target_desc.height = height;
 				render_target_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(PT_Output), render_target_desc);
+				builder.DeclareTexture(RG_NAME(PT_Output), render_target_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(PT_Output));
-				data.accumulation = builder.WriteTexture(RG_RES_NAME(AccumulationTexture));
+				data.output = builder.WriteTexture(RG_NAME(PT_Output));
+				data.accumulation = builder.WriteTexture(RG_NAME(AccumulationTexture));
 			},
 			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

@@ -8,15 +8,11 @@
 #endif
 
 #if RG_DEBUG
-#define RG_RES_NAME(name) RGResourceName(#name, adria::crc64(#name)) 
-#define RG_RES_NAME_IDX(name, idx) RGResourceName(#name, adria::crc64(#name) + idx)
-#define RG_STR_RES_NAME(name) RGResourceName(name) RGResourceName(name, adria::crc64(name)) 
-#define RG_STR_RES_NAME_IDX(name, idx) RGResourceName(name, idx) RGResourceName(name, adria::crc64(name) + idx)
+#define RG_NAME(name) RGResourceName(#name, adria::crc64(#name)) 
+#define RG_NAME_IDX(name, idx) RGResourceName(#name, adria::crc64(#name) + idx)
 #else 
-#define RG_RES_NAME(name) RGResourceName(adria::crc64(#name)) 
-#define RG_RES_NAME_IDX(name, idx) RGResourceName(adria::crc64(#name) + idx)
-#define RG_STR_RES_NAME(name) RGResourceName(name) RGResourceName(adria::crc64(name)) 
-#define RG_STR_RES_NAME_IDX(name, idx) RGResourceName(name, idx) RGResourceName(adria::crc64(name) + idx)
+#define RG_NAME(name) RGResourceName(adria::crc64(#name)) 
+#define RG_NAME_IDX(name, idx) RGResourceName(adria::crc64(#name) + idx)
 #endif
 
 

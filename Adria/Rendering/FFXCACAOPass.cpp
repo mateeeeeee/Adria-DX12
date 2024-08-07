@@ -302,11 +302,11 @@ namespace adria
 				cacao_desc.format = GfxFormat::R8_UNORM;
 				cacao_desc.width = width;
 				cacao_desc.height = height;
-				builder.DeclareTexture(RG_RES_NAME(AmbientOcclusion), cacao_desc);
+				builder.DeclareTexture(RG_NAME(AmbientOcclusion), cacao_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(AmbientOcclusion));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(AmbientOcclusion));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
 			[=](FFXCACAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{

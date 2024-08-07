@@ -31,13 +31,13 @@ namespace adria
 		rg.AddPass<RendererOutputPassData>("Renderer Output Pass",
 			[=](RendererOutputPassData& data, RenderGraphBuilder& builder)
 			{
-				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
-				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
-				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(FinalTexture));
+				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.gbuffer_albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
 			},
 			[=](RendererOutputPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

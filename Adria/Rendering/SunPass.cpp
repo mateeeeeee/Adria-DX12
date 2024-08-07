@@ -30,9 +30,9 @@ namespace adria
 				sun_output_desc.height = height;
 				sun_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
-				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.DeclareTexture(RG_NAME(SunOutput), sun_output_desc);
+				builder.ReadDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)

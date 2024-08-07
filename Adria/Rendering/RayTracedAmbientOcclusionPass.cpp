@@ -44,11 +44,11 @@ namespace adria
 				desc.width = width;
 				desc.height = height;
 				desc.format = GfxFormat::R8_UNORM;
-				builder.DeclareTexture(RG_RES_NAME(RTAO_Output), desc);
+				builder.DeclareTexture(RG_NAME(RTAO_Output), desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(RTAO_Output));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(RTAO_Output));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
 			[=](RayTracedAmbientOcclusionPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -101,11 +101,11 @@ namespace adria
 				desc.width = width;
 				desc.height = height;
 				desc.format = GfxFormat::R8_UNORM;
-				builder.DeclareTexture(RG_RES_NAME(AmbientOcclusion), desc);
+				builder.DeclareTexture(RG_NAME(AmbientOcclusion), desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(AmbientOcclusion));
-				data.input = builder.ReadTexture(RG_RES_NAME(RTAO_Output), ReadAccess_NonPixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_NAME(AmbientOcclusion));
+				data.input = builder.ReadTexture(RG_NAME(RTAO_Output), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](RTAOFilterPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
