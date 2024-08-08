@@ -61,6 +61,7 @@ namespace adria
 			PostEffectType_Clouds,
 			PostEffectType_Reflections,
 			PostEffectType_FilmEffects,
+			PostEffectType_Fog,
 			PostEffectType_DepthOfField,
 			PostEffectType_Upscaling,
 			PostEffectType_Count

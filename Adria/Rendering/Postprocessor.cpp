@@ -16,7 +16,6 @@ namespace adria
 	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
 	static TAutoConsoleVariable<int>  cvar_upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
 	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
-	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
 	static TAutoConsoleVariable<bool> cvar_taa("r.TAA", false, "Enable or Disable TAA");
 	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
 	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
@@ -119,10 +118,8 @@ namespace adria
 		god_rays_pass.AddPass(rg, this);
 		if (clouds_pass.IsEnabled(this)) clouds_pass.AddPass(rg, this);
 		reflections_pass.AddPass(rg, this);
-
 		if(film_effects_pass.IsEnabled(this)) film_effects_pass.AddPass(rg, this);
-		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
-		
+		if (fog_pass.IsEnabled(this)) fog_pass.AddPass(rg, this);
 		depth_of_field_pass.AddPass(rg, this);
 
 		switch (upscaler)
@@ -253,6 +250,7 @@ namespace adria
 		post_effects[PostEffectType_Clouds]			= std::make_unique<VolumetricCloudsPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Reflections]	= std::make_unique<ReflectionPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_FilmEffects]	= std::make_unique<FilmEffectsPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Fog]			= std::make_unique<ExponentialHeightFogPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_DepthOfField]	= std::make_unique<DepthOfFieldPass>(gfx, render_width, render_height);
 	}
 
@@ -291,6 +289,7 @@ namespace adria
 		clouds_pass.GUI();
 		reflections_pass.GUI();
 		film_effects_pass.GUI();
+		fog_pass.GUI();
 		depth_of_field_pass.GUI();
 		GUI_Command([&]()
 			{

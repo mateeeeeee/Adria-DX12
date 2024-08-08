@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
+#include "PostProcessor.h" 
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
@@ -10,19 +11,23 @@
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "Math/Packing.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_fog("r.FilmEffects", false, "Enable or Disable Film Effects");
+
 	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, uint32 w, uint32 h)
 		: gfx(gfx), width(w), height(h), params()
 	{
 		CreatePSO();
 	}
 
-	RGResourceName ExponentialHeightFogPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void ExponentialHeightFogPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		RGResourceName last_resource = input;
+		RGResourceName last_resource = postprocessor->GetFinalResource();
+
 		struct ExponentialHeightFogPassData
 		{
 			RGTextureReadOnlyId depth;
@@ -53,7 +58,7 @@ namespace adria
 					ctx.GetReadOnlyTexture(data.depth),
 					ctx.GetReadOnlyTexture(data.input),
 					ctx.GetReadWriteTexture(data.output)
-				};	
+				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				uint32 const i = dst_descriptor.GetIndex();
@@ -76,10 +81,10 @@ namespace adria
 					uint32  depth_idx;
 					uint32  scene_idx;
 					uint32  output_idx;
-				} constants = 
+				} constants =
 				{
 					.fog_falloff = params.fog_falloff, .fog_density = params.fog_density, .fog_height = params.fog_height, .fog_start = params.fog_start,
-					.fog_at_view_position = density * pow(2.0f, -falloff * (frame_data.camera_position[1] - height)), 
+					.fog_at_view_position = density * pow(2.0f, -falloff * (frame_data.camera_position[1] - height)),
 					.fog_min_opacity = params.fog_min_opacity,
 					.fog_cutoff_distance = params.fog_cutoff_distance,
 					.fog_color = PackToUint(params.fog_color),
@@ -92,23 +97,35 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		GUI_Command([&]() 
-			{
-				if(ImGui::TreeNodeEx("Exponential Height Fog", 0))
-				{
-					ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 10.0f);
-					ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0000001f, 100.0f); 
-					ImGui::SliderFloat("Fog Start", &params.fog_start, 0.0f, 10000.0f);
-					ImGui::SliderFloat("Fog Min Opacity", &params.fog_min_opacity, 0.0f, 1.0f);
-					ImGui::SliderFloat("Fog Cutoff Distance", &params.fog_cutoff_distance, 0.0f, 10000.0f);
-					ImGui::SliderFloat("Fog Height", &params.fog_height, -10000.0f, 10000.0f);
-					ImGui::ColorEdit3("Fog Color", params.fog_color);
+		postprocessor->SetFinalResource(RG_NAME(FogOutput));
+	}
 
+	bool ExponentialHeightFogPass::IsEnabled(PostProcessor*) const
+	{
+		return cvar_fog.Get();
+	}
+
+	void ExponentialHeightFogPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNodeEx("Exponential Height Fog", 0))
+				{
+					ImGui::Checkbox("Enable Fog", cvar_fog.GetPtr());
+					if (cvar_fog.Get())
+					{
+						ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 10.0f);
+						ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0000001f, 100.0f);
+						ImGui::SliderFloat("Fog Start", &params.fog_start, 0.0f, 10000.0f);
+						ImGui::SliderFloat("Fog Min Opacity", &params.fog_min_opacity, 0.0f, 1.0f);
+						ImGui::SliderFloat("Fog Cutoff Distance", &params.fog_cutoff_distance, 0.0f, 10000.0f);
+						ImGui::SliderFloat("Fog Height", &params.fog_height, -10000.0f, 10000.0f);
+						ImGui::ColorEdit3("Fog Color", params.fog_color);
+					}
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
 			}, GUICommandGroup_PostProcessor);
-		return RG_NAME(FogOutput);
 	}
 
 	void ExponentialHeightFogPass::OnResize(uint32 w, uint32 h)
