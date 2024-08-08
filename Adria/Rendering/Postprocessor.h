@@ -62,6 +62,7 @@ namespace adria
 			PostEffectType_GodRays,
 			PostEffectType_Clouds,
 			PostEffectType_Reflections,
+			PostEffectType_FilmEffects,
 			PostEffectType_Upscaling,
 			PostEffectType_Count
 		};

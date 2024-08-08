@@ -1,19 +1,23 @@
 #include "FilmEffectsPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
+#include "PostProcessor.h" 
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
+
 namespace adria
 {
-	
+	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Film Effects");
+
 	FilmEffectsPass::FilmEffectsPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
 
-	RGResourceName FilmEffectsPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void FilmEffectsPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -33,7 +37,7 @@ namespace adria
 
 				builder.DeclareTexture(RG_NAME(FilmEffectsOutput), film_effects_desc);
 				data.output = builder.WriteTexture(RG_NAME(FilmEffectsOutput));
-				data.input = builder.ReadTexture(input);
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource());
 			},
 			[=](FilmEffectsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -74,7 +78,7 @@ namespace adria
 					.film_grain_scale = film_grain_scale,
 					.film_grain_amount = film_grain_amount,
 					.film_grain_seed = GetFilmGrainSeed(frame_data.delta_time, film_grain_seed_update_rate),
-					.input_idx  = i + 0,
+					.input_idx = i + 0,
 					.output_idx = i + 1
 				};
 				cmd_list->SetPipelineState(film_effects_pso.get());
@@ -83,43 +87,55 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		GUI_Command([&]()
-			{
-				if (ImGui::TreeNodeEx("Film Effects", ImGuiTreeNodeFlags_None))
-				{
-					ImGui::Checkbox("Lens Distortion", &lens_distortion_enabled);
-					ImGui::Checkbox("Chromatic Aberration", &chromatic_aberration_enabled);
-					ImGui::Checkbox("Vignette", &vignette_enabled);
-					ImGui::Checkbox("Film Grain", &film_grain_enabled);
-					if (lens_distortion_enabled)
-					{
-						ImGui::SliderFloat("Lens Distortion Intensity", &lens_distortion_intensity, -1.0f, 1.0f);
-					}
-					if (chromatic_aberration_enabled)
-					{
-						ImGui::SliderFloat("Chromatic Aberration Intensity", &chromatic_aberration_intensity, 0.0f, 40.0f);
-					}
-					if (vignette_enabled)
-					{
-						ImGui::SliderFloat("Vignette Intensity", &vignette_intensity, 0.0f, 2.0f);
-					}
-					if (film_grain_enabled)
-					{
-						ImGui::SliderFloat("Film Grain Scale", &film_grain_scale, 0.01f, 20.0f);
-						ImGui::SliderFloat("Film Grain Amount", &film_grain_amount, 0.0f, 20.0f);
-						ImGui::SliderFloat("Film Grain Seed Update Rate", &film_grain_seed_update_rate, 0.0f, 0.1f);
-					}
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_PostProcessor
-		);
-
-		return RG_NAME(FilmEffectsOutput);
+		postprocessor->SetFinalResource(RG_NAME(FilmEffectsOutput));
 	}
 
 	void FilmEffectsPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	bool FilmEffectsPass::IsEnabled(PostProcessor*) const
+	{
+		return cvar_film_effects.Get();
+	}
+
+	void FilmEffectsPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNodeEx("Film Effects", ImGuiTreeNodeFlags_None))
+				{
+					ImGui::Checkbox("Enable Film Effects", cvar_film_effects.GetPtr());
+					if (cvar_film_effects.Get())
+					{
+						ImGui::Checkbox("Lens Distortion", &lens_distortion_enabled);
+						ImGui::Checkbox("Chromatic Aberration", &chromatic_aberration_enabled);
+						ImGui::Checkbox("Vignette", &vignette_enabled);
+						ImGui::Checkbox("Film Grain", &film_grain_enabled);
+						if (lens_distortion_enabled)
+						{
+							ImGui::SliderFloat("Lens Distortion Intensity", &lens_distortion_intensity, -1.0f, 1.0f);
+						}
+						if (chromatic_aberration_enabled)
+						{
+							ImGui::SliderFloat("Chromatic Aberration Intensity", &chromatic_aberration_intensity, 0.0f, 40.0f);
+						}
+						if (vignette_enabled)
+						{
+							ImGui::SliderFloat("Vignette Intensity", &vignette_intensity, 0.0f, 2.0f);
+						}
+						if (film_grain_enabled)
+						{
+							ImGui::SliderFloat("Film Grain Scale", &film_grain_scale, 0.01f, 20.0f);
+							ImGui::SliderFloat("Film Grain Amount", &film_grain_amount, 0.0f, 20.0f);
+							ImGui::SliderFloat("Film Grain Seed Update Rate", &film_grain_seed_update_rate, 0.0f, 0.1f);
+						}
+					}
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessor
+		);
 	}
 
 	void FilmEffectsPass::CreatePSO()

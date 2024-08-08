@@ -29,8 +29,8 @@ namespace adria
 		using enum Reflections;
 		post_effects.resize((uint32)Count);
 		post_effects[(uint32)None] = std::make_unique<EmptyPostEffect>();
-		post_effects[(uint32)SSR] = std::make_unique<SSRPass>(gfx, width, height);
-		post_effects[(uint32)RTR] = std::make_unique<RayTracedReflectionsPass>(gfx, width, height);
+		post_effects[(uint32)SSR]  = std::make_unique<SSRPass>(gfx, width, height);
+		post_effects[(uint32)RTR]  = std::make_unique<RayTracedReflectionsPass>(gfx, width, height);
 		is_rtr_supported = post_effects[(uint32)RTR]->IsSupported();
 	}
 

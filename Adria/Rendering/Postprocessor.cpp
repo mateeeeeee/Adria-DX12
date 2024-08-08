@@ -19,7 +19,6 @@ namespace adria
 	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
 	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
 	static TAutoConsoleVariable<bool> cvar_taa("r.TAA", false, "Enable or Disable TAA");
-	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Film Effects");
 	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
 	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
 	static TAutoConsoleVariable<bool> cvar_autoexposure("r.AutoExposure", false, "Enable or Disable Auto Exposure");
@@ -85,7 +84,6 @@ namespace adria
 					if (cvar->GetBool()) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_TAA);
 					else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_TAA));
 				}));
-			cvar_film_effects->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ film_effects = cvar->GetBool(); }));
 			cvar_bloom->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ bloom = cvar->GetBool(); }));
 			cvar_motion_blur->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ motion_blur = cvar->GetBool(); }));
 			cvar_autoexposure->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ automatic_exposure = cvar->GetBool(); }));
@@ -128,10 +126,9 @@ namespace adria
 		sun_pass.AddPass(rg, this);
 		god_rays_pass.AddPass(rg, this);
 		if (clouds_pass.IsEnabled(this)) clouds_pass.AddPass(rg, this);
-		
 		reflections_pass.AddPass(rg, this);
 
-		if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
+		if(film_effects_pass.IsEnabled(this)) film_effects_pass.AddPass(rg, this);
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
 		
 		switch (depth_of_field)
@@ -280,6 +277,7 @@ namespace adria
 		post_effects[PostEffectType_GodRays]		= std::make_unique<GodRaysPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Clouds]			= std::make_unique<VolumetricCloudsPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Reflections]	= std::make_unique<ReflectionPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_FilmEffects]	= std::make_unique<FilmEffectsPass>(gfx, render_width, render_height);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
@@ -316,6 +314,7 @@ namespace adria
 	{
 		clouds_pass.GUI();
 		reflections_pass.GUI();
+		film_effects_pass.GUI();
 		GUI_Command([&]()
 			{
 				static int current_ao_type = (int)ambient_occlusion;
@@ -363,7 +362,6 @@ namespace adria
 					if (ImGui::Checkbox("Bloom", &bloom)) cvar_bloom->Set(bloom);
 
 					if (ImGui::Checkbox("Motion Blur", &motion_blur)) cvar_motion_blur->Set(motion_blur);
-					if (ImGui::Checkbox("Film Effects", &film_effects)) cvar_film_effects->Set(film_effects);
 					if (ImGui::Checkbox("Fog", &fog)) cvar_fog->Set(fog);
 
 					if (ImGui::TreeNode("Anti-Aliasing"))
