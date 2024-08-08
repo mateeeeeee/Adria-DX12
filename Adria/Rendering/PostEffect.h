@@ -11,8 +11,8 @@ namespace adria
 	public:
 		virtual ~PostEffect() = default;
 		virtual bool IsEnabled(PostProcessor*) const = 0;
-		virtual void AddPass(RenderGraph& rg, PostProcessor*) = 0;
-		virtual void OnResize(uint32 w, uint32 h) = 0;
+		virtual void AddPass(RenderGraph&, PostProcessor*) = 0;
+		virtual void OnResize(uint32, uint32) = 0;
 		virtual void OnSceneInitialized() {}
 	};
 

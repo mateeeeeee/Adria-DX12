@@ -41,6 +41,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 	class GfxBuffer;
+	class PostEffect;
 	struct Light;
 	class RainEvent;
 	enum class AmbientOcclusion : uint8;
@@ -54,14 +55,21 @@ namespace adria
 	class PostProcessor
 	{
 		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32)
+		enum PostEffectType : uint32
+		{
+			PostEffectType_MotionVectors,
+			PostEffectType_LensFlare,
+			PostEffectType_Upscaling,
+			PostEffectType_Count
+		};
 
 	public:
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
+		~PostProcessor();
 
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
-
 		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
 		{
 			fsr2_pass.GetRenderResolutionChangedEvent().Add(delegate);
@@ -71,14 +79,21 @@ namespace adria
 			upscaler_disabled_event.Add(delegate);
 		}
 
-		void OnRainEvent(bool enabled);
-		RGResourceName GetFinalResource() const;
 
+		void OnRainEvent(bool enabled);
 		void OnResize(uint32 w, uint32 h);
 		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
+		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds || motion_blur; }
+
+		void SetFinalResource(RGResourceName name)
+		{
+			final_resource = name;
+		}
+		RGResourceName GetFinalResource() const;
+		entt::registry& GetRegistry() const { return reg; }
 
 	private:
 		GfxDevice* gfx;
@@ -90,6 +105,8 @@ namespace adria
 
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;
+
+		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
 
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -139,9 +156,10 @@ namespace adria
 		bool ray_tracing_supported = false;
 
 	private:
+		void InitializePostEffects();
+
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
-		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
 		bool HasUpscaler() const;
 		bool HasTAA() const;
 

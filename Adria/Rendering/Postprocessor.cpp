@@ -104,6 +104,10 @@ namespace adria
 		}
 	}
 
+	PostProcessor::~PostProcessor()
+	{
+	}
+
 	void PostProcessor::OnRainEvent(bool enabled)
 	{
 		clouds_pass.OnRainEvent(enabled);
@@ -125,18 +129,14 @@ namespace adria
 		PostprocessorGUI();
 
 		auto lights = reg.view<Light>();
-		if (NeedsVelocityBuffer())
-		{
-			velocity_buffer_pass.AddPass(rg);
-		}
 		final_resource = AddHDRCopyPass(rg);
 
-		for (entt::entity light : lights)
+		if (velocity_buffer_pass.IsEnabled(this))
 		{
-			auto const& light_data = lights.get<Light>(light);
-			if (!light_data.active || !light_data.lens_flare) continue;
-			lens_flare_pass.AddPass2(rg, light_data);
+			velocity_buffer_pass.AddPass(rg, this);
 		}
+		lens_flare_pass.AddPass(rg, this);
+
 		for (entt::entity light : lights)
 		{
 			auto const& light_data = lights.get<Light>(light);
@@ -312,6 +312,12 @@ namespace adria
 	bool PostProcessor::HasTAA() const
 	{
 		return HasAnyFlag(anti_aliasing, AntiAliasing_TAA);
+	}
+
+	void PostProcessor::InitializePostEffects()
+	{
+		post_effects[PostEffectType_MotionVectors]	= std::make_unique<MotionVectorsPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_LensFlare]		= std::make_unique<LensFlarePass>(gfx, render_width, render_height);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)

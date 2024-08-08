@@ -1,6 +1,6 @@
 #pragma once
 #include "TextureHandle.h"
-#include "RenderGraph/RenderGraphResourceId.h"
+#include "PostEffect.h"
 
 
 namespace adria
@@ -11,25 +11,26 @@ namespace adria
 	class GfxComputePipelineState;
 	struct Light;
 
-	class LensFlarePass
+	class LensFlarePass : public PostEffect
 	{
 	public:
 		LensFlarePass(GfxDevice* gfx, uint32 w, uint32 h);
-
-		void AddPass(RenderGraph& rendergraph, Light const& light);
-		void AddPass2(RenderGraph& rendergraph, Light const& light);
-		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized();
+		virtual bool IsEnabled(PostProcessor*) const override;
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void OnSceneInitialized() override;
 
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::vector<TextureHandle> lens_flare_textures;
 		std::unique_ptr<GfxGraphicsPipelineState> lens_flare_pso;
-		std::unique_ptr<GfxComputePipelineState> lens_flare_pso2;
+		std::unique_ptr<GfxComputePipelineState> procedural_lens_flare_pso;
 
 	private:
 		void CreatePSOs();
+		void AddTextureBasedLensFlare(RenderGraph&, PostProcessor*, Light const&);
+		void AddProceduralLensFlarePass(RenderGraph&, PostProcessor*, Light const&);
 	};
 
 }
