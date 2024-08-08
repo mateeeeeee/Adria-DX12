@@ -1,21 +1,24 @@
 #pragma once
 #include "FidelityFX/host/ffx_dof.h" 
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 
 namespace adria
 {
 	class GfxDevice;
 	class RenderGraph;
 
-	class FFXDepthOfFieldPass
+	class FFXDepthOfFieldPass : public PostEffect
 	{
 		
 	public:
 		FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FFXDepthOfFieldPass();
 
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
-		void OnResize(uint32 w, uint32 h);
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32, uint32) override;
+		virtual bool IsEnabled(PostProcessor*) const override;
+		virtual void GUI() override;
+
 
 	private:
 		char name_version[20] = {};

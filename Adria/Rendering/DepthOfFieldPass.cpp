@@ -1,117 +1,53 @@
 #include "DepthOfFieldPass.h"
-#include "ShaderStructs.h"
-#include "Components.h"
-#include "BlackboardData.h"
-#include "ShaderManager.h" 
-#include "Graphics/GfxDevice.h"
-#include "Graphics/GfxPipelineState.h"
-#include "RenderGraph/RenderGraph.h"
+#include "SimpleDepthOfFieldPass.h"
+#include "FFXDepthOfFieldPass.h"
+#include "Core/ConsoleManager.h"
 #include "Editor/GUICommand.h"
-
-using namespace DirectX;
 
 namespace adria
 {
-	
-	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
+	static TAutoConsoleVariable<int> cvar_depth_of_field("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
+
+	enum class DepthOfFieldType : uint8
 	{
-		CreatePSO();
+		None,
+		Simple,
+		FFX,
+		Count
+	};
+
+	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 width, uint32 height) : depth_of_field_type(DepthOfFieldType::None)
+	{
+		post_effect_idx = static_cast<uint32>(depth_of_field_type);
+		cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
+		{ 
+			depth_of_field_type = static_cast<DepthOfFieldType>(cvar->GetInt()); 
+			post_effect_idx = static_cast<uint32>(depth_of_field_type);
+		}));
+		using enum DepthOfFieldType;
+		post_effects.resize((uint32)Count);
+		post_effects[(uint32)None] = std::make_unique<EmptyPostEffect>();
+		post_effects[(uint32)Simple] = std::make_unique<SimpleDepthOfFieldPass>(gfx, width, height);
+		post_effects[(uint32)FFX] = std::make_unique<FFXDepthOfFieldPass>(gfx, width, height);
 	}
 
-	RGResourceName DepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input, RGResourceName blurred_input)
+	void DepthOfFieldPass::GroupGUI()
 	{
-		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.GetBlackboard().Create<DoFBlackboardData>(params.focus_distance, params.focus_radius);
-
-		struct DepthOfFieldPassData
-		{
-			RGTextureReadOnlyId input;
-			RGTextureReadOnlyId blurred_input;
-			RGTextureReadOnlyId depth;
-			RGTextureReadWriteId output;
-		};
-
-		bokeh_pass.AddPass(rg, input);
-
-		rg.AddPass<DepthOfFieldPassData>("Depth Of Field Pass",
-			[=](DepthOfFieldPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc dof_output_desc{};
-				dof_output_desc.width = width;
-				dof_output_desc.height = height;
-				dof_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
-				builder.DeclareTexture(RG_NAME(DepthOfFieldOutput), dof_output_desc);
-				data.output = builder.WriteTexture(RG_NAME(DepthOfFieldOutput));
-				data.input = builder.ReadTexture(input, ReadAccess_PixelShader);
-				data.blurred_input = builder.ReadTexture(blurred_input, ReadAccess_PixelShader);
-				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
-			},
-			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
-			{
-				GfxDevice* gfx = cmd_list->GetDevice();
-
-				cmd_list->SetPipelineState(dof_pso.get());
-
-				GfxDescriptor src_descriptors[] =
-				{
-					ctx.GetReadOnlyTexture(data.depth),
-					ctx.GetReadOnlyTexture(data.input),
-					ctx.GetReadOnlyTexture(data.blurred_input),
-					ctx.GetReadWriteTexture(data.output)
-				};
-				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
-				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
-
-				struct DoFConstants
-				{
-					Vector2 dof_params;
-					uint32 depth_idx;
-					uint32 scene_idx;
-					uint32 blurred_idx;
-					uint32 output_idx;
-				} constants =
-				{
-					.dof_params = Vector2(params.focus_distance, params.focus_radius),
-					.depth_idx = i, .scene_idx = i + 1, .blurred_idx = i + 2, .output_idx = i + 3
-				};
-
-				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
-			}, RGPassType::Compute, RGPassFlags::None);
-
 		GUI_Command([&]()
 			{
-				if (ImGui::TreeNodeEx("Depth Of Field", 0))
+				if (ImGui::TreeNodeEx("Depth of Field", 0))
 				{
-					ImGui::SliderFloat("Focus Distance", &params.focus_distance, 0.0f, 1000.0f);
-					ImGui::SliderFloat("Focus Radius", &params.focus_radius, 0.0f, 1000.0f);
+					static int current_dof_type = (int)depth_of_field_type;
+					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0FFX\0", 3))
+					{
+						depth_of_field_type = static_cast<DepthOfFieldType>(current_dof_type);
+						cvar_depth_of_field->Set(current_dof_type);
+					}
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor);
-
-		return RG_NAME(DepthOfFieldOutput);
-	}
-
-	void DepthOfFieldPass::OnResize(uint32 w, uint32 h)
-	{
-		width = w, height = h;
-		bokeh_pass.OnResize(w, h);
-	}
-
-	void DepthOfFieldPass::OnSceneInitialized()
-	{
-		bokeh_pass.OnSceneInitialized();
-	}
-
-	void DepthOfFieldPass::CreatePSO()
-	{
-		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_Dof;
-		dof_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+			}, GUICommandGroup_PostProcessor
+		);
 	}
 
 }

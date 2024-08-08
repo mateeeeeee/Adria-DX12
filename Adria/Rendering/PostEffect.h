@@ -14,7 +14,6 @@ namespace adria
 		virtual void AddPass(RenderGraph&, PostProcessor*) = 0;
 		virtual void OnResize(uint32, uint32) = 0;
 		virtual bool IsEnabled(PostProcessor*) const = 0;
-		virtual void SetEnabled(bool) {}
 		virtual void OnSceneInitialized() {}
 		virtual void GUI() {}
 		virtual bool IsSupported() const { return true; }
@@ -45,8 +44,7 @@ namespace adria
 		}
 		virtual bool IsEnabled(PostProcessor* postprocessor) const override
 		{
-			ADRIA_ASSERT(post_effect_idx < post_effects.size());
-			return post_effects[post_effect_idx]->IsEnabled(postprocessor);
+			return true;
 		}
 		virtual void OnSceneInitialized() override
 		{

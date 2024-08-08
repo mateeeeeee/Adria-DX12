@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	enum class Reflections : uint8;
+	enum class ReflectionType : uint8;
 	class GfxDevice;
 
 	class ReflectionPass final : public PostEffectGroup
@@ -12,7 +12,7 @@ namespace adria
 		ReflectionPass(GfxDevice* gfx, uint32 width, uint32 height);
 
 	private:
-		Reflections reflections;
+		ReflectionType reflection_type;
 		bool is_rtr_supported;
 	private:
 		virtual void GroupGUI() override;

@@ -9,7 +9,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<int> cvar_reflections("r.Reflections", 0, "0 - No Reflections, 1 - SSR, 2 - RTR");
 
-	enum class Reflections : uint8
+	enum class ReflectionType : uint8
 	{
 		None,
 		SSR,
@@ -17,16 +17,16 @@ namespace adria
 		Count
 	};
 
-	ReflectionPass::ReflectionPass(GfxDevice* gfx, uint32 width, uint32 height) : reflections(Reflections::None)
+	ReflectionPass::ReflectionPass(GfxDevice* gfx, uint32 width, uint32 height) : reflection_type(ReflectionType::None)
 	{
-		post_effect_idx = static_cast<uint32>(reflections);
+		post_effect_idx = static_cast<uint32>(reflection_type);
 		cvar_reflections->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
 			{
-				reflections = static_cast<Reflections>(cvar->GetInt());
-				post_effect_idx = static_cast<uint32>(reflections);
+				reflection_type = static_cast<ReflectionType>(cvar->GetInt());
+				post_effect_idx = static_cast<uint32>(reflection_type);
 			}));
 
-		using enum Reflections;
+		using enum ReflectionType;
 		post_effects.resize((uint32)Count);
 		post_effects[(uint32)None] = std::make_unique<EmptyPostEffect>();
 		post_effects[(uint32)SSR]  = std::make_unique<SSRPass>(gfx, width, height);
@@ -40,7 +40,7 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Reflections", 0))
 				{
-					static int current_reflection_type = (int)reflections;
+					static int current_reflection_type = (int)reflection_type;
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{
 						if (!is_rtr_supported && current_reflection_type == 2) current_reflection_type = 1;

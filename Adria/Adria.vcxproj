@@ -249,6 +249,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
     <ClCompile Include="Rendering\ReflectionPass.cpp" />
     <ClCompile Include="Rendering\RendererOutputPass.cpp" />
     <ClCompile Include="Rendering\FilmEffectsPass.cpp" />
@@ -271,7 +272,7 @@
     <ClCompile Include="Rendering\FSR3Pass.cpp" />
     <ClCompile Include="Rendering\HelperPasses.cpp" />
     <ClCompile Include="Rendering\DecalsPass.cpp" />
-    <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
+    <ClCompile Include="Rendering\SimpleDepthOfFieldPass.cpp" />
     <ClCompile Include="Rendering\ExponentialHeightFogPass.cpp" />
     <ClCompile Include="Rendering\GeometryBufferCache.cpp" />
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
@@ -442,6 +443,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Rendering\DepthOfFieldPass.h" />
     <ClInclude Include="Rendering\PostEffect.h" />
     <ClInclude Include="Rendering\ReflectionPass.h" />
     <ClInclude Include="Rendering\RendererOutputPass.h" />
@@ -471,7 +473,7 @@
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />
-    <ClInclude Include="Rendering\DepthOfFieldPass.h" />
+    <ClInclude Include="Rendering\SimpleDepthOfFieldPass.h" />
     <ClInclude Include="Rendering\ExponentialHeightFogPass.h" />
     <ClInclude Include="Rendering\GodRaysPass.h" />
     <ClInclude Include="Rendering\LensFlarePass.h" />

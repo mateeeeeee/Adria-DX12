@@ -1,14 +1,18 @@
 #include "FFXDepthOfFieldPass.h"
 #include "FidelityFXUtils.h"
 #include "BlackboardData.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Logging/Logger.h"
 #include "Math/Constants.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_ffx_dof("r.FFXDepthOfField", false, "0 - Disabled, 1 - Enabled");
+
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
@@ -25,7 +29,7 @@ namespace adria
 		DestroyFfxInterface(ffx_interface);
 	}
 
-	RGResourceName FFXDepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void FFXDepthOfFieldPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		struct FFXDoFPassData
 		{
@@ -39,11 +43,11 @@ namespace adria
 		rg.AddPass<FFXDoFPassData>(name_version,
 			[=](FFXDoFPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(input);
+				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(postprocessor->GetFinalResource());
 				builder.DeclareTexture(RG_NAME(FFXDoFOutput), ffx_dof_desc);
 
 				data.output = builder.WriteTexture(RG_NAME(FFXDoFOutput));
-				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](FFXDoFPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
@@ -58,9 +62,9 @@ namespace adria
 
 				FfxDofDispatchDescription ffx_dof_dispatch_desc{};
 				ffx_dof_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
-				ffx_dof_dispatch_desc.color	   = GetFfxResource(input_texture);
-				ffx_dof_dispatch_desc.depth	   = GetFfxResource(depth_texture);
-				ffx_dof_dispatch_desc.output   = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				ffx_dof_dispatch_desc.color = GetFfxResource(input_texture);
+				ffx_dof_dispatch_desc.depth = GetFfxResource(depth_texture);
+				ffx_dof_dispatch_desc.output = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 
 				Matrix proj(frame_data.camera_proj);
 				ffx_dof_dispatch_desc.cocScale = ffxDofCalculateCocScale(aperture, -focus_dist, focal_length, conversion, proj._33, proj._43, proj._34);
@@ -72,31 +76,7 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
-		GUI_Command([&]()
-			{
-				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
-				{
-					ImGui::SliderFloat("Aperture", &aperture, 0.0f, 0.1f, "%.2f");
-					ImGui::SliderFloat("Sensor Size", &sensor_size, 0.0f, 0.1f, "%.2f");
-					ImGui::SliderFloat("Focus Distance", &focus_dist, frame_data.camera_near, frame_data.camera_far, "%.2f");
-
-					bool recreate_context = false;
-
-					recreate_context |= ImGui::SliderInt("Quality", &quality, 1, 50);
-					recreate_context |= ImGui::SliderFloat("Blur Size Limit", &coc_limit, 0.0f, 1.0f);
-					recreate_context |= ImGui::Checkbox("Enable Kernel Ring Merging", &enable_ring_merge);
-
-					if (recreate_context)
-					{
-						DestroyContext();
-						CreateContext();
-					}
-
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_PostProcessor);
-
-		return RG_NAME(FFXDoFOutput);
+		postprocessor->SetFinalResource(RG_NAME(FFXDoFOutput));
 	}
 
 	void FFXDepthOfFieldPass::OnResize(uint32 w, uint32 h)
@@ -104,6 +84,41 @@ namespace adria
 		width = w, height = h;
 		DestroyContext();
 		CreateContext();
+	}
+
+	bool FFXDepthOfFieldPass::IsEnabled(PostProcessor*) const
+	{
+		return cvar_ffx_dof.Get();
+	}
+
+	void FFXDepthOfFieldPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
+				{
+					ImGui::Checkbox("Enable", cvar_ffx_dof.GetPtr());
+					if (cvar_ffx_dof.Get())
+					{
+						ImGui::SliderFloat("Aperture", &aperture, 0.0f, 0.1f, "%.2f");
+						ImGui::SliderFloat("Sensor Size", &sensor_size, 0.0f, 0.1f, "%.2f");
+						ImGui::SliderFloat("Focus Distance", &focus_dist, 0.1f, 1000.0f, "%.2f");
+
+						bool recreate_context = false;
+
+						recreate_context |= ImGui::SliderInt("Quality", &quality, 1, 50);
+						recreate_context |= ImGui::SliderFloat("Blur Size Limit", &coc_limit, 0.0f, 1.0f);
+						recreate_context |= ImGui::Checkbox("Enable Kernel Ring Merging", &enable_ring_merge);
+
+						if (recreate_context)
+						{
+							DestroyContext();
+							CreateContext();
+						}
+					}
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessor);
 	}
 
 	void FFXDepthOfFieldPass::CreateContext()

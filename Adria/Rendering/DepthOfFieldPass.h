@@ -1,40 +1,21 @@
 #pragma once
-#include "BokehPass.h"
-#include "BlurPass.h"
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 
 namespace adria
 {
+	enum class DepthOfFieldType : uint8;
+
 	class GfxDevice;
-	class GfxComputePipelineState;
-	class RenderGraph;
-
-	class DepthOfFieldPass
+	class DepthOfFieldPass final : public PostEffectGroup
 	{
-		struct DoFParameters
-		{
-			float focus_distance = 200.0f;
-			float focus_radius   = 25.0f;
-		};
 	public:
-		DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
-
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input, RGResourceName blurred_input);
-		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized();
+		DepthOfFieldPass(GfxDevice* gfx, uint32 width, uint32 height);
 
 	private:
-		GfxDevice* gfx;
-		uint32 width, height;
-		DoFParameters params{};
-
-		BokehPass bokeh_pass;
-		BlurPass blur_pass;
-
-		std::unique_ptr<GfxComputePipelineState> dof_pso;
+		DepthOfFieldType depth_of_field_type;
 
 	private:
-		void CreatePSO();
+		virtual void GroupGUI() override;
+
 	};
-
 }

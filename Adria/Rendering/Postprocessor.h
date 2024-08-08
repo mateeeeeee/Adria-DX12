@@ -10,8 +10,8 @@
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
 #include "ReflectionPass.h"
-#include "ExponentialHeightFogPass.h"
 #include "DepthOfFieldPass.h"
+#include "ExponentialHeightFogPass.h"
 #include "BloomPass.h"
 #include "MotionVectorsPass.h"
 #include "MotionBlurPass.h"
@@ -23,7 +23,6 @@
 #include "FSR3Pass.h"
 #include "XeSSPass.h"
 #include "DLSS3Pass.h"
-#include "FFXDepthOfFieldPass.h"
 #include "FFXCASPass.h"
 #include "FFXCACAOPass.h"
 #include "FXAAPass.h"
@@ -43,10 +42,9 @@ namespace adria
 	class PostEffect;
 	struct Light;
 	class RainEvent;
-	enum class AmbientOcclusion : uint8;
-	enum class Upscaler : uint8;
-	enum class Reflections : uint8;
-	enum class DepthOfField : uint8;
+
+	enum class AmbientOcclusionType : uint8;
+	enum class UpscalerType : uint8;
 	enum AntiAliasing : uint8;
 
 	using RenderResolutionChangedDelegate = Delegate<void(uint32, uint32)>;
@@ -63,6 +61,7 @@ namespace adria
 			PostEffectType_Clouds,
 			PostEffectType_Reflections,
 			PostEffectType_FilmEffects,
+			PostEffectType_DepthOfField,
 			PostEffectType_Upscaling,
 			PostEffectType_Count
 		};
@@ -112,9 +111,6 @@ namespace adria
 
 		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
 
-		BlurPass blur_pass;
-		CopyToTexturePass copy_to_texture_pass;
-		AddTexturesPass add_textures_pass;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
 		FFXCACAOPass cacao_pass;
@@ -123,9 +119,8 @@ namespace adria
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
 		ReflectionPass reflections_pass;
+		DepthOfFieldPass depth_of_field_pass;
 		ExponentialHeightFogPass fog_pass;
-		DepthOfFieldPass dof_pass;
-		FFXDepthOfFieldPass ffx_dof_pass;
 		BloomPass bloom_pass;
 		MotionVectorsPass velocity_buffer_pass;
 		MotionBlurPass motion_blur_pass;
@@ -141,10 +136,8 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
-		AmbientOcclusion ambient_occlusion;
-		Reflections reflections;
-		Upscaler upscaler;
-		DepthOfField depth_of_field;
+		AmbientOcclusionType ambient_occlusion;
+		UpscalerType upscaler;
 		AntiAliasing anti_aliasing;
 
 		bool fog = false;

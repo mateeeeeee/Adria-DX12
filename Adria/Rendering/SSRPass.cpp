@@ -19,11 +19,6 @@ namespace adria
 		CreatePSO();
 	}
 
-	void SSRPass::SetEnabled(bool enable)
-	{
-		cvar_ssr->Set(enable);
-	}
-
 	bool SSRPass::IsEnabled(PostProcessor*) const
 	{
 		return cvar_ssr.Get();
