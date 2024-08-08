@@ -60,6 +60,7 @@ namespace adria
 			PostEffectType_MotionVectors,
 			PostEffectType_LensFlare,
 			PostEffectType_Upscaling,
+			PostEffectType_Sun,
 			PostEffectType_Count
 		};
 

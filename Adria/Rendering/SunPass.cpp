@@ -2,6 +2,7 @@
 #include "ShaderManager.h"
 #include "Components.h"
 #include "BlackboardData.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
@@ -11,15 +12,30 @@
 namespace adria
 {
 
-	SunPass::SunPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height)
+	SunPass::SunPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		CreatePSO();
 	}
 
-	void SunPass::AddPass(RenderGraph& rg, RGResourceName final_resource, entt::entity sun)
+	void SunPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
+		entt::registry& reg = postprocessor->GetRegistry();
+		entt::entity sun = entt::null;
+		auto lights = reg.view<Light>();
+		for (entt::entity light : lights)
+		{
+			auto const& light_data = lights.get<Light>(light);
+			if (!light_data.active) continue;
+			if (light_data.type == LightType::Directional)
+			{
+				sun = light;
+				break;
+			}
+		}
+		ADRIA_ASSERT(sun != entt::null);
+
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		RGResourceName last_resource = final_resource;
+		RGResourceName last_resource = postprocessor->GetFinalResource();
 
 		rg.AddPass<void>("Sun Pass",
 			[=](RenderGraphBuilder& builder)
@@ -35,7 +51,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=, &reg](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();

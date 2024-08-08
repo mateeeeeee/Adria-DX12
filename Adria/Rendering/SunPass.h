@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 #include "entt/fwd.hpp"
 
 namespace adria
@@ -8,20 +8,23 @@ namespace adria
 	class GfxGraphicsPipelineState;
 	class RenderGraph;
 
-	class SunPass
+	class SunPass : public PostEffect
 	{
 	public:
-		SunPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
+		SunPass(GfxDevice* gfx, uint32 width, uint32 height);
 
-		void OnResize(uint32 w, uint32 h)
+		virtual bool IsEnabled(PostProcessor*) const override
+		{
+			return true;
+		}
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+
+		virtual void OnResize(uint32 w, uint32 h) override
 		{
 			width = w, height = h;
 		}
 
-		void AddPass(RenderGraph&, RGResourceName final_resource, entt::entity sun);
-
 	private:
-		entt::registry& reg;
 		GfxDevice* gfx;
 		uint32 width;
 		uint32 height;

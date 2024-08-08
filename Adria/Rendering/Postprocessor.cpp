@@ -71,7 +71,7 @@ namespace adria
 		ssr_pass(gfx, width, height), fog_pass(gfx, width, height), dof_pass(gfx, width, height), bloom_pass(gfx, width, height), 
 		velocity_buffer_pass(gfx, width, height), motion_blur_pass(gfx, width, height), taa_pass(gfx, width, height),
 		god_rays_pass(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), rtr_pass(gfx, width, height), sun_pass(reg, gfx, width, height),
+		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), rtr_pass(gfx, width, height), sun_pass(gfx, width, height),
 		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height),  cas_pass(gfx, width, height), cacao_pass(gfx, width, height),
 		ambient_occlusion(AmbientOcclusion::SSAO), reflections(Reflections::None), upscaler(Upscaler::None), depth_of_field(DepthOfField::None),
 		anti_aliasing(AntiAliasing_FXAA)
@@ -137,6 +137,8 @@ namespace adria
 		}
 		lens_flare_pass.AddPass(rg, this);
 
+		sun_pass.AddPass(rg, this);
+
 		for (entt::entity light : lights)
 		{
 			auto const& light_data = lights.get<Light>(light);
@@ -144,8 +146,7 @@ namespace adria
 
 			if (light_data.type == LightType::Directional)
 			{
-				sun_pass.AddPass(rg, final_resource, light);
-
+				sun_pass.AddPass(rg, this);
 				if (light_data.god_rays)
 				{
 					god_rays_pass.AddPass(rg, light_data);
@@ -159,68 +160,68 @@ namespace adria
 			}
 		}
 
-		if (clouds) clouds_pass.AddPass(rg);
-
-		switch (reflections)
-		{ 
-		case Reflections::SSR: final_resource = ssr_pass.AddPass(rg, final_resource); break;
-		case Reflections::RTR:
-		{
-			RGResourceName rtr_output = rtr_pass.AddPass(rg);
-			copy_to_texture_pass.AddPass(rg, final_resource, rtr_output, BlendMode::AdditiveBlend);
-		}
-		break;
-		}
-		if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
-		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
-
-		switch (depth_of_field)
-		{
-		case DepthOfField::Simple:
-		{
-			blur_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput), " DoF ");
-			final_resource = dof_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput));
-		}
-		break;
-		case DepthOfField::FFX:
-		{
-			final_resource = ffx_dof_pass.AddPass(rg, final_resource);
-		}
-		break;
-		}
-
-		switch (upscaler)
-		{
-		case Upscaler::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
-		case Upscaler::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
-		case Upscaler::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
-		case Upscaler::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
-		case Upscaler::None:
-		{
-			if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
-			{
-				rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
-				final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
-				rg.ExportTexture(final_resource, history_buffer.get());
-			}
-		}
-		}
-		
-		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
-		if (bloom) bloom_pass.AddPass(rg, final_resource);
-
-		if (cas && upscaler == Upscaler::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
-		{
-			final_resource = cas_pass.AddPass(rg, final_resource);
-		}
-
-		if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
-		{
-			tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
-			fxaa_pass.AddPass(rg, RG_NAME(TonemapOutput));
-		}
-		else
+		//if (clouds) clouds_pass.AddPass(rg);
+		//
+		//switch (reflections)
+		//{ 
+		//case Reflections::SSR: final_resource = ssr_pass.AddPass(rg, final_resource); break;
+		//case Reflections::RTR:
+		//{
+		//	RGResourceName rtr_output = rtr_pass.AddPass(rg);
+		//	copy_to_texture_pass.AddPass(rg, final_resource, rtr_output, BlendMode::AdditiveBlend);
+		//}
+		//break;
+		//}
+		//if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
+		//if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
+		//
+		//switch (depth_of_field)
+		//{
+		//case DepthOfField::Simple:
+		//{
+		//	blur_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput), " DoF ");
+		//	final_resource = dof_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput));
+		//}
+		//break;
+		//case DepthOfField::FFX:
+		//{
+		//	final_resource = ffx_dof_pass.AddPass(rg, final_resource);
+		//}
+		//break;
+		//}
+		//
+		//switch (upscaler)
+		//{
+		//case Upscaler::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
+		//case Upscaler::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
+		//case Upscaler::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
+		//case Upscaler::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
+		//case Upscaler::None:
+		//{
+		//	if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
+		//	{
+		//		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
+		//		final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
+		//		rg.ExportTexture(final_resource, history_buffer.get());
+		//	}
+		//}
+		//}
+		//
+		//if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
+		//if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
+		//if (bloom) bloom_pass.AddPass(rg, final_resource);
+		//
+		//if (cas && upscaler == Upscaler::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
+		//{
+		//	final_resource = cas_pass.AddPass(rg, final_resource);
+		//}
+		//
+		//if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
+		//{
+		//	tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
+		//	fxaa_pass.AddPass(rg, RG_NAME(TonemapOutput));
+		//}
+		//else
 		{
 			tonemap_pass.AddPass(rg, final_resource);
 		}
@@ -318,6 +319,7 @@ namespace adria
 	{
 		post_effects[PostEffectType_MotionVectors]	= std::make_unique<MotionVectorsPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_LensFlare]		= std::make_unique<LensFlarePass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Sun]			= std::make_unique<SunPass>(gfx, render_width, render_height);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
