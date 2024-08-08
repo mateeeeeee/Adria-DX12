@@ -1,17 +1,20 @@
 #include "RayTracedReflectionsPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_rtr("r.RTR", false, "0 - Disabled, 1 - Enabled");
 	
 	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
-		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
+		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1);
 		if (IsSupported())
@@ -22,9 +25,9 @@ namespace adria
 	}
 	RayTracedReflectionsPass::~RayTracedReflectionsPass() = default;
 
-	RGResourceName RayTracedReflectionsPass::AddPass(RenderGraph& rg)
+	void RayTracedReflectionsPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
-		if (!IsSupported()) return RGResourceName();
+		if (!IsSupported()) return;
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct RayTracedReflectionsPassData
@@ -84,19 +87,9 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
 			}, RGPassType::Compute, RGPassFlags::None);
+		
 		blur_pass.AddPass(rg, RG_NAME(RTR_OutputNoisy), RG_NAME(RTR_Output), "RTR Denoise");
-
-		GUI_Command([&]()
-			{
-				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_None))
-				{
-					ImGui::SliderFloat("Roughness scale", &reflection_roughness_scale, 0.0f, 0.25f);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-			}, GUICommandGroup_PostProcessor
-		);
-		return RG_NAME(RTR_Output);
+		copy_to_texture_pass.AddPass(rg, postprocessor->GetFinalResource(), RG_NAME(RTR_Output), BlendMode::AdditiveBlend);
 	}
 
 	void RayTracedReflectionsPass::OnResize(uint32 w, uint32 h)
@@ -104,6 +97,37 @@ namespace adria
 		if (!IsSupported()) return;
 		width = w, height = h;
 		blur_pass.OnResize(w, h);
+		copy_to_texture_pass.OnResize(w, h);
+	}
+
+	void RayTracedReflectionsPass::SetEnabled(bool enabled)
+	{
+		cvar_rtr->Set(enabled);
+	}
+
+	bool RayTracedReflectionsPass::IsEnabled(PostProcessor*) const
+	{
+		return cvar_rtr.Get();
+	}
+
+	void RayTracedReflectionsPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_None))
+				{
+					ImGui::Checkbox("Enable RTR", cvar_rtr.GetPtr());
+					if (cvar_rtr.Get())
+					{
+						ImGui::SliderFloat("Roughness scale", &reflection_roughness_scale, 0.0f, 0.25f);
+					}
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}, GUICommandGroup_PostProcessor
+		);
+
+
 	}
 
 	bool RayTracedReflectionsPass::IsSupported() const

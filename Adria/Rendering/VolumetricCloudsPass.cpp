@@ -3,20 +3,21 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
-
-#include "RenderGraph/RenderGraph.h"
+#include "PostProcessor.h" 
 #include "TextureManager.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
+#include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
+
 
 using namespace DirectX;
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_clouds("r.Clouds", true, "Enable or Disable Clouds");
 
 		
 	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h)
@@ -25,7 +26,12 @@ namespace adria
 		CreatePSOs();
 	}
 
-	void VolumetricCloudsPass::AddPass(RenderGraph& rg)
+	bool VolumetricCloudsPass::IsEnabled(PostProcessor*) const
+	{
+		return cvar_clouds.Get();
+	}
+
+	void VolumetricCloudsPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_NAME(PreviousCloudsOutput), prev_clouds.get());
@@ -40,8 +46,8 @@ namespace adria
 				should_generate_textures = false;
 			}
 			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
-			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get()); 
-			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get()); 
+			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get());
+			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get());
 
 			struct CloudNoiseConstants
 			{
@@ -255,7 +261,7 @@ namespace adria
 
 					.planet_center = Vector3(0.0f, -params.planet_radius, 0.0f),
 					.planet_radius = params.planet_radius,
-					
+
 					.light_step_length = params.light_step_length,
 					.light_cone_radius = params.light_cone_radius,
 					.precipitation = params.precipitation * 0.01f,
@@ -296,50 +302,7 @@ namespace adria
 				}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 		}
 
-		AddCombinePass(rg, RG_NAME(PostprocessMain));
-
-		GUI_Command([&]() 
-			{
-				if (ImGui::TreeNodeEx("Volumetric Clouds", 0))
-				{
-					ImGui::Checkbox("Temporal reprojection", &temporal_reprojection);
-					should_generate_textures |= ImGui::SliderInt("Shape Noise Frequency", &params.shape_noise_frequency, 1, 10);
-					should_generate_textures |= ImGui::SliderInt("Shape Noise Resolution", &params.shape_noise_resolution, 32, 256);
-					should_generate_textures |= ImGui::SliderInt("Detail Noise Frequency", &params.detail_noise_frequency, 1, 10);
-					should_generate_textures |= ImGui::SliderInt("Detail Noise Resolution", &params.detail_noise_resolution, 8, 64);
-
-					ImGui::SliderFloat("Cloud Type", &params.cloud_type, 0.0f, 1.0f);
-					ImGui::SliderFloat("Global Density", &params.global_density, 0.0f, 1.0f);
-					ImGui::SliderFloat("Cloud Min Height", &params.cloud_min_height, 1000.0f, 20000.0f);
-					ImGui::SliderFloat("Cloud Max Height", &params.cloud_max_height, params.cloud_min_height, 20000.0f);
-					ImGui::SliderFloat("Shape Noise Scale", &params.shape_noise_scale, 0.1f, 1.0f);
-					ImGui::SliderFloat("Detail Noise Scale", &params.detail_noise_scale, 0.0f, 100.0f);
-					ImGui::SliderFloat("Detail Noise Modifier", &params.detail_noise_modifier, 0.0f, 1.0f);
-					ImGui::SliderFloat("Cloud Coverage", &params.cloud_coverage, 0.0f, 1.0f);
-					ImGui::SliderFloat("Precipitation", &params.precipitation, 1.0f, 2.5f);
-					ImGui::SliderFloat("Ambient Factor", &params.ambient_light_factor, 0.01f, 10.0f);
-					ImGui::SliderFloat("Sun Factor", &params.sun_light_factor, 0.1f, 10.0f);
-					ImGui::InputFloat("Planet Radius", &params.planet_radius);
-					ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
-
-					static int _resolution = (int)resolution;
-					if (ImGui::Combo("Volumetric Clouds Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
-					{
-						resolution = (CloudResolution)_resolution;
-						OnResize(width, height);
-					}
-
-					if (resolution != _resolution)
-					{
-						resolution = (CloudResolution)_resolution;
-						OnResize(width, height);
-					}
-					
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-			}, GUICommandGroup_PostProcessor
-		);
+		AddCombinePass(rg, postprocessor->GetFinalResource());
 	}
 
 	void VolumetricCloudsPass::AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target)
@@ -396,6 +359,55 @@ namespace adria
 
 		prev_clouds = gfx->CreateTexture(clouds_output_desc);
 		CreateCloudTextures(gfx);
+	}
+
+	void VolumetricCloudsPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNodeEx("Volumetric Clouds", 0))
+				{
+					ImGui::Checkbox("Enable Volumetric Clouds", cvar_clouds.GetPtr());
+					if (cvar_clouds.Get())
+					{
+						ImGui::Checkbox("Temporal reprojection", &temporal_reprojection);
+						should_generate_textures |= ImGui::SliderInt("Shape Noise Frequency", &params.shape_noise_frequency, 1, 10);
+						should_generate_textures |= ImGui::SliderInt("Shape Noise Resolution", &params.shape_noise_resolution, 32, 256);
+						should_generate_textures |= ImGui::SliderInt("Detail Noise Frequency", &params.detail_noise_frequency, 1, 10);
+						should_generate_textures |= ImGui::SliderInt("Detail Noise Resolution", &params.detail_noise_resolution, 8, 64);
+
+						ImGui::SliderFloat("Cloud Type", &params.cloud_type, 0.0f, 1.0f);
+						ImGui::SliderFloat("Global Density", &params.global_density, 0.0f, 1.0f);
+						ImGui::SliderFloat("Cloud Min Height", &params.cloud_min_height, 1000.0f, 20000.0f);
+						ImGui::SliderFloat("Cloud Max Height", &params.cloud_max_height, params.cloud_min_height, 20000.0f);
+						ImGui::SliderFloat("Shape Noise Scale", &params.shape_noise_scale, 0.1f, 1.0f);
+						ImGui::SliderFloat("Detail Noise Scale", &params.detail_noise_scale, 0.0f, 100.0f);
+						ImGui::SliderFloat("Detail Noise Modifier", &params.detail_noise_modifier, 0.0f, 1.0f);
+						ImGui::SliderFloat("Cloud Coverage", &params.cloud_coverage, 0.0f, 1.0f);
+						ImGui::SliderFloat("Precipitation", &params.precipitation, 1.0f, 2.5f);
+						ImGui::SliderFloat("Ambient Factor", &params.ambient_light_factor, 0.01f, 10.0f);
+						ImGui::SliderFloat("Sun Factor", &params.sun_light_factor, 0.1f, 10.0f);
+						ImGui::InputFloat("Planet Radius", &params.planet_radius);
+						ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
+
+						static int _resolution = (int)resolution;
+						if (ImGui::Combo("Volumetric Clouds Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
+						{
+							resolution = (CloudResolution)_resolution;
+							OnResize(width, height);
+						}
+
+						if (resolution != _resolution)
+						{
+							resolution = (CloudResolution)_resolution;
+							OnResize(width, height);
+						}
+					}
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}, GUICommandGroup_PostProcessor
+		);
 	}
 
 	void VolumetricCloudsPass::OnRainEvent(bool enabled)

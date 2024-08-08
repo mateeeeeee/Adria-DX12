@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h" 
 #include "Graphics/GfxPipelineState.h" 
 #include "RenderGraph/RenderGraph.h"
@@ -14,12 +15,52 @@ using namespace DirectX;
 namespace adria
 {
 
-	GodRaysPass::GodRaysPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	GodRaysPass::GodRaysPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
 	{
 		CreatePSO();
 	}
 
-	void GodRaysPass::AddPass(RenderGraph& rg, Light const& light)
+	void GodRaysPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
+	{
+		RGResourceName final_resource = postprocessor->GetFinalResource();
+		entt::registry& reg = postprocessor->GetRegistry();
+		auto lights = reg.view<Light>();
+		for (entt::entity light : lights)
+		{
+			auto const& light_data = lights.get<Light>(light);
+			if (!light_data.active) continue;
+
+			if (light_data.type == LightType::Directional)
+			{
+				if (light_data.god_rays)
+				{
+					AddGodRaysPass(rg, light_data);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
+				}
+				else
+				{
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_NAME(SunOutput), BlendMode::AdditiveBlend);
+				}
+				break;
+			}
+		}
+
+	}
+
+	void GodRaysPass::OnResize(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+		copy_to_texture_pass.OnResize(w, h);
+	}
+
+	void GodRaysPass::CreatePSO()
+	{
+		GfxComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_GodRays;
+		god_rays_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+	}
+
+	void GodRaysPass::AddGodRaysPass(RenderGraph& rg, Light const& light)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -77,7 +118,7 @@ namespace adria
 					uint32   output_idx;
 				} constants =
 				{
-					.light_screen_space_position_x =  0.5f * light_pos.x / light_pos.w + 0.5f,
+					.light_screen_space_position_x = 0.5f * light_pos.x / light_pos.w + 0.5f,
 					.light_screen_space_position_y = -0.5f * light_pos.y / light_pos.w + 0.5f,
 					.density = light.godrays_density, .weight = light.godrays_weight,
 					.decay = light.godrays_decay, .exposure = light.godrays_exposure,
@@ -88,18 +129,6 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
-	}
-
-	void GodRaysPass::OnResize(uint32 w, uint32 h)
-	{
-		width = w, height = h;
-	}
-
-	void GodRaysPass::CreatePSO()
-	{
-		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_GodRays;
-		god_rays_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

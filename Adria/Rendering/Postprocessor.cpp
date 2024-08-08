@@ -13,6 +13,18 @@ using namespace DirectX;
 
 namespace adria
 {
+	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
+	static TAutoConsoleVariable<int>  cvar_upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
+	static TAutoConsoleVariable<int>  cvar_depth_of_field("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
+	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
+	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
+	static TAutoConsoleVariable<bool> cvar_taa("r.TAA", false, "Enable or Disable TAA");
+	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Film Effects");
+	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
+	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
+	static TAutoConsoleVariable<bool> cvar_autoexposure("r.AutoExposure", false, "Enable or Disable Auto Exposure");
+	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
+	
 	enum class AmbientOcclusion : uint8
 	{
 		None,
@@ -29,12 +41,6 @@ namespace adria
 		XeSS,
 		DLSS3,
 	};
-	enum class Reflections : uint8
-	{
-		None,
-		SSR,
-		RTR
-	};
 	enum class DepthOfField : uint8
 	{
 		None,
@@ -48,32 +54,17 @@ namespace adria
 		AntiAliasing_TAA = 0x2
 	};
 
-
-	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
-	static TAutoConsoleVariable<int>  cvar_reflections("r.Reflections", 0, "0 - No Reflections, 1 - SSR, 2 - RTR");
-	static TAutoConsoleVariable<int>  cvar_upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
-	static TAutoConsoleVariable<int>  cvar_depth_of_field("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
-	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
-	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
-	static TAutoConsoleVariable<bool> cvar_taa("r.TAA", false, "Enable or Disable TAA");
-	static TAutoConsoleVariable<bool> cvar_film_effects("r.FilmEffects", false, "Enable or Disable Film Effects");
-	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
-	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
-	static TAutoConsoleVariable<bool> cvar_autoexposure("r.AutoExposure", false, "Enable or Disable Auto Exposure");
-	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
-	static TAutoConsoleVariable<bool> cvar_clouds("r.Clouds", true, "Enable or Disable Clouds");
-
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(gfx, width, height),
 		add_textures_pass(gfx, width, height), ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height),
-		automatic_exposure_pass(gfx, width, height), lens_flare_pass(gfx, width, height), clouds_pass(gfx, width, height), 
-		ssr_pass(gfx, width, height), fog_pass(gfx, width, height), dof_pass(gfx, width, height), bloom_pass(gfx, width, height), 
+		automatic_exposure_pass(gfx, width, height), lens_flare_pass(gfx, width, height), clouds_pass(gfx, width, height), reflections_pass(gfx, width, height),
+		fog_pass(gfx, width, height), dof_pass(gfx, width, height), bloom_pass(gfx, width, height), 
 		velocity_buffer_pass(gfx, width, height), motion_blur_pass(gfx, width, height), taa_pass(gfx, width, height),
 		god_rays_pass(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), rtr_pass(gfx, width, height), sun_pass(gfx, width, height),
-		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height),  cas_pass(gfx, width, height), cacao_pass(gfx, width, height),
-		ambient_occlusion(AmbientOcclusion::SSAO), reflections(Reflections::None), upscaler(Upscaler::None), depth_of_field(DepthOfField::None),
+		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), sun_pass(gfx, width, height),
+		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height), cas_pass(gfx, width, height), cacao_pass(gfx, width, height),
+		ambient_occlusion(AmbientOcclusion::SSAO), upscaler(Upscaler::None), depth_of_field(DepthOfField::None),
 		anti_aliasing(AntiAliasing_FXAA)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
@@ -82,7 +73,6 @@ namespace adria
 		//cvars
 		{
 			cvar_ambient_occlusion->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusion>(cvar->GetInt()); }));
-			cvar_reflections->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { reflections = static_cast<Reflections>(cvar->GetInt()); }));
 			cvar_upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { upscaler = static_cast<Upscaler>(cvar->GetInt()); }));
 			cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { depth_of_field = static_cast<DepthOfField>(cvar->GetInt()); }));
 			cvar_fxaa->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
@@ -100,7 +90,6 @@ namespace adria
 			cvar_motion_blur->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ motion_blur = cvar->GetBool(); }));
 			cvar_autoexposure->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ automatic_exposure = cvar->GetBool(); }));
 			cvar_cas->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ cas = cvar->GetBool(); }));
-			cvar_clouds->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ clouds = cvar->GetBool(); }));
 		}
 	}
 
@@ -136,92 +125,62 @@ namespace adria
 			velocity_buffer_pass.AddPass(rg, this);
 		}
 		lens_flare_pass.AddPass(rg, this);
-
 		sun_pass.AddPass(rg, this);
+		god_rays_pass.AddPass(rg, this);
+		if (clouds_pass.IsEnabled(this)) clouds_pass.AddPass(rg, this);
+		
+		reflections_pass.AddPass(rg, this);
 
-		for (entt::entity light : lights)
+		if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
+		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
+		
+		switch (depth_of_field)
 		{
-			auto const& light_data = lights.get<Light>(light);
-			if (!light_data.active) continue;
-
-			if (light_data.type == LightType::Directional)
+		case DepthOfField::Simple:
+		{
+			blur_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput), " DoF ");
+			final_resource = dof_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput));
+		}
+		break;
+		case DepthOfField::FFX:
+		{
+			final_resource = ffx_dof_pass.AddPass(rg, final_resource);
+		}
+		break;
+		}
+		
+		switch (upscaler)
+		{
+		case Upscaler::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
+		case Upscaler::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
+		case Upscaler::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
+		case Upscaler::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
+		case Upscaler::None:
+		{
+			if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 			{
-				sun_pass.AddPass(rg, this);
-				if (light_data.god_rays)
-				{
-					god_rays_pass.AddPass(rg, light_data);
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
-				}
-				else
-				{
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_NAME(SunOutput), BlendMode::AdditiveBlend);
-				}
-				break;
+				rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
+				final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
+				rg.ExportTexture(final_resource, history_buffer.get());
 			}
 		}
-
-		//if (clouds) clouds_pass.AddPass(rg);
-		//
-		//switch (reflections)
-		//{ 
-		//case Reflections::SSR: final_resource = ssr_pass.AddPass(rg, final_resource); break;
-		//case Reflections::RTR:
-		//{
-		//	RGResourceName rtr_output = rtr_pass.AddPass(rg);
-		//	copy_to_texture_pass.AddPass(rg, final_resource, rtr_output, BlendMode::AdditiveBlend);
-		//}
-		//break;
-		//}
-		//if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
-		//if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
-		//
-		//switch (depth_of_field)
-		//{
-		//case DepthOfField::Simple:
-		//{
-		//	blur_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput), " DoF ");
-		//	final_resource = dof_pass.AddPass(rg, final_resource, RG_NAME(BlurredDofInput));
-		//}
-		//break;
-		//case DepthOfField::FFX:
-		//{
-		//	final_resource = ffx_dof_pass.AddPass(rg, final_resource);
-		//}
-		//break;
-		//}
-		//
-		//switch (upscaler)
-		//{
-		//case Upscaler::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
-		//case Upscaler::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
-		//case Upscaler::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
-		//case Upscaler::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
-		//case Upscaler::None:
-		//{
-		//	if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
-		//	{
-		//		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
-		//		final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
-		//		rg.ExportTexture(final_resource, history_buffer.get());
-		//	}
-		//}
-		//}
-		//
-		//if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-		//if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
-		//if (bloom) bloom_pass.AddPass(rg, final_resource);
-		//
-		//if (cas && upscaler == Upscaler::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
-		//{
-		//	final_resource = cas_pass.AddPass(rg, final_resource);
-		//}
-		//
-		//if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
-		//{
-		//	tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
-		//	fxaa_pass.AddPass(rg, RG_NAME(TonemapOutput));
-		//}
-		//else
+		}
+		
+		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
+		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
+		if (bloom) bloom_pass.AddPass(rg, final_resource);
+		
+		if (cas && upscaler == Upscaler::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
+		{
+			final_resource = cas_pass.AddPass(rg, final_resource);
+		}
+		
+		if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
+		{
+			tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
+			fxaa_pass.AddPass(rg, RG_NAME(TonemapOutput));
+		}
+		else
 		{
 			tonemap_pass.AddPass(rg, final_resource);
 		}
@@ -274,8 +233,6 @@ namespace adria
 		add_textures_pass.OnResize(w, h);
 		copy_to_texture_pass.OnResize(w, h);
 		lens_flare_pass.OnResize(w, h);
-		ssr_pass.OnResize(w, h);
-		rtr_pass.OnResize(w, h);
 		fog_pass.OnResize(w, h);
 		velocity_buffer_pass.OnResize(w, h);
 		god_rays_pass.OnResize(w, h);
@@ -320,6 +277,9 @@ namespace adria
 		post_effects[PostEffectType_MotionVectors]	= std::make_unique<MotionVectorsPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_LensFlare]		= std::make_unique<LensFlarePass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Sun]			= std::make_unique<SunPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_GodRays]		= std::make_unique<GodRaysPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Clouds]			= std::make_unique<VolumetricCloudsPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Reflections]	= std::make_unique<ReflectionPass>(gfx, render_width, render_height);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
@@ -354,11 +314,12 @@ namespace adria
 
 	void PostProcessor::PostprocessorGUI()
 	{
+		clouds_pass.GUI();
+		reflections_pass.GUI();
 		GUI_Command([&]()
 			{
 				static int current_ao_type = (int)ambient_occlusion;
 				static int current_upscaler = (int)upscaler;
-				static int current_reflection_type = (int)reflections;
 				static int current_dof_type = (int)depth_of_field;
 				static bool fxaa = anti_aliasing & AntiAliasing_FXAA;
 				static bool taa = anti_aliasing & AntiAliasing_TAA;
@@ -391,12 +352,6 @@ namespace adria
 						case Upscaler::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
 						}
 					}
-					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
-					{
-						if (!ray_tracing_supported && current_reflection_type == 2) current_reflection_type = 1;
-						reflections = static_cast<Reflections>(current_reflection_type);
-						cvar_reflections->Set(current_reflection_type);
-					}
 					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0FFX\0", 3))
 					{
 						depth_of_field = static_cast<DepthOfField>(current_dof_type);
@@ -404,7 +359,7 @@ namespace adria
 					}
 
 					if (ImGui::Checkbox("Automatic Exposure", &automatic_exposure)) cvar_autoexposure->Set(automatic_exposure);
-					if (ImGui::Checkbox("Volumetric Clouds", &clouds)) cvar_clouds->Set(clouds);
+					
 					if (ImGui::Checkbox("Bloom", &bloom)) cvar_bloom->Set(bloom);
 
 					if (ImGui::Checkbox("Motion Blur", &motion_blur)) cvar_motion_blur->Set(motion_blur);

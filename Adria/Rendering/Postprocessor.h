@@ -9,8 +9,7 @@
 #include "AutomaticExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
-#include "SSRPass.h"
-#include "RayTracedReflectionsPass.h"
+#include "ReflectionPass.h"
 #include "ExponentialHeightFogPass.h"
 #include "DepthOfFieldPass.h"
 #include "BloomPass.h"
@@ -59,8 +58,11 @@ namespace adria
 		{
 			PostEffectType_MotionVectors,
 			PostEffectType_LensFlare,
-			PostEffectType_Upscaling,
 			PostEffectType_Sun,
+			PostEffectType_GodRays,
+			PostEffectType_Clouds,
+			PostEffectType_Reflections,
+			PostEffectType_Upscaling,
 			PostEffectType_Count
 		};
 
@@ -119,8 +121,7 @@ namespace adria
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
-		SSRPass ssr_pass;
-		RayTracedReflectionsPass rtr_pass;
+		ReflectionPass reflections_pass;
 		ExponentialHeightFogPass fog_pass;
 		DepthOfFieldPass dof_pass;
 		FFXDepthOfFieldPass ffx_dof_pass;

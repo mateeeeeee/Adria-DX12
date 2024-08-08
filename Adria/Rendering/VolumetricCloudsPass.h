@@ -1,6 +1,5 @@
 #pragma once
-#include "RenderGraph/RenderGraphResourceId.h"
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 
 namespace adria
@@ -9,7 +8,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 
-	class VolumetricCloudsPass
+	class VolumetricCloudsPass : public PostEffect
 	{
 		struct CloudParameters
 		{
@@ -51,9 +50,12 @@ namespace adria
 	public:
 		VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h);
 
-		void AddPass(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized();
+		virtual bool IsEnabled(PostProcessor*) const override;
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void OnSceneInitialized() override;
+		virtual void GUI() override;
+
 		void OnRainEvent(bool enabled);
 
 	private:

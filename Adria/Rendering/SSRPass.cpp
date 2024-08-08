@@ -3,23 +3,36 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
+#include "Postprocessor.h" 
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
-	
+	static TAutoConsoleVariable<bool> cvar_ssr("r.SSR", false, "0 - Disabled, 1 - Enabled");
+
 	SSRPass::SSRPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
 
-	RGResourceName SSRPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void SSRPass::SetEnabled(bool enable)
+	{
+		cvar_ssr->Set(enable);
+	}
+
+	bool SSRPass::IsEnabled(PostProcessor*) const
+	{
+		return cvar_ssr.Get();
+	}
+
+	void SSRPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		RGResourceName last_resource = input;
+		RGResourceName last_resource = postprocessor->GetFinalResource();
 		struct SSRPassData
 		{
 			RGTextureReadOnlyId normals;
@@ -70,7 +83,7 @@ namespace adria
 					uint32 diffuse_idx;
 					uint32 scene_idx;
 					uint32 output_idx;
-				} constants = 
+				} constants =
 				{
 					.ssr_ray_step = params.ssr_ray_step, .ssr_ray_hit_threshold = params.ssr_ray_hit_threshold,
 					.depth_idx = i, .normal_idx = i + 1, .diffuse_idx = i + 2, .scene_idx = i + 3, .output_idx = i + 4
@@ -82,22 +95,29 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
 
-		GUI_Command([&]() {
-			if (ImGui::TreeNodeEx("Screen-Space Reflections", 0))
-			{
-				ImGui::SliderFloat("Ray Step", &params.ssr_ray_step, 1.0f, 3.0f);
-				ImGui::SliderFloat("Ray Hit Threshold", &params.ssr_ray_hit_threshold, 0.25f, 5.0f);
-
-				ImGui::TreePop();
-				ImGui::Separator();
-			}
-			}, GUICommandGroup_PostProcessor);
-		return RG_NAME(SSR_Output);
+		postprocessor->SetFinalResource(RG_NAME(SSR_Output));
 	}
 
 	void SSRPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void SSRPass::GUI()
+	{
+		GUI_Command([&]() {
+			if (ImGui::TreeNodeEx("Screen-Space Reflections", 0))
+			{
+				ImGui::Checkbox("Enable SSR", cvar_ssr.GetPtr());
+				if (cvar_ssr.Get())
+				{
+					ImGui::SliderFloat("Ray Step", &params.ssr_ray_step, 1.0f, 3.0f);
+					ImGui::SliderFloat("Ray Hit Threshold", &params.ssr_ray_hit_threshold, 0.25f, 5.0f);
+				}
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+			}, GUICommandGroup_PostProcessor);
 	}
 
 	void SSRPass::CreatePSO()

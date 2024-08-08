@@ -1,7 +1,8 @@
 #pragma once
+#include "PostEffect.h"
 #include "BlurPass.h"
+#include "HelperPasses.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
-#include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
 {
@@ -10,14 +11,18 @@ namespace adria
 	class GfxStateObject;
 	class GfxShaderKey;
 
-	class RayTracedReflectionsPass
+	class RayTracedReflectionsPass : public PostEffect
 	{
 	public:
 		RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height);
 		~RayTracedReflectionsPass();
-		RGResourceName AddPass(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h);
-		bool IsSupported() const;
+
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void SetEnabled(bool) override;
+		virtual bool IsEnabled(PostProcessor*) const override;
+		virtual void GUI() override;
+		virtual bool IsSupported() const override;
 
 	private:
 		GfxDevice* gfx;
@@ -26,6 +31,7 @@ namespace adria
 		uint32 width, height;
 		bool is_supported;
 		float reflection_roughness_scale = 0.0f;
+		CopyToTexturePass copy_to_texture_pass;
 
 	private:
 		void CreateStateObject();
