@@ -6,7 +6,7 @@
 #include "SSAOPass.h"
 #include "HBAOPass.h"
 #include "RayTracedAmbientOcclusionPass.h"
-#include "AutomaticExposurePass.h"
+#include "AutoExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
 #include "ReflectionPassGroup.h"
@@ -61,6 +61,9 @@ namespace adria
 			PostEffectType_DepthOfField,
 			PostEffectType_Upscaler,
 			PostEffectType_TAA,
+			PostEffectType_MotionBlur,
+			PostEffectType_AutoExposure,
+			PostEffectType_Bloom,
 			PostEffectType_Count
 		};
 
@@ -82,7 +85,7 @@ namespace adria
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
-		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds_pass.IsEnabled(this) || motion_blur; }
+		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds_pass.IsEnabled(this) || motion_blur_pass.IsEnabled(this); }
 		bool HasUpscaler() const;
 		bool HasTAA() const;
 
@@ -108,7 +111,7 @@ namespace adria
 		HBAOPass     hbao_pass;
 		FFXCACAOPass cacao_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
-		AutomaticExposurePass automatic_exposure_pass;
+		AutoExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
 		ReflectionPassGroup reflections_pass;
@@ -128,9 +131,6 @@ namespace adria
 
 		AmbientOcclusionType ambient_occlusion;
 		bool fxaa = true;
-		bool bloom = false;
-		bool motion_blur = false;
-		bool automatic_exposure = true;
 		bool cas = false;
 		bool ray_tracing_supported = false;
 

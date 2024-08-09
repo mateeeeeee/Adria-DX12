@@ -1,46 +1,26 @@
-#include "AutomaticExposurePass.h"
+#include "AutoExposurePass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "Postprocessor.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
-#include <algorithm> // remove this later
+#include <algorithm> 
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool>  auto_exposure("r.AutoExposure", true, "Enable or Disable Auto Exposure");
 	static TAutoConsoleVariable<float> exposure_bias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
 
-	AutomaticExposurePass::AutomaticExposurePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	AutoExposurePass::AutoExposurePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSOs();
 	}
 
-	void AutomaticExposurePass::OnSceneInitialized()
-	{
-		GfxTextureDesc desc{};
-		desc.width = 1;
-		desc.height = 1;
-		desc.mip_levels = 1;
-		desc.bind_flags = GfxBindFlag::UnorderedAccess;
-		desc.misc_flags = GfxTextureMiscFlag::None;
-		desc.initial_state = GfxResourceState::ComputeUAV;
-		desc.format = GfxFormat::R16_FLOAT;
-
-		previous_ev100 = gfx->CreateTexture(desc);
-		previous_ev100_uav = gfx->CreateTextureUAV(previous_ev100.get());
-
-		GfxBufferDesc hist_desc{};
-		hist_desc.stride = sizeof(uint32);
-		hist_desc.size = hist_desc.stride * 256;
-		hist_desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
-		hist_desc.resource_usage = GfxResourceUsage::Readback;
-		histogram_copy = gfx->CreateBuffer(hist_desc);
-	}
-
-	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)
+	void AutoExposurePass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		struct BuildHistogramData
 		{
@@ -51,7 +31,7 @@ namespace adria
 		rg.AddPass<BuildHistogramData>("Build Histogram Pass",
 			[=](BuildHistogramData& data, RenderGraphBuilder& builder)
 			{
-				data.scene_texture = builder.ReadTexture(input);
+				data.scene_texture = builder.ReadTexture(postprocessor->GetFinalResource());
 
 				RGBufferDesc desc{};
 				desc.stride = sizeof(uint32);
@@ -89,16 +69,16 @@ namespace adria
 					float max_luminance;
 					uint32  scene_idx;
 					uint32  histogram_idx;
-				} constants = {	.width = width, .height = height,
+				} constants = { .width = width, .height = height,
 								.rcp_width = 1.0f / width, .rcp_height = 1.0f / height,
 								.min_luminance = min_luminance, .max_luminance = max_luminance,
 								.scene_idx = descriptor_index, .histogram_idx = descriptor_index + 1 };
 				cmd_list->SetRootConstants(1, constants);
 
 				auto DivideRoudingUp = [](uint32 a, uint32 b)
-				{
-					return (a + b - 1) / b;
-				};
+					{
+						return (a + b - 1) / b;
+					};
 				cmd_list->Dispatch(DivideRoudingUp(width, 16), DivideRoudingUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -194,37 +174,66 @@ namespace adria
 					uint32  previous_ev_idx;
 					uint32  exposure_idx;
 					uint32  luminance_idx;
-				} constants{.adaption_speed = adaption_speed, .exposure_bias = exposure_bias.Get(), .frame_time = 0.166f,
-						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx  = descriptor_index + 2};
+				} constants{ .adaption_speed = adaption_speed, .exposure_bias = exposure_bias.Get(), .frame_time = 0.166f,
+						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx = descriptor_index + 2 };
 
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		if (show_histogram) rg.ExportBuffer(RG_NAME(HistogramBuffer), histogram_copy.get());
+	}
 
+	void AutoExposurePass::OnSceneInitialized()
+	{
+		GfxTextureDesc desc{};
+		desc.width = 1;
+		desc.height = 1;
+		desc.mip_levels = 1;
+		desc.bind_flags = GfxBindFlag::UnorderedAccess;
+		desc.misc_flags = GfxTextureMiscFlag::None;
+		desc.initial_state = GfxResourceState::ComputeUAV;
+		desc.format = GfxFormat::R16_FLOAT;
+
+		previous_ev100 = gfx->CreateTexture(desc);
+		previous_ev100_uav = gfx->CreateTextureUAV(previous_ev100.get());
+
+		GfxBufferDesc hist_desc{};
+		hist_desc.stride = sizeof(uint32);
+		hist_desc.size = hist_desc.stride * 256;
+		hist_desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
+		hist_desc.resource_usage = GfxResourceUsage::Readback;
+		histogram_copy = gfx->CreateBuffer(hist_desc);
+	}
+
+	void AutoExposurePass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
 				{
-					ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
-					ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
-					ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01f, 5.0f);
-					ImGui::SliderFloat("Exposure Bias", exposure_bias.GetPtr(), -5.0f, 5.0f);
-					ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
-					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);
-					ImGui::Checkbox("Histogram", &show_histogram);
-					if (show_histogram)
+					ImGui::Checkbox("Enable", auto_exposure.GetPtr());
+					if (auto_exposure.Get())
 					{
-						ADRIA_ASSERT(histogram_copy->IsMapped());
-						uint64 histogram_size = histogram_copy->GetSize() / sizeof(int32);
-						int32* hist_data = histogram_copy->GetMappedData<int32>();
-						int32 max_value = *std::max_element(hist_data, hist_data + histogram_size);
-						auto converter = [](void* data, int32 idx)-> float
+						ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
+						ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
+						ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01f, 5.0f);
+						ImGui::SliderFloat("Exposure Bias", exposure_bias.GetPtr(), -5.0f, 5.0f);
+						ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
+						ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);
+						ImGui::Checkbox("Histogram", &show_histogram);
+						if (show_histogram)
 						{
-							return static_cast<float>(*(((int32*)data) + idx));
-						};
-						ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int32)histogram_size, 0, NULL, 0.0f, (float)max_value, ImVec2(0, 80));
+							ADRIA_ASSERT(histogram_copy->IsMapped());
+							uint64 histogram_size = histogram_copy->GetSize() / sizeof(int32);
+							int32* hist_data = histogram_copy->GetMappedData<int32>();
+							int32 max_value = *std::max_element(hist_data, hist_data + histogram_size);
+							auto converter = [](void* data, int32 idx)-> float
+								{
+									return static_cast<float>(*(((int32*)data) + idx));
+								};
+							ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int32)histogram_size, 0, NULL, 0.0f, (float)max_value, ImVec2(0, 80));
+						}
 					}
 					ImGui::TreePop();
 				}
@@ -232,12 +241,17 @@ namespace adria
 		);
 	}
 
-	void AutomaticExposurePass::OnResize(uint32 w, uint32 h)
+	void AutoExposurePass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
 	}
 
-	void AutomaticExposurePass::CreatePSOs()
+	bool AutoExposurePass::IsEnabled(PostProcessor const*) const
+	{
+		return auto_exposure.Get();
+	}
+
+	void AutoExposurePass::CreatePSOs()
 	{
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_BuildHistogram;

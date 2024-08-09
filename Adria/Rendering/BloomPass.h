@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 
 namespace adria
@@ -7,14 +7,15 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 
-	class BloomPass
+	class BloomPass : public PostEffect
 	{
-
 	public:
 		BloomPass(GfxDevice* gfx, uint32 w, uint32 h);
 
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
-		void OnResize(uint32 w, uint32 h);
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32, uint32) override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual void GUI() override;
 
 	private:
 		GfxDevice* gfx;

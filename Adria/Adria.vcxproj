@@ -258,7 +258,7 @@
     <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\DDGI.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
-    <ClCompile Include="Rendering\AutomaticExposurePass.cpp" />
+    <ClCompile Include="Rendering\AutoExposurePass.cpp" />
     <ClCompile Include="Rendering\BloomPass.cpp" />
     <ClCompile Include="Rendering\BlurPass.cpp" />
     <ClCompile Include="Rendering\BokehPass.cpp" />
@@ -454,7 +454,7 @@
     <ClInclude Include="Rendering\FFXCASPass.h" />
     <ClInclude Include="Rendering\DDGI.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
-    <ClInclude Include="Rendering\AutomaticExposurePass.h" />
+    <ClInclude Include="Rendering\AutoExposurePass.h" />
     <ClInclude Include="Rendering\BloomPass.h" />
     <ClInclude Include="Rendering\BlurPass.h" />
     <ClInclude Include="Rendering\BokehPass.h" />

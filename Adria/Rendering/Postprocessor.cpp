@@ -15,9 +15,6 @@ namespace adria
 {
 	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
 	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
-	static TAutoConsoleVariable<bool> cvar_bloom("r.Bloom", false, "Enable or Disable Bloom");
-	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
-	static TAutoConsoleVariable<bool> cvar_autoexposure("r.AutoExposure", false, "Enable or Disable Auto Exposure");
 	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
 	
 	enum class AmbientOcclusionType : uint8
@@ -50,9 +47,6 @@ namespace adria
 				{
 					fxaa = cvar->GetBool();
 				}));
-			cvar_bloom->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ bloom = cvar->GetBool(); }));
-			cvar_motion_blur->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ motion_blur = cvar->GetBool(); }));
-			cvar_autoexposure->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ automatic_exposure = cvar->GetBool(); }));
 			cvar_cas->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ cas = cvar->GetBool(); }));
 		}
 
@@ -84,12 +78,10 @@ namespace adria
 		PostprocessorGUI();
 		final_resource = AddHDRCopyPass(rg);
 
-		/*
-		for(auto& post_effect : post_effects)
-		{
-			if(post_effect.IsEnabled(this)) post_effect.AddPass(rg, this);
-		}
-		*/
+		//for (uint32 i = 0; i < PostEffectType_Count; ++i)
+		//{
+		//	if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
+		//}
 
 		if (velocity_buffer_pass.IsEnabled(this))
 		{
@@ -104,16 +96,11 @@ namespace adria
 		if (fog_pass.IsEnabled(this)) fog_pass.AddPass(rg, this);
 		depth_of_field_pass.AddPass(rg, this);
 		if(upscaler_pass.IsEnabled(this)) upscaler_pass.AddPass(rg, this);
-		
-		//for (uint32 i = 0; i < PostEffectType_Count; ++i)
-		//{
-		//	if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
-		//}
+
 		if (taa_pass.IsEnabled(this)) taa_pass.AddPass(rg, this);
-		
-		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
-		if (bloom) bloom_pass.AddPass(rg, final_resource);
+		if (motion_blur_pass.IsEnabled(this)) motion_blur_pass.AddPass(rg, this);
+		if (automatic_exposure_pass.IsEnabled(this)) automatic_exposure_pass.AddPass(rg, this);
+		if (bloom_pass.IsEnabled(this)) bloom_pass.AddPass(rg, this);
 		
 		if (cas && !upscaler_pass.IsEnabled(this) && HasTAA())
 		{
@@ -202,6 +189,9 @@ namespace adria
 		post_effects[PostEffectType_DepthOfField]	= std::make_unique<DepthOfFieldPassGroup>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Upscaler]		= std::make_unique<UpscalerPassGroup>(gfx, render_width, render_height);
 		post_effects[PostEffectType_TAA]			= std::make_unique<TAAPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_MotionBlur]		= std::make_unique<MotionBlurPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_AutoExposure]	= std::make_unique<AutoExposurePass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Bloom]			= std::make_unique<BloomPass>(gfx, render_width, render_height);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
@@ -243,6 +233,10 @@ namespace adria
 		depth_of_field_pass.GUI();
 		upscaler_pass.GUI();
 		taa_pass.GUI();
+		motion_blur_pass.GUI();
+		automatic_exposure_pass.GUI();
+		bloom_pass.GUI();
+
 		GUI_Command([&]()
 			{
 				static int current_ao_type = (int)ambient_occlusion;
@@ -254,10 +248,6 @@ namespace adria
 						ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
 						cvar_ambient_occlusion->Set(current_ao_type);
 					}
-					
-					if (ImGui::Checkbox("Automatic Exposure", &automatic_exposure)) cvar_autoexposure->Set(automatic_exposure);
-					if (ImGui::Checkbox("Bloom", &bloom)) cvar_bloom->Set(bloom);
-					if (ImGui::Checkbox("Motion Blur", &motion_blur)) cvar_motion_blur->Set(motion_blur);
 					if (ImGui::Checkbox("FXAA", &fxaa)) cvar_fxaa->Set(fxaa);
 					if (HasTAA())
 					{

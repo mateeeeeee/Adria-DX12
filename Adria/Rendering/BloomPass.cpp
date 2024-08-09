@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Core/ConsoleManager.h"
@@ -11,6 +12,7 @@
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool>  bloom("r.Bloom", false, "Enable or Disable Bloom");
 	static TAutoConsoleVariable<float> bloom_radius("r.Bloom.Radius", 0.25f, "Controls the radius of the bloom effect");
 	static TAutoConsoleVariable<float> bloom_intensity("r.Bloom.Intensity", 1.33f, "Controls the intensity of the bloom effect");
 	static TAutoConsoleVariable<float> bloom_blend_factor("r.Bloom.BlendFactor", 0.25f, "Controls the blend factor of the bloom effect");
@@ -20,11 +22,11 @@ namespace adria
 		CreatePSOs();
 	}
 
-	RGResourceName BloomPass::AddPass(RenderGraph& rg, RGResourceName color_texture)
+	void BloomPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		uint32 pass_count = (uint32)std::floor(log2f((float)std::max(width, height))) - 3;
 		std::vector<RGResourceName> downsample_mips(pass_count);
-		downsample_mips[0] = DownsamplePass(rg, color_texture, 1);
+		downsample_mips[0] = DownsamplePass(rg, postprocessor->GetFinalResource(), 1);
 		for (uint32 i = 1; i < pass_count; ++i)
 		{
 			downsample_mips[i] = DownsamplePass(rg, downsample_mips[i - 1], i + 1);
@@ -40,26 +42,37 @@ namespace adria
 
 		BloomBlackboardData blackboard_data{ .bloom_intensity = bloom_intensity.Get(), .bloom_blend_factor = bloom_blend_factor.Get() };
 		rg.GetBlackboard().Add<BloomBlackboardData>(std::move(blackboard_data));
+	}
 
+	void BloomPass::OnResize(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
+	bool BloomPass::IsEnabled(PostProcessor const*) const
+	{
+		return bloom.Get();
+	}
+
+	void BloomPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{
-					ImGui::SliderFloat("Bloom Radius", bloom_radius.GetPtr(), 0.0f, 1.0f);
-					ImGui::SliderFloat("Bloom Intensity", bloom_intensity.GetPtr(), 0.0f, 8.0f);
-					ImGui::SliderFloat("Bloom Blend Factor", bloom_blend_factor.GetPtr(), 0.0f, 1.0f);
+					ImGui::Checkbox("Enable", bloom.GetPtr());
+					if (bloom.Get())
+					{
+						ImGui::SliderFloat("Bloom Radius", bloom_radius.GetPtr(), 0.0f, 1.0f);
+						ImGui::SliderFloat("Bloom Intensity", bloom_intensity.GetPtr(), 0.0f, 8.0f);
+						ImGui::SliderFloat("Bloom Blend Factor", bloom_blend_factor.GetPtr(), 0.0f, 1.0f);
+					}
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
 			}, GUICommandGroup_PostProcessor
 		);
 
-		return upsample_mips.front();
-	}
-
-	void BloomPass::OnResize(uint32 w, uint32 h)
-	{
-		width = w, height = h;
 	}
 
 	void BloomPass::CreatePSOs()

@@ -3,22 +3,26 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
+#include "Postprocessor.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleManager.h"
+#include "Editor/GUICommand.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_motion_blur("r.MotionBlur", false, "Enable or Disable Motion Blur");
 
 	MotionBlurPass::MotionBlurPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h) 
 	{
 		CreatePSO();
 	}
 
-	RGResourceName MotionBlurPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void MotionBlurPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		RGResourceName last_resource = input;
+		RGResourceName last_resource = postprocessor->GetFinalResource();
 		struct MotionBlurPassData
 		{
 			RGTextureReadOnlyId input;
@@ -68,12 +72,25 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		return RG_NAME(MotionBlurOutput);
+		postprocessor->SetFinalResource(RG_NAME(MotionBlurOutput));
 	}
 
 	void MotionBlurPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	bool MotionBlurPass::IsEnabled(PostProcessor const*) const
+	{
+		return cvar_motion_blur.Get();
+	}
+
+	void MotionBlurPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				ImGui::Checkbox("Motion Blur", cvar_motion_blur.GetPtr());
+			}, GUICommandGroup_PostProcessor);
 	}
 
 	void MotionBlurPass::CreatePSO()

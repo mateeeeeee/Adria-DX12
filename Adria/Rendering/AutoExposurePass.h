@@ -1,7 +1,6 @@
 #pragma once
+#include "PostEffect.h"
 #include "Graphics/GfxDescriptor.h"
-#include "RenderGraph/RenderGraphResourceId.h"
-#include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
 {
@@ -11,13 +10,17 @@ namespace adria
 	class GfxDevice;
 	class GfxComputePipelineState;
 
-	class AutomaticExposurePass
+	class AutoExposurePass : public PostEffect
 	{
 	public:
-		AutomaticExposurePass(GfxDevice* gfx, uint32 w, uint32 h);
-		void OnSceneInitialized();
-		void AddPasses(RenderGraph& rg, RGResourceName input);
-		void OnResize(uint32 w, uint32 h);
+		AutoExposurePass(GfxDevice* gfx, uint32 w, uint32 h);
+		//void AddPasses(RenderGraph& rg, RGResourceName input);
+
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32, uint32) override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual void OnSceneInitialized() override;
+		virtual void GUI() override;
 
 	private:
 		GfxDevice* gfx;

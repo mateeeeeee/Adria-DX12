@@ -16,8 +16,8 @@ namespace adria
 		virtual bool IsEnabled(PostProcessor const*) const = 0;
 		virtual void OnSceneInitialized() {}
 		virtual void GUI() {}
-		virtual bool IsSupported() const { return true; }
 		virtual bool IsGUIVisible(PostProcessor const* postprocessor) const { return IsEnabled(postprocessor); }
+		virtual bool IsSupported() const { return true; }
 	};
 
 	class EmptyPostEffect : public PostEffect
