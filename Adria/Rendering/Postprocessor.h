@@ -64,6 +64,7 @@ namespace adria
 			PostEffectType_MotionBlur,
 			PostEffectType_AutoExposure,
 			PostEffectType_Bloom,
+			PostEffectType_CAS,
 			PostEffectType_Count
 		};
 
@@ -111,6 +112,10 @@ namespace adria
 		HBAOPass     hbao_pass;
 		FFXCACAOPass cacao_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
+
+		ToneMapPass  tonemap_pass;
+		FXAAPass	 fxaa_pass;
+
 		AutoExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
@@ -126,12 +131,10 @@ namespace adria
 		UpscalerPassGroup upscaler_pass;
 		FFXCASPass cas_pass;
 		SunPass sun_pass;
-		ToneMapPass  tonemap_pass;
-		FXAAPass	 fxaa_pass;
+
 
 		AmbientOcclusionType ambient_occlusion;
 		bool fxaa = true;
-		bool cas = false;
 		bool ray_tracing_supported = false;
 
 	private:

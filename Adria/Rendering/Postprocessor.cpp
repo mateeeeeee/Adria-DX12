@@ -15,7 +15,6 @@ namespace adria
 {
 	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
 	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
-	static TAutoConsoleVariable<bool> cvar_cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
 	
 	enum class AmbientOcclusionType : uint8
 	{
@@ -47,7 +46,6 @@ namespace adria
 				{
 					fxaa = cvar->GetBool();
 				}));
-			cvar_cas->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar){ cas = cvar->GetBool(); }));
 		}
 
 		//InitializePostEffects();
@@ -101,12 +99,8 @@ namespace adria
 		if (motion_blur_pass.IsEnabled(this)) motion_blur_pass.AddPass(rg, this);
 		if (automatic_exposure_pass.IsEnabled(this)) automatic_exposure_pass.AddPass(rg, this);
 		if (bloom_pass.IsEnabled(this)) bloom_pass.AddPass(rg, this);
-		
-		if (cas && !upscaler_pass.IsEnabled(this) && HasTAA())
-		{
-			final_resource = cas_pass.AddPass(rg, final_resource);
-		}
-		
+		if (cas_pass.IsEnabled(this)) cas_pass.AddPass(rg, this);
+
 		if (fxaa)
 		{
 			tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
@@ -192,6 +186,7 @@ namespace adria
 		post_effects[PostEffectType_MotionBlur]		= std::make_unique<MotionBlurPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_AutoExposure]	= std::make_unique<AutoExposurePass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Bloom]			= std::make_unique<BloomPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_CAS]			= std::make_unique<FFXCASPass>(gfx, render_width, render_height);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
@@ -236,6 +231,7 @@ namespace adria
 		motion_blur_pass.GUI();
 		automatic_exposure_pass.GUI();
 		bloom_pass.GUI();
+		cas_pass.GUI();
 
 		GUI_Command([&]()
 			{
@@ -249,11 +245,6 @@ namespace adria
 						cvar_ambient_occlusion->Set(current_ao_type);
 					}
 					if (ImGui::Checkbox("FXAA", &fxaa)) cvar_fxaa->Set(fxaa);
-					if (HasTAA())
-					{
-						if (ImGui::Checkbox("CAS", &cas)) cvar_cas->Set(cas);
-					}
-
 					ImGui::TreePop();
 				}
 

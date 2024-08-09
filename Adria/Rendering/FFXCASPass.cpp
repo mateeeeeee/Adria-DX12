@@ -1,14 +1,17 @@
 #include "FFXCASPass.h"
 #include "FidelityFXUtils.h"
 #include "BlackboardData.h"
+#include "Postprocessor.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
 
 namespace adria
 {
-	
+	static TAutoConsoleVariable<bool> cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
+
 	FFXCASPass::FFXCASPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
@@ -24,7 +27,7 @@ namespace adria
 		DestroyFfxInterface(ffx_interface);
 	}
 
-	RGResourceName FFXCASPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void FFXCASPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		struct FFXCASPassData
 		{
@@ -37,11 +40,11 @@ namespace adria
 		rg.AddPass<FFXCASPassData>(name_version,
 			[=](FFXCASPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(input);
+				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(postprocessor->GetFinalResource());
 				builder.DeclareTexture(RG_NAME(FFXCASOutput), ffx_dof_desc);
 
 				data.output = builder.WriteTexture(RG_NAME(FFXCASOutput));
-				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
 			},
 			[=](FFXCASPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -60,17 +63,7 @@ namespace adria
 
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
-
-		GUI_Command([&]()
-			{
-				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
-				{
-					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_PostProcessor);
-
-		return RG_NAME(FFXCASOutput);
+		postprocessor->SetFinalResource(RG_NAME(FFXCASOutput));
 	}
 
 	void FFXCASPass::OnResize(uint32 w, uint32 h)
@@ -78,6 +71,32 @@ namespace adria
 		width = w, height = h;
 		DestroyContext();
 		CreateContext();
+	}
+
+	bool FFXCASPass::IsEnabled(PostProcessor const*) const
+	{
+		return cas.Get();
+	}
+
+	void FFXCASPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
+				{
+					ImGui::Checkbox("Enable", cas.GetPtr());
+					if (cas.Get())
+					{
+						ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
+					}
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessor);
+	}
+
+	bool FFXCASPass::IsGUIVisible(PostProcessor const* postprocessor) const
+	{
+		return postprocessor->HasTAA();
 	}
 
 	void FFXCASPass::CreateContext()

@@ -1,20 +1,23 @@
 #pragma once
 #include "FidelityFX/host/ffx_cas.h"
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 
 namespace adria
 {
 	class GfxDevice;
 	class RenderGraph;
 
-	class FFXCASPass
+	class FFXCASPass : public PostEffect
 	{
 	public:
 		FFXCASPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FFXCASPass();
 
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
-		void OnResize(uint32 w, uint32 h);
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32, uint32) override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual void GUI() override;
+		virtual bool IsGUIVisible(PostProcessor const*) const override;
 
 	private:
 		char name_version[16] = {};
