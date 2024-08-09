@@ -60,6 +60,7 @@ namespace adria
 			PostEffectType_Fog,
 			PostEffectType_DepthOfField,
 			PostEffectType_Upscaler,
+			PostEffectType_TAA,
 			PostEffectType_Count
 		};
 
@@ -82,6 +83,8 @@ namespace adria
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds_pass.IsEnabled(this) || motion_blur; }
+		bool HasUpscaler() const;
+		bool HasTAA() const;
 
 		void SetFinalResource(RGResourceName name)
 		{
@@ -99,8 +102,6 @@ namespace adria
 		uint32 render_height;
 
 		RGResourceName final_resource;
-		std::unique_ptr<GfxTexture> history_buffer;
-
 		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
 
 		SSAOPass	 ssao_pass;
@@ -126,13 +127,11 @@ namespace adria
 		FXAAPass	 fxaa_pass;
 
 		AmbientOcclusionType ambient_occlusion;
-		AntiAliasing anti_aliasing;
-
+		bool fxaa = true;
 		bool bloom = false;
 		bool motion_blur = false;
 		bool automatic_exposure = true;
 		bool cas = false;
-
 		bool ray_tracing_supported = false;
 
 	private:
@@ -140,8 +139,6 @@ namespace adria
 
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
-		bool HasUpscaler() const;
-		bool HasTAA() const;
 
 		void PostprocessorGUI();
 	};

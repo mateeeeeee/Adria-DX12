@@ -4,6 +4,7 @@
 namespace adria
 {
 	class GfxDevice;
+	class GfxTexture;
 	class GfxComputePipelineState;
 	class RenderGraph;
 
@@ -12,21 +13,21 @@ namespace adria
 	public:
 		TAAPass(GfxDevice* gfx, uint32 w, uint32 h);
 
+		virtual void OnResize(uint32 w, uint32 h) override;
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual void OnResize(uint32, uint32) override;
-		virtual bool IsEnabled(PostProcessor const*) const;
+		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
-		virtual bool IsGUIVisible(PostProcessor const* postprocessor) const override;
-
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input, RGResourceName history);
+		virtual bool IsGUIVisible(PostProcessor const*) const override;
 
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::unique_ptr<GfxComputePipelineState> taa_pso;
+		std::unique_ptr<GfxTexture> history_buffer;
 
 	private:
 		void CreatePSO();
+		void CreateHistoryBuffer();
 	};
 
 }
