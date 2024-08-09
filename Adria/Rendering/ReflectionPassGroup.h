@@ -6,16 +6,18 @@ namespace adria
 	enum class ReflectionType : uint8;
 	class GfxDevice;
 
-	class ReflectionPass final : public PostEffectGroup
+	class ReflectionPassGroup final : public PostEffectGroup
 	{
 	public:
-		ReflectionPass(GfxDevice* gfx, uint32 width, uint32 height);
+		ReflectionPassGroup(GfxDevice* gfx, uint32 width, uint32 height);
+
+		virtual bool IsEnabled(PostProcessor const*) const override;
 
 	private:
 		ReflectionType reflection_type;
 		bool is_rtr_supported;
+
 	private:
 		virtual void GroupGUI() override;
-
 	};
 }

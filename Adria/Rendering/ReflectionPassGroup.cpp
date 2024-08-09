@@ -1,4 +1,4 @@
-#include "ReflectionPass.h"
+#include "ReflectionPassGroup.h"
 #include "RayTracedReflectionsPass.h"
 #include "SSRPass.h"
 #include "Core/ConsoleManager.h"
@@ -17,7 +17,7 @@ namespace adria
 		Count
 	};
 
-	ReflectionPass::ReflectionPass(GfxDevice* gfx, uint32 width, uint32 height) : reflection_type(ReflectionType::None)
+	ReflectionPassGroup::ReflectionPassGroup(GfxDevice* gfx, uint32 width, uint32 height) : reflection_type(ReflectionType::None)
 	{
 		post_effect_idx = static_cast<uint32>(reflection_type);
 		cvar_reflections->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
@@ -34,7 +34,12 @@ namespace adria
 		is_rtr_supported = post_effects[(uint32)RTR]->IsSupported();
 	}
 
-	void ReflectionPass::GroupGUI()
+	bool ReflectionPassGroup::IsEnabled(PostProcessor const*) const
+	{
+		return reflection_type != ReflectionType::None;
+	}
+
+	void ReflectionPassGroup::GroupGUI()
 	{
 		GUI_Command([&]()
 			{

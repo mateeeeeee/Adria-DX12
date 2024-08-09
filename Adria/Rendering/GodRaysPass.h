@@ -15,7 +15,7 @@ namespace adria
 	public:
 		GodRaysPass(GfxDevice* gfx, uint32 w, uint32 h);
 
-		virtual bool IsEnabled(PostProcessor*) const override
+		virtual bool IsEnabled(PostProcessor const*) const override
 		{
 			return true;
 		}

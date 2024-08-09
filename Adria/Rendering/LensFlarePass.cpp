@@ -21,7 +21,7 @@ namespace adria
 		CreatePSOs();
 	}
 
-	bool LensFlarePass::IsEnabled(PostProcessor* postprocessor) const
+	bool LensFlarePass::IsEnabled(PostProcessor const* postprocessor) const
 	{
 		auto lights = postprocessor->GetRegistry().view<Light>();
 		for (entt::entity light : lights)

@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 
 namespace adria
 {

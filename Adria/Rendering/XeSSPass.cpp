@@ -1,13 +1,17 @@
 #include "XeSSPass.h"
 #include "XeSS/xess_d3d12.h"
 #include "BlackboardData.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_xess("r.XeSS", false, "Enable or Disable XeSS");
+
 	namespace
 	{
 		void XeSSLog(char const* message, xess_logging_level_t logging_level)
@@ -57,7 +61,7 @@ namespace adria
 		xessDestroyContext(context);
 	}
 
-	RGResourceName XeSSPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void XeSSPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		if (needs_init) XeSSInit();
 
@@ -83,7 +87,7 @@ namespace adria
 				builder.DeclareTexture(RG_NAME(XeSSOutput), xess_desc);
 
 				data.output = builder.WriteTexture(RG_NAME(XeSSOutput));
-				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
 				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
@@ -118,23 +122,33 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
+		postprocessor->SetFinalResource(RG_NAME(XeSSOutput));
+	}
 
+	bool XeSSPass::IsEnabled(PostProcessor const*) const
+	{
+		return cvar_xess.Get();
+	}
+
+	void XeSSPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					int _quality = quality_setting - XESS_QUALITY_SETTING_PERFORMANCE;
-					if (ImGui::Combo("Quality Mode", &_quality, "Performance (2.0x)\0Balanced (1.7x)\0Quality (1.5x)\0Ultra Quality (1.3x)\0\0", 4))
+					ImGui::Checkbox("Enable", cvar_xess.GetPtr());
+					if (cvar_xess.Get())
 					{
-						quality_setting = (xess_quality_settings_t)(_quality + XESS_QUALITY_SETTING_PERFORMANCE);
-						needs_init = true;
+						int _quality = quality_setting - XESS_QUALITY_SETTING_PERFORMANCE;
+						if (ImGui::Combo("Quality Mode", &_quality, "Performance (2.0x)\0Balanced (1.7x)\0Quality (1.5x)\0Ultra Quality (1.3x)\0\0", 4))
+						{
+							quality_setting = (xess_quality_settings_t)(_quality + XESS_QUALITY_SETTING_PERFORMANCE);
+							needs_init = true;
+						}
 					}
-
 					ImGui::TreePop();
 				}
 			}, GUICommandGroup_PostProcessor);
-
-		return RG_NAME(XeSSOutput);
 	}
 
 	void XeSSPass::XeSSInit()
@@ -162,7 +176,7 @@ namespace adria
 		xessGetInputResolution(context, &output_resolution, quality_setting, &input_resolution);
 		render_width = input_resolution.x;
 		render_height = input_resolution.y;
-		render_resolution_changed_event.Broadcast(render_width, render_height);
+		BroadcastRenderResolutionChanged(render_width, render_height);
 	}
 }
 

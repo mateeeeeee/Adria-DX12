@@ -86,7 +86,7 @@ namespace adria
 		CreateContext();
 	}
 
-	bool FFXDepthOfFieldPass::IsEnabled(PostProcessor*) const
+	bool FFXDepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
 		return cvar_ffx_dof.Get();
 	}

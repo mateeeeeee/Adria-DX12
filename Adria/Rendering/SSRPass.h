@@ -17,7 +17,7 @@ namespace adria
 	public:
 		SSRPass(GfxDevice* gfx, uint32 w, uint32 h);
 
-		virtual bool IsEnabled(PostProcessor*) const override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void OnResize(uint32, uint32) override;
 		virtual void OnSceneInitialized() {}

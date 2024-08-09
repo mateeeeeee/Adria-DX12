@@ -15,7 +15,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_fog("r.FilmEffects", false, "Enable or Disable Film Effects");
+	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
 
 	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, uint32 w, uint32 h)
 		: gfx(gfx), width(w), height(h), params()
@@ -100,7 +100,7 @@ namespace adria
 		postprocessor->SetFinalResource(RG_NAME(FogOutput));
 	}
 
-	bool ExponentialHeightFogPass::IsEnabled(PostProcessor*) const
+	bool ExponentialHeightFogPass::IsEnabled(PostProcessor const*) const
 	{
 		return cvar_fog.Get();
 	}

@@ -2,14 +2,18 @@
 #include "DLSS3Pass.h"
 #include "nvsdk_ngx_helpers.h"
 #include "BlackboardData.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
 
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> cvar_dlss3("r.DLSS3", false, "Enable or Disable DLSS3");
+
 	static constexpr char const* project_guid = "a0f57b54-1daf-4934-90ae-c4035c19df04";
 	namespace
 	{
@@ -100,20 +104,100 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
+		
+		return RG_NAME(DLSS3Output);
+	}
+
+	void DLSS3Pass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
+	{
+		if (!IsSupported()) ADRIA_ASSERT_MSG(false, "DLSS is not supported on this device");
+
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct DLSS3PassData
+		{
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId velocity;
+			RGTextureReadOnlyId exposure;
+			RGTextureReadWriteId output;
+		};
+
+		rg.AddPass<DLSS3PassData>(name_version,
+			[=](DLSS3PassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc dlss3_desc{};
+				dlss3_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+				dlss3_desc.width = display_width;
+				dlss3_desc.height = display_height;
+				dlss3_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(RG_NAME(DLSS3Output), dlss3_desc);
+
+				data.output = builder.WriteTexture(RG_NAME(DLSS3Output));
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
+			},
+			[=](DLSS3PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				if (needs_create) CreateDLSS(cmd_list);
+
+				GfxTexture& input_texture = ctx.GetTexture(*data.input);
+				GfxTexture& velocity_texture = ctx.GetTexture(*data.velocity);
+				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
+				GfxTexture& output_texture = ctx.GetTexture(*data.output);
+
+				NVSDK_NGX_D3D12_DLSS_Eval_Params dlss_eval_params{};
+				dlss_eval_params.Feature.pInColor = input_texture.GetNative();
+				dlss_eval_params.Feature.pInOutput = output_texture.GetNative();
+				dlss_eval_params.Feature.InSharpness = sharpness;
+
+				dlss_eval_params.pInDepth = depth_texture.GetNative();
+				dlss_eval_params.pInMotionVectors = velocity_texture.GetNative();
+				dlss_eval_params.InMVScaleX = (float)render_width;
+				dlss_eval_params.InMVScaleY = (float)render_height;
+
+				dlss_eval_params.pInExposureTexture = nullptr;
+				dlss_eval_params.InExposureScale = 1.0f;
+
+				dlss_eval_params.InJitterOffsetX = frame_data.camera_jitter_x;
+				dlss_eval_params.InJitterOffsetY = frame_data.camera_jitter_y;
+				dlss_eval_params.InReset = false;
+				dlss_eval_params.InRenderSubrectDimensions = { render_width, render_height };
+
+				NVSDK_NGX_Result result = NGX_D3D12_EVALUATE_DLSS_EXT(cmd_list->GetNative(), dlss_feature, ngx_parameters, &dlss_eval_params);
+				ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
+
+				cmd_list->ResetState();
+			}, RGPassType::Compute);
+
+		postprocessor->SetFinalResource(RG_NAME(DLSS3Output));
+	}
+
+	bool DLSS3Pass::IsEnabled(PostProcessor const*) const
+	{
+		return cvar_dlss3.Get();
+	}
+
+	void DLSS3Pass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					if (ImGui::Combo("Performance Quality", (int*)&perf_quality, "Max Performance\0Balanced\0Max Quality\0Ultra Performance\0UltraQuality\0", 5))
+					ImGui::Checkbox("Enable", cvar_dlss3.GetPtr());
+					if (cvar_dlss3.Get())
 					{
-						RecreateRenderResolution();
-						needs_create = true;
+						if (ImGui::Combo("Performance Quality", (int*)&perf_quality, "Max Performance\0Balanced\0Max Quality\0Ultra Performance\0UltraQuality\0", 5))
+						{
+							RecreateRenderResolution();
+							needs_create = true;
+						}
 					}
 					ImGui::TreePop();
 				}
 			}, GUICommandGroup_PostProcessor);
 
-		return RG_NAME(DLSS3Output);
 	}
 
 	bool DLSS3Pass::InitializeNVSDK_NGX()
@@ -186,7 +270,7 @@ namespace adria
 		ADRIA_ASSERT(optimal_width != 0 && optimal_height != 0);
 		render_width = optimal_width;
 		render_height = optimal_height;
-		render_resolution_changed_event.Broadcast(render_width, render_height);
+		BroadcastRenderResolutionChanged(render_width, render_height);
 	}
 
 	void DLSS3Pass::CreateDLSS(GfxCommandList* cmd_list)

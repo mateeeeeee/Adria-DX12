@@ -2,14 +2,17 @@
 #include "FidelityFX/gpu/fsr2/ffx_fsr2_resources.h"
 #include "FidelityFXUtils.h"
 #include "BlackboardData.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
 
 namespace adria
 {
-	
+	static TAutoConsoleVariable<bool> cvar_fsr2("r.FSR2", false, "Enable or Disable FSR2");
+
 	namespace
 	{
 		void FSR2Log(FfxMsgType type, const wchar_t* message)
@@ -43,7 +46,7 @@ namespace adria
 		DestroyFfxInterface(ffx_interface);
 	}
 
-	RGResourceName FSR2Pass::AddPass(RenderGraph& rg, RGResourceName input)
+	void FSR2Pass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		if (recreate_context)
 		{
@@ -73,7 +76,7 @@ namespace adria
 				builder.DeclareTexture(RG_NAME(FSR2Output), fsr2_desc);
 
 				data.output = builder.WriteTexture(RG_NAME(FSR2Output));
-				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
 				data.velocity = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
@@ -114,31 +117,42 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
-		GUI_Command([&]() 
-			{ 
+		postprocessor->SetFinalResource(RG_NAME(FSR2Output));
+	}
+
+	bool FSR2Pass::IsEnabled(PostProcessor const*) const
+	{
+		return cvar_fsr2.Get();
+	}
+
+	void FSR2Pass::GUI()
+	{
+		GUI_Command([&]()
+			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					if (ImGui::Combo("Quality Mode", (int32*)&fsr2_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
+					ImGui::Checkbox("Enable", cvar_fsr2.GetPtr());
+					if (cvar_fsr2.Get())
 					{
-						RecreateRenderResolution();
-						recreate_context = true;
-					}
-
-					if (fsr2_quality_mode == 0)
-					{
-						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
+						if (ImGui::Combo("Quality Mode", (int32*)&fsr2_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 						{
 							RecreateRenderResolution();
 							recreate_context = true;
 						}
-					}
-					
-					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
-					ImGui::TreePop(); 
-				} 
-			}, GUICommandGroup_PostProcessor);
 
-		return RG_NAME(FSR2Output);
+						if (fsr2_quality_mode == 0)
+						{
+							if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
+							{
+								RecreateRenderResolution();
+								recreate_context = true;
+							}
+						}
+						ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
+					}
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessor);
 	}
 
 	void FSR2Pass::CreateContext()
@@ -166,6 +180,6 @@ namespace adria
 		float upscale_ratio = (fsr2_quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(fsr2_quality_mode));
 		render_width = (uint32)((float)display_width / upscale_ratio);
 		render_height = (uint32)((float)display_height / upscale_ratio);
-		render_resolution_changed_event.Broadcast(render_width, render_height);
+		BroadcastRenderResolutionChanged(render_width, render_height);
 	}
 }

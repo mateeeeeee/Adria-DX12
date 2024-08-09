@@ -26,7 +26,7 @@ namespace adria
 		CreatePSOs();
 	}
 
-	bool VolumetricCloudsPass::IsEnabled(PostProcessor*) const
+	bool VolumetricCloudsPass::IsEnabled(PostProcessor const*) const
 	{
 		return cvar_clouds.Get();
 	}

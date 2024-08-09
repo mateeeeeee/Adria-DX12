@@ -9,8 +9,8 @@
 #include "AutomaticExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
-#include "ReflectionPass.h"
-#include "DepthOfFieldPass.h"
+#include "ReflectionPassGroup.h"
+#include "DepthOfFieldPassGroup.h"
 #include "ExponentialHeightFogPass.h"
 #include "BloomPass.h"
 #include "MotionVectorsPass.h"
@@ -19,10 +19,7 @@
 #include "FilmEffectsPass.h"
 #include "BokehPass.h"
 #include "TAAPass.h"
-#include "FSR2Pass.h"
-#include "FSR3Pass.h"
-#include "XeSSPass.h"
-#include "DLSS3Pass.h"
+#include "UpscalerPassGroup.h"
 #include "FFXCASPass.h"
 #include "FFXCACAOPass.h"
 #include "FXAAPass.h"
@@ -51,7 +48,6 @@ namespace adria
 
 	class PostProcessor
 	{
-		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32)
 		enum PostEffectType : uint32
 		{
 			PostEffectType_MotionVectors,
@@ -63,7 +59,7 @@ namespace adria
 			PostEffectType_FilmEffects,
 			PostEffectType_Fog,
 			PostEffectType_DepthOfField,
-			PostEffectType_Upscaling,
+			PostEffectType_Upscaler,
 			PostEffectType_Count
 		};
 
@@ -76,13 +72,8 @@ namespace adria
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
 		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
 		{
-			fsr2_pass.GetRenderResolutionChangedEvent().Add(delegate);
-			fsr3_pass.GetRenderResolutionChangedEvent().Add(delegate);
-			xess_pass.GetRenderResolutionChangedEvent().Add(delegate);
-			dlss3_pass.GetRenderResolutionChangedEvent().Add(delegate);
-			upscaler_disabled_event.Add(delegate);
+			upscaler_pass.AddRenderResolutionChangedCallback(delegate);
 		}
-
 
 		void OnRainEvent(bool enabled);
 		void OnResize(uint32 w, uint32 h);
@@ -90,7 +81,7 @@ namespace adria
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
-		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds || motion_blur; }
+		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds_pass.IsEnabled(this) || motion_blur; }
 
 		void SetFinalResource(RGResourceName name)
 		{
@@ -119,8 +110,8 @@ namespace adria
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
-		ReflectionPass reflections_pass;
-		DepthOfFieldPass depth_of_field_pass;
+		ReflectionPassGroup reflections_pass;
+		DepthOfFieldPassGroup depth_of_field_pass;
 		ExponentialHeightFogPass fog_pass;
 		BloomPass bloom_pass;
 		MotionVectorsPass velocity_buffer_pass;
@@ -128,28 +119,20 @@ namespace adria
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
 		FilmEffectsPass film_effects_pass;
-		FSR2Pass fsr2_pass;
-		FSR3Pass fsr3_pass;
-		XeSSPass xess_pass;
-		DLSS3Pass dlss3_pass;
+		UpscalerPassGroup upscaler_pass;
 		FFXCASPass cas_pass;
 		SunPass sun_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
 		AmbientOcclusionType ambient_occlusion;
-		UpscalerType upscaler;
 		AntiAliasing anti_aliasing;
 
-		bool fog = false;
-		bool film_effects = false;
 		bool bloom = false;
-		bool clouds = true;
 		bool motion_blur = false;
 		bool automatic_exposure = true;
 		bool cas = false;
 
-		UpscalerDisabledEvent upscaler_disabled_event;
 		bool ray_tracing_supported = false;
 
 	private:

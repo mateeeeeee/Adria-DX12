@@ -100,7 +100,7 @@ namespace adria
 		copy_to_texture_pass.OnResize(w, h);
 	}
 
-	bool RayTracedReflectionsPass::IsEnabled(PostProcessor*) const
+	bool RayTracedReflectionsPass::IsEnabled(PostProcessor const*) const
 	{
 		return cvar_rtr.Get();
 	}

@@ -249,8 +249,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
-    <ClCompile Include="Rendering\ReflectionPass.cpp" />
+    <ClCompile Include="Rendering\DepthOfFieldPassGroup.cpp" />
+    <ClCompile Include="Rendering\ReflectionPassGroup.cpp" />
     <ClCompile Include="Rendering\RendererOutputPass.cpp" />
     <ClCompile Include="Rendering\FilmEffectsPass.cpp" />
     <ClCompile Include="Rendering\FFXCACAOPass.cpp" />
@@ -308,6 +308,7 @@
     <ClCompile Include="Rendering\TiledDeferredLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\MotionVectorsPass.cpp" />
+    <ClCompile Include="Rendering\UpscalerPassGroup.cpp" />
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
     <ClCompile Include="Rendering\VolumetricFogPass.cpp" />
     <ClCompile Include="Rendering\VolumetricLightingPass.cpp" />
@@ -443,9 +444,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Rendering\DepthOfFieldPass.h" />
+    <ClInclude Include="Rendering\UpscalerPass.h" />
+    <ClInclude Include="Rendering\DepthOfFieldPassGroup.h" />
     <ClInclude Include="Rendering\PostEffect.h" />
-    <ClInclude Include="Rendering\ReflectionPass.h" />
+    <ClInclude Include="Rendering\ReflectionPassGroup.h" />
     <ClInclude Include="Rendering\RendererOutputPass.h" />
     <ClInclude Include="Rendering\FilmEffectsPass.h" />
     <ClInclude Include="Rendering\FFXCACAOPass.h" />
@@ -502,6 +504,7 @@
     <ClInclude Include="Rendering\MotionVectorsPass.h" />
     <ClInclude Include="Rendering\TextureHandle.h" />
     <ClInclude Include="Rendering\TextureManager.h" />
+    <ClInclude Include="Rendering\UpscalerPassGroup.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\SkyPass.h" />

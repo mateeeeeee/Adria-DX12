@@ -96,7 +96,7 @@ namespace adria
 		blur_pass.OnResize(w, h);
 	}
 
-	bool SimpleDepthOfFieldPass::IsEnabled(PostProcessor*) const
+	bool SimpleDepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
 		return cvar_simple_dof.Get();
 	}

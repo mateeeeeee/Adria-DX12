@@ -1,6 +1,6 @@
 #pragma once
 #include "XeSS/xess.h"
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "UpscalerPass.h"
 #include "Utilities/Delegate.h"
 
 namespace adria
@@ -9,26 +9,21 @@ namespace adria
 	class RenderGraph;
 
 	
-	class XeSSPass
+	class XeSSPass : public UpscalerPass
 	{
-		DECLARE_EVENT(RenderResolutionChanged, XeSSPass, uint32, uint32)
 	public:
 		XeSSPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~XeSSPass();
 
-		RGResourceName AddPass(RenderGraph& rg, RGResourceName input);
-		void OnResize(uint32 w, uint32 h)
+		virtual void OnResize(uint32 w, uint32 h) override
 		{
 			display_width = w, display_height = h;
 			RecreateRenderResolution();
 			needs_init = true;
 		}
-
-		Vector2u GetRenderResolution()  const { return Vector2u(render_width, render_height); }
-		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
-
-		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
-
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual void GUI() override;
 
 	private:
 		char name_version[16] = {};
@@ -39,8 +34,6 @@ namespace adria
 		xess_context_handle_t context{};
 		xess_quality_settings_t quality_setting = XESS_QUALITY_SETTING_QUALITY;
 		bool needs_init = false;
-
-		RenderResolutionChanged render_resolution_changed_event;
 
 	private:
 		void XeSSInit();

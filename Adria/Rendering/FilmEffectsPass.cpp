@@ -95,7 +95,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool FilmEffectsPass::IsEnabled(PostProcessor*) const
+	bool FilmEffectsPass::IsEnabled(PostProcessor const*) const
 	{
 		return cvar_film_effects.Get();
 	}

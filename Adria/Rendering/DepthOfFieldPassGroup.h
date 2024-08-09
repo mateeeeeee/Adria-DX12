@@ -6,10 +6,11 @@ namespace adria
 	enum class DepthOfFieldType : uint8;
 
 	class GfxDevice;
-	class DepthOfFieldPass final : public PostEffectGroup
+	class DepthOfFieldPassGroup final : public PostEffectGroup
 	{
 	public:
-		DepthOfFieldPass(GfxDevice* gfx, uint32 width, uint32 height);
+		DepthOfFieldPassGroup(GfxDevice* gfx, uint32 width, uint32 height);
+		virtual bool IsEnabled(PostProcessor const*) const override;
 
 	private:
 		DepthOfFieldType depth_of_field_type;

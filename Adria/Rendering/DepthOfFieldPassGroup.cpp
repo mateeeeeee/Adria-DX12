@@ -1,4 +1,4 @@
-#include "DepthOfFieldPass.h"
+#include "DepthOfFieldPassGroup.h"
 #include "SimpleDepthOfFieldPass.h"
 #include "FFXDepthOfFieldPass.h"
 #include "Core/ConsoleManager.h"
@@ -16,7 +16,7 @@ namespace adria
 		Count
 	};
 
-	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 width, uint32 height) : depth_of_field_type(DepthOfFieldType::None)
+	DepthOfFieldPassGroup::DepthOfFieldPassGroup(GfxDevice* gfx, uint32 width, uint32 height) : depth_of_field_type(DepthOfFieldType::None)
 	{
 		post_effect_idx = static_cast<uint32>(depth_of_field_type);
 		cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
@@ -31,7 +31,12 @@ namespace adria
 		post_effects[(uint32)FFX] = std::make_unique<FFXDepthOfFieldPass>(gfx, width, height);
 	}
 
-	void DepthOfFieldPass::GroupGUI()
+	bool DepthOfFieldPassGroup::IsEnabled(PostProcessor const*) const
+	{
+		return depth_of_field_type != DepthOfFieldType::None;
+	}
+
+	void DepthOfFieldPassGroup::GroupGUI()
 	{
 		GUI_Command([&]()
 			{
