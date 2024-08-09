@@ -110,7 +110,7 @@ namespace adria
 		UpdateSceneBuffers();
 		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
-		RendererGUI();
+		GUI();
 	}
 	void Renderer::Render()
 	{
@@ -509,7 +509,7 @@ namespace adria
 		postprocessor.AddTonemapPass(render_graph, RG_NAME(PT_Output));
 	}
 
-	void Renderer::RendererGUI()
+	void Renderer::GUI()
 	{
 		GUI_Command([&]()
 			{
@@ -581,6 +581,7 @@ namespace adria
 					volumetric_path = static_cast<VolumetricPath>(current_volumetric_path);
 				}
 			}, GUICommandGroup_None);
+		postprocessor.GUI();
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

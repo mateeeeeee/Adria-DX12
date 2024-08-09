@@ -172,7 +172,7 @@ namespace adria
 		void CreateSizeDependentResources();
 		void CreateAS();
 
-		void RendererGUI();
+		void GUI();
 		void UpdateSceneBuffers();
 		void UpdateFrameConstants(float dt);
 		void CameraFrustumCulling();

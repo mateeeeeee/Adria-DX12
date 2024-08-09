@@ -3,6 +3,23 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "RainPass.h"
+#include "AutoExposurePass.h"
+#include "LensFlarePass.h"
+#include "VolumetricCloudsPass.h"
+#include "ReflectionPassGroup.h"
+#include "DepthOfFieldPassGroup.h"
+#include "ExponentialHeightFogPass.h"
+#include "BloomPass.h"
+#include "MotionVectorsPass.h"
+#include "MotionBlurPass.h"
+#include "GodRaysPass.h"
+#include "FilmEffectsPass.h"
+#include "BokehPass.h"
+#include "TAAPass.h"
+#include "UpscalerPassGroup.h"
+#include "FFXCASPass.h"
+#include "FFXCACAOPass.h"
+#include "SunPass.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
@@ -27,19 +44,11 @@ namespace adria
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
-		ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height), 
-		film_effects_pass(gfx, width, height), automatic_exposure_pass(gfx, width, height), lens_flare_pass(gfx, width, height), 
-		clouds_pass(gfx, width, height), reflections_pass(gfx, width, height),
-		fog_pass(gfx, width, height), depth_of_field_pass(gfx, width, height), bloom_pass(gfx, width, height), 
-		velocity_buffer_pass(gfx, width, height), motion_blur_pass(gfx, width, height), taa_pass(gfx, width, height),
-		god_rays_pass(gfx, width, height), upscaler_pass(gfx, width, height),
-		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), sun_pass(gfx, width, height),
-		cas_pass(gfx, width, height), cacao_pass(gfx, width, height),
-		ambient_occlusion(AmbientOcclusionType::SSAO)
+		ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height), cacao_pass(gfx, width, height),
+		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), ambient_occlusion(AmbientOcclusionType::SSAO)
 	{
+		InitializePostEffects();
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
-		upscaler_pass.AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&PostProcessor::OnRenderResolutionChanged, *this));
-		//cvars
 		{
 			cvar_ambient_occlusion->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusionType>(cvar->GetInt()); }));
 			cvar_fxaa->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
@@ -47,17 +56,13 @@ namespace adria
 					fxaa = cvar->GetBool();
 				}));
 		}
-
-		//InitializePostEffects();
 	}
 
-	PostProcessor::~PostProcessor()
-	{
-	}
+	PostProcessor::~PostProcessor() {}
 
 	void PostProcessor::OnRainEvent(bool enabled)
 	{
-		clouds_pass.OnRainEvent(enabled);
+		GetPostEffect<VolumetricCloudsPass>()->OnRainEvent(enabled);
 	}
 
 	void PostProcessor::AddAmbientOcclusionPass(RenderGraph& rg)
@@ -73,33 +78,12 @@ namespace adria
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
 	{
-		PostprocessorGUI();
 		final_resource = AddHDRCopyPass(rg);
 
-		//for (uint32 i = 0; i < PostEffectType_Count; ++i)
-		//{
-		//	if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
-		//}
-
-		if (velocity_buffer_pass.IsEnabled(this))
+		for (uint32 i = 0; i < PostEffectType_Count; ++i)
 		{
-			velocity_buffer_pass.AddPass(rg, this);
+			if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
 		}
-		lens_flare_pass.AddPass(rg, this);
-		sun_pass.AddPass(rg, this);
-		god_rays_pass.AddPass(rg, this);
-		if (clouds_pass.IsEnabled(this)) clouds_pass.AddPass(rg, this);
-		if(reflections_pass.IsEnabled(this)) reflections_pass.AddPass(rg, this);
-		if(film_effects_pass.IsEnabled(this)) film_effects_pass.AddPass(rg, this);
-		if (fog_pass.IsEnabled(this)) fog_pass.AddPass(rg, this);
-		depth_of_field_pass.AddPass(rg, this);
-		if(upscaler_pass.IsEnabled(this)) upscaler_pass.AddPass(rg, this);
-
-		if (taa_pass.IsEnabled(this)) taa_pass.AddPass(rg, this);
-		if (motion_blur_pass.IsEnabled(this)) motion_blur_pass.AddPass(rg, this);
-		if (automatic_exposure_pass.IsEnabled(this)) automatic_exposure_pass.AddPass(rg, this);
-		if (bloom_pass.IsEnabled(this)) bloom_pass.AddPass(rg, this);
-		if (cas_pass.IsEnabled(this)) cas_pass.AddPass(rg, this);
 
 		if (fxaa)
 		{
@@ -108,7 +92,7 @@ namespace adria
 		}
 		else
 		{
-			AddTonemapPass(rg, final_resource);
+			tonemap_pass.AddPass(rg, final_resource);
 		}
 	}
 
@@ -117,14 +101,41 @@ namespace adria
 		tonemap_pass.AddPass(rg, input);
 	}
 
+	void PostProcessor::AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
+	{
+		GetPostEffect<UpscalerPassGroup>()->AddRenderResolutionChangedCallback(delegate);
+	}
+
+	void PostProcessor::GUI()
+	{
+		for (auto& post_effect : post_effects)
+		{
+			if (post_effect->IsGUIVisible(this)) post_effect->GUI();
+		}
+		GUI_Command([&]()
+			{
+				static int current_ao_type = (int)ambient_occlusion;
+				if (ImGui::TreeNode("Post-processing"))
+				{
+					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
+					{
+						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
+						ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
+						cvar_ambient_occlusion->Set(current_ao_type);
+					}
+					if (ImGui::Checkbox("FXAA", &fxaa)) cvar_fxaa->Set(fxaa);
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessor);
+	}
+
 	void PostProcessor::OnResize(uint32 w, uint32 h)
 	{
 		display_width = w, display_height = h;
-		upscaler_pass.OnResize(w, h);
-		taa_pass.OnResize(w, h);
-		motion_blur_pass.OnResize(w, h);
-		bloom_pass.OnResize(w, h);
-		automatic_exposure_pass.OnResize(w, h);
+		for (uint32 i = PostEffectType_Upscaler; i < PostEffectType_Count; ++i)
+		{
+			post_effects[i]->OnResize(w, h);
+		}
 		fxaa_pass.OnResize(w, h);
 		tonemap_pass.OnResize(w, h);
 	}
@@ -138,25 +149,20 @@ namespace adria
 		cacao_pass.OnResize(w, h);
 		rtao_pass.OnResize(w, h);
 
-		clouds_pass.OnResize(w, h);
-		lens_flare_pass.OnResize(w, h);
-		fog_pass.OnResize(w, h);
-		velocity_buffer_pass.OnResize(w, h);
-		god_rays_pass.OnResize(w, h);
-		film_effects_pass.OnResize(w, h);
-
-		depth_of_field_pass.OnResize(w, h);
-		sun_pass.OnResize(w, h);
+		for (uint32 i = 0; i < PostEffectType_Upscaler; ++i)
+		{
+			post_effects[i]->OnResize(w, h);
+		}
 	}
 
 	void PostProcessor::OnSceneInitialized()
 	{
 		ssao_pass.OnSceneInitialized();
 		hbao_pass.OnSceneInitialized();
-		automatic_exposure_pass.OnSceneInitialized();
-		clouds_pass.OnSceneInitialized();
-		depth_of_field_pass.OnSceneInitialized();
-		lens_flare_pass.OnSceneInitialized();
+		for (auto& post_effect : post_effects)
+		{
+			post_effect->OnSceneInitialized();
+		}
 		tonemap_pass.OnSceneInitialized(); 
 	}
 
@@ -167,7 +173,17 @@ namespace adria
 
 	bool PostProcessor::HasTAA() const
 	{
-		return taa_pass.IsEnabled(this);
+		return post_effects[PostEffectType_TAA]->IsEnabled(this);
+	}
+
+	bool PostProcessor::NeedsVelocityBuffer() const
+	{
+		return HasTAA() || HasUpscaler() || post_effects[PostEffectType_Clouds]->IsEnabled(this) || post_effects[PostEffectType_MotionBlur]->IsEnabled(this);
+	}
+
+	bool PostProcessor::HasUpscaler() const
+	{
+		return post_effects[PostEffectType_Upscaler]->IsEnabled(this);
 	}
 
 	void PostProcessor::InitializePostEffects()
@@ -177,7 +193,7 @@ namespace adria
 		post_effects[PostEffectType_Sun]			= std::make_unique<SunPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_GodRays]		= std::make_unique<GodRaysPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Clouds]			= std::make_unique<VolumetricCloudsPass>(gfx, render_width, render_height);
-		post_effects[PostEffectType_Reflections]	= std::make_unique<ReflectionPassGroup>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Reflection]	= std::make_unique<ReflectionPassGroup>(gfx, render_width, render_height);
 		post_effects[PostEffectType_FilmEffects]	= std::make_unique<FilmEffectsPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Fog]			= std::make_unique<ExponentialHeightFogPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_DepthOfField]	= std::make_unique<DepthOfFieldPassGroup>(gfx, render_width, render_height);
@@ -187,6 +203,8 @@ namespace adria
 		post_effects[PostEffectType_AutoExposure]	= std::make_unique<AutoExposurePass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Bloom]			= std::make_unique<BloomPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_CAS]			= std::make_unique<FFXCASPass>(gfx, render_width, render_height);
+
+		GetPostEffect<UpscalerPassGroup>()->AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&PostProcessor::OnRenderResolutionChanged, *this));
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
@@ -219,42 +237,74 @@ namespace adria
 		return RG_NAME(PostprocessMain);
 	}
 
-	void PostProcessor::PostprocessorGUI()
+
+	template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
+	PostEffectT* PostProcessor::GetPostEffect() const
 	{
-		clouds_pass.GUI();
-		reflections_pass.GUI();
-		film_effects_pass.GUI();
-		fog_pass.GUI();
-		depth_of_field_pass.GUI();
-		upscaler_pass.GUI();
-		taa_pass.GUI();
-		motion_blur_pass.GUI();
-		automatic_exposure_pass.GUI();
-		bloom_pass.GUI();
-		cas_pass.GUI();
-
-		GUI_Command([&]()
-			{
-				static int current_ao_type = (int)ambient_occlusion;
-				if (ImGui::TreeNode("Post-processing"))
-				{
-					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
-					{
-						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
-						ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
-						cvar_ambient_occlusion->Set(current_ao_type);
-					}
-					if (ImGui::Checkbox("FXAA", &fxaa)) cvar_fxaa->Set(fxaa);
-					ImGui::TreePop();
-				}
-
-			}, GUICommandGroup_None);
+		if constexpr (std::is_same_v<PostEffectT, MotionVectorsPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_MotionVectors].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, LensFlarePass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_LensFlare].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, SunPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_Sun].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, GodRaysPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_GodRays].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, VolumetricCloudsPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_Clouds].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, ReflectionPassGroup>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_Reflection].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, FilmEffectsPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_FilmEffects].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, ExponentialHeightFogPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_Fog].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, DepthOfFieldPassGroup>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_DepthOfField].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, UpscalerPassGroup>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_Upscaler].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, TAAPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_TAA].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, MotionBlurPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_MotionBlur].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, AutoExposurePass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_AutoExposure].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, BloomPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_Bloom].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, FFXCASPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_CAS].get());
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
-
-	bool PostProcessor::HasUpscaler() const
-	{
-		return upscaler_pass.IsEnabled(this);
-	}
-
 }
 

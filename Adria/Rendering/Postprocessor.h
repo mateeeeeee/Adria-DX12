@@ -1,30 +1,10 @@
 #pragma once
-#include <memory>
-#include <d3d12.h>
-#include "BlurPass.h"
-#include "HelperPasses.h"
 #include "SSAOPass.h"
 #include "HBAOPass.h"
 #include "RayTracedAmbientOcclusionPass.h"
-#include "AutoExposurePass.h"
-#include "LensFlarePass.h"
-#include "VolumetricCloudsPass.h"
-#include "ReflectionPassGroup.h"
-#include "DepthOfFieldPassGroup.h"
-#include "ExponentialHeightFogPass.h"
-#include "BloomPass.h"
-#include "MotionVectorsPass.h"
-#include "MotionBlurPass.h"
-#include "GodRaysPass.h"
-#include "FilmEffectsPass.h"
-#include "BokehPass.h"
-#include "TAAPass.h"
-#include "UpscalerPassGroup.h"
-#include "FFXCASPass.h"
 #include "FFXCACAOPass.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
-#include "SunPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Utilities/Delegate.h"
 #include "entt/entity/entity.hpp"
@@ -45,7 +25,6 @@ namespace adria
 	enum AntiAliasing : uint8;
 
 	using RenderResolutionChangedDelegate = Delegate<void(uint32, uint32)>;
-
 	class PostProcessor
 	{
 		enum PostEffectType : uint32
@@ -55,7 +34,7 @@ namespace adria
 			PostEffectType_Sun,
 			PostEffectType_GodRays,
 			PostEffectType_Clouds,
-			PostEffectType_Reflections,
+			PostEffectType_Reflection,
 			PostEffectType_FilmEffects,
 			PostEffectType_Fog,
 			PostEffectType_DepthOfField,
@@ -75,10 +54,8 @@ namespace adria
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
-		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
-		{
-			upscaler_pass.AddRenderResolutionChangedCallback(delegate);
-		}
+		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate);
+		void GUI();
 
 		void OnRainEvent(bool enabled);
 		void OnResize(uint32 w, uint32 h);
@@ -86,7 +63,7 @@ namespace adria
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
-		bool NeedsVelocityBuffer() const { return HasTAA() || HasUpscaler() || clouds_pass.IsEnabled(this) || motion_blur_pass.IsEnabled(this); }
+		bool NeedsVelocityBuffer() const;
 		bool HasUpscaler() const;
 		bool HasTAA() const;
 
@@ -106,7 +83,6 @@ namespace adria
 		uint32 render_height;
 
 		RGResourceName final_resource;
-		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
 
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
@@ -116,21 +92,22 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
-		AutoExposurePass automatic_exposure_pass;
-		LensFlarePass lens_flare_pass;
-		VolumetricCloudsPass clouds_pass;
-		ReflectionPassGroup reflections_pass;
-		DepthOfFieldPassGroup depth_of_field_pass;
-		ExponentialHeightFogPass fog_pass;
-		BloomPass bloom_pass;
-		MotionVectorsPass velocity_buffer_pass;
-		MotionBlurPass motion_blur_pass;
-		TAAPass taa_pass;
-		GodRaysPass god_rays_pass;
-		FilmEffectsPass film_effects_pass;
-		UpscalerPassGroup upscaler_pass;
-		FFXCASPass cas_pass;
-		SunPass sun_pass;
+		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
+		//AutoExposurePass automatic_exposure_pass;
+		//LensFlarePass lens_flare_pass;
+		//VolumetricCloudsPass clouds_pass;
+		//ReflectionPassGroup reflections_pass;
+		//DepthOfFieldPassGroup depth_of_field_pass;
+		//ExponentialHeightFogPass fog_pass;
+		//BloomPass bloom_pass;
+		//MotionVectorsPass velocity_buffer_pass;
+		//MotionBlurPass motion_blur_pass;
+		//TAAPass taa_pass;
+		//GodRaysPass god_rays_pass;
+		//FilmEffectsPass film_effects_pass;
+		//UpscalerPassGroup upscaler_pass;
+		//FFXCASPass cas_pass;
+		//SunPass sun_pass;
 
 
 		AmbientOcclusionType ambient_occlusion;
@@ -139,10 +116,11 @@ namespace adria
 
 	private:
 		void InitializePostEffects();
-
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
-
-		void PostprocessorGUI();
+		template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
+		PostEffectT* GetPostEffect() const;
 	};
+
+
 }
