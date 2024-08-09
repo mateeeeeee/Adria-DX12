@@ -1,7 +1,6 @@
 #pragma once
 #include "TextureHandle.h"
-#include "RenderGraph/RenderGraphResourceId.h"
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 
 namespace adria
 {
@@ -9,7 +8,7 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class ToneMapPass
+	class ToneMapPass : public PostEffect
 	{
 		enum class ToneMap : uint8
 		{
@@ -26,10 +25,12 @@ namespace adria
 		};
 	public:
 		ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h);
-		void AddPass(RenderGraph& rg, RGResourceName hdr_src);
-		void AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output);
-		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized();
+
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void OnResize(uint32, uint32) override;
+		virtual bool IsEnabled(PostProcessor const*) const { return true; }
+		virtual void OnSceneInitialized() override;
+		virtual void GUI() override;
 
 	private:
 		GfxDevice* gfx;
@@ -41,6 +42,5 @@ namespace adria
 
 	private:
 		void CreatePSO();
-		void GUI();
 	};
 }

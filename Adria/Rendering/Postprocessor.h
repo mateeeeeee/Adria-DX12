@@ -3,8 +3,6 @@
 #include "HBAOPass.h"
 #include "RayTracedAmbientOcclusionPass.h"
 #include "FFXCACAOPass.h"
-#include "FXAAPass.h"
-#include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Utilities/Delegate.h"
 #include "entt/entity/entity.hpp"
@@ -44,6 +42,8 @@ namespace adria
 			PostEffectType_AutoExposure,
 			PostEffectType_Bloom,
 			PostEffectType_CAS,
+			PostEffectType_ToneMap,
+			PostEffectType_FXAA,
 			PostEffectType_Count
 		};
 
@@ -66,6 +66,7 @@ namespace adria
 		bool NeedsVelocityBuffer() const;
 		bool HasUpscaler() const;
 		bool HasTAA() const;
+		bool HasFXAA() const;
 
 		void SetFinalResource(RGResourceName name)
 		{
@@ -81,38 +82,17 @@ namespace adria
 		uint32 display_height;
 		uint32 render_width;
 		uint32 render_height;
+		bool ray_tracing_supported = false;
 
 		RGResourceName final_resource;
 
+		AmbientOcclusionType ambient_occlusion;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
 		FFXCACAOPass cacao_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
 
-		ToneMapPass  tonemap_pass;
-		FXAAPass	 fxaa_pass;
-
 		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
-		//AutoExposurePass automatic_exposure_pass;
-		//LensFlarePass lens_flare_pass;
-		//VolumetricCloudsPass clouds_pass;
-		//ReflectionPassGroup reflections_pass;
-		//DepthOfFieldPassGroup depth_of_field_pass;
-		//ExponentialHeightFogPass fog_pass;
-		//BloomPass bloom_pass;
-		//MotionVectorsPass velocity_buffer_pass;
-		//MotionBlurPass motion_blur_pass;
-		//TAAPass taa_pass;
-		//GodRaysPass god_rays_pass;
-		//FilmEffectsPass film_effects_pass;
-		//UpscalerPassGroup upscaler_pass;
-		//FFXCASPass cas_pass;
-		//SunPass sun_pass;
-
-
-		AmbientOcclusionType ambient_occlusion;
-		bool fxaa = true;
-		bool ray_tracing_supported = false;
 
 	private:
 		void InitializePostEffects();

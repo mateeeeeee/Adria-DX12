@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "RainPass.h"
+#include "SunPass.h"
 #include "AutoExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
@@ -18,8 +19,8 @@
 #include "TAAPass.h"
 #include "UpscalerPassGroup.h"
 #include "FFXCASPass.h"
-#include "FFXCACAOPass.h"
-#include "SunPass.h"
+#include "FXAAPass.h"
+#include "ToneMapPass.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
@@ -31,7 +32,6 @@ using namespace DirectX;
 namespace adria
 {
 	static TAutoConsoleVariable<int>  cvar_ambient_occlusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
-	static TAutoConsoleVariable<bool> cvar_fxaa("r.FXAA", true, "Enable or Disable FXAA");
 	
 	enum class AmbientOcclusionType : uint8
 	{
@@ -44,17 +44,12 @@ namespace adria
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
-		ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height), cacao_pass(gfx, width, height),
-		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), ambient_occlusion(AmbientOcclusionType::SSAO)
+		ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height), cacao_pass(gfx, width, height), ambient_occlusion(AmbientOcclusionType::SSAO)
 	{
 		InitializePostEffects();
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		{
 			cvar_ambient_occlusion->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusionType>(cvar->GetInt()); }));
-			cvar_fxaa->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
-				{
-					fxaa = cvar->GetBool();
-				}));
 		}
 	}
 
@@ -84,21 +79,12 @@ namespace adria
 		{
 			if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
 		}
-
-		if (fxaa)
-		{
-			tonemap_pass.AddPass(rg, final_resource, RG_NAME(TonemapOutput));
-			fxaa_pass.AddPass(rg, RG_NAME(TonemapOutput));
-		}
-		else
-		{
-			tonemap_pass.AddPass(rg, final_resource);
-		}
 	}
 
 	void PostProcessor::AddTonemapPass(RenderGraph& rg, RGResourceName input)
 	{
-		tonemap_pass.AddPass(rg, input);
+		final_resource = input;
+		GetPostEffect<ToneMapPass>()->AddPass(rg, this);
 	}
 
 	void PostProcessor::AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
@@ -108,25 +94,21 @@ namespace adria
 
 	void PostProcessor::GUI()
 	{
+		GUI_Command([&]()
+			{
+				static int current_ao_type = (int)ambient_occlusion;
+				if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
+				{
+					if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
+					ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
+					cvar_ambient_occlusion->Set(current_ao_type);
+				}
+			}, GUICommandGroup_PostProcessor);
+
 		for (auto& post_effect : post_effects)
 		{
 			if (post_effect->IsGUIVisible(this)) post_effect->GUI();
 		}
-		GUI_Command([&]()
-			{
-				static int current_ao_type = (int)ambient_occlusion;
-				if (ImGui::TreeNode("Post-processing"))
-				{
-					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
-					{
-						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
-						ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
-						cvar_ambient_occlusion->Set(current_ao_type);
-					}
-					if (ImGui::Checkbox("FXAA", &fxaa)) cvar_fxaa->Set(fxaa);
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_PostProcessor);
 	}
 
 	void PostProcessor::OnResize(uint32 w, uint32 h)
@@ -136,8 +118,6 @@ namespace adria
 		{
 			post_effects[i]->OnResize(w, h);
 		}
-		fxaa_pass.OnResize(w, h);
-		tonemap_pass.OnResize(w, h);
 	}
 
 	void PostProcessor::OnRenderResolutionChanged(uint32 w, uint32 h)
@@ -163,7 +143,6 @@ namespace adria
 		{
 			post_effect->OnSceneInitialized();
 		}
-		tonemap_pass.OnSceneInitialized(); 
 	}
 
 	RGResourceName PostProcessor::GetFinalResource() const
@@ -174,6 +153,11 @@ namespace adria
 	bool PostProcessor::HasTAA() const
 	{
 		return post_effects[PostEffectType_TAA]->IsEnabled(this);
+	}
+
+	bool PostProcessor::HasFXAA() const
+	{
+		return post_effects[PostEffectType_FXAA]->IsEnabled(this);
 	}
 
 	bool PostProcessor::NeedsVelocityBuffer() const
@@ -193,7 +177,7 @@ namespace adria
 		post_effects[PostEffectType_Sun]			= std::make_unique<SunPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_GodRays]		= std::make_unique<GodRaysPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Clouds]			= std::make_unique<VolumetricCloudsPass>(gfx, render_width, render_height);
-		post_effects[PostEffectType_Reflection]	= std::make_unique<ReflectionPassGroup>(gfx, render_width, render_height);
+		post_effects[PostEffectType_Reflection]		= std::make_unique<ReflectionPassGroup>(gfx, render_width, render_height);
 		post_effects[PostEffectType_FilmEffects]	= std::make_unique<FilmEffectsPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Fog]			= std::make_unique<ExponentialHeightFogPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_DepthOfField]	= std::make_unique<DepthOfFieldPassGroup>(gfx, render_width, render_height);
@@ -203,6 +187,8 @@ namespace adria
 		post_effects[PostEffectType_AutoExposure]	= std::make_unique<AutoExposurePass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Bloom]			= std::make_unique<BloomPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_CAS]			= std::make_unique<FFXCASPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_ToneMap]		= std::make_unique<ToneMapPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_FXAA]			= std::make_unique<FXAAPass>(gfx, render_width, render_height);
 
 		GetPostEffect<UpscalerPassGroup>()->AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&PostProcessor::OnRenderResolutionChanged, *this));
 	}

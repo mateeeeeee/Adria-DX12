@@ -1,6 +1,5 @@
 #pragma once
-#include "RenderGraph/RenderGraphResourceId.h"
-#include "RenderGraph/RenderGraphResourceName.h"
+#include "PostEffect.h"
 
 namespace adria
 {
@@ -8,12 +7,15 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class FXAAPass
+	class FXAAPass : public PostEffect
 	{
 	public:
 		FXAAPass(GfxDevice* gfx, uint32 w, uint32 h);
-		void AddPass(RenderGraph& rg, RGResourceName input);
-		void OnResize(uint32 w, uint32 h);
+		
+		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual void GUI() override;
 
 	private:
 		GfxDevice* gfx;

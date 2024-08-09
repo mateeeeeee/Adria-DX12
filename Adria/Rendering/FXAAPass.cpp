@@ -1,19 +1,23 @@
 #include "FXAAPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleManager.h"
+#include "Editor/GUICommand.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> fxaa("r.FXAA", true, "Enable or Disable FXAA");
 
 	FXAAPass::FXAAPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
 
-	void FXAAPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void FXAAPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct FXAAPassData
@@ -25,7 +29,7 @@ namespace adria
 		rg.AddPass<FXAAPassData>("FXAA Pass",
 			[=](FXAAPassData& data, RenderGraphBuilder& builder)
 			{
-				data.ldr = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.ldr = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
 				ADRIA_ASSERT(builder.IsTextureDeclared(RG_NAME(FinalTexture)));
 				data.output = builder.WriteTexture(RG_NAME(FinalTexture));
 			},
@@ -56,6 +60,19 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
+	}
+
+	bool FXAAPass::IsEnabled(PostProcessor const*) const
+	{
+		return fxaa.Get();
+	}
+
+	void FXAAPass::GUI()
+	{
+		GUI_Command([&]()
+			{
+				ImGui::Checkbox("FXAA", fxaa.GetPtr());
+			}, GUICommandGroup_PostProcessor);
 	}
 
 	void FXAAPass::OnResize(uint32 w, uint32 h)

@@ -110,7 +110,6 @@ namespace adria
 		UpdateSceneBuffers();
 		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
-		GUI();
 	}
 	void Renderer::Render()
 	{
@@ -151,6 +150,9 @@ namespace adria
 
 		render_graph.Build();
 		render_graph.Execute();
+
+		GUI();
+		postprocessor.GUI();
 	}
 
 	void Renderer::OnResize(uint32 w, uint32 h)
@@ -581,7 +583,6 @@ namespace adria
 					volumetric_path = static_cast<VolumetricPath>(current_volumetric_path);
 				}
 			}, GUICommandGroup_None);
-		postprocessor.GUI();
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)
