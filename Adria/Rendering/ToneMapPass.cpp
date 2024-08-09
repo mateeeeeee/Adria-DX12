@@ -23,7 +23,7 @@ namespace adria
 	void ToneMapPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		RGResourceName source = postprocessor->GetFinalResource();
-		RGResourceName destination = postprocessor->HasFXAA() ? RG_NAME(TonemapOutput) : RG_NAME(FinalTexture);
+		RGResourceName destination = postprocessor->HasFXAA() && !postprocessor->IsPathTracing() ? RG_NAME(TonemapOutput) : RG_NAME(FinalTexture);
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		BloomBlackboardData const* bloom_data = rg.GetBlackboard().TryGet<BloomBlackboardData>();
 

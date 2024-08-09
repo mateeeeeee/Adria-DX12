@@ -67,6 +67,7 @@ namespace adria
 		bool HasUpscaler() const;
 		bool HasTAA() const;
 		bool HasFXAA() const;
+		bool IsPathTracing() const;
 
 		void SetFinalResource(RGResourceName name)
 		{
@@ -83,6 +84,7 @@ namespace adria
 		uint32 render_width;
 		uint32 render_height;
 		bool ray_tracing_supported = false;
+		bool is_path_tracing_path = false;
 
 		RGResourceName final_resource;
 

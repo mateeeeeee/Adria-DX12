@@ -84,7 +84,9 @@ namespace adria
 	void PostProcessor::AddTonemapPass(RenderGraph& rg, RGResourceName input)
 	{
 		final_resource = input;
-		GetPostEffect<ToneMapPass>()->AddPass(rg, this);
+		is_path_tracing_path = true;
+		post_effects[PostEffectType_ToneMap]->AddPass(rg, this);
+		is_path_tracing_path = false;
 	}
 
 	void PostProcessor::AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)
@@ -165,6 +167,11 @@ namespace adria
 	bool PostProcessor::HasFXAA() const
 	{
 		return post_effects[PostEffectType_FXAA]->IsEnabled(this);
+	}
+
+	bool PostProcessor::IsPathTracing() const
+	{
+		return is_path_tracing_path;
 	}
 
 	bool PostProcessor::NeedsVelocityBuffer() const
@@ -293,6 +300,14 @@ namespace adria
 		else if constexpr (std::is_same_v<PostEffectT, FFXCASPass>)
 		{
 			return static_cast<PostEffectT*>(post_effects[PostEffectType_CAS].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, ToneMapPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_ToneMap].get());
+		}
+		else if constexpr (std::is_same_v<PostEffectT, FXAAPass>)
+		{
+			return static_cast<PostEffectT*>(post_effects[PostEffectType_FXAA].get());
 		}
 		else
 		{
