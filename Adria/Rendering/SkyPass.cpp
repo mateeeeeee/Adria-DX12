@@ -142,7 +142,7 @@ namespace adria
 	{
 		GUI_Command([&]()
 			{
-				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_None))
+				if (ImGui::TreeNodeEx("Sky Settings", ImGuiTreeNodeFlags_None))
 				{
 					static int current_sky_type = 2;
 					if (ImGui::Combo("Sky Type", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))

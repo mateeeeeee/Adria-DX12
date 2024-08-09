@@ -10,7 +10,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> film_effects_enabled("r.FilmEffects", false, "Enable or Disable Film Effects");
+	static TAutoConsoleVariable<bool> FilmEffects("r.FilmEffects", false, "Enable or Disable Film Effects");
 
 	FilmEffectsPass::FilmEffectsPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -97,7 +97,7 @@ namespace adria
 
 	bool FilmEffectsPass::IsEnabled(PostProcessor const*) const
 	{
-		return film_effects_enabled.Get();
+		return FilmEffects.Get();
 	}
 
 	void FilmEffectsPass::GUI()
@@ -106,8 +106,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Film Effects", ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable Film Effects", film_effects_enabled.GetPtr());
-					if (film_effects_enabled.Get())
+					ImGui::Checkbox("Enable Film Effects", FilmEffects.GetPtr());
+					if (FilmEffects.Get())
 					{
 						ImGui::Checkbox("Lens Distortion", &lens_distortion_enabled);
 						ImGui::Checkbox("Chromatic Aberration", &chromatic_aberration_enabled);

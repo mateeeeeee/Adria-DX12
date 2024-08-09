@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> ffx_dof_enabled("r.FFXDepthOfField", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> FFXDepthOfField("r.FFXDepthOfField", true, "0 - Disabled, 1 - Enabled");
 
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
@@ -88,7 +88,7 @@ namespace adria
 
 	bool FFXDepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
-		return ffx_dof_enabled.Get();
+		return FFXDepthOfField.Get();
 	}
 
 	void FFXDepthOfFieldPass::GUI()
@@ -97,8 +97,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", ffx_dof_enabled.GetPtr());
-					if (ffx_dof_enabled.Get())
+					ImGui::Checkbox("Enable", FFXDepthOfField.GetPtr());
+					if (FFXDepthOfField.Get())
 					{
 						ImGui::SliderFloat("Aperture", &aperture, 0.0f, 0.1f, "%.2f");
 						ImGui::SliderFloat("Sensor Size", &sensor_size, 0.0f, 0.1f, "%.2f");

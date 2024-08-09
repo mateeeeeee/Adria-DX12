@@ -9,7 +9,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<int>  cvar_upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
+	static TAutoConsoleVariable<int>  Upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
 	
 	enum class UpscalerType : uint8
 	{
@@ -24,7 +24,7 @@ namespace adria
 	UpscalerPassGroup::UpscalerPassGroup(GfxDevice* gfx, uint32 width, uint32 height) : upscaler_type(UpscalerType::None), display_width(width), display_height(height)
 	{
 		post_effect_idx = static_cast<uint32>(upscaler_type);
-		cvar_upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
+		Upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
 			{ 
 				upscaler_type = static_cast<UpscalerType>(cvar->GetInt());
 				post_effect_idx = static_cast<uint32>(upscaler_type);
@@ -71,7 +71,7 @@ namespace adria
 						current_upscaler = 0;
 						ADRIA_LOG(WARNING, "DLSS3 is not supported on this device!");
 					}
-					cvar_upscaler->Set(current_upscaler);
+					Upscaler->Set(current_upscaler);
 
 					if (upscaler_type != UpscalerType::None)
 					{

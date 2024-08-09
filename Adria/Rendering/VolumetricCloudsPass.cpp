@@ -17,7 +17,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> clouds_enabled("r.Clouds", true, "Enable or Disable Clouds");
+	static TAutoConsoleVariable<bool> Clouds("r.Clouds", true, "Enable or Disable Clouds");
 
 		
 	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h)
@@ -28,7 +28,7 @@ namespace adria
 
 	bool VolumetricCloudsPass::IsEnabled(PostProcessor const*) const
 	{
-		return clouds_enabled.Get();
+		return Clouds.Get();
 	}
 
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
@@ -367,8 +367,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Volumetric Clouds", 0))
 				{
-					ImGui::Checkbox("Enable Volumetric Clouds", clouds_enabled.GetPtr());
-					if (clouds_enabled.Get())
+					ImGui::Checkbox("Enable Volumetric Clouds", Clouds.GetPtr());
+					if (Clouds.Get())
 					{
 						ImGui::Checkbox("Temporal reprojection", &temporal_reprojection);
 						should_generate_textures |= ImGui::SliderInt("Shape Noise Frequency", &params.shape_noise_frequency, 1, 10);

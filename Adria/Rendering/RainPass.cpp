@@ -12,7 +12,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> rain("r.Rain", false, "Enable Rain");
+	static TAutoConsoleVariable<bool> Rain("r.Rain", false, "Enable Rain");
 	
 	struct RainData
 	{
@@ -24,7 +24,7 @@ namespace adria
 	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
 	{
 		CreatePSOs();
-		rain->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { OnRainEnabled(cvar->GetBool()); }));
+		Rain->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { OnRainEnabled(cvar->GetBool()); }));
 	}
 
 	void RainPass::Update(float dt)
@@ -137,8 +137,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Rain Settings", 0))
 				{
-					if (ImGui::Checkbox("Enable", rain.GetPtr())) OnRainEnabled(rain.Get());
-					if (rain.Get())
+					if (ImGui::Checkbox("Enable", Rain.GetPtr())) OnRainEnabled(Rain.Get());
+					if (Rain.Get())
 					{
 						ImGui::Checkbox("Pause simulation", &pause_simulation);
 						if (ImGui::Checkbox("Cheap", &cheap))
@@ -158,7 +158,7 @@ namespace adria
 
 	bool RainPass::IsEnabled() const
 	{
-		return rain.Get();
+		return Rain.Get();
 	}
 
 	void RainPass::OnSceneInitialized()

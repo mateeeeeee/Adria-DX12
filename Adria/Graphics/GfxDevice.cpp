@@ -238,7 +238,7 @@ namespace adria
 		}
 	}
 
-	static TAutoConsoleVariable<bool> vsync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
+	static TAutoConsoleVariable<bool> VSync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
 
 	GfxDevice::DRED::DRED(GfxDevice* gfx)
 	{
@@ -258,7 +258,7 @@ namespace adria
 	GfxDevice::GfxDevice(Window* window, GfxOptions const& options)
 		: frame_index(0)
 	{
-		vsync->Set(options.vsync);
+		VSync->Set(options.vsync);
 		hwnd = window->Handle();
 		width = window->Width();
 		height = window->Height();
@@ -431,7 +431,7 @@ namespace adria
 		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
 
-		bool present_successful = swapchain->Present(vsync.Get());
+		bool present_successful = swapchain->Present(VSync.Get());
 		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
 		{
 			nsight_aftermath->HandleGpuCrash();

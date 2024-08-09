@@ -13,7 +13,7 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class DDGI
+	class DDGIPass
 	{
 		static constexpr uint32 PROBE_IRRADIANCE_TEXELS = 6;
 		static constexpr uint32 PROBE_DISTANCE_TEXELS = 14;
@@ -51,8 +51,8 @@ namespace adria
 		};
 	public:
 
-		DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
-		~DDGI();
+		DDGIPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
+		~DDGIPass();
 
 		void OnSceneInitialized();
 		void OnResize(uint32 w, uint32 h);

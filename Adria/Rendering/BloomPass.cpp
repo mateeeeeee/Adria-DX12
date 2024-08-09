@@ -12,10 +12,10 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool>  bloom("r.Bloom", false, "Enable or Disable Bloom");
-	static TAutoConsoleVariable<float> bloom_radius("r.Bloom.Radius", 0.25f, "Controls the radius of the bloom effect");
-	static TAutoConsoleVariable<float> bloom_intensity("r.Bloom.Intensity", 1.33f, "Controls the intensity of the bloom effect");
-	static TAutoConsoleVariable<float> bloom_blend_factor("r.Bloom.BlendFactor", 0.25f, "Controls the blend factor of the bloom effect");
+	static TAutoConsoleVariable<bool>  Bloom("r.Bloom", false, "Enable or Disable Bloom");
+	static TAutoConsoleVariable<float> BloomRadius("r.Bloom.Radius", 0.25f, "Controls the radius of the bloom effect");
+	static TAutoConsoleVariable<float> BloomIntensity("r.Bloom.Intensity", 1.33f, "Controls the intensity of the bloom effect");
+	static TAutoConsoleVariable<float> BloomBlendFactor("r.Bloom.BlendFactor", 0.25f, "Controls the blend factor of the bloom effect");
 
 	BloomPass::BloomPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -40,7 +40,7 @@ namespace adria
 			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i + 1);
 		}
 
-		BloomBlackboardData blackboard_data{ .bloom_intensity = bloom_intensity.Get(), .bloom_blend_factor = bloom_blend_factor.Get() };
+		BloomBlackboardData blackboard_data{ .bloom_intensity = BloomIntensity.Get(), .bloom_blend_factor = BloomBlendFactor.Get() };
 		rg.GetBlackboard().Add<BloomBlackboardData>(std::move(blackboard_data));
 	}
 
@@ -51,7 +51,7 @@ namespace adria
 
 	bool BloomPass::IsEnabled(PostProcessor const*) const
 	{
-		return bloom.Get();
+		return Bloom.Get();
 	}
 
 	void BloomPass::GUI()
@@ -60,12 +60,12 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{
-					ImGui::Checkbox("Enable", bloom.GetPtr());
-					if (bloom.Get())
+					ImGui::Checkbox("Enable", Bloom.GetPtr());
+					if (Bloom.Get())
 					{
-						ImGui::SliderFloat("Bloom Radius", bloom_radius.GetPtr(), 0.0f, 1.0f);
-						ImGui::SliderFloat("Bloom Intensity", bloom_intensity.GetPtr(), 0.0f, 8.0f);
-						ImGui::SliderFloat("Bloom Blend Factor", bloom_blend_factor.GetPtr(), 0.0f, 1.0f);
+						ImGui::SliderFloat("Bloom Radius", BloomRadius.GetPtr(), 0.0f, 1.0f);
+						ImGui::SliderFloat("Bloom Intensity", BloomIntensity.GetPtr(), 0.0f, 8.0f);
+						ImGui::SliderFloat("Bloom Blend Factor", BloomBlendFactor.GetPtr(), 0.0f, 1.0f);
 					}
 					ImGui::TreePop();
 					ImGui::Separator();
@@ -208,7 +208,7 @@ namespace adria
 					.low_input_idx = i,
 					.high_input_idx = i + 1,
 					.output_idx = i + 2,
-					.radius = bloom_radius.Get()
+					.radius = BloomRadius.Get()
 				};
 
 				cmd_list->SetPipelineState(upsample_pso.get());

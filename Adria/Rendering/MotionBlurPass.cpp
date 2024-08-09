@@ -12,7 +12,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> motion_blur_enabled("r.MotionBlur", false, "Enable or Disable Motion Blur");
+	static TAutoConsoleVariable<bool> MotionBlur("r.MotionBlur", false, "Enable or Disable Motion Blur");
 
 	MotionBlurPass::MotionBlurPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h) 
 	{
@@ -82,14 +82,14 @@ namespace adria
 
 	bool MotionBlurPass::IsEnabled(PostProcessor const*) const
 	{
-		return motion_blur_enabled.Get();
+		return MotionBlur.Get();
 	}
 
 	void MotionBlurPass::GUI()
 	{
 		GUI_Command([&]()
 			{
-				ImGui::Checkbox("Motion Blur", motion_blur_enabled.GetPtr());
+				ImGui::Checkbox("Motion Blur", MotionBlur.GetPtr());
 			}, GUICommandGroup_PostProcessor);
 	}
 

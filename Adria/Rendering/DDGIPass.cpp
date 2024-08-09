@@ -1,4 +1,4 @@
-#include "DDGI.h"
+#include "DDGIPass.h"
 #include "BlackboardData.h"
 #include "Components.h"
 #include "ShaderStructs.h"
@@ -19,30 +19,30 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> use_ddgi("r.DDGI", true, "Enable DDGI if supported");
+	static TAutoConsoleVariable<bool> DDGI("r.DDGI", true, "Enable DDGI if supported");
 
-	Vector2u DDGI::ProbeTextureDimensions(Vector3u const& num_probes, uint32 texels_per_probe)
+	Vector2u DDGIPass::ProbeTextureDimensions(Vector3u const& num_probes, uint32 texels_per_probe)
 	{
 		uint32 width = (1 + texels_per_probe + 1) * num_probes.y * num_probes.x;
 		uint32 height = (1 + texels_per_probe + 1) * num_probes.z;
 		return Vector2u(width, height);
 	}
 
-	DDGI::DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
+	DDGIPass::DDGIPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
-		use_ddgi->Set(is_supported);
+		DDGI->Set(is_supported);
 		if (is_supported)
 		{
 			CreatePSOs();
 			CreateStateObject();
-			ShaderManager::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
+			ShaderManager::GetLibraryRecompiledEvent().AddMember(&DDGIPass::OnLibraryRecompiled, *this);
 		}
 	}
 
-	DDGI::~DDGI() = default;
+	DDGIPass::~DDGIPass() = default;
 
-	void DDGI::OnSceneInitialized()
+	void DDGIPass::OnSceneInitialized()
 	{
 		BoundingBox scene_bounding_box;
 		for (auto mesh_entity : reg.view<Mesh>())
@@ -88,13 +88,13 @@ namespace adria
 		ddgi_volume.distance_history_srv = gfx->CreateTextureSRV(ddgi_volume.distance_history.get());
 	}
 
-	void DDGI::OnResize(uint32 w, uint32 h)
+	void DDGIPass::OnResize(uint32 w, uint32 h)
 	{
 		if (!IsSupported()) return;
 		width = w, height = h;
 	}
 
-	void DDGI::AddPasses(RenderGraph& rg)
+	void DDGIPass::AddPasses(RenderGraph& rg)
 	{
 		ADRIA_ASSERT(IsSupported());
 
@@ -276,7 +276,7 @@ namespace adria
 
 	}
 
-	void DDGI::AddVisualizePass(RenderGraph& rg)
+	void DDGIPass::AddVisualizePass(RenderGraph& rg)
 	{
 		if (!IsSupported() || !visualize) return;
 
@@ -307,7 +307,7 @@ namespace adria
 			}, RGPassType::Graphics);
 	}
 
-	void DDGI::GUI()
+	void DDGIPass::GUI()
 	{
 		if (!is_supported) return;
 
@@ -315,8 +315,8 @@ namespace adria
 			{
 				if (ImGui::TreeNode("DDGI"))
 				{
-					ImGui::Checkbox("Enable", use_ddgi.GetPtr());
-					if (use_ddgi.Get())
+					ImGui::Checkbox("Enable", DDGI.GetPtr());
+					if (DDGI.Get())
 					{
 						ImGui::Checkbox("Visualize DDGI", &visualize);
 						if (visualize)
@@ -342,12 +342,12 @@ namespace adria
 			}, GUICommandGroup_Renderer);
 	}
 
-	bool DDGI::IsEnabled() const
+	bool DDGIPass::IsEnabled() const
 	{
-		return use_ddgi.Get();
+		return DDGI.Get();
 	}
 
-	int32 DDGI::GetDDGIVolumeIndex()
+	int32 DDGIPass::GetDDGIVolumeIndex()
 	{
 		if (!IsSupported())  return -1;
 
@@ -380,7 +380,7 @@ namespace adria
 		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
 	}
 
-	void DDGI::CreatePSOs()
+	void DDGIPass::CreatePSOs()
 	{
 		GfxGraphicsPipelineStateDesc  gfx_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_DDGIVisualize), gfx_pso_desc.input_layout);
@@ -404,7 +404,7 @@ namespace adria
 		update_distance_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
-	void DDGI::CreateStateObject()
+	void DDGIPass::CreateStateObject()
 	{
 		GfxShader const& ddgi_blob = GetGfxShader(LIB_DDGIRayTracing);
 
@@ -439,7 +439,7 @@ namespace adria
 		ddgi_trace_so.reset(ddgi_state_object_builder.CreateStateObject(gfx));
 	}
 
-	void DDGI::OnLibraryRecompiled(GfxShaderKey const& key)
+	void DDGIPass::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
 		if (key.GetShaderID() == LIB_DDGIRayTracing) CreateStateObject();
 	}

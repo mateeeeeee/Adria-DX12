@@ -17,7 +17,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> use_gpu_driven_rendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
+	static TAutoConsoleVariable<bool> GpuDrivenRendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
 
 	static constexpr uint32 MAX_NUM_MESHLETS = 1 << 20u;
 	static constexpr uint32 MAX_NUM_INSTANCES = 1 << 14u;
@@ -31,7 +31,7 @@ namespace adria
 	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) 
 		: reg(reg), gfx(gfx), width(width), height(height)
 	{
-		use_gpu_driven_rendering->Set(IsSupported());
+		GpuDrivenRendering->Set(IsSupported());
 		if (!IsSupported()) return;
 		CreateDebugBuffer();
 		InitializeHZB();
@@ -45,7 +45,7 @@ namespace adria
 
 	bool GPUDrivenGBufferPass::IsEnabled() const
 	{
-		return use_gpu_driven_rendering.Get();
+		return GpuDrivenRendering.Get();
 	}
 
 	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
@@ -64,8 +64,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", use_gpu_driven_rendering.GetPtr());
-					if (use_gpu_driven_rendering.Get())
+					ImGui::Checkbox("Enable", GpuDrivenRendering.GetPtr());
+					if (GpuDrivenRendering.Get())
 					{
 						ImGui::Checkbox("Occlusion Cull", &occlusion_culling);
 						ImGui::Checkbox("Display Debug Stats", &display_debug_stats);

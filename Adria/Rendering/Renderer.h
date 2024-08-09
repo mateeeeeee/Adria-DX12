@@ -10,7 +10,7 @@
 #include "VolumetricFogPass.h"
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
-#include "DDGI.h"
+#include "DDGIPass.h"
 #include "GPUDebugPrinter.h"
 #include "HelperPasses.h"
 #include "PickingPass.h"
@@ -33,7 +33,7 @@ namespace adria
 	class GfxTexture;
 	struct Light;
 
-	enum class LightingPath : uint8
+	enum class LightingPathType : uint8
 	{
 		Deferred,
 		TiledDeferred,
@@ -43,7 +43,7 @@ namespace adria
 
 	class Renderer
 	{
-		enum class VolumetricPath : uint8
+		enum class VolumetricPathType : uint8
 		{
 			None,
 			Raymarching2D,
@@ -69,12 +69,12 @@ namespace adria
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
 
 		RendererOutput GetRendererOutput() const { return renderer_output; }
-		LightingPath GetLightingPath() const { return lighting_path; }
+		LightingPathType GetLightingPath() const { return lighting_path; }
 		void SetRendererOutput(RendererOutput type)
 		{
 			renderer_output = type;
 		}
-		void SetLightingPath(LightingPath path);
+		void SetLightingPath(LightingPathType path);
 		void SetViewportData(ViewportData const& vp);
 
 	private:
@@ -131,7 +131,7 @@ namespace adria
 		OceanRenderer  ocean_renderer;
 		ShadowRenderer shadow_renderer;
 		PostProcessor postprocessor;
-		DDGI		  ddgi;
+		DDGIPass		  ddgi;
 		PathTracingPass path_tracer;
 		RendererOutputPass renderer_output_pass;
 		GPUDebugPrinter gpu_debug_printer;
@@ -145,8 +145,8 @@ namespace adria
 		bool update_picking_data = false;
 		PickingData picking_data;
 
-		LightingPath	 lighting_path = LightingPath::Deferred;
-		RendererOutput   renderer_output = RendererOutput::Final;
+		LightingPathType	 lighting_path = LightingPathType::Deferred;
+		RendererOutput		 renderer_output = RendererOutput::Final;
 
 		//weather
 		float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
@@ -163,7 +163,7 @@ namespace adria
 
 		//volumetric
 		uint32			         volumetric_lights = 0;
-		VolumetricPath			 volumetric_path = VolumetricPath::Raymarching2D;
+		VolumetricPathType		 volumetric_path = VolumetricPathType::Raymarching2D;
 		//misc
 		ViewportData			 viewport_data;
 

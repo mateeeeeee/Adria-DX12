@@ -31,7 +31,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<int>  ao_type("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
+	static TAutoConsoleVariable<int>  AmbientOcclusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
 	
 	enum class AmbientOcclusionType : uint8
 	{
@@ -49,7 +49,7 @@ namespace adria
 		InitializePostEffects();
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		{
-			ao_type->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusionType>(cvar->GetInt()); }));
+			AmbientOcclusion->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { ambient_occlusion = static_cast<AmbientOcclusionType>(cvar->GetInt()); }));
 		}
 	}
 
@@ -101,7 +101,7 @@ namespace adria
 				{
 					if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
 					ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
-					ao_type->Set(current_ao_type);
+					AmbientOcclusion->Set(current_ao_type);
 				}
 			}, GUICommandGroup_PostProcessor);
 		switch (ambient_occlusion)

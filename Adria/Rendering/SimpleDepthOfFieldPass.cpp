@@ -14,7 +14,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> simple_dof_enabled("r.SimpleDepthOfField", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> SimpleDepthOfField("r.SimpleDepthOfField", true, "0 - Disabled, 1 - Enabled");
 
 	SimpleDepthOfFieldPass::SimpleDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
 	{
@@ -98,7 +98,7 @@ namespace adria
 
 	bool SimpleDepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
-		return simple_dof_enabled.Get();
+		return SimpleDepthOfField.Get();
 	}
 
 	void SimpleDepthOfFieldPass::OnSceneInitialized()
@@ -112,8 +112,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Simple Depth Of Field", 0))
 				{
-					ImGui::Checkbox("Enable", simple_dof_enabled.GetPtr());
-					if (simple_dof_enabled.Get())
+					ImGui::Checkbox("Enable", SimpleDepthOfField.GetPtr());
+					if (SimpleDepthOfField.Get())
 					{
 						ImGui::SliderFloat("Focus Distance", &params.focus_distance, 0.0f, 1000.0f);
 						ImGui::SliderFloat("Focus Radius", &params.focus_radius, 0.0f, 1000.0f);

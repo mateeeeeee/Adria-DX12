@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> fsr3_enabled("r.FSR3", true, "Enable or Disable FSR3");
+	static TAutoConsoleVariable<bool> FSR3("r.FSR3", true, "Enable or Disable FSR3");
 
 	namespace
 	{
@@ -123,7 +123,7 @@ namespace adria
 
 	bool FSR3Pass::IsEnabled(PostProcessor const*) const
 	{
-		return fsr3_enabled.Get();
+		return FSR3.Get();
 	}
 
 	void FSR3Pass::GUI()
@@ -132,8 +132,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", fsr3_enabled.GetPtr());
-					if (fsr3_enabled.Get())
+					ImGui::Checkbox("Enable", FSR3.GetPtr());
+					if (FSR3.Get())
 					{
 						if (ImGui::Combo("Quality Mode", (int32*)&fsr3_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 						{

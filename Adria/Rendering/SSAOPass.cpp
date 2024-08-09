@@ -22,12 +22,12 @@ namespace adria
 		SSAOResolution_Quarter = 2
 	};
 
-	static TAutoConsoleVariable<float> ssao_power("r.SSAO.Power", 1.5f, "Controls the power of SSAO");
-	static TAutoConsoleVariable<float> ssao_radius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
-	static TAutoConsoleVariable<int>   ssao_resolution("r.SSAO.Resolution", SSAOResolution_Half, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
+	static TAutoConsoleVariable<float> SSAOPower("r.SSAO.Power", 1.5f, "Controls the power of SSAO");
+	static TAutoConsoleVariable<float> SSAORadius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
+	static TAutoConsoleVariable<int>   SSAOResolution("r.SSAO.Resolution", SSAOResolution_Half, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
 
 	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
-		blur_pass(gfx, w >> ssao_resolution.Get(), h >> ssao_resolution.Get())
+		blur_pass(gfx, w >> SSAOResolution.Get(), h >> SSAOResolution.Get())
 	{
 		CreatePSO();
 		RealRandomGenerator rand_float(0.0f, 1.0f);
@@ -38,7 +38,7 @@ namespace adria
 			offset *= rand_float();
 			ssao_kernel[i] = offset;
 		}
-		ssao_resolution->AddOnChanged(ConsoleVariableDelegate::CreateLambda([&](IConsoleVariable* cvar) { OnResize(width, height); }));
+		SSAOResolution->AddOnChanged(ConsoleVariableDelegate::CreateLambda([&](IConsoleVariable* cvar) { OnResize(width, height); }));
 	}
 	void SSAOPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -55,8 +55,8 @@ namespace adria
 			{
 				RGTextureDesc ssao_desc{};
 				ssao_desc.format = GfxFormat::R8_UNORM;
-				ssao_desc.width = width >> ssao_resolution.Get();
-				ssao_desc.height = height >> ssao_resolution.Get();
+				ssao_desc.width = width >> SSAOResolution.Get();
+				ssao_desc.height = height >> SSAOResolution.Get();
 
 				builder.DeclareTexture(RG_NAME(SSAO_Output), ssao_desc);
 				data.output = builder.WriteTexture(RG_NAME(SSAO_Output));
@@ -78,7 +78,7 @@ namespace adria
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				uint32 const i = dst_descriptor.GetIndex();
 
-				int32 resolution = ssao_resolution.Get();
+				int32 resolution = SSAOResolution.Get();
 
 				struct SSAOConstants
 				{
@@ -93,7 +93,7 @@ namespace adria
 					uint32   output_idx;
 				} constants = 
 				{
-					.ssao_params_packed = PackTwoFloatsToUint32(ssao_radius.Get(),ssao_power.Get()), .resolution_factor = (uint32)resolution,
+					.ssao_params_packed = PackTwoFloatsToUint32(SSAORadius.Get(),SSAOPower.Get()), .resolution_factor = (uint32)resolution,
 					.noise_scale_x = (width >> resolution) * 1.0f / NOISE_DIM, .noise_scale_y = (height >> resolution) * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
@@ -115,10 +115,10 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_None))
 				{
-					ImGui::SliderFloat("Power", ssao_power.GetPtr(), 1.0f, 16.0f);
-					ImGui::SliderFloat("Radius", ssao_radius.GetPtr(), 0.5f, 4.0f);
+					ImGui::SliderFloat("Power", SSAOPower.GetPtr(), 1.0f, 16.0f);
+					ImGui::SliderFloat("Radius", SSAORadius.GetPtr(), 0.5f, 4.0f);
 
-					if (ImGui::Combo("SSAO Resolution", ssao_resolution.GetPtr(), "Full\0Half\0Quarter\0", 3))
+					if (ImGui::Combo("SSAO Resolution", SSAOResolution.GetPtr(), "Full\0Half\0Quarter\0", 3))
 					{
 						OnResize(width, height);
 					}
@@ -132,7 +132,7 @@ namespace adria
 	void SSAOPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
-		blur_pass.OnResize(w >> ssao_resolution.Get(), h >> ssao_resolution.Get());
+		blur_pass.OnResize(w >> SSAOResolution.Get(), h >> SSAOResolution.Get());
 	}
 
 	void SSAOPass::OnSceneInitialized()

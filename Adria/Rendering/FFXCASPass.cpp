@@ -10,7 +10,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cas("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
+	static TAutoConsoleVariable<bool> CAS("r.CAS", false, "Enable or Disable Contrast-Adaptive Sharpening, TAA must be enabled");
 
 	FFXCASPass::FFXCASPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
@@ -75,7 +75,7 @@ namespace adria
 
 	bool FFXCASPass::IsEnabled(PostProcessor const*) const
 	{
-		return cas.Get();
+		return CAS.Get();
 	}
 
 	void FFXCASPass::GUI()
@@ -84,8 +84,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", cas.GetPtr());
-					if (cas.Get())
+					ImGui::Checkbox("Enable", CAS.GetPtr());
+					if (CAS.Get())
 					{
 						ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
 					}

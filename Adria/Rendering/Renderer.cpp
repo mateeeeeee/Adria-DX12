@@ -30,8 +30,8 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<int>  cvar_lighting_path("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
-	static TAutoConsoleVariable<int>  cvar_volumetric_path("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
+	static TAutoConsoleVariable<int>  LightingPath("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
+	static TAutoConsoleVariable<int>  VolumetricPath("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
@@ -64,8 +64,8 @@ namespace adria
 		screenshot_fence.Create(gfx, "Screenshot Fence");
 
 		{
-			cvar_lighting_path->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPath>(cvar->GetInt()); }));
-			cvar_volumetric_path->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { volumetric_path = static_cast<VolumetricPath>(cvar->GetInt()); }));
+			LightingPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPathType>(cvar->GetInt()); }));
+			VolumetricPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { volumetric_path = static_cast<VolumetricPathType>(cvar->GetInt()); }));
 		}
 	}
 
@@ -78,10 +78,10 @@ namespace adria
 		gfxcommon::Destroy();
 	}
 
-	void Renderer::SetLightingPath(LightingPath path)
+	void Renderer::SetLightingPath(LightingPathType path)
 	{
 		lighting_path = path;
-		cvar_lighting_path->Set((int)path);
+		LightingPath->Set((int)path);
 	}
 
 	void Renderer::SetViewportData(ViewportData const& vp)
@@ -132,7 +132,7 @@ namespace adria
 		render_graph.ImportTexture(RG_NAME(FinalTexture), final_texture.get());
 
 		gpu_debug_printer.AddClearPass(render_graph);
-		if (lighting_path == LightingPath::PathTracing) Render_PathTracing(render_graph);
+		if (lighting_path == LightingPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 		if (take_screenshot) TakeScreenshot(render_graph);
 		gpu_debug_printer.AddPrintPass(render_graph);
@@ -245,7 +245,7 @@ namespace adria
 
 		std::vector<LightGPU> hlsl_lights{};
 		uint32 light_index = 0;
-		Matrix light_transform = lighting_path == LightingPath::PathTracing ? Matrix::Identity : camera->View();
+		Matrix light_transform = lighting_path == LightingPathType::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -468,17 +468,17 @@ namespace adria
 		{
 			switch (lighting_path)
 			{
-			case LightingPath::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
-			case LightingPath::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
-			case LightingPath::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
+			case LightingPathType::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
+			case LightingPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
+			case LightingPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 			}
 
 			if (volumetric_lights > 0)
 			{
 				switch (volumetric_path)
 				{
-				case VolumetricPath::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
-				case VolumetricPath::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+				case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
+				case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
 				}
 			}
 
@@ -504,75 +504,78 @@ namespace adria
 
 	void Renderer::GUI()
 	{
-		GUI_Command([&]()
-			{
-				static int current_volumetric_path = (int)volumetric_path;
-				if (ImGui::TreeNode("Weather"))
-				{
-					if(!ddgi.IsEnabled())
-					{
-						ImGui::ColorEdit3("Ambient Color", ambient_color);
-					}
-					auto lights = reg.view<Light, Transform>();
-					Light* sun_light = nullptr;
-					Transform* sun_transform = nullptr;
-					for (entt::entity light : lights)
-					{
-						Light& light_data = lights.get<Light>(light);
-						if (light_data.type == LightType::Directional && light_data.active)
-						{
-							sun_light = &light_data;
-							sun_transform = &lights.get<Transform>(light);
-							break;
-						}
-					}
-
-					if (sun_light)
-					{
-						static float sun_elevation = 75.0f;
-						static float sun_azimuth = 260.0f;
-						static float sun_temperature = 5900.0f;
-						ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
-
-						ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
-						ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
-						ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
-						ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
-
-						sun_light->color = ConvertTemperatureToColor(sun_temperature);
-						sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
-						sun_light->position = 1e3 * sun_light->direction;
-						sun_light->direction = -sun_light->direction;
-						sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
-					}
-
-					if(ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching 2D\0Fog Volume\0", 3))
-					{
-						cvar_volumetric_path->Set(current_volumetric_path);
-					}
-					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
-					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
-					volumetric_path = static_cast<VolumetricPath>(current_volumetric_path);
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_Renderer);
-
 		if (gpu_driven_renderer.IsSupported()) gpu_driven_renderer.GUI();
 		if (ddgi.IsSupported()) ddgi.GUI();
-
 		if (renderer_output == RendererOutput::Final)
 		{
-			if (lighting_path == LightingPath::TiledDeferred) tiled_deferred_lighting_pass.GUI();
+			if (lighting_path == LightingPathType::TiledDeferred) tiled_deferred_lighting_pass.GUI();
 			switch (volumetric_path)
 			{
-			case VolumetricPath::Raymarching2D: volumetric_lighting_pass.GUI(); break;
-			case VolumetricPath::FogVolume:		volumetric_fog_pass.GUI();		break;
+			case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.GUI(); break;
+			case VolumetricPathType::FogVolume:		volumetric_fog_pass.GUI();		break;
 			}
 			ocean_renderer.GUI();
 			sky_pass.GUI();
 			rain_pass.GUI();
-			postprocessor.GUI();
+			GUI_Command([&]()
+				{
+					if (ImGui::TreeNode("Sun Settings"))
+					{
+						auto lights = reg.view<Light, Transform>();
+						Light* sun_light = nullptr;
+						Transform* sun_transform = nullptr;
+						for (entt::entity light : lights)
+						{
+							Light& light_data = lights.get<Light>(light);
+							if (light_data.type == LightType::Directional && light_data.active)
+							{
+								sun_light = &light_data;
+								sun_transform = &lights.get<Transform>(light);
+								break;
+							}
+						}
+						if (sun_light)
+						{
+							static float sun_elevation = 75.0f;
+							static float sun_azimuth = 260.0f;
+							static float sun_temperature = 5900.0f;
+							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
+
+							ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
+							ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
+							ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+							ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+
+							sun_light->color = ConvertTemperatureToColor(sun_temperature);
+							sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
+							sun_light->position = 1e3 * sun_light->direction;
+							sun_light->direction = -sun_light->direction;
+							sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+						}
+						ImGui::TreePop();
+					}
+				}, GUICommandGroup_Renderer);
+			GUI_Command([&]()
+				{
+					static int current_volumetric_path = (int)volumetric_path;
+					if (ImGui::TreeNode("Misc"))
+					{
+						if (ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching 2D\0Fog Volume\0", 3))
+						{
+							VolumetricPath->Set(current_volumetric_path);
+						}
+						if (!ddgi.IsEnabled())
+						{
+							ImGui::ColorEdit3("Ambient Color", ambient_color);
+						}
+						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
+						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+						volumetric_path = static_cast<VolumetricPathType>(current_volumetric_path);
+						ImGui::TreePop();
+					}
+				}, GUICommandGroup_Renderer);
 		}
+		postprocessor.GUI();
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

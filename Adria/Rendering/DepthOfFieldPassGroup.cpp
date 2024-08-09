@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<int> cvar_depth_of_field("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
+	static TAutoConsoleVariable<int> DepthOfField("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
 
 	enum class DepthOfFieldType : uint8
 	{
@@ -19,7 +19,7 @@ namespace adria
 	DepthOfFieldPassGroup::DepthOfFieldPassGroup(GfxDevice* gfx, uint32 width, uint32 height) : depth_of_field_type(DepthOfFieldType::None)
 	{
 		post_effect_idx = static_cast<uint32>(depth_of_field_type);
-		cvar_depth_of_field->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
+		DepthOfField->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
 		{ 
 			depth_of_field_type = static_cast<DepthOfFieldType>(cvar->GetInt()); 
 			post_effect_idx = static_cast<uint32>(depth_of_field_type);
@@ -46,7 +46,7 @@ namespace adria
 					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0FFX\0", 3))
 					{
 						depth_of_field_type = static_cast<DepthOfFieldType>(current_dof_type);
-						cvar_depth_of_field->Set(current_dof_type);
+						DepthOfField->Set(current_dof_type);
 					}
 					ImGui::TreePop();
 					ImGui::Separator();

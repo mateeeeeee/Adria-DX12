@@ -13,7 +13,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> taa_enabled("r.TAA", false, "Enable or Disable TAA");
+	static TAutoConsoleVariable<bool> TAA("r.TAA", false, "Enable or Disable TAA");
 
 	TAAPass::TAAPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -87,14 +87,14 @@ namespace adria
 
 	bool TAAPass::IsEnabled(PostProcessor const* postprocessor) const
 	{
-		return taa_enabled.Get() && !postprocessor->HasUpscaler();
+		return TAA.Get() && !postprocessor->HasUpscaler();
 	}
 
 	void TAAPass::GUI()
 	{
 		GUI_Command([&]()
 			{
-				ImGui::Checkbox("TAA", taa_enabled.GetPtr());
+				ImGui::Checkbox("TAA", TAA.GetPtr());
 			}, GUICommandGroup_PostProcessor);
 	}
 

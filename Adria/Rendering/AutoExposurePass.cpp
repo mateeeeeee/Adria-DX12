@@ -12,8 +12,8 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool>  auto_exposure("r.AutoExposure", true, "Enable or Disable Auto Exposure");
-	static TAutoConsoleVariable<float> exposure_bias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
+	static TAutoConsoleVariable<bool>  AutoExposure("r.AutoExposure", true, "Enable or Disable Auto Exposure");
+	static TAutoConsoleVariable<float> ExposureBias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
 
 	AutoExposurePass::AutoExposurePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -174,7 +174,7 @@ namespace adria
 					uint32  previous_ev_idx;
 					uint32  exposure_idx;
 					uint32  luminance_idx;
-				} constants{ .adaption_speed = adaption_speed, .exposure_bias = exposure_bias.Get(), .frame_time = 0.166f,
+				} constants{ .adaption_speed = adaption_speed, .exposure_bias = ExposureBias.Get(), .frame_time = 0.166f,
 						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx = descriptor_index + 2 };
 
 				cmd_list->SetRootConstants(1, constants);
@@ -212,13 +212,13 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
 				{
-					ImGui::Checkbox("Enable", auto_exposure.GetPtr());
-					if (auto_exposure.Get())
+					ImGui::Checkbox("Enable", AutoExposure.GetPtr());
+					if (AutoExposure.Get())
 					{
 						ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
 						ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
 						ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01f, 5.0f);
-						ImGui::SliderFloat("Exposure Bias", exposure_bias.GetPtr(), -5.0f, 5.0f);
+						ImGui::SliderFloat("Exposure Bias", ExposureBias.GetPtr(), -5.0f, 5.0f);
 						ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
 						ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);
 						ImGui::Checkbox("Histogram", &show_histogram);
@@ -248,7 +248,7 @@ namespace adria
 
 	bool AutoExposurePass::IsEnabled(PostProcessor const*) const
 	{
-		return auto_exposure.Get();
+		return AutoExposure.Get();
 	}
 
 	void AutoExposurePass::CreatePSOs()

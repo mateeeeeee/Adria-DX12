@@ -10,7 +10,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> xess_enabled("r.XeSS", true, "Enable or Disable XeSS");
+	static TAutoConsoleVariable<bool> XeSS("r.XeSS", true, "Enable or Disable XeSS");
 
 	namespace
 	{
@@ -127,7 +127,7 @@ namespace adria
 
 	bool XeSSPass::IsEnabled(PostProcessor const*) const
 	{
-		return xess_enabled.Get();
+		return XeSS.Get();
 	}
 
 	void XeSSPass::GUI()
@@ -136,8 +136,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", xess_enabled.GetPtr());
-					if (xess_enabled.Get())
+					ImGui::Checkbox("Enable", XeSS.GetPtr());
+					if (XeSS.Get())
 					{
 						int _quality = quality_setting - XESS_QUALITY_SETTING_PERFORMANCE;
 						if (ImGui::Combo("Quality Mode", &_quality, "Performance (2.0x)\0Balanced (1.7x)\0Quality (1.5x)\0Ultra Quality (1.3x)\0\0", 4))
