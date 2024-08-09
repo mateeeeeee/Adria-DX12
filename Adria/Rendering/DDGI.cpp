@@ -14,10 +14,13 @@
 #include "Math/Constants.h"
 #include "Editor/GUICommand.h"
 #include "Utilities/Random.h"
+#include "Core/ConsoleManager.h"
 #include "entt/entity/registry.hpp"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> use_ddgi("r.DDGI", true, "Enable DDGI if supported");
+
 	Vector2u DDGI::ProbeTextureDimensions(Vector3u const& num_probes, uint32 texels_per_probe)
 	{
 		uint32 width = (1 + texels_per_probe + 1) * num_probes.y * num_probes.x;
@@ -28,7 +31,8 @@ namespace adria
 	DDGI::DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
-		if (IsSupported())
+		use_ddgi->Set(is_supported);
+		if (is_supported)
 		{
 			CreatePSOs();
 			CreateStateObject();
@@ -270,32 +274,6 @@ namespace adria
 		rg.ExportTexture(RG_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_NAME(DDGIDistance), ddgi_volume.distance_history.get());
 
-		GUI_Command([&]()
-			{
-				if (ImGui::TreeNode("DDGI"))
-				{
-					ImGui::Checkbox("Visualize DDGI", &visualize);
-					if (visualize)
-					{
-						static const char* visualize_mode[] = { "Irradiance", "Distance" };
-						static int current_visualize_mode = 0;
-						const char* visualize_mode_label = visualize_mode[current_visualize_mode];
-						if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
-						{
-							for (int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
-							{
-								const bool is_selected = (current_visualize_mode == n);
-								if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;
-								if (is_selected) ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-
-						ddgi_visualize_mode = (DDGIVisualizeMode)current_visualize_mode;
-					}
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_Renderer);
 	}
 
 	void DDGI::AddVisualizePass(RenderGraph& rg)
@@ -327,6 +305,46 @@ namespace adria
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Draw(2880, ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z);
 			}, RGPassType::Graphics);
+	}
+
+	void DDGI::GUI()
+	{
+		if (!is_supported) return;
+
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNode("DDGI"))
+				{
+					ImGui::Checkbox("Enable", use_ddgi.GetPtr());
+					if (use_ddgi.Get())
+					{
+						ImGui::Checkbox("Visualize DDGI", &visualize);
+						if (visualize)
+						{
+							static const char* visualize_mode[] = { "Irradiance", "Distance" };
+							static int current_visualize_mode = 0;
+							const char* visualize_mode_label = visualize_mode[current_visualize_mode];
+							if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
+							{
+								for (int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
+								{
+									const bool is_selected = (current_visualize_mode == n);
+									if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;
+									if (is_selected) ImGui::SetItemDefaultFocus();
+								}
+								ImGui::EndCombo();
+							}
+							ddgi_visualize_mode = (DDGIVisualizeMode)current_visualize_mode;
+						}
+					}
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_Renderer);
+	}
+
+	bool DDGI::IsEnabled() const
+	{
+		return use_ddgi.Get();
 	}
 
 	int32 DDGI::GetDDGIVolumeIndex()

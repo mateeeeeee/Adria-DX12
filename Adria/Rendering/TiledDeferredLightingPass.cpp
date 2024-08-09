@@ -106,7 +106,10 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		if (visualize_tiled)  copy_to_texture_pass.AddPass(rendergraph, RG_NAME(HDR_RenderTarget), RG_NAME(TiledDebugTarget), BlendMode::AdditiveBlend);
+	}
 
+	void TiledDeferredLightingPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_None))

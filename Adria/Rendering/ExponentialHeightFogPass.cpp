@@ -15,8 +15,8 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_fog("r.Fog", false, "Enable or Disable Fog");
 
+	static TAutoConsoleVariable<bool> fog_enabled("r.Fog", false, "Enable or Disable Fog");
 	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, uint32 w, uint32 h)
 		: gfx(gfx), width(w), height(h), params()
 	{
@@ -102,7 +102,7 @@ namespace adria
 
 	bool ExponentialHeightFogPass::IsEnabled(PostProcessor const*) const
 	{
-		return cvar_fog.Get();
+		return fog_enabled.Get();
 	}
 
 	void ExponentialHeightFogPass::GUI()
@@ -111,8 +111,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Exponential Height Fog", 0))
 				{
-					ImGui::Checkbox("Enable Fog", cvar_fog.GetPtr());
-					if (cvar_fog.Get())
+					ImGui::Checkbox("Enable Fog", fog_enabled.GetPtr());
+					if (fog_enabled.Get())
 					{
 						ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 10.0f);
 						ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0000001f, 100.0f);

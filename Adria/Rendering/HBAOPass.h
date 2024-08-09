@@ -27,6 +27,7 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
+		void GUI();
 
 	private:
 		GfxDevice* gfx;

@@ -12,7 +12,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_dlss3("r.DLSS3", false, "Enable or Disable DLSS3");
+	static TAutoConsoleVariable<bool> dlss3_enabled("r.DLSS3", true, "Enable or Disable DLSS3");
 
 	static constexpr char const* project_guid = "a0f57b54-1daf-4934-90ae-c4035c19df04";
 	namespace
@@ -176,7 +176,7 @@ namespace adria
 
 	bool DLSS3Pass::IsEnabled(PostProcessor const*) const
 	{
-		return cvar_dlss3.Get();
+		return dlss3_enabled.Get();
 	}
 
 	void DLSS3Pass::GUI()
@@ -185,8 +185,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", cvar_dlss3.GetPtr());
-					if (cvar_dlss3.Get())
+					ImGui::Checkbox("Enable", dlss3_enabled.GetPtr());
+					if (dlss3_enabled.Get())
 					{
 						if (ImGui::Combo("Performance Quality", (int*)&perf_quality, "Max Performance\0Balanced\0Max Quality\0Ultra Performance\0UltraQuality\0", 5))
 						{

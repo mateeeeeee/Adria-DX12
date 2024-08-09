@@ -12,7 +12,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_ssr("r.SSR", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> ssr_enabled("r.SSR", true, "0 - Disabled, 1 - Enabled");
 
 	SSRPass::SSRPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -21,7 +21,7 @@ namespace adria
 
 	bool SSRPass::IsEnabled(PostProcessor const*) const
 	{
-		return cvar_ssr.Get();
+		return ssr_enabled.Get();
 	}
 
 	void SSRPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
@@ -103,8 +103,8 @@ namespace adria
 		GUI_Command([&]() {
 			if (ImGui::TreeNodeEx("Screen-Space Reflections", 0))
 			{
-				ImGui::Checkbox("Enable SSR", cvar_ssr.GetPtr());
-				if (cvar_ssr.Get())
+				ImGui::Checkbox("Enable SSR", ssr_enabled.GetPtr());
+				if (ssr_enabled.Get())
 				{
 					ImGui::SliderFloat("Ray Step", &params.ssr_ray_step, 1.0f, 3.0f);
 					ImGui::SliderFloat("Ray Hit Threshold", &params.ssr_ray_hit_threshold, 0.25f, 5.0f);

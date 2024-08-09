@@ -70,6 +70,11 @@ namespace adria
 
 		copy_to_texture_pass.AddPass(rendergraph, RG_NAME(HDR_RenderTarget), RG_NAME(VolumetricLightOutput), BlendMode::AdditiveBlend);
 
+		shadow_textures.clear();
+	}
+
+	void VolumetricLightingPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_None))
@@ -85,7 +90,6 @@ namespace adria
 					ImGui::Separator();
 				}
 			}, GUICommandGroup_Renderer);
-		shadow_textures.clear();
 	}
 
 	void VolumetricLightingPass::CreatePSOs()

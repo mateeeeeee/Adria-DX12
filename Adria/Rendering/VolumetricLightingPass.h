@@ -25,6 +25,7 @@ namespace adria
 			width = w, height = h;
 			copy_to_texture_pass.OnResize(w, h);
 		}
+		void GUI();
 
 		void OnShadowTextureRendered(RGResourceName name)
 		{

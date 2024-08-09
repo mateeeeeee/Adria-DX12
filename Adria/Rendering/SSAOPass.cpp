@@ -107,13 +107,16 @@ namespace adria
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_NAME(SSAO_Output), RG_NAME(AmbientOcclusion), " SSAO");
+	}
 
-		GUI_Command([&]() 
+	void SSAOPass::GUI()
+	{
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::SliderFloat("Power", ssao_power.GetPtr(), 1.0f, 16.0f);
-					ImGui::SliderFloat("Radius",ssao_radius.GetPtr(), 0.5f, 4.0f);
+					ImGui::SliderFloat("Radius", ssao_radius.GetPtr(), 0.5f, 4.0f);
 
 					if (ImGui::Combo("SSAO Resolution", ssao_resolution.GetPtr(), "Full\0Half\0Quarter\0", 3))
 					{

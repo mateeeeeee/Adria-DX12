@@ -345,6 +345,10 @@ namespace adria
 
 		cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
 		use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
+	}
+
+	void FFXCACAOPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))

@@ -52,16 +52,8 @@ namespace adria
 		CreateFogVolumeBuffer();
 	}
 
-	void VolumetricFogPass::AddPasses(RenderGraph& rg)
+	void VolumetricFogPass::GUI()
 	{
-		GfxDescriptor fog_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
-		gfx->CopyDescriptors(1, fog_volume_buffer_srv_gpu, fog_volume_buffer_srv);
-		fog_volume_buffer_idx = fog_volume_buffer_srv_gpu.GetIndex();
-
-		AddLightInjectionPass(rg);
-		AddScatteringIntegrationPass(rg);
-		AddCombineFogPass(rg);
-
 		GUI_Command([&]()
 			{
 				if (fog_volumes.empty()) return;
@@ -80,10 +72,21 @@ namespace adria
 					{
 						CreateFogVolumeBuffer();
 					}
-					
+
 					ImGui::TreePop();
 				}
 			}, GUICommandGroup_Renderer);
+	}
+
+	void VolumetricFogPass::AddPasses(RenderGraph& rg)
+	{
+		GfxDescriptor fog_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
+		gfx->CopyDescriptors(1, fog_volume_buffer_srv_gpu, fog_volume_buffer_srv);
+		fog_volume_buffer_idx = fog_volume_buffer_srv_gpu.GetIndex();
+
+		AddLightInjectionPass(rg);
+		AddScatteringIntegrationPass(rg);
+		AddCombineFogPass(rg);
 	}
 
 	void VolumetricFogPass::AddLightInjectionPass(RenderGraph& rg)

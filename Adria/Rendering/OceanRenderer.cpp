@@ -364,7 +364,10 @@ namespace adria
 				}
 			},
 			RGPassType::Graphics, RGPassFlags::None);
+	}
 
+	void OceanRenderer::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Ocean Settings", 0))

@@ -21,7 +21,7 @@ namespace adria
 		OceanRenderer(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPasses(RenderGraph& rendergraph);
-
+		void GUI();
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 

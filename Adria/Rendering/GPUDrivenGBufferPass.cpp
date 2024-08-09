@@ -7,6 +7,7 @@
 #include "entt/entity/registry.hpp"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 
 #define A_CPU 1
 #include "Resources/Shaders/SPD/ffx_a.h"
@@ -16,6 +17,8 @@ using namespace DirectX;
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> use_gpu_driven_rendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
+
 	static constexpr uint32 MAX_NUM_MESHLETS = 1 << 20u;
 	static constexpr uint32 MAX_NUM_INSTANCES = 1 << 14u;
 
@@ -28,6 +31,7 @@ namespace adria
 	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) 
 		: reg(reg), gfx(gfx), width(width), height(height)
 	{
+		use_gpu_driven_rendering->Set(IsSupported());
 		if (!IsSupported()) return;
 		CreateDebugBuffer();
 		InitializeHZB();
@@ -39,7 +43,12 @@ namespace adria
         return gfx->GetCapabilities().SupportsMeshShaders();
     }
 
-    void GPUDrivenGBufferPass::Render(RenderGraph& rg)
+	bool GPUDrivenGBufferPass::IsEnabled() const
+	{
+		return use_gpu_driven_rendering.Get();
+	}
+
+	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
 	{
 		if (!IsSupported()) return;
 
@@ -47,83 +56,91 @@ namespace adria
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);
 		AddDebugPass(rg);
+	}
 
+	void GPUDrivenGBufferPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Occlusion Cull", &occlusion_culling);
-					ImGui::Checkbox("Display Debug Stats", &display_debug_stats);
-					if (display_debug_stats)
+					ImGui::Checkbox("Enable", use_gpu_driven_rendering.GetPtr());
+					if (use_gpu_driven_rendering.Get())
 					{
-						ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
-						ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-
-						ImGui::SeparatorText("GPU Driven Debug Stats");
+						ImGui::Checkbox("Occlusion Cull", &occlusion_culling);
+						ImGui::Checkbox("Display Debug Stats", &display_debug_stats);
+						if (display_debug_stats)
 						{
-							uint32 backbuffer_index = gfx->GetBackbufferIndex();
-							DebugStats current_debug_stats = debug_stats[backbuffer_index];
+							ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
+							ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 
-							ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
-							ImGui::TableSetupColumn("Description");
-							ImGui::TableSetupColumn("Count");
+							ImGui::SeparatorText("GPU Driven Debug Stats");
 							{
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Total Instances");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.num_instances);
+								uint32 backbuffer_index = gfx->GetBackbufferIndex();
+								DebugStats current_debug_stats = debug_stats[backbuffer_index];
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Occluded Instances");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.occluded_instances);
+								ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
+								ImGui::TableSetupColumn("Description");
+								ImGui::TableSetupColumn("Count");
+								{
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Total Instances");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.num_instances);
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Visible Instances");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.visible_instances);
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Occluded Instances");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.occluded_instances);
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Phase 1 Candidate Meshlets");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.phase1_candidate_meshlets);
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Visible Instances");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.visible_instances);
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Phase 1 Visible Meshlets");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.phase1_visible_meshlets);
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Phase 1 Candidate Meshlets");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.phase1_candidate_meshlets);
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Phase 2 Candidate Meshlets");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.phase2_candidate_meshlets);
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Phase 1 Visible Meshlets");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.phase1_visible_meshlets);
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Phase 2 Visible Meshlets");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.phase2_visible_meshlets);
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Phase 2 Candidate Meshlets");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.phase2_candidate_meshlets);
 
-								ImGui::TableNextRow();
-								ImGui::TableSetColumnIndex(0);
-								ImGui::Text("Processed");
-								ImGui::TableSetColumnIndex(1);
-								ImGui::Text("%u", current_debug_stats.processed_meshlets);
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Phase 2 Visible Meshlets");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.phase2_visible_meshlets);
+
+									ImGui::TableNextRow();
+									ImGui::TableSetColumnIndex(0);
+									ImGui::Text("Processed");
+									ImGui::TableSetColumnIndex(1);
+									ImGui::Text("%u", current_debug_stats.processed_meshlets);
+								}
+								ImGui::EndTable();
 							}
-							ImGui::EndTable();
 						}
 					}
+
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
 
-				
+
 			}, GUICommandGroup_Renderer
 		);
 	}

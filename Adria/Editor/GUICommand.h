@@ -15,9 +15,9 @@ namespace adria
 	static char const* GUICommandGroupNames[] =
 	{
 		"",
-		"Renderer Settings",
-		"Post-processing Settings"
-	};
+		"Renderer",
+		"Postprocessing"
+	} ;
 
 	struct GUICommand
 	{

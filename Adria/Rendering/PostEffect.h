@@ -37,15 +37,15 @@ namespace adria
 		virtual void AddPass(RenderGraph& rg, PostProcessor* postprocessor) override
 		{
 			ADRIA_ASSERT(post_effect_idx < post_effects.size());
-			post_effects[post_effect_idx]->AddPass(rg, postprocessor);
+			if(post_effects[post_effect_idx]->IsEnabled(postprocessor)) post_effects[post_effect_idx]->AddPass(rg, postprocessor);
 		}
 		virtual void OnResize(uint32 w, uint32 h) override
 		{
 			for (auto& post_effect : post_effects) post_effect->OnResize(w, h);
 		}
-		virtual bool IsEnabled(PostProcessor const*) const override
+		virtual bool IsEnabled(PostProcessor const* postprocessor) const override
 		{
-			return true;
+			return post_effects[post_effect_idx]->IsEnabled(postprocessor);
 		}
 		virtual void OnSceneInitialized() override
 		{
@@ -62,7 +62,6 @@ namespace adria
 		uint32 post_effect_idx;
 
 	protected:
-
 		virtual void GroupGUI() {}
 	};
 

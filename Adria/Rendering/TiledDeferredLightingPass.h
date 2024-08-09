@@ -15,6 +15,7 @@ namespace adria
 		TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
+		void GUI();
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;

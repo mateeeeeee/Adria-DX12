@@ -59,8 +59,10 @@ namespace adria
 
 		void AddPasses(RenderGraph& rg);
 		void AddVisualizePass(RenderGraph& rg);
+		void GUI();
 
-		bool Visualize() const { return visualize; }
+		bool Visualize() const   { return visualize; }
+		bool IsEnabled() const;
 		bool IsSupported() const { return is_supported; }
 		int32 GetDDGIVolumeIndex();
 

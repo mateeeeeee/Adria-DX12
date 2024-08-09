@@ -25,6 +25,8 @@ namespace adria
 		void Update(float dt);
 		void AddBlockerPass(RenderGraph& rg);
 		void AddPass(RenderGraph& rg);
+		void GUI();
+		bool IsEnabled() const;
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;

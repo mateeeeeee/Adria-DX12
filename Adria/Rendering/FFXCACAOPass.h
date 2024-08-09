@@ -16,6 +16,7 @@ namespace adria
 		~FFXCACAOPass();
 
 		void AddPass(RenderGraph& rendergraph);
+		void GUI();
 		void OnResize(uint32 w, uint32 h);
 
 	private:

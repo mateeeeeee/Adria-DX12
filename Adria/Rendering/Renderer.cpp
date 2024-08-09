@@ -30,9 +30,6 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> use_ddgi("r.DDGI", true, "Enable DDGI if supported");
-	static TAutoConsoleVariable<bool> use_gpu_driven_rendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
-	static TAutoConsoleVariable<bool> rain("r.Rain", false, "Enable Rain");
 	static TAutoConsoleVariable<int>  cvar_lighting_path("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
 	static TAutoConsoleVariable<int>  cvar_volumetric_path("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
 
@@ -66,13 +63,9 @@ namespace adria
 		rain_pass.GetRainEvent().AddMember(&GBufferPass::OnRainEvent, gbuffer_pass);
 		screenshot_fence.Create(gfx, "Screenshot Fence");
 
-		//cvars
 		{
-			use_gpu_driven_rendering->Set(gpu_driven_renderer.IsSupported());
-			use_ddgi->Set(ddgi.IsSupported());
 			cvar_lighting_path->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPath>(cvar->GetInt()); }));
 			cvar_volumetric_path->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { volumetric_path = static_cast<VolumetricPath>(cvar->GetInt()); }));
-			rain->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { rain_pass.OnRainEnabled(cvar->GetBool()); }));
 		}
 	}
 
@@ -106,7 +99,6 @@ namespace adria
 	void Renderer::Update(float dt)
 	{
 		shadow_renderer.SetupShadows(camera);
-		sky_pass.SetSkyType(sky_type);
 		UpdateSceneBuffers();
 		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
@@ -152,7 +144,6 @@ namespace adria
 		render_graph.Execute();
 
 		GUI();
-		postprocessor.GUI();
 	}
 
 	void Renderer::OnResize(uint32 w, uint32 h)
@@ -408,7 +399,7 @@ namespace adria
 		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
-		frame_cbuf_data.ddgi_volumes_idx = use_ddgi.Get() ? ddgi.GetDDGIVolumeIndex() : -1;
+		frame_cbuf_data.ddgi_volumes_idx = ddgi.IsEnabled() ? ddgi.GetDDGIVolumeIndex() : -1;
 		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
 		frame_cbuf_data.rain_splash_diffuse_idx = rain_pass.GetRainSplashDiffuseIndex();
 		frame_cbuf_data.rain_splash_bump_idx = rain_pass.GetRainSplashBumpIndex();
@@ -462,11 +453,11 @@ namespace adria
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
 		}
-		if (rain.Get()) rain_pass.AddBlockerPass(render_graph);
-		if (use_gpu_driven_rendering.Get()) gpu_driven_renderer.Render(render_graph);
+		if (rain_pass.IsEnabled()) rain_pass.AddBlockerPass(render_graph);
+		if (gpu_driven_renderer.IsEnabled()) gpu_driven_renderer.AddPasses(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
 
-		if(use_ddgi.Get()) ddgi.AddPasses(render_graph);
+		if(ddgi.IsEnabled()) ddgi.AddPasses(render_graph);
 
 		decals_pass.AddPass(render_graph);
 		postprocessor.AddAmbientOcclusionPass(render_graph);
@@ -491,13 +482,13 @@ namespace adria
 				}
 			}
 
-			if (use_ddgi.Get() && ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
+			if (ddgi.IsEnabled() && ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 			ocean_renderer.AddPasses(render_graph);
 			sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 			sky_pass.AddDrawSkyPass(render_graph);
 			picking_pass.AddPass(render_graph);
 			postprocessor.AddPasses(render_graph);
-			if (rain.Get()) rain_pass.AddPass(render_graph);
+			if (rain_pass.IsEnabled()) rain_pass.AddPass(render_graph);
 			g_DebugRenderer.Render(render_graph);
 		}
 		else
@@ -516,17 +507,9 @@ namespace adria
 		GUI_Command([&]()
 			{
 				static int current_volumetric_path = (int)volumetric_path;
-				if (ImGui::TreeNode("Renderer"))
+				if (ImGui::TreeNode("Weather"))
 				{
-					if (gpu_driven_renderer.IsSupported())
-					{
-						ImGui::Checkbox("Use GPU-Driven Rendering", use_gpu_driven_rendering.GetPtr());
-					}
-					if (ddgi.IsSupported())
-					{
-						ImGui::Checkbox("Use DDGI", use_ddgi.GetPtr());
-					}
-					if(!use_ddgi.Get())
+					if(!ddgi.IsEnabled())
 					{
 						ImGui::ColorEdit3("Ambient Color", ambient_color);
 					}
@@ -562,27 +545,34 @@ namespace adria
 						sun_light->direction = -sun_light->direction;
 						sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
 					}
-					ImGui::TreePop();
 
 					if(ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching 2D\0Fog Volume\0", 3))
 					{
 						cvar_volumetric_path->Set(current_volumetric_path);
 					}
-					static int current_sky_type = 2;
-					if (ImGui::Combo("Sky", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))
-					{
-						sky_type = static_cast<SkyType>(current_sky_type);
-					}
-					if (ImGui::Checkbox("Rain", rain.GetPtr()))
-					{
-						rain_pass.OnRainEnabled(rain.Get());
-					}
-
 					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					volumetric_path = static_cast<VolumetricPath>(current_volumetric_path);
+					ImGui::TreePop();
 				}
-			}, GUICommandGroup_None);
+			}, GUICommandGroup_Renderer);
+
+		if (gpu_driven_renderer.IsSupported()) gpu_driven_renderer.GUI();
+		if (ddgi.IsSupported()) ddgi.GUI();
+
+		if (renderer_output == RendererOutput::Final)
+		{
+			if (lighting_path == LightingPath::TiledDeferred) tiled_deferred_lighting_pass.GUI();
+			switch (volumetric_path)
+			{
+			case VolumetricPath::Raymarching2D: volumetric_lighting_pass.GUI(); break;
+			case VolumetricPath::FogVolume:		volumetric_fog_pass.GUI();		break;
+			}
+			ocean_renderer.GUI();
+			sky_pass.GUI();
+			rain_pass.GUI();
+			postprocessor.GUI();
+		}
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

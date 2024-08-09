@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_fsr2("r.FSR2", false, "Enable or Disable FSR2");
+	static TAutoConsoleVariable<bool> fsr2_enabled("r.FSR2", true, "Enable or Disable FSR2");
 
 	namespace
 	{
@@ -122,7 +122,7 @@ namespace adria
 
 	bool FSR2Pass::IsEnabled(PostProcessor const*) const
 	{
-		return cvar_fsr2.Get();
+		return fsr2_enabled.Get();
 	}
 
 	void FSR2Pass::GUI()
@@ -131,8 +131,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					ImGui::Checkbox("Enable", cvar_fsr2.GetPtr());
-					if (cvar_fsr2.Get())
+					ImGui::Checkbox("Enable", fsr2_enabled.GetPtr());
+					if (fsr2_enabled.Get())
 					{
 						if (ImGui::Combo("Quality Mode", (int32*)&fsr2_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 						{

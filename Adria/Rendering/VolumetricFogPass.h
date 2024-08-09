@@ -40,8 +40,8 @@ namespace adria
 			width = w, height = h;
 			CreateLightInjectionHistoryTexture();
 		}
-
 		void OnSceneInitialized();
+		void GUI();
 
 	private:
 		GfxDevice* gfx;

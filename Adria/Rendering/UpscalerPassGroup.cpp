@@ -85,6 +85,5 @@ namespace adria
 			}, GUICommandGroup_PostProcessor
 		);
 	}
-
 }
 

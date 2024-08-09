@@ -165,7 +165,10 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 32), DivideAndRoundUp(height, 32), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
+	}
 
+	void RayTracedAmbientOcclusionPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_None))

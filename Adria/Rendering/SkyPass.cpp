@@ -131,12 +131,25 @@ namespace adria
 				cmd_list->SetIndexBuffer(&ibv);
 				cmd_list->DrawIndexed(cube_ib->GetCount());
 			}, RGPassType::Graphics, RGPassFlags::None);
+	}
 
+	void SkyPass::OnSceneInitialized()
+	{
+		CreateCubeBuffers();
+	}
+
+	void SkyPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_None))
 				{
-					
+					static int current_sky_type = 2;
+					if (ImGui::Combo("Sky Type", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))
+					{
+						sky_type = static_cast<SkyType>(current_sky_type);
+					}
+
 					if (sky_type == SkyType::HosekWilkie)
 					{
 						sky_type = SkyType::HosekWilkie;
@@ -148,11 +161,6 @@ namespace adria
 				}
 			}, GUICommandGroup_Renderer
 		);
-	}
-
-	void SkyPass::OnSceneInitialized()
-	{
-		CreateCubeBuffers();
 	}
 
 	void SkyPass::OnResize(uint32 w, uint32 h)

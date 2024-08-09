@@ -30,8 +30,9 @@ namespace adria
 		void AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir);
 		void AddDrawSkyPass(RenderGraph& rg);
 
-		void OnSceneInitialized();
 		void OnResize(uint32 w, uint32 h);
+		void OnSceneInitialized();
+		void GUI();
 
 		int32 GetSkyIndex() const;
 		void SetSkyType(SkyType type)
@@ -53,7 +54,7 @@ namespace adria
 		std::unique_ptr<GfxComputePipelineState> hosek_wilkie_pso;
 		std::unique_ptr<GfxGraphicsPipelineState> sky_pso;
 		
-		SkyType sky_type;
+		SkyType sky_type = SkyType::HosekWilkie;
 		float turbidity = 2.0f;
 		float ground_albedo = 0.1f;
 

@@ -7,10 +7,12 @@
 #include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
 #include "Core/Paths.h"
+#include "Core/ConsoleManager.h"
 #include "Utilities/Random.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> rain("r.Rain", false, "Enable Rain");
 	
 	struct RainData
 	{
@@ -22,6 +24,7 @@ namespace adria
 	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
 	{
 		CreatePSOs();
+		rain->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { OnRainEnabled(cvar->GetBool()); }));
 	}
 
 	void RainPass::Update(float dt)
@@ -126,24 +129,36 @@ namespace adria
 				cmd_list->Draw(uint32(rain_density * MAX_RAIN_DATA_BUFFER_SIZE) * 6);
 			},
 			RGPassType::Graphics, RGPassFlags::None);
+	}
 
+	void RainPass::GUI()
+	{
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Rain Settings", 0))
 				{
-					ImGui::Checkbox("Pause simulation", &pause_simulation);
-					if (ImGui::Checkbox("Cheap", &cheap))
+					if (ImGui::Checkbox("Enable", rain.GetPtr())) OnRainEnabled(rain.Get());
+					if (rain.Get())
 					{
-						OnRainEnabled(true);
+						ImGui::Checkbox("Pause simulation", &pause_simulation);
+						if (ImGui::Checkbox("Cheap", &cheap))
+						{
+							OnRainEnabled(true);
+						}
+						ImGui::SliderFloat("Simulation speed", &simulation_speed, 0.1f, 10.0f);
+						ImGui::SliderFloat("Rain density", &rain_density, 0.0f, 1.0f);
+						ImGui::SliderFloat("Range radius", &range_radius, 10.0f, 50.0f);
+						ImGui::SliderFloat("Streak scale", &streak_scale, 0.01f, 1.0f);
 					}
-					ImGui::SliderFloat("Simulation speed", &simulation_speed, 0.1f, 10.0f);
-					ImGui::SliderFloat("Rain density", &rain_density, 0.0f, 1.0f);
-					ImGui::SliderFloat("Range radius", &range_radius, 10.0f, 50.0f);
-					ImGui::SliderFloat("Streak scale", &streak_scale, 0.01f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
 			}, GUICommandGroup_Renderer);
+	}
+
+	bool RainPass::IsEnabled() const
+	{
+		return rain.Get();
 	}
 
 	void RainPass::OnSceneInitialized()
