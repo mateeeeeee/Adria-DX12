@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_ffx_dof("r.FFXDepthOfField", false, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> cvar_ffx_dof("r.FFXDepthOfField", true, "0 - Disabled, 1 - Enabled");
 
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{

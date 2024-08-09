@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_rtr("r.RTR", false, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> cvar_rtr("r.RTR", true, "0 - Disabled, 1 - Enabled");
 	
 	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)

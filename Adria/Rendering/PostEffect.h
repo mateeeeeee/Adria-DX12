@@ -17,7 +17,7 @@ namespace adria
 		virtual void OnSceneInitialized() {}
 		virtual void GUI() {}
 		virtual bool IsSupported() const { return true; }
-		virtual bool IsGroup() const { return false; }
+		virtual bool IsGUIVisible(PostProcessor const* postprocessor) const { return IsEnabled(postprocessor); }
 	};
 
 	class EmptyPostEffect : public PostEffect
@@ -56,8 +56,6 @@ namespace adria
 			GroupGUI();
 			post_effects[post_effect_idx]->GUI();
 		}
-
-		virtual bool IsGroup() const override final { return true; }
 
 	protected:
 		std::vector<std::unique_ptr<PostEffectT>> post_effects;

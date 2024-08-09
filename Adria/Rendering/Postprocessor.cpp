@@ -119,7 +119,8 @@ namespace adria
 		else if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 		{
 			rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
-			final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
+			taa_pass.AddPass(rg, this);
+			//final_resource = taa_pass.AddPass(rg, final_resource, RG_NAME(HistoryBuffer));
 			rg.ExportTexture(final_resource, history_buffer.get());
 		}
 		

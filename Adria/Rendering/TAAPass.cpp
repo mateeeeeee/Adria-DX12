@@ -3,9 +3,13 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "Postprocessor.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleManager.h"
+#include "Core/ConsoleManager.h"
+
 
 namespace adria
 {
@@ -76,9 +80,29 @@ namespace adria
 		return RG_NAME(TAAOutput);
 	}
 
+	void TAAPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
+	{
+		postprocessor->SetFinalResource(AddPass(rg, postprocessor->GetFinalResource(), RG_NAME(HistoryBuffer)));
+	}
+
 	void TAAPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	bool TAAPass::IsEnabled(PostProcessor const*) const
+	{
+		return true;
+	}
+
+	void TAAPass::GUI()
+	{
+
+	}
+
+	bool TAAPass::IsGUIVisible(PostProcessor const* postprocessor) const
+	{
+		return true;
 	}
 
 	void TAAPass::CreatePSO()

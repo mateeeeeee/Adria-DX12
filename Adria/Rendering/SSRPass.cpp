@@ -12,7 +12,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_ssr("r.SSR", false, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> cvar_ssr("r.SSR", true, "0 - Disabled, 1 - Enabled");
 
 	SSRPass::SSRPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{

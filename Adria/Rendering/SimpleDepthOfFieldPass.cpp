@@ -14,7 +14,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> cvar_simple_dof("r.SimpleDepthOfField", false, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<bool> cvar_simple_dof("r.SimpleDepthOfField", true, "0 - Disabled, 1 - Enabled");
 
 	SimpleDepthOfFieldPass::SimpleDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
 	{
