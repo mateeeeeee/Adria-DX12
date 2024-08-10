@@ -368,7 +368,7 @@ namespace adria
 
 	void OceanRenderer::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Ocean Settings", 0))
 				{

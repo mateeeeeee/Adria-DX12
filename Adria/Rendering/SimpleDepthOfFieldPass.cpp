@@ -108,7 +108,7 @@ namespace adria
 
 	void SimpleDepthOfFieldPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Simple Depth Of Field", 0))
 				{
@@ -121,7 +121,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_DepthOfField);
 
 	}
 

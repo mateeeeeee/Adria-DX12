@@ -110,7 +110,7 @@ namespace adria
 
 	void TiledDeferredLightingPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_None))
 				{

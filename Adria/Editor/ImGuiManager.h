@@ -19,11 +19,11 @@ namespace adria
 
 	struct WindowEventData;
 
-	class GUI
+	class ImGuiManager
 	{
 	public:
-		explicit GUI(GfxDevice* gfx);
-		~GUI();
+		explicit ImGuiManager(GfxDevice* gfx);
+		~ImGuiManager();
 
 		void Begin() const;
 		void End(GfxCommandList* cmd_list) const;

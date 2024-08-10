@@ -517,7 +517,7 @@ namespace adria
 			ocean_renderer.GUI();
 			sky_pass.GUI();
 			rain_pass.GUI();
-			GUI_Command([&]()
+			QueueGUI([&]()
 				{
 					if (ImGui::TreeNode("Sun Settings"))
 					{
@@ -555,7 +555,7 @@ namespace adria
 						ImGui::TreePop();
 					}
 				}, GUICommandGroup_Renderer);
-			GUI_Command([&]()
+			QueueGUI([&]()
 				{
 					static int current_volumetric_path = (int)volumetric_path;
 					if (ImGui::TreeNode("Misc"))

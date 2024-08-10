@@ -111,7 +111,7 @@ namespace adria
 
 	void SSAOPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_None))
 				{
@@ -125,8 +125,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor
-		);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
 	void SSAOPass::OnResize(uint32 w, uint32 h)

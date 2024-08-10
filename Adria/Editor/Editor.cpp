@@ -1,7 +1,7 @@
 #include <filesystem>
 #include "nfd.h"
 #include "Editor.h"
-#include "GUI.h"
+#include "ImGuiManager.h"
 #include "EditorLogger.h"
 #include "EditorConsole.h"
 #include "Core/Engine.h"
@@ -60,7 +60,7 @@ namespace adria
 		g_Log.Register(logger);
 		engine = std::make_unique<Engine>(init.engine_init);
 		gfx = engine->gfx.get();
-		gui = std::make_unique<GUI>(gfx);
+		gui = std::make_unique<ImGuiManager>(gfx);
 		engine->RegisterEditorEventCallbacks(editor_events);
 
 		console = std::make_unique<EditorConsole>();
@@ -927,12 +927,33 @@ namespace adria
 		{
 			for (uint32 i = 0; i < GUICommandGroup_Count; ++i)
 			{
-				auto& cmds = grouped_commands[i];
 				if (i != GUICommandGroup_None)
 				{
 					ImGui::SeparatorText(GUICommandGroupNames[i]);
 				}
-				for (auto* cmd : cmds) cmd->callback();
+				std::array<std::vector<GUICommand*>, GUICommandSubGroup_Count> subgrouped_commands;
+				for (auto&& cmd : grouped_commands[i])
+				{
+					subgrouped_commands[cmd->subgroup].push_back(cmd);
+				}
+				for (uint32 i = 0; i < GUICommandSubGroup_Count; ++i)
+				{
+					if (subgrouped_commands[i].empty()) continue;
+
+					if (i == GUICommandSubGroup_None)
+					{
+						for (auto* cmd : subgrouped_commands[i]) cmd->callback();
+					}
+					else
+					{
+						if (ImGui::TreeNode(GUICommandSubGroupNames[i]))
+						{
+							for (auto* cmd : subgrouped_commands[i]) cmd->callback();
+							ImGui::TreePop();
+						}
+					}
+				}
+
 			}
 		}
 		ImGui::End();

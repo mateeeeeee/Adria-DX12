@@ -92,10 +92,10 @@ namespace adria
 
 	void TAAPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				ImGui::Checkbox("TAA", TAA.GetPtr());
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Antialiasing);
 	}
 
 	bool TAAPass::IsGUIVisible(PostProcessor const* postprocessor) const

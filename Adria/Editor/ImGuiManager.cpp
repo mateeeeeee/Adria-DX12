@@ -1,4 +1,4 @@
-#include "GUI.h"
+#include "ImGuiManager.h"
 #include "IconsFontAwesome6.h"
 #include "Core/Window.h"
 #include "Core/Paths.h"
@@ -11,7 +11,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARA
 
 namespace adria
 {
-	GUI::GUI(GfxDevice* gfx) : gfx(gfx)
+	ImGuiManager::ImGuiManager(GfxDevice* gfx) : gfx(gfx)
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -41,7 +41,7 @@ namespace adria
 		GfxDescriptor handle = imgui_allocator->GetHandle(0);
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->GetBackbufferCount(), DXGI_FORMAT_R8G8B8A8_UNORM, imgui_allocator->GetHeap(), handle, handle);
 	}
-	GUI::~GUI()
+	ImGuiManager::~ImGuiManager()
 	{
 		gfx->WaitForGPU();
 		ImGui_ImplDX12_Shutdown();
@@ -49,7 +49,7 @@ namespace adria
 		ImGui::DestroyContext();
 	}
 
-	void GUI::Begin() const
+	void ImGuiManager::Begin() const
 	{
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -58,7 +58,7 @@ namespace adria
 
 		imgui_allocator->ReleaseCompletedFrames(frame_count);
 	}
-	void GUI::End(GfxCommandList* cmd_list) const
+	void ImGuiManager::End(GfxCommandList* cmd_list) const
 	{
 		ImGui::Render();
 		if (visible)
@@ -76,22 +76,22 @@ namespace adria
 		imgui_allocator->FinishCurrentFrame(frame_count);
 		++frame_count;
 	}
-	void GUI::OnWindowEvent(WindowEventData const& msg_data) const
+	void ImGuiManager::OnWindowEvent(WindowEventData const& msg_data) const
 	{
 		ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(msg_data.handle),
 			msg_data.msg, msg_data.wparam, msg_data.lparam);
 	}
 
-	void GUI::ToggleVisibility()
+	void ImGuiManager::ToggleVisibility()
 	{
 		visible = !visible;
 	}
-	bool GUI::IsVisible() const
+	bool ImGuiManager::IsVisible() const
 	{
 		return visible;
 	}
 	
-	GfxDescriptor GUI::AllocateDescriptorsGPU(uint32 count /*= 1*/) const
+	GfxDescriptor ImGuiManager::AllocateDescriptorsGPU(uint32 count /*= 1*/) const
 	{
 		return imgui_allocator->Allocate(count);
 	}

@@ -107,7 +107,7 @@ namespace adria
 
 	void ExponentialHeightFogPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Exponential Height Fog", 0))
 				{
@@ -125,7 +125,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing);
 	}
 
 	void ExponentialHeightFogPass::OnResize(uint32 w, uint32 h)

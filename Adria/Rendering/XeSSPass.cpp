@@ -132,7 +132,7 @@ namespace adria
 
 	void XeSSPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
@@ -148,7 +148,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Upscaler);
 	}
 
 	void XeSSPass::XeSSInit()

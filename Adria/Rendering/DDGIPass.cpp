@@ -311,7 +311,7 @@ namespace adria
 	{
 		if (!is_supported) return;
 
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNode("DDGI"))
 				{

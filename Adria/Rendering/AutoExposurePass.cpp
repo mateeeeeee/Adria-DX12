@@ -208,7 +208,7 @@ namespace adria
 
 	void AutoExposurePass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
 				{
@@ -237,7 +237,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessor
+			}, GUICommandGroup_PostProcessing
 		);
 	}
 

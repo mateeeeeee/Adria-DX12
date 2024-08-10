@@ -93,7 +93,7 @@ namespace adria
 
 	void FFXDepthOfFieldPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
@@ -118,7 +118,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_DepthOfField);
 	}
 
 	void FFXDepthOfFieldPass::CreateContext()

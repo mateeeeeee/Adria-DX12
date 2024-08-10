@@ -75,7 +75,7 @@ namespace adria
 
 	void VolumetricLightingPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_None))
 				{

@@ -100,7 +100,7 @@ namespace adria
 
 	void SSRPass::GUI()
 	{
-		GUI_Command([&]() {
+		QueueGUI([&]() {
 			if (ImGui::TreeNodeEx("Screen-Space Reflections", 0))
 			{
 				ImGui::Checkbox("Enable SSR", SSR.GetPtr());
@@ -112,7 +112,7 @@ namespace adria
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Reflection);
 	}
 
 	void SSRPass::CreatePSO()

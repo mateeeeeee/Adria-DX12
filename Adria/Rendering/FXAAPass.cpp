@@ -69,10 +69,10 @@ namespace adria
 
 	void FXAAPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				ImGui::Checkbox("FXAA", FXAA.GetPtr());
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Antialiasing);
 	}
 
 	void FXAAPass::OnResize(uint32 w, uint32 h)

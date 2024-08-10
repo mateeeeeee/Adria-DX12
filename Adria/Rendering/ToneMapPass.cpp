@@ -128,7 +128,7 @@ namespace adria
 
 	void ToneMapPass::GUI()
 	{
-		GUI_Command([&]() 
+		QueueGUI([&]() 
 			{
 				if (ImGui::TreeNodeEx("Tone Mapping", 0))
 				{
@@ -140,6 +140,6 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing);
 	}
 }

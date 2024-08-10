@@ -41,21 +41,15 @@ namespace adria
 
 	void ReflectionPassGroup::GroupGUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
-				if (ImGui::TreeNodeEx("Reflections", 0))
+				static int current_reflection_type = (int)reflection_type;
+				if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 				{
-					static int current_reflection_type = (int)reflection_type;
-					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
-					{
-						if (!is_rtr_supported && current_reflection_type == 2) current_reflection_type = 1;
-						Reflection->Set(current_reflection_type);
-					}
-					ImGui::TreePop();
-					ImGui::Separator();
+					if (!is_rtr_supported && current_reflection_type == 2) current_reflection_type = 1;
+					Reflection->Set(current_reflection_type);
 				}
-			}, GUICommandGroup_PostProcessor
-		);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Reflection);
 	}
 
 }

@@ -54,7 +54,7 @@ namespace adria
 
 	void VolumetricFogPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (fog_volumes.empty()) return;
 

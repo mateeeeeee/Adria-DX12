@@ -169,7 +169,7 @@ namespace adria
 
 	void RayTracedAmbientOcclusionPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_None))
 				{
@@ -181,8 +181,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor
-		);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
 	void RayTracedAmbientOcclusionPass::OnResize(uint32 w, uint32 h)

@@ -59,7 +59,7 @@ namespace adria
 
 	void UpscalerPassGroup::GroupGUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				static int current_upscaler = (int)upscaler_type;
 				if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0FSR3\0XeSS\0DLSS3\0", 5))
@@ -82,8 +82,7 @@ namespace adria
 						upscaler_disabled_event.Broadcast(display_width, display_height);
 					}
 				}
-			}, GUICommandGroup_PostProcessor
-		);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Upscaler);
 	}
 }
 

@@ -140,7 +140,7 @@ namespace adria
 
 	void SkyPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Sky Settings", ImGuiTreeNodeFlags_None))
 				{

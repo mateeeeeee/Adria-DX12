@@ -12,7 +12,7 @@ namespace adria
 	class Renderer;
 	class EntityLoader;
 	struct EditorEvents;
-	class GUI;
+	class ImGuiManager;
 	class Camera;
 
 	struct EngineInit

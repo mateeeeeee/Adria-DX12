@@ -107,7 +107,7 @@ namespace adria
 
 	void RayTracedReflectionsPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_None))
 				{
@@ -119,10 +119,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor
-		);
-
-
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Reflection);
 	}
 
 	bool RayTracedReflectionsPass::IsSupported() const

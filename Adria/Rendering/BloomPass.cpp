@@ -56,7 +56,7 @@ namespace adria
 
 	void BloomPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{
@@ -70,7 +70,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor
+			}, GUICommandGroup_PostProcessing
 		);
 
 	}

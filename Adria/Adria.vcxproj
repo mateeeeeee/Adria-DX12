@@ -203,7 +203,7 @@
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\EditorConsole.cpp" />
     <ClCompile Include="Editor\EditorLogger.cpp" />
-    <ClCompile Include="Editor\GUI.cpp" />
+    <ClCompile Include="Editor\ImGuiManager.cpp" />
     <ClCompile Include="Editor\GUICommand.cpp" />
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
     <ClCompile Include="Graphics\GfxCapabilities.cpp" />
@@ -368,7 +368,7 @@
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\EditorConsole.h" />
     <ClInclude Include="Editor\EditorEvents.h" />
-    <ClInclude Include="Editor\GUI.h" />
+    <ClInclude Include="Editor\ImGuiManager.h" />
     <ClInclude Include="Editor\GUICommand.h" />
     <ClInclude Include="Editor\EditorLogger.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />

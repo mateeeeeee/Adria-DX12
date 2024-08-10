@@ -102,7 +102,7 @@ namespace adria
 
 	void FilmEffectsPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Film Effects", ImGuiTreeNodeFlags_None))
 				{
@@ -134,7 +134,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessor
+			}, GUICommandGroup_PostProcessing
 		);
 	}
 

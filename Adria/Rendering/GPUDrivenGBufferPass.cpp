@@ -60,7 +60,7 @@ namespace adria
 
 	void GPUDrivenGBufferPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_None))
 				{

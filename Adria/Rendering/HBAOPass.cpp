@@ -85,7 +85,7 @@ namespace adria
 
 	void HBAOPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_None))
 				{
@@ -95,8 +95,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor
-		);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
 	void HBAOPass::OnResize(uint32 w, uint32 h)

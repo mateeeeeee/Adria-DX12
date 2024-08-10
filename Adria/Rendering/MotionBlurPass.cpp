@@ -87,10 +87,14 @@ namespace adria
 
 	void MotionBlurPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
-				ImGui::Checkbox("Motion Blur", MotionBlur.GetPtr());
-			}, GUICommandGroup_PostProcessor);
+				if (ImGui::TreeNode("Motion Blur"))
+				{
+					ImGui::Checkbox("Enable", MotionBlur.GetPtr());
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessing);
 	}
 
 	void MotionBlurPass::CreatePSO()

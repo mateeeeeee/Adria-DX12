@@ -349,7 +349,7 @@ namespace adria
 
 	void FFXCACAOPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
@@ -364,7 +364,7 @@ namespace adria
 
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
 	void FFXCACAOPass::OnResize(uint32 w, uint32 h)

@@ -80,7 +80,7 @@ namespace adria
 
 	void FFXCASPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
@@ -91,7 +91,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Antialiasing);
 	}
 
 	bool FFXCASPass::IsGUIVisible(PostProcessor const* postprocessor) const

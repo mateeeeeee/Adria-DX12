@@ -133,7 +133,7 @@ namespace adria
 
 	void RainPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Rain Settings", 0))
 				{

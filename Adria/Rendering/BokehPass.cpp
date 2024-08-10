@@ -32,7 +32,7 @@ namespace adria
 	{
 		AddGenerateBokehPass(rendergraph, input);
 		AddDrawBokehPass(rendergraph, input);
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Bokeh", 0))
 				{
@@ -50,7 +50,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			});
+			}, GUICommandGroup_PostProcessing);
 	}
 
 	void BokehPass::OnResize(uint32 w, uint32 h)

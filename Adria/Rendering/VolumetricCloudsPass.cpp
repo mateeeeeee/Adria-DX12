@@ -363,7 +363,7 @@ namespace adria
 
 	void VolumetricCloudsPass::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Volumetric Clouds", 0))
 				{
@@ -406,7 +406,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessor
+			}, GUICommandGroup_PostProcessing
 		);
 	}
 

@@ -96,16 +96,16 @@ namespace adria
 
 	void PostProcessor::GUI()
 	{
-		GUI_Command([&]()
+		QueueGUI([&]()
 			{
 				static int current_ao_type = (int)ambient_occlusion;
-				if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
+				if (ImGui::Combo("Ambient Occlusion Type", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
 				{
 					if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
 					ambient_occlusion = static_cast<AmbientOcclusionType>(current_ao_type);
 					AmbientOcclusion->Set(current_ao_type);
 				}
-			}, GUICommandGroup_PostProcessor);
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 		switch (ambient_occlusion)
 		{
 		case AmbientOcclusionType::SSAO:  ssao_pass.GUI();  break;

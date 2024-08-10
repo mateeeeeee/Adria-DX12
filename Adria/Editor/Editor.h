@@ -13,7 +13,7 @@ namespace adria
 	class GfxDevice;
 	class GfxDescriptor;
 	class Engine;
-	class GUI;
+	class ImGuiManager;
 	class RenderGraph;
 	class EditorLogger;
 	class EditorConsole;
@@ -58,7 +58,7 @@ namespace adria
 
 	private:
 		std::unique_ptr<Engine> engine;
-		std::unique_ptr<GUI> gui;
+		std::unique_ptr<ImGuiManager> gui;
 		GfxDevice* gfx;
 		bool ray_tracing_supported = false;
 
