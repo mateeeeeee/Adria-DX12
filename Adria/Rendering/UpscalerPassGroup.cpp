@@ -39,11 +39,6 @@ namespace adria
 		post_effects[(uint32)DLSS3] = std::make_unique<DLSS3Pass>(gfx, width, height);
 	}
 
-	bool UpscalerPassGroup::IsEnabled(PostProcessor const*) const
-	{
-		return upscaler_type != UpscalerType::None;
-	}
-
 	void UpscalerPassGroup::OnResize(uint32 w, uint32 h)
 	{
 		display_width = w, display_height = h;

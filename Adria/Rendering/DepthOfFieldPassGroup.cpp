@@ -31,11 +31,6 @@ namespace adria
 		post_effects[(uint32)FFX] = std::make_unique<FFXDepthOfFieldPass>(gfx, width, height);
 	}
 
-	bool DepthOfFieldPassGroup::IsEnabled(PostProcessor const*) const
-	{
-		return depth_of_field_type != DepthOfFieldType::None;
-	}
-
 	void DepthOfFieldPassGroup::GroupGUI()
 	{
 		QueueGUI([&]()

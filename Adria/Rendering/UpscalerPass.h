@@ -26,6 +26,6 @@ namespace adria
 		EmptyUpscalerPass() {}
 		virtual void AddPass(RenderGraph&, PostProcessor*) {}
 		virtual void OnResize(uint32, uint32) {}
-		virtual bool IsEnabled(PostProcessor const*) const { return true; }
+		virtual bool IsEnabled(PostProcessor const*) const { return false; }
 	};
 }

@@ -34,11 +34,6 @@ namespace adria
 		is_rtr_supported = post_effects[(uint32)RTR]->IsSupported();
 	}
 
-	bool ReflectionPassGroup::IsEnabled(PostProcessor const*) const
-	{
-		return reflection_type != ReflectionType::None;
-	}
-
 	void ReflectionPassGroup::GroupGUI()
 	{
 		QueueGUI([&]()

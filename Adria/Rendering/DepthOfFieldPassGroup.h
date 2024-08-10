@@ -10,7 +10,6 @@ namespace adria
 	{
 	public:
 		DepthOfFieldPassGroup(GfxDevice* gfx, uint32 width, uint32 height);
-		virtual bool IsEnabled(PostProcessor const*) const override;
 
 	private:
 		DepthOfFieldType depth_of_field_type;

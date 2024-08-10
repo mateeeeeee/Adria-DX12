@@ -14,7 +14,6 @@ namespace adria
 		DECLARE_EVENT(UpscalerDisabledEvent, UpscalerPassGroup, uint32, uint32)
 	public:
 		UpscalerPassGroup(GfxDevice* gfx, uint32 width, uint32 height);
-		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void OnResize(uint32 w, uint32 h) override;
 
 		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate)

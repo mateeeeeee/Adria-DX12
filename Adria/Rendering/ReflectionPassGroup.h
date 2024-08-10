@@ -11,8 +11,6 @@ namespace adria
 	public:
 		ReflectionPassGroup(GfxDevice* gfx, uint32 width, uint32 height);
 
-		virtual bool IsEnabled(PostProcessor const*) const override;
-
 	private:
 		ReflectionType reflection_type;
 		bool is_rtr_supported;
