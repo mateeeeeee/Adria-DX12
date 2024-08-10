@@ -104,6 +104,9 @@
     <Filter Include="Shaders\ReSTIR">
       <UniqueIdentifier>{857bc129-3364-44fc-984b-1bba0cdcedc4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Rendering\Passes\Post Effects">
+      <UniqueIdentifier>{de292cab-0726-400f-ac59-32ab21a8ffdb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -121,9 +124,6 @@
     </ClCompile>
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\GUI.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Editor\Editor.cpp">
       <Filter>Editor</Filter>
@@ -149,9 +149,6 @@
     <ClCompile Include="Rendering\GBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ToneMapPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\SkyPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -159,9 +156,6 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\TiledDeferredLightingPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\FXAAPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\PostProcessor.cpp">
@@ -182,50 +176,11 @@
     <ClCompile Include="Rendering\DecalsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\OceanRenderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\ShaderManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\GUICommand.cpp">
       <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\LensFlarePass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\VolumetricCloudsPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\SSRPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\ExponentialHeightFogPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\DepthOfFieldPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\BloomPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\MotionVectorsPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\GodRaysPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\BokehPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\MotionBlurPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\TAAPass.cpp">
-      <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Math\Packing.cpp">
       <Filter>Math</Filter>
@@ -240,9 +195,6 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\PathTracingPass.cpp">
@@ -405,12 +357,6 @@
     <ClCompile Include="Logging\FileLogger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShadowRenderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\DDGI.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\HelperPasses.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -432,34 +378,16 @@
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FSR2Pass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\XeSSPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\DLSS3Pass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\ImageWrite.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxCommandListPool.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FFXDepthOfFieldPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\FidelityFXUtils.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FFXCASPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\FFXCACAOPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\FilmEffectsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Core\Input.cpp">
@@ -470,9 +398,6 @@
     </ClCompile>
     <ClCompile Include="Core\Paths.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\FSR3Pass.cpp">
-      <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\FilesUtil.cpp">
       <Filter>Utilities</Filter>
@@ -512,6 +437,93 @@
     </ClCompile>
     <ClCompile Include="Rendering\RendererOutputPass.cpp">
       <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DDGIPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ImGuiManager.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\OceanRenderer.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ShadowRenderer.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\AutoExposurePass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\BloomPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\BokehPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DepthOfFieldPassGroup.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DLSS3Pass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ExponentialHeightFogPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FFXCASPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FFXDepthOfFieldPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FilmEffectsPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FSR2Pass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FSR3Pass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FXAAPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\GodRaysPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\LensFlarePass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\MotionVectorsPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\MotionBlurPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ReflectionPassGroup.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\SimpleDepthOfFieldPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\SSRPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\TAAPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ToneMapPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\UpscalerPassGroup.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\VolumetricCloudsPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\XeSSPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -587,9 +599,6 @@
     <ClInclude Include="Graphics\GfxRenderPass.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\GUI.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\Editor.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -653,9 +662,6 @@
     <ClInclude Include="Rendering\GBufferPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ToneMapPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\ViewportData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -669,9 +675,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\BlurPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\FXAAPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h">
@@ -688,9 +691,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\DecalsPass.h">
       <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\OceanRenderer.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Editor\EditorEvents.h">
       <Filter>Editor</Filter>
@@ -716,47 +716,11 @@
     <ClInclude Include="Utilities\CLIParser.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\AutomaticExposurePass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\GUICommand.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\LensFlarePass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\VolumetricCloudsPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\SSRPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\ExponentialHeightFogPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\DepthOfFieldPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\BloomPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\hwbp.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\MotionVectorsPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\MotionBlurPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\TAAPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\GodRaysPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\BokehPass.h">
-      <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
@@ -774,9 +738,6 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RayTracedAmbientOcclusionPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\RayTracedReflectionsPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\PathTracingPass.h">
@@ -960,12 +921,6 @@
     <ClInclude Include="Logging\FileLogger.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShadowRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\DDGI.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\HelperPasses.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
@@ -1020,17 +975,8 @@
     <ClInclude Include="..\External\FSR2\include\FSR2\dx12\shaders\ffx_fsr2_shaders_dx12.h">
       <Filter>External\FSR2\dx12\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FSR2Pass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="..\External\FSR2\include\FSR2\ffx_assert.h">
       <Filter>External\FSR2</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\XeSSPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\DLSS3Pass.h">
-      <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxShaderEnums.h">
       <Filter>Graphics</Filter>
@@ -1041,19 +987,10 @@
     <ClInclude Include="Utilities\ImageWrite.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FFXDepthOfFieldPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\FidelityFXUtils.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FFXCASPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\FFXCACAOPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\FilmEffectsPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Delegate.h">
@@ -1070,9 +1007,6 @@
     </ClInclude>
     <ClInclude Include="Core\Paths.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\FSR3Pass.h">
-      <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\GPUDebugPrinter.h">
       <Filter>Rendering</Filter>
@@ -1134,8 +1068,98 @@
     <ClInclude Include="Graphics\GfxOptions.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\DDGIPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\ImGuiManager.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\OceanRenderer.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ShadowRenderer.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
     <ClInclude Include="Rendering\PostEffect.h">
-      <Filter>Rendering</Filter>
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\AutoExposurePass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BloomPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BokehPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DepthOfFieldPassGroup.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DLSS3Pass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ExponentialHeightFogPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FFXCASPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FFXDepthOfFieldPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FilmEffectsPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FSR2Pass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FSR3Pass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FXAAPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\GodRaysPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\LensFlarePass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MotionVectorsPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MotionBlurPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RayTracedReflectionsPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ReflectionPassGroup.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\SimpleDepthOfFieldPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\SSRPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\TAAPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ToneMapPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\UpscalerPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\UpscalerPassGroup.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\VolumetricCloudsPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\XeSSPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1150,7 +1174,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="..\README.md" />
     <None Include="..\.gitignore" />
     <None Include="..\External\SimpleMath\SimpleMath.inl">
       <Filter>External\SimpleMath</Filter>
@@ -1221,9 +1244,7 @@
     <None Include="Saved\Scenes\sanmiguel.json" />
     <None Include="Saved\Scenes\sponza.json" />
     <None Include="Saved\Ini\cvars.ini" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="adria.log" />
+    <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
