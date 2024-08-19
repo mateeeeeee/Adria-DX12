@@ -45,29 +45,36 @@ void TonemapCS(CSInput input)
 		float3 bloom = bloomTx.SampleLevel(LinearClampSampler, uv, 0).rgb * bloomParams.x;
         color.xyz = lerp(color.xyz, bloom + bloom * lensDirt, bloomParams.y);
 	}
-
+    color.xyz *= TonemapPassCB.tonemapExposure;
     float exposure = exposureTexture[uint2(0, 0)];
-    float4 toneMappedColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    color.xyz *= exposure;
 
+    float4 toneMappedColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
     uint2 toneMapOperatorLUTUnpacked = UnpackTwoUint16FromUint32(TonemapPassCB.tonemapOperatorLUTPacked);
     uint tonemapOperator = toneMapOperatorLUTUnpacked.x;
     Texture3D<float3> LUT = ResourceDescriptorHeap[toneMapOperatorLUTUnpacked.y];
+
     switch (tonemapOperator)
     {
-        case 0:
-            toneMappedColor = float4(ReinhardToneMapping(color.xyz * exposure * TonemapPassCB.tonemapExposure), 1.0);
+        case Tonemap_None:
+            toneMappedColor = float4(color.xyz, 1.0f);
             break;
-        case 1:
-            toneMappedColor = float4(HableToneMapping(color.xyz * exposure * TonemapPassCB.tonemapExposure), 1.0);
+        case Tonemap_Reinhard:
+            toneMappedColor = float4(ReinhardToneMapping(color.xyz), 1.0);
             break;
-        case 2:
-            toneMappedColor = float4(LinearToneMapping(color.xyz * exposure * TonemapPassCB.tonemapExposure), 1.0);
+        case Tonemap_Hable:
+            toneMappedColor = float4(HableToneMapping(color.xyz), 1.0);
             break;
-        case 3:
-            toneMappedColor = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz * exposure * TonemapPassCB.tonemapExposure), 1.0);
+        case Tonemap_Linear:
+            toneMappedColor = float4(LinearToneMapping(color.xyz), 1.0);
             break;
-        default:
-            toneMappedColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+        case Tonemap_TonyMcMapface:
+            toneMappedColor = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz), 1.0);
+            break;
+        case Tonemap_AgX:
+            toneMappedColor = float4(AgXToneMapping(color.xyz), 1.0);
+
+            break;
     }
 	outputTexture[input.DispatchThreadId.xy] = toneMappedColor;
 }

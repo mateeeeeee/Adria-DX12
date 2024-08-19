@@ -14,6 +14,18 @@
 
 namespace adria
 {
+	enum ToneMapOperator : uint8
+	{
+		ToneMapOperator_None,
+		ToneMapOperator_Reinhard,
+		ToneMapOperator_Hable,
+		ToneMapOperator_Linear,
+		ToneMapOperator_TonyMcMapface,
+		ToneMapOperator_AgX
+	};
+
+	static TAutoConsoleVariable<int>   TonemapOperator("r.Tonemap.Operator", ToneMapOperator_TonyMcMapface, "0 - None, 1 - Reinhard, 2 - Hable, 3 - Linear, 4 - TonyMcMapface, 5 - AgX");
+	static TAutoConsoleVariable<float> TonemapExposure("r.Tonemap.Exposure", 1.0f, "Tonemap exposure applied in addition to exposure from AutoExposure pass");
 	
 	ToneMapPass::ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -26,8 +38,6 @@ namespace adria
 		RGResourceName destination = postprocessor->HasFXAA() && !postprocessor->IsPathTracing() ? RG_NAME(TonemapOutput) : RG_NAME(FinalTexture);
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		BloomBlackboardData const* bloom_data = rg.GetBlackboard().TryGet<BloomBlackboardData>();
-
-		RGPassFlags flags = RGPassFlags::None;
 
 		struct ToneMapPassData
 		{
@@ -88,7 +98,7 @@ namespace adria
 					uint32   bloom_params_packed;
 				} constants =
 				{
-					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator_lut_packed = PackTwoUint16ToUint32((uint16)params.tone_map_op, (uint16)tony_mc_mapface_lut_handle),
+					.tonemap_exposure = TonemapExposure.Get(), .tonemap_operator_lut_packed = PackTwoUint16ToUint32((uint16)TonemapOperator.Get(), (uint16)tony_mc_mapface_lut_handle),
 					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2, .bloom_idx = -1
 				};
 				if (bloom_enabled)
@@ -103,7 +113,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
-			}, RGPassType::Compute, flags);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		postprocessor->SetFinalResource(destination);
 	}
@@ -130,13 +140,11 @@ namespace adria
 	{
 		QueueGUI([&]() 
 			{
-				if (ImGui::TreeNodeEx("Tone Mapping", 0))
+				if (ImGui::TreeNode("Tone Mapping"))
 				{
-					ImGui::SliderFloat("Exposure", &params.tonemap_exposure, 0.01f, 10.0f);
-					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR", "TONY MCMAPFACE"};
-					static int tone_map_operator = static_cast<int>(params.tone_map_op);
-					ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-					params.tone_map_op = static_cast<ToneMap>(tone_map_operator);
+					ImGui::SliderFloat("Exposure", TonemapExposure.GetPtr(), 0.01f, 10.0f);
+					static char const* const operators[] = { "None", "Reinhard", "Hable", "Linear", "Tony McMapface", "AgX" };
+					ImGui::ListBox("Tone Map Operator", TonemapOperator.GetPtr(), operators, IM_ARRAYSIZE(operators));
 					ImGui::TreePop();
 					ImGui::Separator();
 				}

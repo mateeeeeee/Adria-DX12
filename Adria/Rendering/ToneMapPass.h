@@ -10,19 +10,6 @@ namespace adria
 
 	class ToneMapPass : public PostEffect
 	{
-		enum class ToneMap : uint8
-		{
-			Reinhard,
-			Hable,
-			Linear,
-			TonyMcMapface
-		};
-
-		struct TonemapParams
-		{
-			ToneMap tone_map_op = ToneMap::TonyMcMapface;
-			float tonemap_exposure = 1.5f;
-		};
 	public:
 		ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h);
 
@@ -35,7 +22,6 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		TonemapParams params;
 		TextureHandle lens_dirt_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle tony_mc_mapface_lut_handle = INVALID_TEXTURE_HANDLE;
 		std::unique_ptr<GfxComputePipelineState> tonemap_pso;

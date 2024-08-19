@@ -136,8 +136,8 @@ namespace adria
 	class TAutoConsoleVariable final : public AutoConsoleVariable
 	{
 	public:
-		TAutoConsoleVariable(char const* name, T default_value, char const* help) : AutoConsoleVariable(name, default_value, help) {}
-		TAutoConsoleVariable(char const* name, T default_value, char const* help, ConsoleVariableDelegate const& callback)
+		TAutoConsoleVariable(char const* name, std::type_identity_t<T> default_value, char const* help) : AutoConsoleVariable(name, default_value, help) {}
+		TAutoConsoleVariable(char const* name, std::type_identity_t<T> default_value, char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleVariable(name, default_value, help, callback) {}
 
 		T Get() const
@@ -226,8 +226,8 @@ namespace adria
 	class TAutoConsoleVariableRef final : public AutoConsoleVariableRef
 	{
 	public:
-		TAutoConsoleVariableRef(char const* name, T& default_value, char const* help) : AutoConsoleVariableRef(name, default_value, help) {}
-		TAutoConsoleVariableRef(char const* name, T& default_value, char const* help, ConsoleVariableDelegate const& callback)
+		TAutoConsoleVariableRef(char const* name, std::type_identity_t<T>& default_value, char const* help) : AutoConsoleVariableRef(name, default_value, help) {}
+		TAutoConsoleVariableRef(char const* name, std::type_identity_t<T>& default_value, char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleVariableRef(name, default_value, help, callback) {}
 
 		T Get() const

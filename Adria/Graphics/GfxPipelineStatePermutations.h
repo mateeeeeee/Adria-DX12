@@ -10,26 +10,26 @@ namespace adria
 	template<>
 	struct PSOTraits<GfxGraphicsPipelineState>
 	{
-		static constexpr GfxPipelineStateType type = GfxPipelineStateType::Graphics;
-		using PSODesc = GfxGraphicsPipelineStateDesc;
+		static constexpr GfxPipelineStateType PipelineStateType = GfxPipelineStateType::Graphics;
+		using PSODescType = GfxGraphicsPipelineStateDesc;
 	};
 	template<>
 	struct PSOTraits<GfxComputePipelineState>
 	{
-		static constexpr GfxPipelineStateType type = GfxPipelineStateType::Compute;
-		using PSODesc = GfxComputePipelineStateDesc;
+		static constexpr GfxPipelineStateType PipelineStateType = GfxPipelineStateType::Compute;
+		using PSODescType = GfxComputePipelineStateDesc;
 	};
 	template<>
 	struct PSOTraits<GfxMeshShaderPipelineState>
 	{
-		static constexpr GfxPipelineStateType type = GfxPipelineStateType::MeshShader;
-		using PSODesc = GfxMeshShaderPipelineStateDesc;
+		static constexpr GfxPipelineStateType PipelineStateType = GfxPipelineStateType::MeshShader;
+		using PSODescType = GfxMeshShaderPipelineStateDesc;
 	};
 
 	template<typename PSO>
 	struct IsGraphicsPipelineStateUtil
 	{
-		static constexpr bool value = PSOTraits<PSO>::type == GfxPipelineStateType::Graphics;
+		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Graphics;
 	};
 	template<typename PSO>
 	constexpr bool IsGraphicsPipelineState = IsGraphicsPipelineStateUtil<PSO>::value;
@@ -37,7 +37,7 @@ namespace adria
 	template<typename PSO>
 	struct IsComputePipelineStateUtil
 	{
-		static constexpr bool value = PSOTraits<PSO>::type == GfxPipelineStateType::Compute;
+		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Compute;
 	};
 	template<typename PSO>
 	constexpr bool IsComputePipelineState = IsComputePipelineStateUtil<PSO>::value;
@@ -45,7 +45,7 @@ namespace adria
 	template<typename PSO>
 	struct IsMeshShaderPipelineStateUtil
 	{
-		static constexpr bool value = PSOTraits<PSO>::type == GfxPipelineStateType::MeshShader;
+		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::MeshShader;
 	};
 	template<typename PSO>
 	constexpr bool IsMeshShaderPipelineState = IsMeshShaderPipelineStateUtil<PSO>::value;
@@ -53,8 +53,8 @@ namespace adria
 	template<typename PSO, uint32 N>
 	class GfxPipelineStatePermutations
 	{
-		using PSODesc = PSOTraits<PSO>::PSODesc;
-		static constexpr GfxPipelineStateType pso_type = PSOTraits<PSO>::type;
+		using PSODesc = PSOTraits<PSO>::PSODescType;
+		static constexpr GfxPipelineStateType pso_type = PSOTraits<PSO>::PipelineStateType;
 
 	public:
 		GfxPipelineStatePermutations() = default;
