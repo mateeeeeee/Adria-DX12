@@ -21,11 +21,13 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::unique_ptr<GfxComputePipelineState> compute_coc_pso;
+		std::unique_ptr<GfxComputePipelineState> downsample_coc_pso;
 
 	private:
 		void CreatePSOs();
 
 		void AddComputeCircleOfConfusionPass(RenderGraph&);
+		void AddDownsampleCircleOfConfusionPass(RenderGraph&);
 	};
 
 }

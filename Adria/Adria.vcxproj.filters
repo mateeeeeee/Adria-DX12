@@ -1436,7 +1436,7 @@
     <FxCompile Include="Resources\Shaders\Other\RendererOutput.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\ComputeCoC.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\CircleOfConfusion.hlsl">
       <Filter>Shaders\Postprocess\DepthOfField</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\BuildHistogram.hlsl">

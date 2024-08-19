@@ -122,6 +122,7 @@ namespace adria
 			case CS_VolumetricFog_ScatteringIntegration:
 			case CS_RendererOutput:
 			case CS_DepthOfField_ComputeCoC:
+			case CS_DepthOfField_DownsampleCoC:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -314,7 +315,8 @@ namespace adria
 			case CS_RendererOutput:
 				return "Other/RendererOutput.hlsl";
 			case CS_DepthOfField_ComputeCoC:
-				return "Postprocess/DepthOfField/ComputeCoC.hlsl";
+			case CS_DepthOfField_DownsampleCoC:
+				return "Postprocess/DepthOfField/CircleOfConfusion.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -518,6 +520,8 @@ namespace adria
 				return "RendererOutputCS";
 			case CS_DepthOfField_ComputeCoC:
 				return "ComputeCircleOfConfusionCS";
+			case CS_DepthOfField_DownsampleCoC:
+				return "DownsampleCircleOfConfusionCS";
 			default:
 				return "main";
 			}
