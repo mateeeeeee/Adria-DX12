@@ -26,8 +26,7 @@ namespace adria
 	static TAutoConsoleVariable<float> SSAORadius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
 	static TAutoConsoleVariable<int>   SSAOResolution("r.SSAO.Resolution", SSAOResolution_Half, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
 
-	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
-		blur_pass(gfx, w >> SSAOResolution.Get(), h >> SSAOResolution.Get())
+	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr), blur_pass(gfx)
 	{
 		CreatePSO();
 		RealRandomGenerator rand_float(0.0f, 1.0f);
@@ -131,7 +130,6 @@ namespace adria
 	void SSAOPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
-		blur_pass.OnResize(w >> SSAOResolution.Get(), h >> SSAOResolution.Get());
 	}
 
 	void SSAOPass::OnSceneInitialized()

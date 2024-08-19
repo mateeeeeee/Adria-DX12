@@ -13,9 +13,8 @@
 namespace adria
 {
 	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.AdvancedDepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Advanced Depth of Field effect");
-	static TAutoConsoleVariable<bool>  TemporalSmoothing("r.AdvancedDepthOfField.TemporalSmoothing", false, "Depth of Field temporal smoothing: 0 - disable, 1 - enable");
 
-	AdvancedDepthOfFieldPass::AdvancedDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	AdvancedDepthOfFieldPass::AdvancedDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), blur_pass(gfx)
 	{
 		CreatePSOs();
 	}
@@ -25,6 +24,7 @@ namespace adria
 		RGResourceName color_input = postprocessor->GetFinalResource();
 		AddComputeCircleOfConfusionPass(rg);
 		AddDownsampleCircleOfConfusionPass(rg);
+		AddComputePrefilteredTexturePass(rg, postprocessor->GetFinalResource());
 	}
 
 	void AdvancedDepthOfFieldPass::OnResize(uint32 w, uint32 h)
@@ -58,6 +58,9 @@ namespace adria
 
 		compute_pso_desc.CS = CS_DepthOfField_DownsampleCoC;
 		downsample_coc_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_DepthOfField_ComputePrefilteredTexture;
+		compute_prefiltered_texture_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void AdvancedDepthOfFieldPass::AddComputeCircleOfConfusionPass(RenderGraph& rg)
@@ -78,8 +81,8 @@ namespace adria
 				compute_coc_desc.height = height;
 				compute_coc_desc.format = GfxFormat::R16_FLOAT;
 
-				builder.DeclareTexture(RG_NAME(ComputeCoCOutput), compute_coc_desc);
-				data.output = builder.WriteTexture(RG_NAME(ComputeCoCOutput));
+				builder.DeclareTexture(RG_NAME(CoCTexture), compute_coc_desc);
+				data.output = builder.WriteTexture(RG_NAME(CoCTexture));
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](ComputeCircleOfConfusionPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
@@ -121,7 +124,6 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 				GUI_DebugTexture("CoC", &ctx.GetTexture(*data.output));
 			}, RGPassType::Compute, RGPassFlags::None);
-
 	}
 
 	void AdvancedDepthOfFieldPass::AddDownsampleCircleOfConfusionPass(RenderGraph& rg)
@@ -129,7 +131,7 @@ namespace adria
 		static constexpr uint32 pass_count = 4;
 
 		std::vector<RGResourceName> coc_mips(pass_count);
-		coc_mips[0] = RG_NAME(ComputeCoCOutput);
+		coc_mips[0] = RG_NAME(CoCTexture);
 		for (uint32 i = 1; i < pass_count; ++i)
 		{
 			coc_mips[i] = RG_NAME_IDX(CoCMip, i);
@@ -182,9 +184,84 @@ namespace adria
 					cmd_list->SetRootConstants(1, constants);
 					cmd_list->Dispatch(DivideAndRoundUp(mip_width, 16), DivideAndRoundUp(mip_height, 16), 1);
 
-				}, RGPassType::Compute, RGPassFlags::ForceNoCull);
-
+				}, RGPassType::Compute, RGPassFlags::None);
 		}
+		blur_pass.AddPass(rg, coc_mips.back(), RG_NAME(CoCDilation), "CoC Blur");
+	}
+
+	void AdvancedDepthOfFieldPass::AddComputePrefilteredTexturePass(RenderGraph& rg, RGResourceName color_texture)
+	{
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct ComputePrefilteredTexturePassData
+		{
+			RGTextureReadOnlyId color;
+			RGTextureReadOnlyId coc;
+			RGTextureReadOnlyId coc_dilation;
+			RGTextureReadWriteId foreground_output;
+			RGTextureReadWriteId background_output;
+		};
+
+		rg.AddPass<ComputePrefilteredTexturePassData>("Compute Prefiltered Texture Pass",
+			[=](ComputePrefilteredTexturePassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc prefiltered_texture_desc{};
+				prefiltered_texture_desc.width = width / 2;
+				prefiltered_texture_desc.height = height / 2;
+				prefiltered_texture_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+
+				builder.DeclareTexture(RG_NAME(PrefilteredForeground), prefiltered_texture_desc);
+				builder.DeclareTexture(RG_NAME(PrefilteredBackground), prefiltered_texture_desc);
+
+				data.foreground_output = builder.WriteTexture(RG_NAME(PrefilteredForeground));
+				data.background_output = builder.WriteTexture(RG_NAME(PrefilteredBackground));
+				data.color = builder.ReadTexture(color_texture, ReadAccess_NonPixelShader);
+				data.coc = builder.ReadTexture(RG_NAME(CoCTexture), ReadAccess_NonPixelShader);
+				data.coc_dilation = builder.ReadTexture(RG_NAME(CoCDilation), ReadAccess_NonPixelShader);
+			},
+			[=](ComputePrefilteredTexturePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(compute_prefiltered_texture_pso.get());
+
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.color),
+					ctx.GetReadOnlyTexture(data.coc),
+					ctx.GetReadOnlyTexture(data.coc_dilation),
+					ctx.GetReadWriteTexture(data.foreground_output),
+					ctx.GetReadWriteTexture(data.background_output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				struct ComputePrefilteredTextureConstants
+				{
+					uint32 color_idx;
+					uint32 coc_idx;
+					uint32 coc_dilation_idx;
+					uint32 foreground_output_idx;
+					uint32 background_output_idx;
+				} constants =
+				{
+					.color_idx = i, 
+					.coc_idx = i + 1,
+					.coc_dilation_idx = i + 2,		
+					.foreground_output_idx = i + 3,
+					.background_output_idx = i + 4,
+				};
+
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+
+				GUI_DebugTexture("CoC Dilation",   &ctx.GetTexture(*data.coc_dilation));
+				GUI_DebugTexture("CoC Foreground", &ctx.GetTexture(*data.foreground_output));
+				GUI_DebugTexture("CoC Background", &ctx.GetTexture(*data.background_output));
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+
 	}
 
 }

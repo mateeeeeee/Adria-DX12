@@ -25,9 +25,10 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		BlurPass blur_pass;
 		std::unique_ptr<GfxStateObject> ray_traced_reflections_so;
 		uint32 width, height;
+		BlurPass blur_pass;
+
 		bool is_supported;
 		float reflection_roughness_scale = 0.0f;
 		CopyToTexturePass copy_to_texture_pass;

@@ -11,7 +11,7 @@
 namespace adria
 {
 
-	BlurPass::BlurPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	BlurPass::BlurPass(GfxDevice* gfx) : gfx(gfx)
 	{
 		CreatePSOs();
 	}
@@ -21,18 +21,21 @@ namespace adria
 	void BlurPass::AddPass(RenderGraph& rendergraph, RGResourceName src_texture, RGResourceName blurred_texture,
 		char const* pass_name)
 	{
+
+		static uint64 counter = 0;
+		counter++;
+
+		std::string horizontal_name = "Horizontal Blur Pass " + std::string(pass_name);
+		std::string vertical_name = "Vertical Blur Pass " + std::string(pass_name);
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+
 		struct BlurPassData
 		{
 			RGTextureReadOnlyId src_texture;
 			RGTextureReadWriteId dst_texture;
 		};
 
-		static uint64 counter = 0;
-		counter++;
-
-		std::string name = "Horizontal Blur Pass" + std::string(pass_name);
-		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
-		rendergraph.AddPass<BlurPassData>(name.c_str(),
+		rendergraph.AddPass<BlurPassData>(horizontal_name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc blur_desc = builder.GetTextureDesc(src_texture);
@@ -40,11 +43,11 @@ namespace adria
 				builder.DeclareTexture(RG_NAME_IDX(Intermediate, counter), blur_desc);
 				data.dst_texture = builder.WriteTexture(RG_NAME_IDX(Intermediate, counter));
 				data.src_texture = builder.ReadTexture(src_texture, ReadAccess_NonPixelShader);
-				builder.SetViewport(width, height);
 			},
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
+				GfxTextureDesc const& src_desc = context.GetTexture(*data.src_texture).GetDesc();
 
 				GfxDescriptor src_descriptors[] =
 				{
@@ -67,11 +70,10 @@ namespace adria
 				cmd_list->SetPipelineState(blur_horizontal_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch(DivideAndRoundUp(width, 1024), height, 1);
+				cmd_list->Dispatch(DivideAndRoundUp(src_desc.width, 1024), src_desc.height, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		name = "Vertical Blur Pass" + std::string(pass_name);
-		rendergraph.AddPass<BlurPassData>(name.c_str(),
+		rendergraph.AddPass<BlurPassData>(vertical_name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc blur_desc = builder.GetTextureDesc(src_texture);
@@ -82,6 +84,7 @@ namespace adria
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
+				GfxTextureDesc const& src_desc = context.GetTexture(*data.src_texture).GetDesc();
 
 				GfxDescriptor src_descriptors[] =
 				{
@@ -103,21 +106,11 @@ namespace adria
 
 				cmd_list->SetPipelineState(blur_vertical_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1,constants);
-				cmd_list->Dispatch(width, DivideAndRoundUp(height, 1024), 1);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(src_desc.width, DivideAndRoundUp(src_desc.height, 1024), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
-	}
-
-	void BlurPass::OnResize(uint32 w, uint32 h)
-	{
-		width = w, height = h;
-	}
-
-	void BlurPass::SetResolution(uint32 w, uint32 h)
-	{
-		width = w, height = h;
 	}
 
 	void BlurPass::CreatePSOs()

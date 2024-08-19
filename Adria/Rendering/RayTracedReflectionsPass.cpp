@@ -14,7 +14,7 @@ namespace adria
 	static TAutoConsoleVariable<bool> RTR("r.RTR", true, "0 - Disabled, 1 - Enabled");
 	
 	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
-		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)
+		: gfx(gfx), width(width), height(height), blur_pass(gfx), copy_to_texture_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1);
 		if (IsSupported())
@@ -96,7 +96,6 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 		width = w, height = h;
-		blur_pass.OnResize(w, h);
 		copy_to_texture_pass.OnResize(w, h);
 	}
 

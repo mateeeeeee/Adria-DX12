@@ -104,6 +104,7 @@ namespace adria
 		PS_DDGIVisualize,
 		CS_DepthOfField_ComputeCoC,
 		CS_DepthOfField_DownsampleCoC,
+		CS_DepthOfField_ComputePrefilteredTexture,
 		CS_VolumetricFog_LightInjection,
 		CS_VolumetricFog_ScatteringIntegration,
 		PS_VolumetricFog_CombineFog,

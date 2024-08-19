@@ -18,7 +18,7 @@ namespace adria
 	static TAutoConsoleVariable<float> SimpleDepthOfFieldFocusDistance("r.SimpleDepthOfField.FocusDistance", 200.0f, "Focus Distance for Simple Depth of Field technique");
 	static TAutoConsoleVariable<float> SimpleDepthOfFieldFocusRadius("r.SimpleDepthOfField.FocusRadius", 25.0f, "Focus Radius for Simple Depth of Field technique");
 
-	SimpleDepthOfFieldPass::SimpleDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
+	SimpleDepthOfFieldPass::SimpleDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx)
 	{
 		CreatePSO();
 	}
@@ -95,7 +95,6 @@ namespace adria
 	{
 		width = w, height = h;
 		bokeh_pass.OnResize(w, h);
-		blur_pass.OnResize(w, h);
 	}
 
 	bool SimpleDepthOfFieldPass::IsEnabled(PostProcessor const*) const

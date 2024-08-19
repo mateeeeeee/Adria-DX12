@@ -1,5 +1,6 @@
 #pragma once
 #include "PostEffect.h"
+#include "BlurPass.h"
 
 namespace adria
 {
@@ -20,14 +21,18 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
+		BlurPass blur_pass;
+
 		std::unique_ptr<GfxComputePipelineState> compute_coc_pso;
 		std::unique_ptr<GfxComputePipelineState> downsample_coc_pso;
+		std::unique_ptr<GfxComputePipelineState> compute_prefiltered_texture_pso;
 
 	private:
 		void CreatePSOs();
 
 		void AddComputeCircleOfConfusionPass(RenderGraph&);
 		void AddDownsampleCircleOfConfusionPass(RenderGraph&);
+		void AddComputePrefilteredTexturePass(RenderGraph&, RGResourceName color_texture);
 	};
 
 }

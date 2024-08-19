@@ -195,7 +195,7 @@ namespace adria
 				GfxBuffer* buffer = rg_buffer->resource;
 				if (dependency_level.buffer_creates.contains(buf_id))
 				{
-					if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
+					if (state != GfxResourceState::Common)
 					{
 						cmd_list->BufferBarrier(*buffer, GfxResourceState::Common, state);
 					}

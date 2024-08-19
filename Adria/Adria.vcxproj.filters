@@ -1463,5 +1463,8 @@
     <FxCompile Include="Resources\Shaders\Meshlets\HZB.hlsl">
       <Filter>Shaders\Meshlets</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\DepthOfField.hlsl">
+      <Filter>Shaders\Postprocess\DepthOfField</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

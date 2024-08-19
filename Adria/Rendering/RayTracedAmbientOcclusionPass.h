@@ -32,10 +32,11 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		BlurPass blur_pass;
 		std::unique_ptr<GfxStateObject> ray_traced_ambient_occlusion_so;
 		std::unique_ptr<GfxComputePipelineState> rtao_filter_pso;
 		uint32 width, height;
+		BlurPass blur_pass;
+
 		bool is_supported;
 		RTAOParams params{};
 

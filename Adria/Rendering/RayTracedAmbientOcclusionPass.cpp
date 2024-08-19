@@ -12,7 +12,7 @@ namespace adria
 {
 	
 	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height)
-		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
+		: gfx(gfx), width(width), height(height), blur_pass(gfx)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
 		if (IsSupported())
@@ -187,9 +187,7 @@ namespace adria
 	void RayTracedAmbientOcclusionPass::OnResize(uint32 w, uint32 h)
 	{
 		if (!IsSupported()) return;
-
 		width = w, height = h;
-		blur_pass.OnResize(w, h);
 	}
 
 	bool RayTracedAmbientOcclusionPass::IsSupported() const

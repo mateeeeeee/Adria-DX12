@@ -12,7 +12,7 @@ namespace adria
 {
 	
 	HBAOPass::HBAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), hbao_random_texture(nullptr),
-		blur_pass(gfx, w, h)
+		blur_pass(gfx)
 	{
 		CreatePSO();
 	}
@@ -101,7 +101,6 @@ namespace adria
 	void HBAOPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
-		blur_pass.OnResize(w, h);
 	}
 
 	void HBAOPass::OnSceneInitialized()
