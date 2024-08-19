@@ -121,6 +121,7 @@ namespace adria
 			case CS_VolumetricFog_LightInjection:
 			case CS_VolumetricFog_ScatteringIntegration:
 			case CS_RendererOutput:
+			case CS_DepthOfField_ComputeCoC:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -227,11 +228,11 @@ namespace adria
 			case CS_GenerateMips:
 				return "Other/GenerateMips.hlsl";
 			case CS_BuildHistogram:
-				return "Exposure/BuildHistogram.hlsl";
+				return "Postprocess/AutoExposure/BuildHistogram.hlsl";
 			case CS_HistogramReduction:
-				return "Exposure/HistogramReduction.hlsl";
+				return "Postprocess/AutoExposure/HistogramReduction.hlsl";
 			case CS_Exposure:
-				return "Exposure/Exposure.hlsl";
+				return "Postprocess/AutoExposure/Exposure.hlsl";
 			case CS_Ssao:
 				return "Postprocess/SSAO.hlsl";
 			case CS_Hbao:
@@ -271,20 +272,20 @@ namespace adria
 			case CS_ClusterCulling:
 				return "Lighting/ClusterCulling.hlsl";
 			case CS_ClearCounters:
-				return "GpuDrivenRendering/ClearCounters.hlsl";
+				return "Meshlets/ClearCounters.hlsl";
 			case CS_BuildMeshletCullArgs:
 			case CS_CullMeshlets:
-				return "GpuDrivenRendering/CullMeshlets.hlsl";
+				return "Meshlets/CullMeshlets.hlsl";
 			case CS_BuildInstanceCullArgs:
 			case CS_CullInstances:
-				return "GpuDrivenRendering/CullInstances.hlsl";
+				return "Meshlets/CullInstances.hlsl";
 			case CS_BuildMeshletDrawArgs:
 			case MS_DrawMeshlets:
 			case PS_DrawMeshlets:
-				return "GpuDrivenRendering/DrawMeshlets.hlsl";
+				return "Meshlets/DrawMeshlets.hlsl";
 			case CS_InitializeHZB:
 			case CS_HZBMips:
-				return "GpuDrivenRendering/HZB.hlsl";
+				return "Meshlets/HZB.hlsl";
 			case CS_VolumetricFog_LightInjection:
 			case CS_VolumetricFog_ScatteringIntegration:
 			case PS_VolumetricFog_CombineFog:
@@ -312,6 +313,8 @@ namespace adria
 				return "ReSTIR/InitialSampling.hlsl";
 			case CS_RendererOutput:
 				return "Other/RendererOutput.hlsl";
+			case CS_DepthOfField_ComputeCoC:
+				return "Postprocess/DepthOfField/ComputeCoC.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -513,6 +516,8 @@ namespace adria
 				return "InitialSamplingCS";
 			case CS_RendererOutput:
 				return "RendererOutputCS";
+			case CS_DepthOfField_ComputeCoC:
+				return "ComputeCircleOfConfusionCS";
 			default:
 				return "main";
 			}

@@ -74,12 +74,6 @@
     <Filter Include="Shaders\DDGI">
       <UniqueIdentifier>{f9ebf9f5-e2c7-486e-87e9-fee6fbb73a70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Exposure">
-      <UniqueIdentifier>{8ccf4ef6-32b0-4bd4-a1d1-2f8113943f8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\GpuDrivenRendering">
-      <UniqueIdentifier>{7c6f2ed7-1031-4d59-83ef-7d4c631af847}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\Lighting">
       <UniqueIdentifier>{43434356-95c5-428b-9a77-b8d0a7702854}</UniqueIdentifier>
     </Filter>
@@ -106,6 +100,15 @@
     </Filter>
     <Filter Include="Rendering\Passes\Post Effects">
       <UniqueIdentifier>{de292cab-0726-400f-ac59-32ab21a8ffdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Postprocess\DepthOfField">
+      <UniqueIdentifier>{deaf8853-789a-47dc-b077-f6b15197787c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Postprocess\AutoExposure">
+      <UniqueIdentifier>{3206a26f-0c80-497e-ac0c-594b654e0d0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Meshlets">
+      <UniqueIdentifier>{7c6f2ed7-1031-4d59-83ef-7d4c631af847}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -523,6 +526,9 @@
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\XeSSPass.cpp">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\AdvancedDepthOfFieldPass.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1161,6 +1167,9 @@
     <ClInclude Include="Rendering\XeSSPass.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\AdvancedDepthOfFieldPass.h">
+      <Filter>Rendering\Passes\Post Effects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1226,12 +1235,6 @@
     <None Include="Resources\Shaders\DDGI\DDGICommon.hlsli">
       <Filter>Shaders\DDGI</Filter>
     </None>
-    <None Include="Resources\Shaders\Exposure\ExposureUtil.hlsli">
-      <Filter>Shaders\Exposure</Filter>
-    </None>
-    <None Include="Resources\Shaders\GpuDrivenRendering\GpuDrivenRendering.hlsli">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </None>
     <None Include="Resources\Shaders\RayTracing\PathTracing.hlsli">
       <Filter>Shaders\RayTracing</Filter>
     </None>
@@ -1245,6 +1248,12 @@
     <None Include="Saved\Scenes\sponza.json" />
     <None Include="Saved\Ini\cvars.ini" />
     <None Include="..\README.md" />
+    <None Include="Resources\Shaders\Postprocess\AutoExposure\ExposureUtil.hlsli">
+      <Filter>Shaders\Postprocess\AutoExposure</Filter>
+    </None>
+    <None Include="Resources\Shaders\Meshlets\GpuDrivenRendering.hlsli">
+      <Filter>Shaders\Meshlets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
@@ -1258,30 +1267,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIVisualize.hlsl">
       <Filter>Shaders\DDGI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Exposure\BuildHistogram.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Exposure\Exposure.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Exposure\HistogramReduction.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\ClearCounters.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\CullInstances.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\CullMeshlets.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\DrawMeshlets.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\HZB.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Lighting\Ambient.hlsl">
       <Filter>Shaders\Lighting</Filter>
@@ -1450,6 +1435,33 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Other\RendererOutput.hlsl">
       <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\ComputeCoC.hlsl">
+      <Filter>Shaders\Postprocess\DepthOfField</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\BuildHistogram.hlsl">
+      <Filter>Shaders\Postprocess\AutoExposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\Exposure.hlsl">
+      <Filter>Shaders\Postprocess\AutoExposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\HistogramReduction.hlsl">
+      <Filter>Shaders\Postprocess\AutoExposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Meshlets\ClearCounters.hlsl">
+      <Filter>Shaders\Meshlets</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Meshlets\CullInstances.hlsl">
+      <Filter>Shaders\Meshlets</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Meshlets\CullMeshlets.hlsl">
+      <Filter>Shaders\Meshlets</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Meshlets\DrawMeshlets.hlsl">
+      <Filter>Shaders\Meshlets</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Meshlets\HZB.hlsl">
+      <Filter>Shaders\Meshlets</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

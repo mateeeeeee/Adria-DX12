@@ -102,6 +102,7 @@ namespace adria
 		CS_DDGIUpdateDistance,
 		VS_DDGIVisualize,
 		PS_DDGIVisualize,
+		CS_DepthOfField_ComputeCoC,
 		CS_VolumetricFog_LightInjection,
 		CS_VolumetricFog_ScatteringIntegration,
 		PS_VolumetricFog_CombineFog,

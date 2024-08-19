@@ -1,17 +1,19 @@
 #include "DepthOfFieldPassGroup.h"
 #include "SimpleDepthOfFieldPass.h"
+#include "AdvancedDepthOfFieldPass.h"
 #include "FFXDepthOfFieldPass.h"
 #include "Core/ConsoleManager.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
-	static TAutoConsoleVariable<int> DepthOfField("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - FFX");
+	static TAutoConsoleVariable<int> DepthOfField("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Simple, 2 - Advanced, 3 - FFX");
 
 	enum class DepthOfFieldType : uint8
 	{
 		None,
 		Simple,
+		Advanced,
 		FFX,
 		Count
 	};
@@ -28,6 +30,7 @@ namespace adria
 		post_effects.resize((uint32)Count);
 		post_effects[(uint32)None] = std::make_unique<EmptyPostEffect>();
 		post_effects[(uint32)Simple] = std::make_unique<SimpleDepthOfFieldPass>(gfx, width, height);
+		post_effects[(uint32)Advanced] = std::make_unique<AdvancedDepthOfFieldPass>(gfx, width, height);
 		post_effects[(uint32)FFX] = std::make_unique<FFXDepthOfFieldPass>(gfx, width, height);
 	}
 
@@ -38,7 +41,7 @@ namespace adria
 				if (ImGui::TreeNodeEx("Depth of Field", 0))
 				{
 					static int current_dof_type = (int)depth_of_field_type;
-					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0FFX\0", 3))
+					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0Advanced\0FFX\0", 4))
 					{
 						depth_of_field_type = static_cast<DepthOfFieldType>(current_dof_type);
 						DepthOfField->Set(current_dof_type);

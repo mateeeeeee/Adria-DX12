@@ -52,11 +52,11 @@ namespace adria
 			{
 				if (!builder.IsTextureDeclared(destination))
 				{
-					RGTextureDesc fxaa_input_desc{};
-					fxaa_input_desc.width = width;
-					fxaa_input_desc.height = height;
-					fxaa_input_desc.format = GfxFormat::R8G8B8A8_UNORM;
-					builder.DeclareTexture(destination, fxaa_input_desc);
+					RGTextureDesc destination_desc{};
+					destination_desc.width = width;
+					destination_desc.height = height;
+					destination_desc.format = GfxFormat::R8G8B8A8_UNORM;
+					builder.DeclareTexture(destination, destination_desc);
 				}
 				data.hdr_input = builder.ReadTexture(source, ReadAccess_NonPixelShader);
 

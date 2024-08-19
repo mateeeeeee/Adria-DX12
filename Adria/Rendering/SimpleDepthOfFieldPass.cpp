@@ -15,6 +15,8 @@ using namespace DirectX;
 namespace adria
 {
 	static TAutoConsoleVariable<bool> SimpleDepthOfField("r.SimpleDepthOfField", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<float> SimpleDepthOfFieldFocusDistance("r.SimpleDepthOfField.FocusDistance", 200.0f, "Focus Distance for Simple Depth of Field technique");
+	static TAutoConsoleVariable<float> SimpleDepthOfFieldFocusRadius("r.SimpleDepthOfField.FocusRadius", 25.0f, "Focus Radius for Simple Depth of Field technique");
 
 	SimpleDepthOfFieldPass::SimpleDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
 	{
@@ -26,7 +28,7 @@ namespace adria
 		blur_pass.AddPass(rg, postprocessor->GetFinalResource(), RG_NAME(BlurredDofInput), "Depth of Field Blur");
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.GetBlackboard().Create<DoFBlackboardData>(params.focus_distance, params.focus_radius);
+		rg.GetBlackboard().Create<DoFBlackboardData>(SimpleDepthOfFieldFocusDistance.Get(), SimpleDepthOfFieldFocusRadius.Get());
 
 		struct DepthOfFieldPassData
 		{
@@ -47,9 +49,9 @@ namespace adria
 
 				builder.DeclareTexture(RG_NAME(DepthOfFieldOutput), dof_output_desc);
 				data.output = builder.WriteTexture(RG_NAME(DepthOfFieldOutput));
-				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_PixelShader);
-				data.blurred_input = builder.ReadTexture(RG_NAME(BlurredDofInput), ReadAccess_PixelShader);
-				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.input = builder.ReadTexture(postprocessor->GetFinalResource(), ReadAccess_NonPixelShader);
+				data.blurred_input = builder.ReadTexture(RG_NAME(BlurredDofInput), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -77,7 +79,7 @@ namespace adria
 					uint32 output_idx;
 				} constants =
 				{
-					.dof_params = Vector2(params.focus_distance, params.focus_radius),
+					.dof_params = Vector2(SimpleDepthOfFieldFocusDistance.Get(), SimpleDepthOfFieldFocusRadius.Get()),
 					.depth_idx = i, .scene_idx = i + 1, .blurred_idx = i + 2, .output_idx = i + 3
 				};
 
@@ -110,13 +112,13 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				if (ImGui::TreeNodeEx("Simple Depth Of Field", 0))
+				if (ImGui::TreeNode("Simple Depth Of Field"))
 				{
 					ImGui::Checkbox("Enable", SimpleDepthOfField.GetPtr());
 					if (SimpleDepthOfField.Get())
 					{
-						ImGui::SliderFloat("Focus Distance", &params.focus_distance, 0.0f, 1000.0f);
-						ImGui::SliderFloat("Focus Radius", &params.focus_radius, 0.0f, 1000.0f);
+						ImGui::SliderFloat("Focus Distance", SimpleDepthOfFieldFocusDistance.GetPtr(), 0.0f, 1000.0f);
+						ImGui::SliderFloat("Focus Radius", SimpleDepthOfFieldFocusRadius.GetPtr(), 0.0f, 1000.0f);
 					}
 					ImGui::TreePop();
 					ImGui::Separator();
