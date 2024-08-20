@@ -144,10 +144,14 @@ namespace adria
 			random_texture_data.push_back(1.0f);
 		}
 
-		GfxTextureInitialData data{};
+		GfxTextureSubData data{};
 		data.data = random_texture_data.data();
 		data.row_pitch = 8 * 4 * sizeof(float);
 		data.slice_pitch = 0;
+
+		GfxTextureData init_data{};
+		init_data.sub_data = &data;
+		init_data.sub_count = 1;
 
 		GfxTextureDesc noise_desc{};
 		noise_desc.width = NOISE_DIM;
@@ -156,7 +160,7 @@ namespace adria
 		noise_desc.initial_state = GfxResourceState::PixelSRV;
 		noise_desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		ssao_random_texture = gfx->CreateTexture(noise_desc, &data);
+		ssao_random_texture = gfx->CreateTexture(noise_desc, init_data);
 		ssao_random_texture->SetName("SSAO Random Texture");
 		ssao_random_texture_srv = gfx->CreateTextureSRV(ssao_random_texture.get());
 	}

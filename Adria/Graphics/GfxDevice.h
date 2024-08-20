@@ -41,12 +41,13 @@ namespace adria
 	class GfxTexture;
 	struct GfxTextureDesc;
 	struct GfxTextureDescriptorDesc;
-	struct GfxTextureInitialData;
+	struct GfxTextureSubData;
+	struct GfxTextureData;
 
 	class GfxBuffer;
 	struct GfxBufferDesc;
 	struct GfxBufferDescriptorDesc;
-	struct GfxBufferInitialData;
+	struct GfxBufferData;
 
 	class GfxQueryHeap;
 	struct GfxQueryHeapDesc;
@@ -139,9 +140,9 @@ namespace adria
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
 
 		std::unique_ptr<GfxTexture> CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
-		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
-		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
-		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData const& initial_data);
+		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureData const& data);
+		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc);
+		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, GfxBufferData const& initial_data);
 		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc);
 
 		std::unique_ptr<GfxGraphicsPipelineState>		CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc);

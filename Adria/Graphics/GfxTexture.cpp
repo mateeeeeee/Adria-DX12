@@ -7,8 +7,7 @@
 
 namespace adria
 {
-
-	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/, uint32 subresource_count /*= -1*/) : gfx(gfx), desc(desc)
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureData const& data) : gfx(gfx), desc(desc)
 	{
 		HRESULT hr = E_FAIL;
 		D3D12MA::ALLOCATION_DESC allocation_desc{};
@@ -113,7 +112,7 @@ namespace adria
 		}
 
 		GfxResourceState initial_state = desc.initial_state;
-		if (initial_data != nullptr)
+		if (data.sub_data != nullptr)
 		{
 			initial_state = GfxResourceState::CopyDst;
 		}
@@ -188,18 +187,20 @@ namespace adria
 			const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32_t)log2(std::max<uint32>(desc.width, desc.height)) + 1;
 		}
 
-		auto upload_buffer = gfx->GetDynamicAllocator();
+		auto dynamic_allocator = gfx->GetDynamicAllocator();
 		auto cmd_list = gfx->GetCommandList();
-		if (initial_data != nullptr)
+		if (data.sub_data != nullptr)
 		{
+			uint32 subresource_count = data.sub_count;
+			if (subresource_count == uint32(-1)) subresource_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
 			uint64 required_size;
 			device->GetCopyableFootprints(&resource_desc, 0, (uint32)subresource_count, 0, nullptr, nullptr, nullptr, &required_size);
-			GfxDynamicAllocation dyn_alloc = upload_buffer->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+			GfxDynamicAllocation dyn_alloc = dynamic_allocator->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 			
 			std::vector<D3D12_SUBRESOURCE_DATA> subresource_data(subresource_count);
 			for (uint32 i = 0; i < subresource_count; ++i)
 			{
-				GfxTextureInitialData init_data = initial_data[i];
+				GfxTextureSubData init_data = data.sub_data[i];
 				subresource_data[i].pData = init_data.data;
 				subresource_data[i].RowPitch = init_data.row_pitch;
 				subresource_data[i].SlicePitch = init_data.slice_pitch;
@@ -218,10 +219,8 @@ namespace adria
 		: gfx(gfx), desc(desc), resource((ID3D12Resource*)backbuffer), is_backbuffer(true)
 	{}
 
-	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
-		: GfxTexture(gfx, desc, initial_data, desc.array_size* std::max<uint32>(1u, desc.mip_levels))
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc) : GfxTexture(gfx, desc, GfxTextureData{})
 	{
-
 	}
 
 	GfxTexture::~GfxTexture()

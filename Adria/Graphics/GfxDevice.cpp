@@ -653,15 +653,18 @@ namespace adria
 	{
 		return std::make_unique<GfxTexture>(this, desc, backbuffer);
 	}
-	std::unique_ptr<GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count)
+
+	std::unique_ptr<adria::GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureData const& data /*= {}*/)
 	{
-		return std::make_unique<GfxTexture>(this, desc, initial_data, subresource_count);
+		return std::make_unique<GfxTexture>(this, desc, data);
 	}
-	std::unique_ptr<GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
+
+	std::unique_ptr<adria::GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc)
 	{
-		return std::make_unique<GfxTexture>(this, desc, initial_data);
+		return std::make_unique<GfxTexture>(this, desc, GfxTextureData{});
 	}
-	std::unique_ptr<GfxBuffer>  GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData const& initial_data)
+
+	std::unique_ptr<GfxBuffer>  GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferData const& initial_data)
 	{
 		return std::make_unique<GfxBuffer>(this, desc, initial_data);
 	}

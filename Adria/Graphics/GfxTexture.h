@@ -94,18 +94,24 @@ namespace adria
 		std::strong_ordering operator<=>(GfxTextureDescriptorDesc const& other) const = default;
 	};
 
-	struct GfxTextureInitialData
+	struct GfxTextureSubData
 	{
 		void const* data;
 		uint64 row_pitch;
 		uint64 slice_pitch;
 	};
 
+	struct GfxTextureData
+	{
+		GfxTextureSubData* sub_data = nullptr;
+		uint32 sub_count = uint32(-1);
+	};
+
 	class GfxTexture
 	{
 	public:
-		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
-		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureData const& data);
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc);
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer); //constructor used by swapchain for creating backbuffer texture
 		ADRIA_NONCOPYABLE_NONMOVABLE(GfxTexture)
 		~GfxTexture();

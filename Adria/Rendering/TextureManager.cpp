@@ -50,20 +50,24 @@ namespace adria
 			desc.mip_levels = img.MipLevels();
             desc.misc_flags = img.IsCubemap() ? GfxTextureMiscFlag::TextureCube : GfxTextureMiscFlag::None;
 
-            std::vector<GfxTextureInitialData> tex_data;
+            std::vector<GfxTextureSubData> tex_data;
 			const Image* curr_img = &img;
 			while (curr_img)
 			{
 				for (uint32 i = 0; i < desc.mip_levels; ++i)
 				{
-                    GfxTextureInitialData& data = tex_data.emplace_back();
+                    GfxTextureSubData& data = tex_data.emplace_back();
 					data.data = curr_img->MipData(i);
 					data.row_pitch = GetRowPitch(curr_img->Format(), desc.width, i);
 					data.slice_pitch = GetSlicePitch(img.Format(), desc.width, desc.height, i);
 				}
                 curr_img = curr_img->NextImage();
 			}
-            std::unique_ptr<GfxTexture> tex = gfx->CreateTexture(desc, tex_data.data(), (uint32)tex_data.size());
+
+			GfxTextureData init_data{};
+			init_data.sub_data = tex_data.data();
+			init_data.sub_count = (uint32)tex_data.size();
+            std::unique_ptr<GfxTexture> tex = gfx->CreateTexture(desc, init_data);
 
             texture_map[handle] = std::move(tex);
 			CreateViewForTexture(handle);
@@ -83,11 +87,11 @@ namespace adria
 		desc.bind_flags = GfxBindFlag::ShaderResource;
 
 		std::vector<Image> images{};
-		std::vector<GfxTextureInitialData> subresources;
+		std::vector<GfxTextureSubData> subresources;
 		for (UINT i = 0; i < cubemap_textures.size(); ++i)
 		{
 			images.emplace_back(cubemap_textures[i]);
-			GfxTextureInitialData subresource_data{};
+			GfxTextureSubData subresource_data{};
 			subresource_data.data = images.back().Data<void>();
 			subresource_data.row_pitch = GetRowPitch(images.back().Format(), desc.width, 0);
 			subresources.push_back(subresource_data);
@@ -95,7 +99,11 @@ namespace adria
 		desc.width  = images[0].Width();
 		desc.height = images[0].Height();
 		desc.format = images[0].IsHDR() ? GfxFormat::R32G32B32A32_FLOAT : GfxFormat::R8G8B8A8_UNORM;
-		std::unique_ptr<GfxTexture> cubemap = gfx->CreateTexture(desc, subresources.data());
+
+		GfxTextureData init_data{};
+		init_data.sub_data = subresources.data();
+		std::unique_ptr<GfxTexture> cubemap = gfx->CreateTexture(desc, init_data);
+
 		texture_map.insert({ handle, std::move(cubemap) });
 		CreateViewForTexture(handle);
 		return handle;

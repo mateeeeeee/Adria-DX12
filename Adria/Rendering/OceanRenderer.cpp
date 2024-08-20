@@ -406,12 +406,16 @@ namespace adria
 		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float> };
 		for (uint64 i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
 
-		GfxTextureInitialData data{};
+		GfxTextureSubData data{};
 		data.data = ping_array.data();
 		data.row_pitch = sizeof(float) * FFT_RESOLUTION;
 		data.slice_pitch = 0;
 
-		ping_pong_phase_textures[pong_phase] = gfx->CreateTexture(ocean_texture_desc, &data);
+		GfxTextureData init_data{};
+		init_data.sub_data = &data;
+		init_data.sub_count = 1;
+
+		ping_pong_phase_textures[pong_phase] = gfx->CreateTexture(ocean_texture_desc, init_data);
 		ping_pong_phase_textures[!pong_phase] = gfx->CreateTexture(ocean_texture_desc);
 
 		ocean_texture_desc.format = GfxFormat::R32G32B32A32_FLOAT;

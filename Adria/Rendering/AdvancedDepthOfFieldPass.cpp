@@ -109,10 +109,14 @@ namespace adria
 	{
 		std::vector<Vector2> bokeh_kernel_data = GenerateKernel(SMALL_BOKEH_KERNEL_RING_COUNT, SMALL_BOKEH_KERNEL_RING_DENSITY);
 
-		GfxTextureInitialData data{};
+		GfxTextureSubData data{};
 		data.data = bokeh_kernel_data.data();
 		data.row_pitch = bokeh_kernel_data.size() * sizeof(float) * 2;
 		data.slice_pitch = 0;
+
+		GfxTextureData init_data{};
+		init_data.sub_data = &data;
+		init_data.sub_count = 1;
 
 		GfxTextureDesc kernel_desc{};
 		kernel_desc.width = (uint32)bokeh_kernel_data.size();
@@ -121,7 +125,7 @@ namespace adria
 		kernel_desc.initial_state = GfxResourceState::PixelSRV;
 		kernel_desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		bokeh_small_kernel = gfx->CreateTexture(kernel_desc, &data);
+		bokeh_small_kernel = gfx->CreateTexture(kernel_desc, init_data);
 		bokeh_small_kernel->SetName("Bokeh Small Kernel");
 	}
 
@@ -132,10 +136,14 @@ namespace adria
 
 		std::vector<Vector2> bokeh_kernel_data = GenerateKernel(ring_count, ring_density);
 
-		GfxTextureInitialData data{};
+		GfxTextureSubData data{};
 		data.data = bokeh_kernel_data.data();
 		data.row_pitch = bokeh_kernel_data.size() * sizeof(float) * 2;
 		data.slice_pitch = 0;
+
+		GfxTextureData init_data{};
+		init_data.sub_data = &data;
+		init_data.sub_count = 1;
 
 		GfxTextureDesc kernel_desc{};
 		kernel_desc.width = (uint32)bokeh_kernel_data.size();
@@ -144,7 +152,7 @@ namespace adria
 		kernel_desc.initial_state = GfxResourceState::PixelSRV;
 		kernel_desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		bokeh_large_kernel = gfx->CreateTexture(kernel_desc, &data);
+		bokeh_large_kernel = gfx->CreateTexture(kernel_desc, init_data);
 		bokeh_large_kernel->SetName("Bokeh Large Kernel");
 	}
 
