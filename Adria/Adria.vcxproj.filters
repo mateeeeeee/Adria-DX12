@@ -1158,6 +1158,7 @@
     <ClInclude Include="Rendering\DepthOfFieldPass.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxPipelineStatePermutationsFwd.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

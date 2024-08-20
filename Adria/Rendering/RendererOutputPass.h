@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 
 namespace adria
 {
@@ -24,6 +24,8 @@ namespace adria
 		static constexpr uint32 PERMUTATION_COUNT = (uint32)RendererOutput::Count;
 	public:
 		RendererOutputPass(GfxDevice* gfx, uint32 width, uint32 height);
+		~RendererOutputPass();
+
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;
@@ -32,9 +34,9 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		GfxComputePipelineStatePermutations<PERMUTATION_COUNT> renderer_output_psos;
 		uint32 width;
 		uint32 height;
+		std::unique_ptr<GfxComputePipelineStatePermutations> renderer_output_psos;
 
 	private:
 		void CreatePSOs();

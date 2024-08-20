@@ -6,6 +6,7 @@
 #include "ShaderManager.h"
 #include "PostProcessor.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Core/ConsoleManager.h"
 #include "Editor/GUICommand.h"
@@ -21,6 +22,7 @@ namespace adria
 	{
 		CreatePSOs();
 	}
+	BloomPass::~BloomPass() = default;
 
 	void BloomPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
@@ -79,9 +81,9 @@ namespace adria
 	{
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_BloomDownsample;
-		downsample_psos.Initialize(compute_pso_desc);
-		downsample_psos.AddDefine<1>("FIRST_PASS", "1");
-		downsample_psos.Finalize(gfx);
+		downsample_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
+		downsample_psos->AddDefine<1>("FIRST_PASS", "1");
+		downsample_psos->Finalize(gfx);
 
 		compute_pso_desc.CS = CS_BloomUpsample;
 		upsample_pso = gfx->CreateComputePipelineState(compute_pso_desc);
@@ -140,7 +142,7 @@ namespace adria
 					.source_idx = i,
 					.target_idx = i + 1
 				};
-				GfxPipelineState* pso = pass_idx == 1 ? downsample_psos.Get<1>() : downsample_psos.Get<0>();
+				GfxPipelineState* pso = pass_idx == 1 ? downsample_psos->Get<1>() : downsample_psos->Get<0>();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);

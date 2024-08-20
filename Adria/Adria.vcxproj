@@ -128,7 +128,7 @@
       <PrecompiledHeaderFile>precomp.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>precomp.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,7 +155,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>precomp.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>precomp.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
@@ -386,6 +386,7 @@
     <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="Graphics\GfxOptions.h" />
     <ClInclude Include="Graphics\GfxPipelineStatePermutations.h" />
+    <ClInclude Include="Graphics\GfxPipelineStatePermutationsFwd.h" />
     <ClInclude Include="Graphics\GfxQueryHeap.h" />
     <ClInclude Include="Graphics\GfxRayTracingAS.h" />
     <ClInclude Include="Graphics\GfxReflection.h" />

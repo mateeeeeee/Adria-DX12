@@ -3,7 +3,7 @@
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxDefines.h"
 #include "Graphics/GfxDescriptor.h"
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 #include "Utilities/Delegate.h"
 
 namespace adria
@@ -54,7 +54,7 @@ namespace adria
 		uint32 width;
 		uint32 height;
 		RayTracedShadowsPass ray_traced_shadows_pass;
-		GfxGraphicsPipelineStatePermutations<2> shadow_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> shadow_psos;
 
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];

@@ -1,6 +1,6 @@
 #pragma once
 #include "PostEffect.h"
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 
 namespace adria
 {
@@ -49,6 +49,7 @@ namespace adria
 
 	public:
 		VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h);
+		~VolumetricCloudsPass();
 
 		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
@@ -71,7 +72,7 @@ namespace adria
 		CloudResolution resolution = CloudResolution_Full;
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
-		GfxComputePipelineStatePermutations<2> clouds_psos;
+		std::unique_ptr<GfxComputePipelineStatePermutations> clouds_psos;
 		std::unique_ptr<GfxComputePipelineState> clouds_type_pso;
 		std::unique_ptr<GfxComputePipelineState> clouds_shape_pso;
 		std::unique_ptr<GfxComputePipelineState> clouds_detail_pso;

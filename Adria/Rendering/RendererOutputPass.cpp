@@ -3,6 +3,7 @@
 #include "ShaderManager.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommon.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -12,6 +13,8 @@ namespace adria
 	{
 		CreatePSOs();
 	}
+
+	RendererOutputPass::~RendererOutputPass() {}
 
 	void RendererOutputPass::AddPass(RenderGraph& rg, RendererOutput type)
 	{
@@ -72,7 +75,7 @@ namespace adria
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4, .output_idx = i + 5
 				};
 
-				cmd_list->SetPipelineState(renderer_output_psos[(uint32)type]);
+				cmd_list->SetPipelineState(renderer_output_psos->Get((uint32)type));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -84,15 +87,15 @@ namespace adria
 		using enum RendererOutput;
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_RendererOutput;
-		renderer_output_psos.Initialize(compute_pso_desc);
-		renderer_output_psos.AddDefine<(uint32)Diffuse>("OUTPUT_DIFFUSE", "1");
-		renderer_output_psos.AddDefine<(uint32)WorldNormal>("OUTPUT_NORMALS", "1");
-		renderer_output_psos.AddDefine<(uint32)Roughness>("OUTPUT_ROUGHNESS", "1");
-		renderer_output_psos.AddDefine<(uint32)Metallic>("OUTPUT_METALLIC", "1");
-		renderer_output_psos.AddDefine<(uint32)Emissive>("OUTPUT_EMISSIVE", "1");
-		renderer_output_psos.AddDefine<(uint32)AmbientOcclusion>("OUTPUT_AO", "1");
-		renderer_output_psos.AddDefine<(uint32)IndirectLighting>("OUTPUT_INDIRECT", "1");
-		renderer_output_psos.Finalize(gfx);
+		renderer_output_psos = std::make_unique<GfxComputePipelineStatePermutations>(PERMUTATION_COUNT, compute_pso_desc);
+		renderer_output_psos->AddDefine<(uint32)Diffuse>("OUTPUT_DIFFUSE", "1");
+		renderer_output_psos->AddDefine<(uint32)WorldNormal>("OUTPUT_NORMALS", "1");
+		renderer_output_psos->AddDefine<(uint32)Roughness>("OUTPUT_ROUGHNESS", "1");
+		renderer_output_psos->AddDefine<(uint32)Metallic>("OUTPUT_METALLIC", "1");
+		renderer_output_psos->AddDefine<(uint32)Emissive>("OUTPUT_EMISSIVE", "1");
+		renderer_output_psos->AddDefine<(uint32)AmbientOcclusion>("OUTPUT_AO", "1");
+		renderer_output_psos->AddDefine<(uint32)IndirectLighting>("OUTPUT_INDIRECT", "1");
+		renderer_output_psos->Finalize(gfx);
 	}
 
 }

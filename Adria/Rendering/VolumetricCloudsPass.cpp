@@ -8,6 +8,7 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
@@ -25,6 +26,8 @@ namespace adria
 	{
 		CreatePSOs();
 	}
+
+	VolumetricCloudsPass::~VolumetricCloudsPass() = default;
 
 	bool VolumetricCloudsPass::IsEnabled(PostProcessor const*) const
 	{
@@ -273,7 +276,7 @@ namespace adria
 					.resolution_factor = (uint32)resolution
 				};
 
-				GfxPipelineState* clouds_pso = temporal_reprojection ? clouds_psos.Get<1>() : clouds_psos.Get<0>();
+				GfxPipelineState* clouds_pso = temporal_reprojection ? clouds_psos->Get<1>() : clouds_psos->Get<0>();
 				cmd_list->SetPipelineState(clouds_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
@@ -428,20 +431,20 @@ namespace adria
 
 	void VolumetricCloudsPass::CreatePSOs()
 	{
-		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_Clouds;
-		clouds_psos.Initialize(compute_pso_desc);
-		clouds_psos.AddDefine<1>("REPROJECTION", "1");
-		clouds_psos.Finalize(gfx);
+		GfxComputePipelineStateDesc clouds_pso_desc{};
+		clouds_pso_desc.CS = CS_Clouds;
+		clouds_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, clouds_pso_desc);
+		clouds_psos->AddDefine<1>("REPROJECTION", "1");
+		clouds_psos->Finalize(gfx);
 
-		compute_pso_desc.CS = CS_CloudType;
-		clouds_type_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+		clouds_pso_desc.CS = CS_CloudType;
+		clouds_type_pso = gfx->CreateComputePipelineState(clouds_pso_desc);
 
-		compute_pso_desc.CS = CS_CloudShape;
-		clouds_shape_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+		clouds_pso_desc.CS = CS_CloudShape;
+		clouds_shape_pso = gfx->CreateComputePipelineState(clouds_pso_desc);
 
-		compute_pso_desc.CS = CS_CloudDetail;
-		clouds_detail_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+		clouds_pso_desc.CS = CS_CloudDetail;
+		clouds_detail_pso = gfx->CreateComputePipelineState(clouds_pso_desc);
 
 
 		GfxGraphicsPipelineStateDesc gfx_pso_desc{};

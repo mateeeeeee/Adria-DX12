@@ -1,9 +1,10 @@
 #pragma once
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 
 namespace adria
 {
+	class GfxDevice;
 	class RenderGraph;
 
 	enum class BlendMode : uint8
@@ -17,6 +18,7 @@ namespace adria
 	{
 	public:
 		CopyToTexturePass(GfxDevice* gfx, uint32 w, uint32 h);
+		~CopyToTexturePass();
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName texture_dst,
@@ -28,7 +30,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		GfxGraphicsPipelineStatePermutations<3> copy_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> copy_psos;
 
 	private:
 		void CreatePSOs();
@@ -38,6 +40,7 @@ namespace adria
 	{
 	public:
 		AddTexturesPass(GfxDevice* gfx, uint32 w, uint32 h);
+		~AddTexturesPass();
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName texture_dst,
@@ -49,7 +52,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		GfxGraphicsPipelineStatePermutations<3> add_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> add_psos;
 
 	private:
 		void CreatePSOs();

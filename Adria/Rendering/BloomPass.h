@@ -1,6 +1,6 @@
 #pragma once
 #include "PostEffect.h"
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 
 namespace adria
 {
@@ -11,6 +11,7 @@ namespace adria
 	{
 	public:
 		BloomPass(GfxDevice* gfx, uint32 w, uint32 h);
+		~BloomPass();
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void OnResize(uint32, uint32) override;
@@ -20,7 +21,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		GfxComputePipelineStatePermutations<2> downsample_psos;
+		std::unique_ptr<GfxComputePipelineStatePermutations> downsample_psos;
 		std::unique_ptr<GfxComputePipelineState> upsample_pso;
 
 	private:

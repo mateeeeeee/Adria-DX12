@@ -1,6 +1,6 @@
 #pragma once
 #include "TextureHandle.h"
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
 
@@ -19,6 +19,7 @@ namespace adria
 
 	public:
 		OceanRenderer(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		~OceanRenderer();
 
 		void AddPasses(RenderGraph& rendergraph);
 		void GUI();
@@ -37,8 +38,8 @@ namespace adria
 		std::unique_ptr<GfxTexture> ping_pong_spectrum_textures[2];
 		bool pong_spectrum = false;
 
-		GfxGraphicsPipelineStatePermutations<2> ocean_psos;
-		GfxGraphicsPipelineStatePermutations<2> ocean_lod_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> ocean_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> ocean_lod_psos;
 		std::unique_ptr<GfxComputePipelineState> fft_horizontal_pso;
 		std::unique_ptr<GfxComputePipelineState> fft_vertical_pso;
 		std::unique_ptr<GfxComputePipelineState> initial_spectrum_pso;

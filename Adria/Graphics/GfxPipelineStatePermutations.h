@@ -27,57 +27,50 @@ namespace adria
 	};
 
 	template<typename PSO>
-	struct IsGraphicsPipelineStateUtil
+	struct IsGraphicsPipelineState
 	{
 		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Graphics;
 	};
 	template<typename PSO>
-	constexpr bool IsGraphicsPipelineState = IsGraphicsPipelineStateUtil<PSO>::value;
+	constexpr bool IsGraphicsPipelineStateV = IsGraphicsPipelineState<PSO>::value;
 
 	template<typename PSO>
-	struct IsComputePipelineStateUtil
+	struct IsComputePipelineState
 	{
 		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Compute;
 	};
 	template<typename PSO>
-	constexpr bool IsComputePipelineState = IsComputePipelineStateUtil<PSO>::value;
+	constexpr bool IsComputePipelineStateV = IsComputePipelineState<PSO>::value;
 
 	template<typename PSO>
-	struct IsMeshShaderPipelineStateUtil
+	struct IsMeshShaderPipelineState
 	{
 		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::MeshShader;
 	};
 	template<typename PSO>
-	constexpr bool IsMeshShaderPipelineState = IsMeshShaderPipelineStateUtil<PSO>::value;
+	constexpr bool IsMeshShaderPipelineStateV = IsMeshShaderPipelineState<PSO>::value;
 
-	template<typename PSO, uint32 N>
+	template<typename PSO>
 	class GfxPipelineStatePermutations
 	{
 		using PSODesc = PSOTraits<PSO>::PSODescType;
-		static constexpr GfxPipelineStateType pso_type = PSOTraits<PSO>::PipelineStateType;
+		static constexpr GfxPipelineStateType PSOType = PSOTraits<PSO>::PipelineStateType;
 
 	public:
-		GfxPipelineStatePermutations() = default;
-		~GfxPipelineStatePermutations() = default;
-
-		void Initialize(PSODesc const& desc)
+		GfxPipelineStatePermutations(uint32 size, PSODesc const& desc)
 		{
+			pso_permutations.resize(size);
+			pso_descs.resize(size);
 			for (auto& pso_desc : pso_descs) pso_desc = desc;
 		}
-		void Destroy()
-		{
-			for (uint32 i = 0; i < N; ++i)
-			{
-				if(pso_permutations[i]) pso_permutations[i].reset(nullptr);
-			}
-		}
+		~GfxPipelineStatePermutations() = default;
 
 		template<uint32 P>
 		void AddDefine(char const* name, char const* value)
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
-			if constexpr (pso_type == GfxPipelineStateType::Graphics)
+			if constexpr (PSOType == GfxPipelineStateType::Graphics)
 			{
 				desc.VS.AddDefine(name, value);
 				desc.PS.AddDefine(name, value);
@@ -85,11 +78,11 @@ namespace adria
 				desc.HS.AddDefine(name, value);
 				desc.GS.AddDefine(name, value);
 			}
-			else if constexpr (pso_type == GfxPipelineStateType::Compute)
+			else if constexpr (PSOType == GfxPipelineStateType::Compute)
 			{
 				desc.CS.AddDefine(name, value);
 			}
-			else if constexpr (pso_type == GfxPipelineStateType::MeshShader)
+			else if constexpr (PSOType == GfxPipelineStateType::MeshShader)
 			{
 				desc.MS.AddDefine(name, value);
 				desc.AS.AddDefine(name, value);
@@ -105,21 +98,21 @@ namespace adria
 		template<GfxShaderStage stage, uint32 P>
 		void AddDefine(char const* name, char const* value)
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
-			if constexpr (pso_type == GfxPipelineStateType::Graphics)
+			if constexpr (PSOType == GfxPipelineStateType::Graphics)
 			{
-				if(stage == GfxShaderStage::VS) desc.VS.AddDefine(name, value);
-				if(stage == GfxShaderStage::PS) desc.PS.AddDefine(name, value);
-				if(stage == GfxShaderStage::DS) desc.DS.AddDefine(name, value);
-				if(stage == GfxShaderStage::HS) desc.HS.AddDefine(name, value);
-				if(stage == GfxShaderStage::GS) desc.GS.AddDefine(name, value);
+				if (stage == GfxShaderStage::VS) desc.VS.AddDefine(name, value);
+				if (stage == GfxShaderStage::PS) desc.PS.AddDefine(name, value);
+				if (stage == GfxShaderStage::DS) desc.DS.AddDefine(name, value);
+				if (stage == GfxShaderStage::HS) desc.HS.AddDefine(name, value);
+				if (stage == GfxShaderStage::GS) desc.GS.AddDefine(name, value);
 			}
-			else if constexpr (pso_type == GfxPipelineStateType::Compute)
+			else if constexpr (PSOType == GfxPipelineStateType::Compute)
 			{
 				if (stage == GfxShaderStage::CS) desc.CS.AddDefine(name, value);
 			}
-			else if constexpr (pso_type == GfxPipelineStateType::MeshShader)
+			else if constexpr (PSOType == GfxPipelineStateType::MeshShader)
 			{
 				if (stage == GfxShaderStage::MS) desc.MS.AddDefine(name, value);
 				if (stage == GfxShaderStage::AS) desc.AS.AddDefine(name, value);
@@ -132,26 +125,26 @@ namespace adria
 			AddDefine<stage, P>(name, "");
 		}
 
-		template<uint32 P> requires !IsComputePipelineState<PSO>
+		template<uint32 P> requires !IsComputePipelineStateV<PSO>
 		void SetCullMode(GfxCullMode cull_mode)
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
 			desc.rasterizer_state.cull_mode = cull_mode;
 		}
 
-		template<uint32 P> requires !IsComputePipelineState<PSO>
+		template<uint32 P> requires !IsComputePipelineStateV<PSO>
 		void SetFillMode(GfxFillMode fill_mode)
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
 			desc.rasterizer_state.fill_mode = fill_mode;
 		}
 
-		template<uint32 P> requires !IsComputePipelineState<PSO>
+		template<uint32 P> requires !IsComputePipelineStateV<PSO>
 		void SetTopologyType(GfxPrimitiveTopologyType topology_type)
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
 			desc.topology_type = topology_type;
 		}
@@ -159,37 +152,38 @@ namespace adria
 		template<uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>
 		void ModifyDesc(F&& f)
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
 			f(desc);
 		}
 
 		void Finalize(GfxDevice* gfx)
 		{
-			for (uint32 i = 0; i < N; ++i)
+			for (uint32 i = 0; i < pso_permutations.size(); ++i)
 			{
 				pso_permutations[i] = std::make_unique<PSO>(gfx, pso_descs[i]);
 			}
+			pso_descs.clear();
 		}
 
 		template<uint32 P>
 		PSO* Get() const
 		{
-			static_assert(P < N);
+			ADRIA_ASSERT(P < pso_permutations.size());
 			return pso_permutations[P].get();
 		}
-
-		PSO* operator[](uint32 i) const
+		PSO* Get(uint32 p) const
 		{
-			return pso_permutations[i].get();
+			ADRIA_ASSERT(p < pso_permutations.size());
+			return pso_permutations[p].get();
 		}
 
 	private:
-		std::unique_ptr<PSO> pso_permutations[N];
-		PSODesc pso_descs[N];
+		std::vector<std::unique_ptr<PSO>> pso_permutations;
+		std::vector<PSODesc> pso_descs;
 	};
 
-	template<uint32 N> using GfxGraphicsPipelineStatePermutations		= GfxPipelineStatePermutations<GfxGraphicsPipelineState, N>;
-	template<uint32 N> using GfxComputePipelineStatePermutations		= GfxPipelineStatePermutations<GfxComputePipelineState, N>;
-	template<uint32 N> using GfxMeshShaderPipelineStatePermutations		= GfxPipelineStatePermutations<GfxMeshShaderPipelineState, N>;
+	using GfxGraphicsPipelineStatePermutations	 = GfxPipelineStatePermutations<GfxGraphicsPipelineState>;
+	using GfxComputePipelineStatePermutations	 = GfxPipelineStatePermutations<GfxComputePipelineState>;
+	using GfxMeshShaderPipelineStatePermutations = GfxPipelineStatePermutations<GfxMeshShaderPipelineState>;
 }

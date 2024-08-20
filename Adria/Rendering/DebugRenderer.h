@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 #include "Utilities/Singleton.h"
 
 using namespace DirectX;
@@ -82,11 +82,11 @@ namespace adria
 		std::vector<DebugLine> transient_lines, persistent_lines;
 		std::vector<DebugTriangle> transient_triangles, persistent_triangles;
 		uint32 width = 0, height = 0;
-		GfxGraphicsPipelineStatePermutations<2> debug_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> debug_psos;
 
 	private:
-		DebugRenderer() = default;
-		~DebugRenderer() = default;
+		DebugRenderer();
+		~DebugRenderer();
 
 		void CreatePSOs();
 	};

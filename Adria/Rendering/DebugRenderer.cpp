@@ -3,6 +3,7 @@
 #include "ShaderManager.h"
 #include "Graphics/GfxDynamicAllocation.h"
 #include "Graphics/GfxReflection.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Packing.h"
 #include "Math/Constants.h"
@@ -39,7 +40,6 @@ namespace adria
 
 	void DebugRenderer::Destroy()
 	{
-		debug_psos.Destroy();
 		transient_lines.clear();
 		transient_triangles.clear();
 		width = 0, height = 0;
@@ -91,7 +91,7 @@ namespace adria
 
 					GfxVertexBufferView vbv[] = { GfxVertexBufferView(vb_alloc.gpu_address, vb_count, vb_stride) };
 
-					cmd_list->SetPipelineState(debug_psos.Get<0>());
+					cmd_list->SetPipelineState(debug_psos->Get<0>());
 					cmd_list->SetVertexBuffers(vbv);
 					cmd_list->SetTopology(GfxPrimitiveTopology::LineList);
 					cmd_list->Draw(vb_count);
@@ -109,7 +109,7 @@ namespace adria
 
 					GfxVertexBufferView vbv[] = { GfxVertexBufferView(vb_alloc.gpu_address, vb_count, vb_stride) };
 
-					cmd_list->SetPipelineState(debug_psos.Get<1>());
+					cmd_list->SetPipelineState(debug_psos->Get<1>());
 					cmd_list->SetVertexBuffers(vbv);
 					cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 					cmd_list->Draw(vb_count);
@@ -333,11 +333,13 @@ namespace adria
 		gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
 		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
 
-		debug_psos.Initialize(gfx_pso_desc);
-		debug_psos.SetTopologyType<1>(GfxPrimitiveTopologyType::Triangle);
-		debug_psos.SetFillMode<1>(GfxFillMode::Solid);
-		debug_psos.Finalize(gfx);
+		debug_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, gfx_pso_desc);
+		debug_psos->SetTopologyType<1>(GfxPrimitiveTopologyType::Triangle);
+		debug_psos->SetFillMode<1>(GfxFillMode::Solid);
+		debug_psos->Finalize(gfx);
 	}
 
+	DebugRenderer::DebugRenderer() = default;
+	DebugRenderer::~DebugRenderer() = default;
 }
 

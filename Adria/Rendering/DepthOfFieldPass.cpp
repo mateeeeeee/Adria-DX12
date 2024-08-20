@@ -5,7 +5,7 @@
 #include "ShaderManager.h" 
 #include "PostProcessor.h" 
 #include "Graphics/GfxDevice.h"
-#include "Graphics/GfxPipelineState.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Constants.h"
 #include "Editor/GUICommand.h"
@@ -53,6 +53,7 @@ namespace adria
 	{
 		CreatePSOs();
 	}
+	DepthOfFieldPass::~DepthOfFieldPass() = default;
 
 	void DepthOfFieldPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
@@ -105,9 +106,9 @@ namespace adria
 		compute_prefiltered_texture_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		compute_pso_desc.CS = CS_DepthOfField_BokehFirstPass;
-		bokeh_first_pass_psos.Initialize(compute_pso_desc);
-		bokeh_first_pass_psos.AddDefine<1>("KARIS_INVERSE", "1");
-		bokeh_first_pass_psos.Finalize(gfx);
+		bokeh_first_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
+		bokeh_first_pass_psos->AddDefine<1>("KARIS_INVERSE", "1");
+		bokeh_first_pass_psos->Finalize(gfx);
 	}
 
 	void DepthOfFieldPass::CreateSmallBokehKernel()

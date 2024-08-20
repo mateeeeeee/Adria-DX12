@@ -7,6 +7,7 @@
 #include "Core/Paths.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxCommon.h"
 #include "Editor/GUICommand.h"
@@ -24,6 +25,8 @@ namespace adria
 	{
 		CreatePSOs();
 	}
+
+	OceanRenderer::~OceanRenderer() = default;
 
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
@@ -316,14 +319,14 @@ namespace adria
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(
-						ocean_wireframe ? ocean_lod_psos.Get<1>() :
-										  ocean_lod_psos.Get<0>());
+						ocean_wireframe ? ocean_lod_psos->Get<1>() :
+										  ocean_lod_psos->Get<0>());
 				}
 				else
 				{
 					cmd_list->SetPipelineState(
-						ocean_wireframe ? ocean_psos.Get<1>() :
-										  ocean_psos.Get<0>());
+						ocean_wireframe ? ocean_psos->Get<1>() :
+										  ocean_psos->Get<0>());
 				}
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
@@ -438,17 +441,17 @@ namespace adria
 		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 
-		ocean_psos.Initialize(gfx_pso_desc);
-		ocean_psos.SetFillMode<1>(GfxFillMode::Wireframe);
-		ocean_psos.Finalize(gfx);
+		ocean_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, gfx_pso_desc);
+		ocean_psos->SetFillMode<1>(GfxFillMode::Wireframe);
+		ocean_psos->Finalize(gfx);
 
 		gfx_pso_desc.VS = VS_OceanLOD;
 		gfx_pso_desc.DS = DS_OceanLOD;
 		gfx_pso_desc.HS = HS_OceanLOD;
 		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Patch;
-		ocean_lod_psos.Initialize(gfx_pso_desc);
-		ocean_lod_psos.SetFillMode<1>(GfxFillMode::Wireframe);
-		ocean_lod_psos.Finalize(gfx);
+		ocean_lod_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, gfx_pso_desc);
+		ocean_lod_psos->SetFillMode<1>(GfxFillMode::Wireframe);
+		ocean_lod_psos->Finalize(gfx);
 
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_FFT_Horizontal;

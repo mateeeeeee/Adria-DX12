@@ -21,6 +21,7 @@
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
@@ -52,7 +53,7 @@ namespace adria
 		}
 	}
 
-	PostProcessor::~PostProcessor() {}
+	PostProcessor::~PostProcessor() = default;
 
 	void PostProcessor::OnRainEvent(bool enabled)
 	{

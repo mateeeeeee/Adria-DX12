@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/GfxPipelineStatePermutations.h"
+#include "Graphics/GfxPipelineStatePermutationsFwd.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
 
@@ -12,6 +12,7 @@ namespace adria
 	{
 	public:
 		GBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		~GBufferPass();
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
@@ -26,7 +27,7 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		bool use_rain_pso = false;
-		GfxGraphicsPipelineStatePermutations<5> gbuffer_psos;
+		std::unique_ptr<GfxGraphicsPipelineStatePermutations> gbuffer_psos;
 
 	private:
 		void CreatePSOs();
