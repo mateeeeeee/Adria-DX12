@@ -1466,5 +1466,8 @@
     <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\DepthOfField.hlsl">
       <Filter>Shaders\Postprocess\DepthOfField</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\Bokeh.hlsl">
+      <Filter>Shaders\Postprocess\DepthOfField</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

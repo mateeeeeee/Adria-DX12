@@ -4,12 +4,6 @@
 
 #define BLOCK_SIZE 16
 
-
-float ComputeSDRWeight(float3 Color)
-{
-    return 1.0 / (1.0 + Luminance(Color));
-}
-
 struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
@@ -28,6 +22,12 @@ struct ComputePrefilteredTextureConstants
 };
 
 ConstantBuffer<ComputePrefilteredTextureConstants>ComputePrefilteredTexturePassCB : register(b1);
+
+
+float ComputeSDRWeight(float3 Color)
+{
+    return 1.0 / (1.0 + Luminance(Color));
+}
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ComputePrefilteredTextureCS(CSInput input)
