@@ -132,4 +132,11 @@ float3 GetWorldPosition(uint2 screenPos, float depth)
     return GetWorldPosition(screenUV, depth);
 }
 
+float GetCameraAspectRatio()
+{
+    float fx = FrameCB.projection._11; 
+    float fy = FrameCB.projection._22; 
+    return fx / fy;
+}
+
 #endif

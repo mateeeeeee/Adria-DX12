@@ -13,16 +13,21 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Advanced Depth of Field effect");
+	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
 	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
 	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
 	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
 
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_COUNT   = 3;
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_DENSITY = 5;
+
+	static uint32 GetSampleCount(uint32 ring_count, uint32 ring_density)
+	{
+		return 1 + ring_density * (ring_count - 1) * ring_count / 2;
+	}
 	static std::vector<Vector2> GenerateKernel(uint32 ring_count, uint32 ring_density)
 	{
-		uint32 sample_count = 1 + ring_density * (ring_count - 1) * ring_count / 2;
+		uint32 sample_count = GetSampleCount(ring_count, ring_density);
 		std::vector<Vector2> kernel_data{};
 		kernel_data.reserve(sample_count);
 
@@ -359,7 +364,6 @@ namespace adria
 
 	void DepthOfFieldPass::AddBokehFirstPass(RenderGraph& rg, RGResourceName color_texture)
 	{
-		/*
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_NAME(BokehLargeKernel), bokeh_large_kernel.get());
 
@@ -385,7 +389,7 @@ namespace adria
 
 				data.output0 = builder.WriteTexture(RG_NAME(BokehTexture0));
 				data.output1 = builder.WriteTexture(RG_NAME(BokehTexture1));
-				data.kernel = builder.ReadTexture(RG_NAME(BokehKernel));
+				data.kernel = builder.ReadTexture(RG_NAME(BokehLargeKernel));
 				data.color = builder.ReadTexture(color_texture);
 				data.coc_near = builder.ReadTexture(RG_NAME(NearCoC));
 				data.coc_far = builder.ReadTexture(RG_NAME(FarCoC));
@@ -399,6 +403,11 @@ namespace adria
 				GfxDescriptor src_descriptors[] =
 				{
 					ctx.GetReadOnlyTexture(data.color),
+					ctx.GetReadOnlyTexture(data.kernel),
+					ctx.GetReadOnlyTexture(data.coc_near),
+					ctx.GetReadOnlyTexture(data.coc_far),
+					ctx.GetReadWriteTexture(data.output0),
+					ctx.GetReadWriteTexture(data.output1)
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
@@ -406,15 +415,29 @@ namespace adria
 
 				struct BokehFirstPassConstants
 				{
-
+					uint32 color_idx;
+					uint32 kernel_idx;
+					uint32 coc_near_idx;
+					uint32 coc_far_idx;
+					uint32 output0_idx;
+					uint32 output1_idx;
+					uint32 sample_count;
+					float  max_coc;
 				} constants =
 				{
-					
+					.color_idx = i,
+					.kernel_idx = i + 1,
+					.coc_near_idx = i + 2,
+					.coc_far_idx = i + 3,
+					.output0_idx = i + 4,			
+					.output1_idx = i + 5,
+					.sample_count = GetSampleCount(BokehKernelRingCount.Get(), BokehKernelRingDensity.Get()),
+					.max_coc = MaxCircleOfConfusion.Get()
 				};
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
-			}, RGPassType::Compute, RGPassFlags::None);*/
+				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
 	void DepthOfFieldPass::AddBokehSecondPass(RenderGraph& rg)

@@ -21,7 +21,7 @@ struct ComputePrefilteredTextureConstants
 	uint backgroundOutputIdx;
 };
 
-ConstantBuffer<ComputePrefilteredTextureConstants>ComputePrefilteredTexturePassCB : register(b1);
+ConstantBuffer<ComputePrefilteredTextureConstants> ComputePrefilteredTexturePassCB : register(b1);
 
 
 float ComputeSDRWeight(float3 Color)
@@ -39,27 +39,27 @@ void ComputePrefilteredTextureCS(CSInput input)
 	RWTexture2D<float4> backgroundOutputTexture = ResourceDescriptorHeap[ComputePrefilteredTexturePassCB.backgroundOutputIdx];
 
 	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution / 2);
-    int2 Position = int2(input.DispatchThreadId.xy);
+    int2 position = int2(input.DispatchThreadId.xy);
 
     float CoCMin = +FLT_MAX;
     float CoCMax = -FLT_MAX;
 
-	float4 ColorSum = float4(0.0, 0.0, 0.0, 0.0);
-    for (int SampleIdx = 0; SampleIdx < 4; ++SampleIdx)
+	float4 colorSum = float4(0.0, 0.0, 0.0, 0.0);
+    for (int sampleIdx = 0; sampleIdx < 4; ++sampleIdx)
     {
-        int2 Location = 2 * Position + int2(SampleIdx & 0x01, SampleIdx >> 1);
-        float4 Color = colorTexture.Load(int3(Location, 0));
-        float CoC    = cocTexture.Load(int3(Location, 0));
-        float Weight = ComputeSDRWeight(Color.rgb);
+        int2  location = 2 * position + int2(sampleIdx & 0x01, sampleIdx >> 1);
+        float4 color = colorTexture.Load(int3(location, 0));
+        float CoC    = cocTexture.Load(int3(location, 0));
+        float weight = ComputeSDRWeight(color.rgb);
        
         CoCMin = min(CoCMin, CoC);
         CoCMax = max(CoCMax, CoC);
-        ColorSum += Color * Weight;
+        colorSum += color * weight;
     }
 
-    float ForegroundAlpha = cocDilationTexture.SampleLevel(LinearClampSampler, uv, 0.0);
-    float BackgroundAlpha = abs(CoCMax) * float(CoCMax > 0.0);
+    float foregroundAlpha = cocDilationTexture.SampleLevel(LinearClampSampler, uv, 0.0);
+    float backgroundAlpha = abs(CoCMax) * float(CoCMax > 0.0);
 
-	foregroundOutputTexture[input.DispatchThreadId.xy] = float4(ColorSum.xyz / max(ColorSum.w, 1.e-5), ForegroundAlpha);
-	backgroundOutputTexture[input.DispatchThreadId.xy] = float4(ColorSum.xyz / max(ColorSum.w, 1.e-5), BackgroundAlpha);
+	foregroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz / max(colorSum.w, 1.e-5), foregroundAlpha);
+	backgroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz / max(colorSum.w, 1.e-5), backgroundAlpha);
 }

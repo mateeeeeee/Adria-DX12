@@ -65,40 +65,40 @@ void DownsampleCircleOfConfusionCS(CSInput input)
 	Texture2D<float> cocMipTexture = ResourceDescriptorHeap[DownsampleCoCPassCB.inputIdx];
 	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[DownsampleCoCPassCB.outputIdx];
 
-	int3 LastMipDimension;
-	cocMipTexture.GetDimensions(LastMipDimension.x, LastMipDimension.y);
+	int3 lastMipDimension;
+	cocMipTexture.GetDimensions(lastMipDimension.x, lastMipDimension.y);
 
-	int2 RemappedPosition = int2(2 * input.DispatchThreadId.xy);
+	int2 remappedPosition = int2(2 * input.DispatchThreadId.xy);
 
-	float4 SampledPixels;
-	SampledPixels.x = SampleCoC(RemappedPosition, int2(0, 0), LastMipDimension);
-	SampledPixels.y = SampleCoC(RemappedPosition, int2(0, 1), LastMipDimension);
-	SampledPixels.z = SampleCoC(RemappedPosition, int2(1, 0), LastMipDimension);
-	SampledPixels.w = SampleCoC(RemappedPosition, int2(1, 1), LastMipDimension);
+	float4 sampledPixels;
+	sampledPixels.x = SampleCoC(remappedPosition, int2(0, 0), lastMipDimension);
+	sampledPixels.y = SampleCoC(remappedPosition, int2(0, 1), lastMipDimension);
+	sampledPixels.z = SampleCoC(remappedPosition, int2(1, 0), lastMipDimension);
+	sampledPixels.w = SampleCoC(remappedPosition, int2(1, 1), lastMipDimension);
 
-	float MaxCoC = max(max(SampledPixels.x, SampledPixels.y), max(SampledPixels.z, SampledPixels.w));
+	float maxCoC = max(max(sampledPixels.x, sampledPixels.y), max(sampledPixels.z, sampledPixels.w));
 
-	bool IsWidthOdd = (LastMipDimension.x & 1) != 0;
-	bool IsHeightOdd = (LastMipDimension.y & 1) != 0;
+	bool isWidthOdd = (lastMipDimension.x & 1) != 0;
+	bool isHeightOdd = (lastMipDimension.y & 1) != 0;
 
-	if (IsWidthOdd)
+	if (isWidthOdd)
 	{
-		SampledPixels.x = SampleCoC(RemappedPosition, int2(2, 0), LastMipDimension);
-		SampledPixels.y = SampleCoC(RemappedPosition, int2(2, 1), LastMipDimension);
-		MaxCoC = max(MaxCoC, max(SampledPixels.x, SampledPixels.y));
+		sampledPixels.x = SampleCoC(remappedPosition, int2(2, 0), lastMipDimension);
+		sampledPixels.y = SampleCoC(remappedPosition, int2(2, 1), lastMipDimension);
+		maxCoC = max(maxCoC, max(sampledPixels.x, sampledPixels.y));
 	}
 
-	if (IsHeightOdd)
+	if (isHeightOdd)
 	{
-		SampledPixels.x = SampleCoC(RemappedPosition, int2(0, 2), LastMipDimension);
-		SampledPixels.y = SampleCoC(RemappedPosition, int2(1, 2), LastMipDimension);
-		MaxCoC = max(MaxCoC, max(SampledPixels.x, SampledPixels.y));
+		sampledPixels.x = SampleCoC(remappedPosition, int2(0, 2), lastMipDimension);
+		sampledPixels.y = SampleCoC(remappedPosition, int2(1, 2), lastMipDimension);
+		maxCoC = max(maxCoC, max(sampledPixels.x, sampledPixels.y));
 	}
 
-	if (IsWidthOdd && IsHeightOdd)
+	if (isWidthOdd && isHeightOdd)
 	{
-		MaxCoC = max(MaxCoC, SampleCoC(RemappedPosition, int2(2, 2), LastMipDimension));
+		maxCoC = max(maxCoC, SampleCoC(remappedPosition, int2(2, 2), lastMipDimension));
 	}
 
-	outputTexture[input.DispatchThreadId.xy] = MaxCoC;
+	outputTexture[input.DispatchThreadId.xy] = maxCoC;
 }
