@@ -13,10 +13,10 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.AdvancedDepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Advanced Depth of Field effect");
-	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.AdvancedDepthOfField.Bokeh.KernelRingCount", 5, "");
-	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.AdvancedDepthOfField.Bokeh.KernelRingDensity", 7, "");
-	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.AdvancedDepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
+	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Advanced Depth of Field effect");
+	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
+	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
+	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
 
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_COUNT   = 3;
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_DENSITY = 5;
@@ -78,7 +78,7 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				if (ImGui::TreeNode("Advanced Depth Of Field"))
+				if (ImGui::TreeNode("Custom Depth Of Field"))
 				{
 					ImGui::SliderFloat("Max Circle of Confusion", MaxCircleOfConfusion.GetPtr(), 0.005f, 0.02f);
 					ImGui::TreePop();
