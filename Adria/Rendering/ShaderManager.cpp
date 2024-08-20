@@ -32,7 +32,6 @@ namespace adria
 			case VS_GBuffer:
 			case VS_FullscreenTriangle:
 			case VS_LensFlare:
-			case VS_Bokeh:
 			case VS_Shadow:
 			case VS_Ocean:
 			case VS_OceanLOD:
@@ -50,7 +49,6 @@ namespace adria
 			case PS_Copy:
 			case PS_Add:
 			case PS_LensFlare:
-			case PS_Bokeh:
 			case PS_Shadow:
 			case PS_Ocean:
 			case PS_CloudsCombine:
@@ -61,11 +59,9 @@ namespace adria
 			case PS_VolumetricFog_CombineFog:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
-			case GS_Bokeh:
 				return GfxShaderStage::GS;
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
-			case CS_BokehGeneration:
 			case CS_BloomDownsample:
 			case CS_BloomUpsample:
 			case CS_InitialSpectrum:
@@ -86,7 +82,6 @@ namespace adria
 			case CS_Tonemap:
 			case CS_MotionVectors:
 			case CS_MotionBlur:
-			case CS_Dof:
 			case CS_GodRays:
 			case CS_FilmEffects:
 			case CS_Fxaa:
@@ -186,10 +181,6 @@ namespace adria
 				return "Postprocess/LensFlare.hlsl";
 			case CS_LensFlare2:
 				return "Postprocess/LensFlare2.hlsl";
-			case VS_Bokeh:
-			case GS_Bokeh:
-			case PS_Bokeh:
-				return "Postprocess/Bokeh.hlsl";
 			case CS_Clouds:
 			case VS_CloudsCombine:
 			case PS_CloudsCombine:
@@ -204,8 +195,6 @@ namespace adria
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
 				return "Postprocess/Blur.hlsl";
-			case CS_BokehGeneration:
-				return "Postprocess/BokehGeneration.hlsl";
 			case CS_BloomDownsample:
 			case CS_BloomUpsample:
 				return "Postprocess/Bloom.hlsl";
@@ -253,8 +242,6 @@ namespace adria
 				return "Postprocess/MotionBlur.hlsl";
 			case CS_FilmEffects:
 				return "Postprocess/FilmEffects.hlsl";
-			case CS_Dof:
-				return "Postprocess/DepthOfField.hlsl";
 			case CS_GodRays:
 				return "Postprocess/GodRays.hlsl";
 			case CS_Fxaa:
@@ -374,8 +361,6 @@ namespace adria
 				return "MotionVectorsCS";
 			case CS_MotionBlur:
 				return "MotionBlurCS";
-			case CS_Dof:
-				return "DepthOfFieldCS";
 			case CS_GodRays:
 				return "GodRaysCS";
 			case CS_FilmEffects:
@@ -410,14 +395,6 @@ namespace adria
 				return "BloomDownsampleCS";
 			case CS_BloomUpsample:
 				return "BloomUpsampleCS";
-			case CS_BokehGeneration:
-				return "BokehGenerationCS";
-			case VS_Bokeh:
-				return "BokehVS";
-			case GS_Bokeh:
-				return "BokehGS";
-			case PS_Bokeh:
-				return "BokehPS";
 			case CS_Blur_Horizontal:
 				return "Blur_HorizontalCS";
 			case CS_Blur_Vertical:

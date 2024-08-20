@@ -10,10 +10,10 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class AdvancedDepthOfFieldPass : public PostEffect
+	class DepthOfFieldPass : public PostEffect
 	{
 	public:
-		AdvancedDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
+		DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void OnResize(uint32, uint32) override;

@@ -459,9 +459,6 @@
     <ClCompile Include="Rendering\BloomPass.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\BokehPass.cpp">
-      <Filter>Rendering\Passes\Post Effects</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\DepthOfFieldPassGroup.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
@@ -507,9 +504,6 @@
     <ClCompile Include="Rendering\ReflectionPassGroup.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\SimpleDepthOfFieldPass.cpp">
-      <Filter>Rendering\Passes\Post Effects</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\SSRPass.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
@@ -528,7 +522,7 @@
     <ClCompile Include="Rendering\XeSSPass.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\AdvancedDepthOfFieldPass.cpp">
+    <ClCompile Include="Rendering\DepthOfFieldPass.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1095,9 +1089,6 @@
     <ClInclude Include="Rendering\BloomPass.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\BokehPass.h">
-      <Filter>Rendering\Passes\Post Effects</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\DepthOfFieldPassGroup.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
@@ -1143,9 +1134,6 @@
     <ClInclude Include="Rendering\ReflectionPassGroup.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\SimpleDepthOfFieldPass.h">
-      <Filter>Rendering\Passes\Post Effects</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\SSRPass.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
@@ -1167,7 +1155,7 @@
     <ClInclude Include="Rendering\XeSSPass.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\AdvancedDepthOfFieldPass.h">
+    <ClInclude Include="Rendering\DepthOfFieldPass.h">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1323,15 +1311,6 @@
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\Blur.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\Bokeh.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BokehGeneration.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\FilmEffects.hlsl">

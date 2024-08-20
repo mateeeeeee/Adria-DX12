@@ -1,4 +1,4 @@
-#include "AdvancedDepthOfFieldPass.h"
+#include "DepthOfFieldPass.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -44,12 +44,12 @@ namespace adria
 		return kernel_data;
 	}
 
-	AdvancedDepthOfFieldPass::AdvancedDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), blur_pass(gfx)
+	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), blur_pass(gfx)
 	{
 		CreatePSOs();
 	}
 
-	void AdvancedDepthOfFieldPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
+	void DepthOfFieldPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		AddComputeCircleOfConfusionPass(rg);
 		AddDownsampleCircleOfConfusionPass(rg);
@@ -58,23 +58,23 @@ namespace adria
 		AddBokehSecondPass(rg);
 	}
 
-	void AdvancedDepthOfFieldPass::OnResize(uint32 w, uint32 h)
+	void DepthOfFieldPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
 	}
 
-	bool AdvancedDepthOfFieldPass::IsEnabled(PostProcessor const*) const
+	bool DepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
 		return true;
 	}
 
-	void AdvancedDepthOfFieldPass::OnSceneInitialized()
+	void DepthOfFieldPass::OnSceneInitialized()
 	{
 		CreateSmallBokehKernel();
 		CreateLargeBokehKernel();
 	}
 
-	void AdvancedDepthOfFieldPass::GUI()
+	void DepthOfFieldPass::GUI()
 	{
 		QueueGUI([&]()
 			{
@@ -87,7 +87,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_DepthOfField);
 	}
 
-	void AdvancedDepthOfFieldPass::CreatePSOs()
+	void DepthOfFieldPass::CreatePSOs()
 	{
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_DepthOfField_ComputeCoC;
@@ -105,7 +105,7 @@ namespace adria
 		bokeh_first_pass_psos.Finalize(gfx);
 	}
 
-	void AdvancedDepthOfFieldPass::CreateSmallBokehKernel()
+	void DepthOfFieldPass::CreateSmallBokehKernel()
 	{
 		std::vector<Vector2> bokeh_kernel_data = GenerateKernel(SMALL_BOKEH_KERNEL_RING_COUNT, SMALL_BOKEH_KERNEL_RING_DENSITY);
 
@@ -129,7 +129,7 @@ namespace adria
 		bokeh_small_kernel->SetName("Bokeh Small Kernel");
 	}
 
-	void AdvancedDepthOfFieldPass::CreateLargeBokehKernel()
+	void DepthOfFieldPass::CreateLargeBokehKernel()
 	{
 		uint32 const ring_density = BokehKernelRingDensity.Get();
 		uint32 const ring_count   = BokehKernelRingCount.Get();
@@ -156,7 +156,7 @@ namespace adria
 		bokeh_large_kernel->SetName("Bokeh Large Kernel");
 	}
 
-	void AdvancedDepthOfFieldPass::AddComputeCircleOfConfusionPass(RenderGraph& rg)
+	void DepthOfFieldPass::AddComputeCircleOfConfusionPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -219,7 +219,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
-	void AdvancedDepthOfFieldPass::AddDownsampleCircleOfConfusionPass(RenderGraph& rg)
+	void DepthOfFieldPass::AddDownsampleCircleOfConfusionPass(RenderGraph& rg)
 	{
 		static constexpr uint32 pass_count = 4;
 
@@ -282,7 +282,7 @@ namespace adria
 		blur_pass.AddPass(rg, coc_mips.back(), RG_NAME(CoCDilation), "CoC Blur");
 	}
 
-	void AdvancedDepthOfFieldPass::AddComputePrefilteredTexturePass(RenderGraph& rg, RGResourceName color_texture)
+	void DepthOfFieldPass::AddComputePrefilteredTexturePass(RenderGraph& rg, RGResourceName color_texture)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -357,7 +357,7 @@ namespace adria
 
 	}
 
-	void AdvancedDepthOfFieldPass::AddBokehFirstPass(RenderGraph& rg, RGResourceName color_texture)
+	void DepthOfFieldPass::AddBokehFirstPass(RenderGraph& rg, RGResourceName color_texture)
 	{
 		/*
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
@@ -417,7 +417,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);*/
 	}
 
-	void AdvancedDepthOfFieldPass::AddBokehSecondPass(RenderGraph& rg)
+	void DepthOfFieldPass::AddBokehSecondPass(RenderGraph& rg)
 	{
 
 	}

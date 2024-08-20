@@ -249,7 +249,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Rendering\AdvancedDepthOfFieldPass.cpp" />
+    <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPassGroup.cpp" />
     <ClCompile Include="Rendering\ReflectionPassGroup.cpp" />
     <ClCompile Include="Rendering\RendererOutputPass.cpp" />
@@ -262,7 +262,6 @@
     <ClCompile Include="Rendering\AutoExposurePass.cpp" />
     <ClCompile Include="Rendering\BloomPass.cpp" />
     <ClCompile Include="Rendering\BlurPass.cpp" />
-    <ClCompile Include="Rendering\BokehPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\ClusteredDeferredLightingPass.cpp" />
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
@@ -273,7 +272,6 @@
     <ClCompile Include="Rendering\FSR3Pass.cpp" />
     <ClCompile Include="Rendering\HelperPasses.cpp" />
     <ClCompile Include="Rendering\DecalsPass.cpp" />
-    <ClCompile Include="Rendering\SimpleDepthOfFieldPass.cpp" />
     <ClCompile Include="Rendering\ExponentialHeightFogPass.cpp" />
     <ClCompile Include="Rendering\GeometryBufferCache.cpp" />
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
@@ -445,7 +443,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Rendering\AdvancedDepthOfFieldPass.h" />
+    <ClInclude Include="Rendering\DepthOfFieldPass.h" />
     <ClInclude Include="Rendering\UpscalerPass.h" />
     <ClInclude Include="Rendering\DepthOfFieldPassGroup.h" />
     <ClInclude Include="Rendering\PostEffect.h" />
@@ -459,7 +457,6 @@
     <ClInclude Include="Rendering\AutoExposurePass.h" />
     <ClInclude Include="Rendering\BloomPass.h" />
     <ClInclude Include="Rendering\BlurPass.h" />
-    <ClInclude Include="Rendering\BokehPass.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
@@ -477,7 +474,6 @@
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />
-    <ClInclude Include="Rendering\SimpleDepthOfFieldPass.h" />
     <ClInclude Include="Rendering\ExponentialHeightFogPass.h" />
     <ClInclude Include="Rendering\GodRaysPass.h" />
     <ClInclude Include="Rendering\LensFlarePass.h" />
@@ -745,18 +741,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\Blur.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\Bokeh.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BokehGeneration.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

@@ -15,7 +15,6 @@
 #include "MotionBlurPass.h"
 #include "GodRaysPass.h"
 #include "FilmEffectsPass.h"
-#include "BokehPass.h"
 #include "TAAPass.h"
 #include "UpscalerPassGroup.h"
 #include "FFXCASPass.h"

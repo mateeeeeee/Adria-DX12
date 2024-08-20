@@ -409,7 +409,7 @@ namespace adria
 	{
 		if (rendering_not_started) [[unlikely]]
 		{
-			rendering_not_started = FALSE;
+			rendering_not_started = false;
 			dynamic_allocator_on_init.reset();
 		}
 
