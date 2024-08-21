@@ -31,6 +31,7 @@ namespace adria
 		std::unique_ptr<GfxComputePipelineState> downsample_coc_pso;
 		std::unique_ptr<GfxComputePipelineState> compute_prefiltered_texture_pso;
 		std::unique_ptr<GfxComputePipelineStatePermutations> bokeh_first_pass_psos;
+		std::unique_ptr<GfxComputePipelineStatePermutations> bokeh_second_pass_psos;
 
 		std::unique_ptr<GfxTexture> bokeh_large_kernel;
 		std::unique_ptr<GfxTexture> bokeh_small_kernel;

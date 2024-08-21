@@ -66,11 +66,6 @@ namespace adria
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT] = {};
 
 		bool rain_active = false;
-		//GfxMeshShaderPipelineStatePermutations<2> draw_psos;
-		//GfxComputePipelineStatePermutations<3>	 cull_meshlets_psos;
-		//GfxComputePipelineStatePermutations<3>	 cull_instances_psos;
-		//GfxComputePipelineStatePermutations<2>    build_meshlet_cull_args_psos;
-		//GfxComputePipelineStatePermutations<2>    build_meshlet_draw_args_psos;
 		std::unique_ptr<GfxMeshShaderPipelineStatePermutations> draw_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	  cull_meshlets_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	  cull_instances_psos;

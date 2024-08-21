@@ -109,6 +109,11 @@ namespace adria
 		bokeh_first_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
 		bokeh_first_pass_psos->AddDefine<1>("KARIS_INVERSE", "1");
 		bokeh_first_pass_psos->Finalize(gfx);
+
+		compute_pso_desc.CS = CS_DepthOfField_BokehSecondPass;
+		bokeh_second_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
+		bokeh_second_pass_psos->AddDefine<1>("KARIS_INVERSE", "1");
+		bokeh_second_pass_psos->Finalize(gfx);
 	}
 
 	void DepthOfFieldPass::CreateSmallBokehKernel()
@@ -443,7 +448,7 @@ namespace adria
 
 	void DepthOfFieldPass::AddBokehSecondPass(RenderGraph& rg)
 	{
-
+		
 	}
 
 }
