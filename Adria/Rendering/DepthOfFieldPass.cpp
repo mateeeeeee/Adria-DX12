@@ -364,7 +364,7 @@ namespace adria
 				GUI_DebugTexture("CoC Dilation",   &ctx.GetTexture(*data.coc_dilation));
 				GUI_DebugTexture("CoC Foreground", &ctx.GetTexture(*data.near_coc));
 				GUI_DebugTexture("CoC Background", &ctx.GetTexture(*data.far_coc));
-			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 	}
 
@@ -448,7 +448,75 @@ namespace adria
 
 	void DepthOfFieldPass::AddBokehSecondPass(RenderGraph& rg)
 	{
-		
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		rg.ImportTexture(RG_NAME(BokehSmallKernel), bokeh_small_kernel.get());
+
+		struct BokehSecondPassData
+		{
+			RGTextureReadOnlyId kernel;
+			RGTextureReadOnlyId coc_near;
+			RGTextureReadOnlyId coc_far;
+			RGTextureReadWriteId output0;
+			RGTextureReadWriteId output1;
+		};
+
+		rg.AddPass<BokehSecondPassData>("Bokeh Second Pass",
+			[=](BokehSecondPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc bokeh_desc{};
+				bokeh_desc.width = width / 2;
+				bokeh_desc.height = height / 2;
+				bokeh_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+				builder.DeclareTexture(RG_NAME(BokehTexture3), bokeh_desc);
+				builder.DeclareTexture(RG_NAME(BokehTexture4), bokeh_desc);
+
+				data.output0 = builder.WriteTexture(RG_NAME(BokehTexture3));
+				data.output1 = builder.WriteTexture(RG_NAME(BokehTexture4));
+				data.kernel = builder.ReadTexture(RG_NAME(BokehSmallKernel));
+				data.coc_near = builder.ReadTexture(RG_NAME(NearCoC));
+				data.coc_far = builder.ReadTexture(RG_NAME(FarCoC));
+			},
+			[=](BokehSecondPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(compute_coc_pso.get());
+
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.kernel),
+					ctx.GetReadOnlyTexture(data.coc_near),
+					ctx.GetReadOnlyTexture(data.coc_far),
+					ctx.GetReadWriteTexture(data.output0),
+					ctx.GetReadWriteTexture(data.output1)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				struct BokehSecondPassConstants
+				{
+					uint32 kernel_idx;
+					uint32 coc_near_idx;
+					uint32 coc_far_idx;
+					uint32 output0_idx;
+					uint32 output1_idx;
+					uint32 sample_count;
+					float  max_coc;
+				} constants =
+				{
+					.kernel_idx = i,
+					.coc_near_idx = i + 1,
+					.coc_far_idx = i + 2,
+					.output0_idx = i + 3,
+					.output1_idx = i + 4,
+					.sample_count = GetSampleCount(SMALL_BOKEH_KERNEL_RING_COUNT, SMALL_BOKEH_KERNEL_RING_DENSITY),
+					.max_coc = MaxCircleOfConfusion.Get()
+				};
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
 }
