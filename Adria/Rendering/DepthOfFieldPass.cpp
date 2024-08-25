@@ -63,6 +63,7 @@ namespace adria
 		AddBokehFirstPass(rg, postprocessor->GetFinalResource());
 		AddBokehSecondPass(rg);
 		AddComputePostfilteredTexturePass(rg);
+		postprocessor->SetFinalResource(RG_NAME(DepthOfFieldOutput));
 	}
 
 	void DepthOfFieldPass::OnResize(uint32 w, uint32 h)
@@ -584,6 +585,71 @@ namespace adria
 
 				GUI_DebugTexture("CoC Near Final", &ctx.GetTexture(*data.output0));
 				GUI_DebugTexture("CoC Far Final", &ctx.GetTexture(*data.output1));
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+	}
+
+	void DepthOfFieldPass::AddCombinePass(RenderGraph& rg, RGResourceName color_texture)
+	{
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct CombinePassData
+		{
+			RGTextureReadOnlyId  color;
+			RGTextureReadOnlyId  near_coc;
+			RGTextureReadOnlyId  far_coc;
+			RGTextureReadWriteId output;
+		};
+
+		rg.AddPass<CombinePassData>("Combine Pass",
+			[=](CombinePassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc result_desc{};
+				result_desc.width = width;
+				result_desc.height = height;
+				result_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+
+				builder.DeclareTexture(RG_NAME(DepthOfFieldOutput), result_desc);
+
+				data.output = builder.WriteTexture(RG_NAME(DepthOfFieldOutput));
+				data.near_coc = builder.ReadTexture(RG_NAME(FinalNearCoC), ReadAccess_NonPixelShader);
+				data.far_coc = builder.ReadTexture(RG_NAME(FinalFarCoC), ReadAccess_NonPixelShader);
+				data.color = builder.ReadTexture(color_texture, ReadAccess_NonPixelShader);
+			},
+			[=](CombinePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(compute_posfiltered_texture_pso.get());
+
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.color),
+					ctx.GetReadOnlyTexture(data.near_coc),
+					ctx.GetReadOnlyTexture(data.far_coc),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				struct CombineConstants
+				{
+					uint32 color_idx;
+					uint32 near_coc_idx;
+					uint32 far_coc_idx;
+					uint32 output_idx;
+				} constants =
+				{
+					.color_idx = i,
+					.near_coc_idx = i + 1,
+					.far_coc_idx = i + 2,
+					.output_idx = i + 3,
+				};
+
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 

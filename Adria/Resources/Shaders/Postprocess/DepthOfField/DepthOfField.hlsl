@@ -104,3 +104,20 @@ void ComputePostfilteredTextureCS(CSInput input)
     foregroundOutputTexture[input.DispatchThreadId.xy] =  0.25f * (A + B + C + D);
 	backgroundOutputTexture[input.DispatchThreadId.xy] =  0.25f * (E + F + G + H);
 }
+
+struct CombineConstants
+{
+	uint colorIdx;
+	uint nearCoCIdx;
+	uint farCoCIdx;
+	uint outputIdx;
+};
+
+ConstantBuffer<CombineConstants> CombinePassCB : register(b1);
+
+
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
+void CombineCS(CSInput input)
+{
+
+}

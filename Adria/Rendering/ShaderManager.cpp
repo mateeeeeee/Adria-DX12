@@ -122,6 +122,7 @@ namespace adria
 			case CS_DepthOfField_BokehFirstPass:
 			case CS_DepthOfField_BokehSecondPass:
 			case CS_DepthOfField_ComputePostfilteredTexture:
+			case CS_DepthOfField_Combine:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -310,6 +311,7 @@ namespace adria
 				return "Postprocess/DepthOfField/CircleOfConfusion.hlsl";
 			case CS_DepthOfField_ComputePrefilteredTexture:
 			case CS_DepthOfField_ComputePostfilteredTexture:
+			case CS_DepthOfField_Combine:
 				return "Postprocess/DepthOfField/DepthOfField.hlsl";
 			case CS_DepthOfField_BokehFirstPass:
 			case CS_DepthOfField_BokehSecondPass:
@@ -517,6 +519,8 @@ namespace adria
 				return "BokehSecondPassCS";
 			case CS_DepthOfField_ComputePostfilteredTexture:
 				return "ComputePostfilteredTextureCS";
+			case CS_DepthOfField_Combine:
+				return "CombineCS";
 			}
 			return "main";
 		}
