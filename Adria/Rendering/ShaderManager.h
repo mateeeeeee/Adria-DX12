@@ -102,6 +102,7 @@ namespace adria
 		CS_DepthOfField_ComputePrefilteredTexture,
 		CS_DepthOfField_BokehFirstPass,
 		CS_DepthOfField_BokehSecondPass,
+		CS_DepthOfField_ComputePostfilteredTexture,
 		CS_VolumetricFog_LightInjection,
 		CS_VolumetricFog_ScatteringIntegration,
 		PS_VolumetricFog_CombineFog,

@@ -62,6 +62,7 @@ namespace adria
 		AddComputePrefilteredTexturePass(rg, postprocessor->GetFinalResource());
 		AddBokehFirstPass(rg, postprocessor->GetFinalResource());
 		AddBokehSecondPass(rg);
+		AddComputePostfilteredTexturePass(rg);
 	}
 
 	void DepthOfFieldPass::OnResize(uint32 w, uint32 h)
@@ -114,6 +115,9 @@ namespace adria
 		bokeh_second_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
 		bokeh_second_pass_psos->AddDefine<1>("KARIS_INVERSE", "1");
 		bokeh_second_pass_psos->Finalize(gfx);
+
+		compute_pso_desc.CS = CS_DepthOfField_ComputePostfilteredTexture;
+		compute_posfiltered_texture_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void DepthOfFieldPass::CreateSmallBokehKernel()
@@ -226,7 +230,6 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
-				GUI_DebugTexture("CoC", &ctx.GetTexture(*data.output));
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
@@ -360,10 +363,6 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
-
-				GUI_DebugTexture("CoC Dilation",   &ctx.GetTexture(*data.coc_dilation));
-				GUI_DebugTexture("CoC Foreground", &ctx.GetTexture(*data.near_coc));
-				GUI_DebugTexture("CoC Background", &ctx.GetTexture(*data.far_coc));
 			}, RGPassType::Compute, RGPassFlags::None);
 
 	}
@@ -404,7 +403,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(compute_coc_pso.get());
+				cmd_list->SetPipelineState(bokeh_first_pass_psos->Get<0>());
 
 				GfxDescriptor src_descriptors[] =
 				{
@@ -473,14 +472,14 @@ namespace adria
 				data.output0 = builder.WriteTexture(RG_NAME(BokehTexture3));
 				data.output1 = builder.WriteTexture(RG_NAME(BokehTexture4));
 				data.kernel = builder.ReadTexture(RG_NAME(BokehSmallKernel));
-				data.coc_near = builder.ReadTexture(RG_NAME(NearCoC));
-				data.coc_far = builder.ReadTexture(RG_NAME(FarCoC));
+				data.coc_near = builder.ReadTexture(RG_NAME(BokehTexture0));
+				data.coc_far = builder.ReadTexture(RG_NAME(BokehTexture1));
 			},
 			[=](BokehSecondPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(compute_coc_pso.get());
+				cmd_list->SetPipelineState(bokeh_second_pass_psos->Get<0>());
 
 				GfxDescriptor src_descriptors[] =
 				{
@@ -516,6 +515,75 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+			}, RGPassType::Compute, RGPassFlags::None);
+	}
+
+	void DepthOfFieldPass::AddComputePostfilteredTexturePass(RenderGraph& rg)
+	{
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct ComputePostfilteredTexturePassData
+		{
+			RGTextureReadOnlyId  near_coc;
+			RGTextureReadOnlyId  far_coc;
+			RGTextureReadWriteId output0;
+			RGTextureReadWriteId output1;
+		};
+
+		rg.AddPass<ComputePostfilteredTexturePassData>("Compute Postfiltered Texture Pass",
+			[=](ComputePostfilteredTexturePassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc postfiltered_texture_desc{};
+				postfiltered_texture_desc.width = width / 2;
+				postfiltered_texture_desc.height = height / 2;
+				postfiltered_texture_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+
+				builder.DeclareTexture(RG_NAME(FinalNearCoC), postfiltered_texture_desc);
+				builder.DeclareTexture(RG_NAME(FinalFarCoC), postfiltered_texture_desc);
+
+				data.output0 = builder.WriteTexture(RG_NAME(FinalNearCoC));
+				data.output1 = builder.WriteTexture(RG_NAME(FinalFarCoC));
+
+				data.near_coc = builder.ReadTexture(RG_NAME(BokehTexture3), ReadAccess_NonPixelShader);
+				data.far_coc = builder.ReadTexture(RG_NAME(BokehTexture4), ReadAccess_NonPixelShader);
+			},
+			[=](ComputePostfilteredTexturePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(compute_posfiltered_texture_pso.get());
+
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.near_coc),
+					ctx.GetReadOnlyTexture(data.far_coc),
+					ctx.GetReadWriteTexture(data.output0),
+					ctx.GetReadWriteTexture(data.output1)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				struct ComputePostfilteredTextureConstants
+				{
+					uint32 near_coc_idx;
+					uint32 far_coc_idx;
+					uint32 foreground_output_idx;
+					uint32 background_output_idx;
+				} constants =
+				{
+					.near_coc_idx = i,
+					.far_coc_idx = i + 1,
+					.foreground_output_idx = i + 2,
+					.background_output_idx = i + 3,
+				};
+
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+
+				GUI_DebugTexture("CoC Near Final", &ctx.GetTexture(*data.output0));
+				GUI_DebugTexture("CoC Far Final", &ctx.GetTexture(*data.output1));
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 

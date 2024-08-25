@@ -12,6 +12,12 @@ struct CSInput
 	uint GroupIndex : SV_GroupIndex;
 };
 
+
+float ComputeSDRWeight(float3 Color)
+{
+    return 1.0 / (1.0 + Luminance(Color));
+}
+
 struct ComputePrefilteredTextureConstants
 {
 	uint colorIdx;
@@ -23,11 +29,6 @@ struct ComputePrefilteredTextureConstants
 
 ConstantBuffer<ComputePrefilteredTextureConstants> ComputePrefilteredTexturePassCB : register(b1);
 
-
-float ComputeSDRWeight(float3 Color)
-{
-    return 1.0 / (1.0 + Luminance(Color));
-}
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ComputePrefilteredTextureCS(CSInput input)
@@ -62,4 +63,44 @@ void ComputePrefilteredTextureCS(CSInput input)
 
 	foregroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz / max(colorSum.w, 1.e-5), foregroundAlpha);
 	backgroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz / max(colorSum.w, 1.e-5), backgroundAlpha);
+}
+
+
+struct ComputePostfilteredTextureConstants
+{
+	uint nearCoCIdx;
+	uint farCoCIdx;
+	uint foregroundOutputIdx;
+	uint backgroundOutputIdx;
+};
+
+ConstantBuffer<ComputePostfilteredTextureConstants> ComputePostfilteredTexturePassCB : register(b1);
+
+
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
+void ComputePostfilteredTextureCS(CSInput input)
+{
+    Texture2D<float>   nearCoCTexture   = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.nearCoCIdx];
+    Texture2D<float>   farCoCTexture    = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.farCoCIdx];
+	RWTexture2D<float4> foregroundOutputTexture = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.foregroundOutputIdx];
+	RWTexture2D<float4> backgroundOutputTexture = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.backgroundOutputIdx];
+
+	float2 TextureResolution;
+    nearCoCTexture.GetDimensions(TextureResolution.x, TextureResolution.y);
+
+    float2 texelSize = rcp(TextureResolution);
+	float2 texCoord = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution / 2);
+    
+    float4 A = nearCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(-0.5f, -0.5f), 0);
+    float4 B = nearCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(-0.5f, +0.5f), 0);
+    float4 C = nearCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(+0.5f, -0.5f), 0);
+    float4 D = nearCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(+0.5f, +0.5f), 0);
+
+    float4 E = farCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(-0.5f, -0.5f), 0);
+    float4 F = farCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(-0.5f, +0.5f), 0);
+    float4 G = farCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(+0.5f, -0.5f), 0);
+    float4 H = farCoCTexture.SampleLevel(LinearClampSampler, texCoord + texelSize * float2(+0.5f, +0.5f), 0);
+
+    foregroundOutputTexture[input.DispatchThreadId.xy] =  0.25f * (A + B + C + D);
+	backgroundOutputTexture[input.DispatchThreadId.xy] =  0.25f * (E + F + G + H);
 }

@@ -35,16 +35,11 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				if (ImGui::TreeNodeEx("Depth of Field", 0))
+				static int current_depth_of_field_type = (int)depth_of_field_type;
+				if (ImGui::Combo("Depth of Field Type", &current_depth_of_field_type, "None\0Custom\0FFX\0", 3))
 				{
-					static int current_dof_type = (int)depth_of_field_type;
-					if (ImGui::Combo("Depth of Field Type", &current_dof_type, "None\0Custom\0FFX\0", 3))
-					{
-						depth_of_field_type = static_cast<DepthOfFieldType>(current_dof_type);
-						DepthOfField->Set(current_dof_type);
-					}
-					ImGui::TreePop();
-					ImGui::Separator();
+					depth_of_field_type = static_cast<DepthOfFieldType>(current_depth_of_field_type);
+					DepthOfField->Set(current_depth_of_field_type);
 				}
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_DepthOfField
 		);
