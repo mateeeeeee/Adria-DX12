@@ -14,6 +14,7 @@
 namespace adria
 {
 	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
+	static TAutoConsoleVariable<float> AlphaInterpolation("r.DepthOfField.AlphaInterpolation", 0.5f, "Interpolation factor");
 	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
 	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
 	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
@@ -63,6 +64,7 @@ namespace adria
 		AddBokehFirstPass(rg, postprocessor->GetFinalResource());
 		AddBokehSecondPass(rg);
 		AddComputePostfilteredTexturePass(rg);
+		AddCombinePass(rg, postprocessor->GetFinalResource());
 		postprocessor->SetFinalResource(RG_NAME(DepthOfFieldOutput));
 	}
 
@@ -89,6 +91,7 @@ namespace adria
 				if (ImGui::TreeNode("Custom Depth Of Field"))
 				{
 					ImGui::SliderFloat("Max Circle of Confusion", MaxCircleOfConfusion.GetPtr(), 0.005f, 0.02f);
+					ImGui::SliderFloat("Alpha Interpolation", AlphaInterpolation.GetPtr(), 0.00f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -119,6 +122,9 @@ namespace adria
 
 		compute_pso_desc.CS = CS_DepthOfField_ComputePostfilteredTexture;
 		compute_posfiltered_texture_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_DepthOfField_Combine;
+		combine_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void DepthOfFieldPass::CreateSmallBokehKernel()
@@ -585,7 +591,7 @@ namespace adria
 
 				GUI_DebugTexture("CoC Near Final", &ctx.GetTexture(*data.output0));
 				GUI_DebugTexture("CoC Far Final", &ctx.GetTexture(*data.output1));
-			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
 	void DepthOfFieldPass::AddCombinePass(RenderGraph& rg, RGResourceName color_texture)
@@ -619,7 +625,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(compute_posfiltered_texture_pso.get());
+				cmd_list->SetPipelineState(combine_pso.get());
 
 				GfxDescriptor src_descriptors[] =
 				{
@@ -638,17 +644,19 @@ namespace adria
 					uint32 near_coc_idx;
 					uint32 far_coc_idx;
 					uint32 output_idx;
+					float  alpha_interpolation;
 				} constants =
 				{
 					.color_idx = i,
 					.near_coc_idx = i + 1,
 					.far_coc_idx = i + 2,
 					.output_idx = i + 3,
+					.alpha_interpolation = AlphaInterpolation.Get()
 				};
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch(DivideAndRoundUp(width / 2, 16), DivideAndRoundUp(height / 2, 16), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}

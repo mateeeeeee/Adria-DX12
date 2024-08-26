@@ -80,8 +80,8 @@ ConstantBuffer<ComputePostfilteredTextureConstants> ComputePostfilteredTexturePa
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ComputePostfilteredTextureCS(CSInput input)
 {
-    Texture2D<float>   nearCoCTexture   = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.nearCoCIdx];
-    Texture2D<float>   farCoCTexture    = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.farCoCIdx];
+    Texture2D<float4>   nearCoCTexture   = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.nearCoCIdx];
+    Texture2D<float4>   farCoCTexture    = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.farCoCIdx];
 	RWTexture2D<float4> foregroundOutputTexture = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.foregroundOutputIdx];
 	RWTexture2D<float4> backgroundOutputTexture = ResourceDescriptorHeap[ComputePostfilteredTexturePassCB.backgroundOutputIdx];
 
@@ -111,6 +111,7 @@ struct CombineConstants
 	uint nearCoCIdx;
 	uint farCoCIdx;
 	uint outputIdx;
+    float alphaInterpolation;
 };
 
 ConstantBuffer<CombineConstants> CombinePassCB : register(b1);
@@ -119,5 +120,19 @@ ConstantBuffer<CombineConstants> CombinePassCB : register(b1);
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void CombineCS(CSInput input)
 {
+    Texture2D<float4>   colorTexture   = ResourceDescriptorHeap[CombinePassCB.colorIdx];
+    Texture2D<float4>   nearCoCTexture = ResourceDescriptorHeap[CombinePassCB.nearCoCIdx];
+    Texture2D<float4>   farCoCTexture  = ResourceDescriptorHeap[CombinePassCB.farCoCIdx];
+	RWTexture2D<float4> outputTexture  = ResourceDescriptorHeap[CombinePassCB.outputIdx];    
 
+	float2 texCoord = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
+    float4 sourceFullRes = colorTexture.Load(int3(input.DispatchThreadId.xy, 0));
+
+    float4 nearDoF = nearCoCTexture.SampleLevel(LinearClampSampler, texCoord, 0);
+    float4 farDoF  = farCoCTexture.SampleLevel(LinearClampSampler, texCoord, 0);
+
+    float4 result = sourceFullRes;
+    result.rgb = lerp(result.rgb, farDoF.rgb, smoothstep(0.1, 1.0, farDoF.a));
+    result.rgb = lerp(result.rgb, nearDoF.rgb, smoothstep(0.1, 1.0, nearDoF.a));
+    outputTexture[input.DispatchThreadId.xy] = lerp(sourceFullRes, result, CombinePassCB.alphaInterpolation);
 }
