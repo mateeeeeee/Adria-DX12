@@ -37,7 +37,7 @@ void ComputeCircleOfConfusionCS(CSInput input)
     const float K = f * f / (ComputeCoCPassCB.cameraApertureRatio * (ComputeCoCPassCB.cameraFocusDistance - f));
     float CoC = K * (linearDepth - ComputeCoCPassCB.cameraFocusDistance) / max(linearDepth, 1e-4);
 
-	outputTexture[input.DispatchThreadId.xy] = clamp(1000.0 * CoC / (ComputeCoCPassCB.cameraSensorWidth * ComputeCoCPassCB.maxCircleOfConfusion), -1.0, 1.0);
+	outputTexture[input.DispatchThreadId.xy] = clamp(CoC / (ComputeCoCPassCB.cameraSensorWidth * ComputeCoCPassCB.maxCircleOfConfusion), -1.0, 1.0);
 }
 
 struct DownsampleCoCConstants

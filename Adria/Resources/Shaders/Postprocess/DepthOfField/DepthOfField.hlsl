@@ -61,8 +61,8 @@ void ComputePrefilteredTextureCS(CSInput input)
     float foregroundAlpha = cocDilationTexture.SampleLevel(LinearClampSampler, uv, 0.0);
     float backgroundAlpha = abs(CoCMax) * float(CoCMax > 0.0);
 
-	foregroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz / max(colorSum.w, 1.e-5), foregroundAlpha);
-	backgroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz / max(colorSum.w, 1.e-5), backgroundAlpha);
+	foregroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz, foregroundAlpha);
+	backgroundOutputTexture[input.DispatchThreadId.xy] = float4(colorSum.xyz, backgroundAlpha);
 }
 
 
