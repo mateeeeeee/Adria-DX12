@@ -13,15 +13,15 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.01f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
-	static TAutoConsoleVariable<float> AlphaInterpolation("r.DepthOfField.AlphaInterpolation", 0.5f, "Interpolation factor");
+	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.05f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
+	static TAutoConsoleVariable<float> AlphaInterpolation("r.DepthOfField.AlphaInterpolation", 1.0f, "Interpolation factor");
 	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
 	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
 	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
 
-	static TAutoConsoleVariable<float> FocalLength("r.DepthOfField.FocalLength", 50.0f, "Focal Length used in Depth of Field pass");
-	static TAutoConsoleVariable<float> FocusDistance("r.DepthOfField.FocusDistance", 100.0f, "Focus Distance used in Depth of Field pass");
-	static TAutoConsoleVariable<float> FStop("r.DepthOfField.FStop", 5.0f, "F-Stop used in Depth of Field pass");
+	static TAutoConsoleVariable<float> FocalLength("r.DepthOfField.FocalLength", 200.0f, "Focal Length used in Depth of Field pass");
+	static TAutoConsoleVariable<float> FocusDistance("r.DepthOfField.FocusDistance", 50.0f, "Focus Distance used in Depth of Field pass");
+	static TAutoConsoleVariable<float> FStop("r.DepthOfField.FStop", 1.0f, "F-Stop used in Depth of Field pass");
 
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_COUNT   = 3;
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_DENSITY = 5;
@@ -98,8 +98,9 @@ namespace adria
 					ImGui::SliderFloat("Max Circle of Confusion", MaxCircleOfConfusion.GetPtr(), 0.005f, 0.02f);
 					ImGui::SliderFloat("Focal Length", FocalLength.GetPtr(), 10.0f, 300.0f);
 					ImGui::SliderFloat("Focus Distance", FocusDistance.GetPtr(), 0.1f, 1000.0f);
-					ImGui::SliderFloat("FStop", FStop.GetPtr(), 1.0f, 32.0f);
+					ImGui::SliderFloat("FStop", FStop.GetPtr(), 1.0f, 8.0f);
 					ImGui::SliderFloat("Alpha Interpolation", AlphaInterpolation.GetPtr(), 0.00f, 1.0f);
+					ImGui::Checkbox("Karis Inverse", BokehKarisInverse.GetPtr());
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -471,8 +472,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(bokeh_first_pass_psos->Get<0>());
-
+				cmd_list->SetPipelineState(bokeh_first_pass_psos->Get(BokehKarisInverse.Get()));
 				GfxDescriptor src_descriptors[] =
 				{
 					ctx.GetReadOnlyTexture(data.color),
@@ -547,7 +547,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(bokeh_second_pass_psos->Get<0>());
+				cmd_list->SetPipelineState(bokeh_second_pass_psos->Get(BokehKarisInverse.Get()));
 
 				GfxDescriptor src_descriptors[] =
 				{
