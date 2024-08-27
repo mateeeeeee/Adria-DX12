@@ -33,12 +33,29 @@ void ComputeCircleOfConfusionCS(CSInput input)
     float depth = depthTexture.Sample(LinearBorderSampler, uv);
 	float linearDepth = LinearizeDepth(depth);
 	
-    const float f = ComputeCoCPassCB.cameraFocalLength;
+    const float f = ComputeCoCPassCB.cameraFocalLength / 1000.0f;
     const float K = f * f / (ComputeCoCPassCB.cameraApertureRatio * (ComputeCoCPassCB.cameraFocusDistance - f));
     float CoC = K * (linearDepth - ComputeCoCPassCB.cameraFocusDistance) / max(linearDepth, 1e-4);
 
-	outputTexture[input.DispatchThreadId.xy] = clamp(CoC / (ComputeCoCPassCB.cameraSensorWidth * ComputeCoCPassCB.maxCircleOfConfusion), -1.0, 1.0);
+	outputTexture[input.DispatchThreadId.xy] = clamp(1000.0f * CoC / (ComputeCoCPassCB.cameraSensorWidth * ComputeCoCPassCB.maxCircleOfConfusion), -1.0, 1.0);
 }
+
+struct SeparatedCoCConstants
+{
+	uint inputIdx;
+	uint outputIdx;
+};
+ConstantBuffer<SeparatedCoCConstants> SeparatedCoCPassCB : register(b1);
+
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
+void ComputeSeparatedCircleOfConfusionCS(CSInput input)
+{
+    Texture2D<float>   cocTexture  = ResourceDescriptorHeap[SeparatedCoCPassCB.inputIdx];
+	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[SeparatedCoCPassCB.outputIdx];
+	float CoC = cocTexture.Load(int3(input.DispatchThreadId.xy, 0));
+	outputTexture[input.DispatchThreadId.xy] = abs(CoC) * float(CoC < 0.0);
+}
+
 
 struct DownsampleCoCConstants
 {

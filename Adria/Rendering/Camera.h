@@ -71,6 +71,7 @@ namespace adria
 		float aspect_ratio;
 		float fov;
 		float near_plane, far_plane;  
+
 		float speed;
 		float sensitivity;
 		bool  enabled;

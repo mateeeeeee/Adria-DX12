@@ -117,6 +117,7 @@ namespace adria
 			case CS_VolumetricFog_ScatteringIntegration:
 			case CS_RendererOutput:
 			case CS_DepthOfField_ComputeCoC:
+			case CS_DepthOfField_ComputeSeparatedCoC:
 			case CS_DepthOfField_DownsampleCoC:
 			case CS_DepthOfField_ComputePrefilteredTexture:
 			case CS_DepthOfField_BokehFirstPass:
@@ -307,6 +308,7 @@ namespace adria
 			case CS_RendererOutput:
 				return "Other/RendererOutput.hlsl";
 			case CS_DepthOfField_ComputeCoC:
+			case CS_DepthOfField_ComputeSeparatedCoC:
 			case CS_DepthOfField_DownsampleCoC:
 				return "Postprocess/DepthOfField/CircleOfConfusion.hlsl";
 			case CS_DepthOfField_ComputePrefilteredTexture:
@@ -509,6 +511,8 @@ namespace adria
 				return "RendererOutputCS";
 			case CS_DepthOfField_ComputeCoC:
 				return "ComputeCircleOfConfusionCS";
+			case CS_DepthOfField_ComputeSeparatedCoC:
+				return "ComputeSeparatedCircleOfConfusionCS";
 			case CS_DepthOfField_DownsampleCoC:
 				return "DownsampleCircleOfConfusionCS";
 			case CS_DepthOfField_ComputePrefilteredTexture:

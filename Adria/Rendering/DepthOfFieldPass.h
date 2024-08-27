@@ -28,6 +28,7 @@ namespace adria
 		BlurPass blur_pass;
 
 		std::unique_ptr<GfxComputePipelineState> compute_coc_pso;
+		std::unique_ptr<GfxComputePipelineState> compute_separated_coc_pso;
 		std::unique_ptr<GfxComputePipelineState> downsample_coc_pso;
 		std::unique_ptr<GfxComputePipelineState> compute_prefiltered_texture_pso;
 		std::unique_ptr<GfxComputePipelineStatePermutations> bokeh_first_pass_psos;
@@ -44,6 +45,7 @@ namespace adria
 		void CreateLargeBokehKernel();
 
 		void AddComputeCircleOfConfusionPass(RenderGraph&);
+		void AddSeparatedCircleOfConfusionPass(RenderGraph&);
 		void AddDownsampleCircleOfConfusionPass(RenderGraph&);
 		void AddComputePrefilteredTexturePass(RenderGraph&, RGResourceName);
 		void AddBokehFirstPass(RenderGraph&, RGResourceName);

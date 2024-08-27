@@ -19,6 +19,10 @@ namespace adria
 	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
 	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
 
+	static TAutoConsoleVariable<float> FocalLength("r.DepthOfField.FocalLength", 50.0f, "Focal Length used in Depth of Field pass");
+	static TAutoConsoleVariable<float> FocusDistance("r.DepthOfField.FocusDistance", 100.0f, "Focus Distance used in Depth of Field pass");
+	static TAutoConsoleVariable<float> FStop("r.DepthOfField.FStop", 5.0f, "F-Stop used in Depth of Field pass");
+
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_COUNT   = 3;
 	static constexpr uint32 SMALL_BOKEH_KERNEL_RING_DENSITY = 5;
 
@@ -59,6 +63,7 @@ namespace adria
 	void DepthOfFieldPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		AddComputeCircleOfConfusionPass(rg);
+		AddSeparatedCircleOfConfusionPass(rg);
 		AddDownsampleCircleOfConfusionPass(rg);
 		AddComputePrefilteredTexturePass(rg, postprocessor->GetFinalResource());
 		AddBokehFirstPass(rg, postprocessor->GetFinalResource());
@@ -91,6 +96,9 @@ namespace adria
 				if (ImGui::TreeNode("Custom Depth Of Field"))
 				{
 					ImGui::SliderFloat("Max Circle of Confusion", MaxCircleOfConfusion.GetPtr(), 0.005f, 0.02f);
+					ImGui::SliderFloat("Focal Length", FocalLength.GetPtr(), 10.0f, 300.0f);
+					ImGui::SliderFloat("Focus Distance", FocusDistance.GetPtr(), 0.1f, 1000.0f);
+					ImGui::SliderFloat("FStop", FStop.GetPtr(), 1.0f, 32.0f);
 					ImGui::SliderFloat("Alpha Interpolation", AlphaInterpolation.GetPtr(), 0.00f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
@@ -103,6 +111,9 @@ namespace adria
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_DepthOfField_ComputeCoC;
 		compute_coc_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_DepthOfField_ComputeSeparatedCoC;
+		compute_separated_coc_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		compute_pso_desc.CS = CS_DepthOfField_DownsampleCoC;
 		downsample_coc_pso = gfx->CreateComputePipelineState(compute_pso_desc);
@@ -227,9 +238,9 @@ namespace adria
 				} constants =
 				{
 					.depth_idx = i, .output_idx = i + 1,
-					.camera_focal_length = 50.0f,		//move these params to camera later
-					.camera_focus_distance = 200.0f,
-					.camera_aperture_ratio = 5.6f,
+					.camera_focal_length = FocalLength.Get(),		
+					.camera_focus_distance = FocusDistance.Get(),
+					.camera_aperture_ratio = FStop.Get(),
 					.camera_sensor_width = 36.0f,
 					.max_circle_of_confusion = MaxCircleOfConfusion.Get()
 				};
@@ -240,15 +251,65 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
+	void DepthOfFieldPass::AddSeparatedCircleOfConfusionPass(RenderGraph& rg)
+	{
+		struct SeparatedCircleOfConfusionPassData
+		{
+			RGTextureReadOnlyId input;
+			RGTextureReadWriteId output;
+		};
+
+		rg.AddPass<SeparatedCircleOfConfusionPassData>("Separated Circle Of Confusion Pass",
+			[=](SeparatedCircleOfConfusionPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc compute_separated_coc_desc{};
+				compute_separated_coc_desc.width = width;
+				compute_separated_coc_desc.height = height;
+				compute_separated_coc_desc.format = GfxFormat::R16_UNORM;
+
+				builder.DeclareTexture(RG_NAME_IDX(CoCDilationMip, 0), compute_separated_coc_desc);
+				data.output = builder.WriteTexture(RG_NAME_IDX(CoCDilationMip, 0));
+				data.input = builder.ReadTexture(RG_NAME(CoCTexture), ReadAccess_NonPixelShader);
+			},
+			[=](SeparatedCircleOfConfusionPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(compute_separated_coc_pso.get());
+
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.input),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				struct DownsampleCircleOfConfusionPassConstants
+				{
+					uint32 input_idx;
+					uint32 output_idx;
+				} constants =
+				{
+					.input_idx = i, .output_idx = i + 1,
+				};
+
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
+
+			}, RGPassType::Compute, RGPassFlags::None);
+	}
+
 	void DepthOfFieldPass::AddDownsampleCircleOfConfusionPass(RenderGraph& rg)
 	{
 		static constexpr uint32 pass_count = 4;
 
 		std::vector<RGResourceName> coc_mips(pass_count);
-		coc_mips[0] = RG_NAME(CoCTexture);
+		coc_mips[0] = RG_NAME_IDX(CoCDilationMip, 0);
 		for (uint32 i = 1; i < pass_count; ++i)
 		{
-			coc_mips[i] = RG_NAME_IDX(CoCMip, i);
+			coc_mips[i] = RG_NAME_IDX(CoCDilationMip, i);
 
 			uint32 mip_width = width >> i;
 			uint32 mip_height = height >> i;
@@ -658,7 +719,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 
-			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
 }

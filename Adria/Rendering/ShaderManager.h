@@ -98,6 +98,7 @@ namespace adria
 		VS_DDGIVisualize,
 		PS_DDGIVisualize,
 		CS_DepthOfField_ComputeCoC,
+		CS_DepthOfField_ComputeSeparatedCoC,
 		CS_DepthOfField_DownsampleCoC,
 		CS_DepthOfField_ComputePrefilteredTexture,
 		CS_DepthOfField_BokehFirstPass,
