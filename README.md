@@ -1,4 +1,4 @@
-<img align="left" src="Adria/Resources/Icons/adria_logo.jpg" width="120px"/>
+<img align="left" src="Adria/Resources/Icons/adria_logo.png" width="120px"/>
 
 # Adria-DX12
 
