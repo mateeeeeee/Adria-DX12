@@ -492,7 +492,16 @@ namespace adria
 		tinygltf::Model model;
 		std::string err;
 		std::string warn;
-		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
+		bool ret = false;
+		if (params.model_path.ends_with("gltf"))
+		{
+			ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
+		}
+		else if (params.model_path.ends_with("glb") || params.model_path.ends_with("bin"))
+		{
+			ret = loader.LoadBinaryFromFile(&model, &err, &warn, params.model_path);
+		}
+
 		std::string model_name = GetFilename(params.model_path);
 		if (!warn.empty())
 		{
