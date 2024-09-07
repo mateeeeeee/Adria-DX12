@@ -19,6 +19,8 @@ namespace adria
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void OnResize(uint32 w, uint32 h) override;
 		virtual void OnSceneInitialized() override;
+		virtual void GUI() override;
+		virtual bool IsGUIVisible(PostProcessor const* postprocessor) const;
 
 	private:
 		GfxDevice* gfx;

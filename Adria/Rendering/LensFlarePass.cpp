@@ -8,12 +8,20 @@
 #include "RenderGraph/RenderGraph.h"
 #include "TextureManager.h"
 #include "Core/Paths.h"
+#include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
+#include "Editor/GUICommand.h"
 
 using namespace DirectX;
 
 namespace adria
 {
+	static TAutoConsoleVariable<int> LensFlare("r.LensFlare.Type", 0, "0 - procedural, 1 - texture-based");
+	enum LensFlareType : uint8
+	{
+		LensFlareType_Procedural,
+		LensFlareType_TextureBased,
+	};
 
 	LensFlarePass::LensFlarePass(GfxDevice* gfx, uint32 w, uint32 h)
 		: gfx(gfx), width(w), height(h)
@@ -39,7 +47,17 @@ namespace adria
 		{
 			auto const& light_data = lights.get<Light>(light);
 			if (!light_data.active || !light_data.lens_flare) continue;
-			AddProceduralLensFlarePass(rg, postprocessor, light_data); //add some variable/cvar to choose between procedural and texture based
+
+			switch (LensFlare.Get())
+			{
+			case LensFlareType_Procedural:
+				AddProceduralLensFlarePass(rg, postprocessor, light_data);
+				break;
+			case LensFlareType_TextureBased:
+			default:
+				AddTextureBasedLensFlare(rg, postprocessor, light_data);
+				break;
+			}
 		}
 	}
 
@@ -57,6 +75,24 @@ namespace adria
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare4.jpg"));
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare5.jpg"));
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare6.jpg"));
+	}
+
+	void LensFlarePass::GUI()
+	{
+		QueueGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Lens Flare", ImGuiTreeNodeFlags_None))
+				{
+					ImGui::Combo("Lens Flare Type", LensFlare.GetPtr(), "Procedural\0Texture-based\0", 2);
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_PostProcessing
+		);
+	}
+
+	bool LensFlarePass::IsGUIVisible(PostProcessor const* postprocessor) const
+	{
+		return IsEnabled(postprocessor);
 	}
 
 	void LensFlarePass::CreatePSOs()

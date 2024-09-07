@@ -74,7 +74,6 @@ void LensFlareCS(CSInput input)
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 	float2 sunPos = 2.0f * LensFlarePassCB.sunScreenSpacePosition - 1.0f;
 
-	//#todo maybe check occlusion queries?
 	const float2 step = 1.0f / FrameCB.renderResolution;
 	const float2 range = 3.5f * step;
 	float samples = 0.0f;

@@ -17,7 +17,7 @@ namespace adria
 	struct Light;
 	class RainEvent;
 
-	enum class AmbientOcclusionType : uint8;
+	enum AmbientOcclusionType : uint8;
 	enum class UpscalerType : uint8;
 	enum AntiAliasing : uint8;
 
@@ -87,7 +87,6 @@ namespace adria
 
 		RGResourceName final_resource;
 
-		AmbientOcclusionType ambient_occlusion;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
 		FFXCACAOPass cacao_pass;
