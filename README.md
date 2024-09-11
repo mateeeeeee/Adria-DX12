@@ -100,4 +100,6 @@ Graphics engine written in C++ using DirectX12.
 ![](Adria/Saved/RenderGraph/rendergraph.svg "Render graph visualization") 
 
 ### Rain
-![](Adria/Saved/Screenshots/rain.gif "Rain") 
+https://github.com/user-attachments/assets/46eda5ad-040d-450b-9a07-a6aef9de3e92
+
+
