@@ -176,10 +176,10 @@ namespace adria
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
-			rain_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
 			shadow_renderer.OnResize(w, h);
 			ddgi.OnResize(w, h);
+			rain_pass.OnResize(w, h);
 		}
 	}
 
@@ -487,8 +487,8 @@ namespace adria
 			sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 			sky_pass.AddDrawSkyPass(render_graph);
 			picking_pass.AddPass(render_graph);
-			postprocessor.AddPasses(render_graph);
 			if (rain_pass.IsEnabled()) rain_pass.AddPass(render_graph);
+			postprocessor.AddPasses(render_graph);
 			g_DebugRenderer.Render(render_graph);
 		}
 		else

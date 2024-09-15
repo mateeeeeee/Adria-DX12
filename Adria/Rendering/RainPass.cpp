@@ -95,7 +95,7 @@ namespace adria
 			[=](RainDrawPassData& data, RenderGraphBuilder& builder)
 			{
 				data.rain_data_buffer = builder.ReadBuffer(RG_NAME(RainDataBuffer), ReadAccess_NonPixelShader);
-				builder.WriteRenderTarget(RG_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
