@@ -931,12 +931,10 @@ namespace adria
 		{
 			if (pass->IsCulled()) continue;
 			RenderGraphContext rg_resources(rg, *pass);
-			if (pass->type == RGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
+			if (pass->type == RGPassType::Graphics)
 			{
 				GfxRenderPassDesc render_pass_desc{};
-				if (pass->AllowUAVWrites()) render_pass_desc.flags = GfxRenderPassFlagBit_AllowUAVWrites;
-				else render_pass_desc.flags = GfxRenderPassFlagBit_None;
-
+				render_pass_desc.flags = GfxRenderPassFlagBit_None;
 				render_pass_desc.rtv_attachments.reserve(pass->render_targets_info.size());
 				for (auto const& render_target_info : pass->render_targets_info)
 				{

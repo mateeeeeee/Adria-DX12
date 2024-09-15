@@ -9,7 +9,7 @@ namespace adria
 
 	using RenderResolutionChangedDelegate = Delegate<void(uint32, uint32)>;
 
-	class UpscalerPassGroup final : public PostEffectGroupT<UpscalerPass>
+	class UpscalerPassGroup final : public TPostEffectGroup<UpscalerPass>
 	{
 		DECLARE_EVENT(UpscalerDisabledEvent, UpscalerPassGroup, uint32, uint32)
 	public:

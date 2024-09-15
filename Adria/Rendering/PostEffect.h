@@ -31,7 +31,7 @@ namespace adria
 	};
 
 	template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
-	class PostEffectGroupT : public PostEffect
+	class TPostEffectGroup : public PostEffect
 	{
 	public:
 		virtual void AddPass(RenderGraph& rg, PostProcessor* postprocessor) override
@@ -65,5 +65,5 @@ namespace adria
 		virtual void GroupGUI() {}
 	};
 
-	class PostEffectGroup : public PostEffectGroupT<PostEffect> {};
+	class PostEffectGroup : public TPostEffectGroup<PostEffect> {};
 }

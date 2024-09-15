@@ -18,10 +18,8 @@ namespace adria
 	enum class RGPassFlags : uint32
 	{
 		None = 0x00,
-		ForceNoCull = 0x01,						//RGPass cannot be culled by Render Graph
-		SkipAutoRenderPass = 0x02,				//RGPass will manage render targets by himself
-		LegacyRenderPass = 0x04,				//Don't use DX12 Render Passes, use OMSetRenderTargets
-		AllowUAVWrites = 0x08 					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is not used
+		ForceNoCull = 0x01,						//RGPass will not be culled by Render Graph, useful for debug passes
+		LegacyRenderPass = 0x02,				//RGPass will not use DX12 Render Passes but rather OMSetRenderTargets
 	};
 	template <>
 	struct EnumBitmaskOperators<RGPassFlags>
@@ -112,9 +110,7 @@ namespace adria
 
 		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
-		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, RGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPass); }
-		bool AllowUAVWrites() const { return HasAnyFlag(flags, RGPassFlags::AllowUAVWrites); }
 
 	private:
 		std::string const name;
