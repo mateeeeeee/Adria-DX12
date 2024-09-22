@@ -1,10 +1,8 @@
-#define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_EXTERNAL_IMAGE
-#define TINYGLTF_NOEXCEPTION
-#include "tiny_gltf.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
+#define CGLTF_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+#include "cgltf.h"
 #include "meshoptimizer.h"
 #include "EntityLoader.h"
 #include "Components.h"
@@ -488,75 +486,61 @@ namespace adria
 
 	entt::entity EntityLoader::ImportModel_GLTF(ModelParameters const& params)
 	{
-		tinygltf::TinyGLTF loader;
-		tinygltf::Model model;
-		std::string err;
-		std::string warn;
-		bool ret = false;
-		if (params.model_path.ends_with("gltf"))
+		cgltf_options options{};
+		cgltf_data* gltf_data = nullptr;
+		cgltf_result result = cgltf_parse_file(&options, params.model_path.c_str(), &gltf_data);
+		if (result != cgltf_result_success)
 		{
-			ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
+			ADRIA_LOG(WARNING, "GLTF - Failed to load '%s'", params.model_path.c_str());
+			return entt::null;
 		}
-		else if (params.model_path.ends_with("glb") || params.model_path.ends_with("bin"))
+		result = cgltf_load_buffers(&options, gltf_data, params.model_path.c_str());
+		if (result != cgltf_result_success)
 		{
-			ret = loader.LoadBinaryFromFile(&model, &err, &warn, params.model_path);
+			ADRIA_LOG(WARNING, "GLTF - Failed to load buffers '%s'", params.model_path.c_str());
+			return entt::null;
 		}
 
 		std::string model_name = GetFilename(params.model_path);
-		if (!warn.empty())
-		{
-			ADRIA_LOG(WARNING, warn.c_str());
-		}
-		if (!err.empty())
-		{
-			ADRIA_LOG(ERROR, err.c_str());
-			return {};
-		}
-		if (!ret)
-		{
-			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
-			return {};
-		}
 		entt::entity mesh_entity = reg.create();
 		Mesh mesh{};
 
-		//process the materials
-		mesh.materials.reserve(model.materials.size());
-		for (auto const& gltf_material : model.materials)
+		mesh.materials.reserve(gltf_data->materials_count);
+		for (uint32 i = 0; i < gltf_data->materials_count; ++i)
 		{
+			cgltf_material const& gltf_material = gltf_data->materials[i];
 			Material& material = mesh.materials.emplace_back();
-			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
-			material.double_sided = gltf_material.doubleSided;
+			material.alpha_cutoff = (float)gltf_material.alpha_cutoff;
+			material.double_sided = gltf_material.double_sided;
 
 			if (params.force_mask_alpha_usage)
 			{
 				material.alpha_mode = MaterialAlphaMode::Mask;
 			}
-			if (gltf_material.alphaMode == "OPAQUE")
+			if (gltf_material.alpha_mode == cgltf_alpha_mode_opaque)
 			{
 				material.alpha_mode = MaterialAlphaMode::Opaque;
 			}
-			else if (gltf_material.alphaMode == "BLEND")
+			else if (gltf_material.alpha_mode == cgltf_alpha_mode_blend)
 			{
 				material.alpha_mode = MaterialAlphaMode::Blend;
 			}
-			else if (gltf_material.alphaMode == "MASK")
+			else if (gltf_material.alpha_mode == cgltf_alpha_mode_mask)
 			{
 				material.alpha_mode = MaterialAlphaMode::Mask;
 			}
-			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
-			material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
-			material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
-			material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
-			material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
-			material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
-			material.emissive_factor = (float)gltf_material.emissiveFactor[0];
+			cgltf_pbr_metallic_roughness pbr_metallic_roughness = gltf_material.pbr_metallic_roughness;
+			material.base_color[0] = (float)pbr_metallic_roughness.base_color_factor[0];
+			material.base_color[1] = (float)pbr_metallic_roughness.base_color_factor[1];
+			material.base_color[2] = (float)pbr_metallic_roughness.base_color_factor[2];
+			material.metallic_factor = (float)pbr_metallic_roughness.metallic_factor;
+			material.roughness_factor = (float)pbr_metallic_roughness.roughness_factor;
+			material.emissive_factor = (float)gltf_material.emissive_factor[0];
 
-			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
+			if (cgltf_texture* texture = pbr_metallic_roughness.base_color_texture.texture)
 			{
-				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
-				tinygltf::Image const& base_image = model.images[base_texture.source];
-				std::string texbase = params.textures_path + base_image.uri;
+				cgltf_image* image = texture->image;
+				std::string texbase = params.textures_path + image->uri;
 				material.albedo_texture = g_TextureManager.LoadTexture(texbase);
 			}
 			else
@@ -564,11 +548,10 @@ namespace adria
 				material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
 			}
 
-			if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
+			if (cgltf_texture* texture = pbr_metallic_roughness.metallic_roughness_texture.texture)
 			{
-				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
-				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
-				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
+				cgltf_image* image = texture->image;
+				std::string texmetallicroughness = params.textures_path + image->uri;
 				material.metallic_roughness_texture = g_TextureManager.LoadTexture(texmetallicroughness);
 			}
 			else
@@ -576,11 +559,10 @@ namespace adria
 				material.metallic_roughness_texture = DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE;
 			}
 
-			if (gltf_material.normalTexture.index >= 0)
+			if (cgltf_texture* texture = gltf_material.normal_texture.texture)
 			{
-				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
-				tinygltf::Image const& normal_image = model.images[normal_texture.source];
-				std::string texnormal = params.textures_path + normal_image.uri;
+				cgltf_image* image = texture->image;
+				std::string texnormal = params.textures_path + image->uri;
 				material.normal_texture = g_TextureManager.LoadTexture(texnormal);
 			}
 			else
@@ -588,11 +570,10 @@ namespace adria
 				material.normal_texture = DEFAULT_NORMAL_TEXTURE_HANDLE;
 			}
 
-			if (gltf_material.emissiveTexture.index >= 0)
+			if (cgltf_texture* texture = gltf_material.emissive_texture.texture)
 			{
-				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
-				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
-				std::string texemissive = params.textures_path + emissive_image.uri;
+				cgltf_image* image = texture->image;
+				std::string texemissive = params.textures_path + image->uri;
 				material.emissive_texture = g_TextureManager.LoadTexture(texemissive);
 			}
 			else
@@ -601,7 +582,7 @@ namespace adria
 			}
 		}
 
-		std::unordered_map<int32, std::vector<int32>> mesh_primitives_map; //mesh index -> vector of primitive indices
+		std::unordered_map<cgltf_mesh const*, std::vector<int32>> mesh_primitives_map; //mesh -> vector of primitive indices
 		int32 primitive_count = 0;
 
 		struct MeshData
@@ -621,91 +602,63 @@ namespace adria
 			std::vector<MeshletTriangle> meshlet_triangles;
 		};
 		std::vector<MeshData> mesh_datas{};
-		for (int32 i = 0; i < model.meshes.size(); ++i)
+		for (uint32 i = 0; i < gltf_data->meshes_count; ++i)
 		{
-			std::vector<int32>& primitives = mesh_primitives_map[i];
-			auto const& gltf_mesh = model.meshes[i];
-			for (auto const& gltf_primitive : gltf_mesh.primitives)
+			cgltf_mesh const& gltf_mesh = gltf_data->meshes[i];
+			std::vector<int32>& primitives = mesh_primitives_map[&gltf_mesh];
+			for (uint32 j = 0; j < gltf_mesh.primitives_count; ++j)
 			{
-				ADRIA_ASSERT(gltf_primitive.indices >= 0);
-				tinygltf::Accessor const& index_accessor = model.accessors[gltf_primitive.indices];
-				tinygltf::BufferView const& buffer_view = model.bufferViews[index_accessor.bufferView];
-				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
+				auto const& gltf_primitive = gltf_mesh.primitives[j];
+				ADRIA_ASSERT(gltf_primitive.indices->count >= 0);
 
 				MeshData& mesh_data = mesh_datas.emplace_back();
-				mesh_data.material_index = gltf_primitive.material;
-
-				mesh_data.indices.reserve(index_accessor.count);
-				auto AddIndices = [&]<typename T>()
+				mesh_data.material_index = (int32)(gltf_primitive.material - gltf_data->materials);
+				mesh_data.indices.reserve(gltf_primitive.indices->count);
+				
+				uint32 triangle_cw[] = { 0, 1, 2 };
+				uint32 triangle_ccw[] = { 0, 2, 1 };
+				uint32* order = params.triangle_ccw ? triangle_ccw : triangle_cw;
+				for (uint64 i = 0; i < gltf_primitive.indices->count; i += 3)
 				{
-					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
-					uint32 triangle_cw[]   = { 0, 1, 2 };
-					uint32 triangle_ccw[]  = { 0, 2, 1 };
-					uint32* order = params.triangle_ccw ? triangle_ccw : triangle_cw;
-					for (uint64 i = 0; i < index_accessor.count; i += 3)
-					{
-						mesh_data.indices.push_back(data[i + order[0]]);
-						mesh_data.indices.push_back(data[i + order[1]]);
-						mesh_data.indices.push_back(data[i + order[2]]);
-					}
-				};
-				int stride = index_accessor.ByteStride(buffer_view);
-				switch (stride)
-				{
-				case 1:
-					AddIndices.template operator()<uint8>();
-					break;
-				case 2:
-					AddIndices.template operator()<uint16>();
-					break;
-				case 4:
-					AddIndices.template operator()<uint32>();
-					break;
-				default:
-					ADRIA_ASSERT(false);
+					mesh_data.indices.push_back((uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[0]));
+					mesh_data.indices.push_back((uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[1]));
+					mesh_data.indices.push_back((uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[2]));
 				}
-				switch (gltf_primitive.mode)
+
+				switch (gltf_primitive.type)
 				{
-				case TINYGLTF_MODE_POINTS:
+				case cgltf_primitive_type_points:
 					mesh_data.topology = GfxPrimitiveTopology::PointList;
 					break;
-				case TINYGLTF_MODE_LINE:
+				case cgltf_primitive_type_lines:
 					mesh_data.topology = GfxPrimitiveTopology::LineList;
 					break;
-				case TINYGLTF_MODE_LINE_STRIP:
+				case cgltf_primitive_type_line_strip:
 					mesh_data.topology = GfxPrimitiveTopology::LineStrip;
 					break;
-				case TINYGLTF_MODE_TRIANGLES:
+				case cgltf_primitive_type_triangles:
 					mesh_data.topology = GfxPrimitiveTopology::TriangleList;
 					break;
-				case TINYGLTF_MODE_TRIANGLE_STRIP:
+				case cgltf_primitive_type_triangle_strip:
 					mesh_data.topology = GfxPrimitiveTopology::TriangleStrip;
 					break;
 				default:
 					ADRIA_ASSERT(false);
 				}
 
-				for (auto const& attr : gltf_primitive.attributes)
+				for (uint32 k = 0; k < gltf_primitive.attributes_count; ++k)
 				{
-					std::string const& attr_name = attr.first;
-					int attr_data = attr.second;
+					cgltf_attribute const& gltf_attribute = gltf_primitive.attributes[k];
+					std::string const& attr_name = gltf_attribute.name;
 
-					const tinygltf::Accessor& accessor = model.accessors[attr_data];
-					const tinygltf::BufferView& buffer_view = model.bufferViews[accessor.bufferView];
-					const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
-
-					int stride = accessor.ByteStride(buffer_view);
-					uint64 count = accessor.count;
-					const unsigned char* data = buffer.data.data() + accessor.byteOffset + buffer_view.byteOffset;
-
-					auto ReadAttributeData = [&]<typename T>(std::vector<T>&stream, const char* stream_name)
+					auto ReadAttributeData = [&]<typename T>(std::vector<T>& stream, const char* stream_name)
 					{
 						if (!attr_name.compare(stream_name))
 						{
-							stream.reserve(count);
-							for (uint64 i = 0; i < count; ++i)
+							stream.resize(gltf_attribute.data->count);
+							for (uint64 i = 0; i < gltf_attribute.data->count; ++i)
 							{
-								stream.push_back(*(T*)((uint64)data + i * stride));
+								cgltf_accessor_read_float(gltf_attribute.data, i, &stream[i].x, sizeof(T) / sizeof(float));
 							}
 						}
 					};
@@ -856,82 +809,23 @@ namespace adria
 		}
 		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
-		std::function<void(int, Matrix const&)> LoadNode;
-		LoadNode = [&](int node_index, Matrix const& parent_transform)
+		for (uint64 i = 0; i < gltf_data->nodes_count; ++i)
 		{
-			if (node_index < 0) return;
-			auto& node = model.nodes[node_index];
-			struct Transforms
-			{
-				Vector4 rotation_local = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-				Vector3 scale_local = Vector3(1.0f, 1.0f, 1.0f);
-				Vector3 translation_local = Vector3(0.0f, 0.0f, 0.0f);
-				Matrix world = Matrix::Identity;
-				bool update = true;
-				void Update()
-				{
-					if (update)
-					{
-							world = Matrix::CreateScale(scale_local) *
-							Matrix::CreateFromQuaternion(rotation_local) *
-							Matrix::CreateTranslation(translation_local);
-					}
-				}
-			} transforms;
+			cgltf_node const& gltf_node = gltf_data->nodes[i];
 
-			if (!node.scale.empty())
+			if (gltf_node.mesh)
 			{
-				transforms.scale_local = Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
-			}
-			if (!node.rotation.empty())
-			{
-				transforms.rotation_local = Vector4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
-			}
-			if (!node.translation.empty())
-			{
-				transforms.translation_local = Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
-			}
-			if (!node.matrix.empty())
-			{
-				transforms.world._11 = (float)node.matrix[0];
-				transforms.world._12 = (float)node.matrix[1];
-				transforms.world._13 = (float)node.matrix[2];
-				transforms.world._14 = (float)node.matrix[3];
-				transforms.world._21 = (float)node.matrix[4];
-				transforms.world._22 = (float)node.matrix[5];
-				transforms.world._23 = (float)node.matrix[6];
-				transforms.world._24 = (float)node.matrix[7];
-				transforms.world._31 = (float)node.matrix[8];
-				transforms.world._32 = (float)node.matrix[9];
-				transforms.world._33 = (float)node.matrix[10];
-				transforms.world._34 = (float)node.matrix[11];
-				transforms.world._41 = (float)node.matrix[12];
-				transforms.world._42 = (float)node.matrix[13];
-				transforms.world._43 = (float)node.matrix[14];
-				transforms.world._44 = (float)node.matrix[15];
-				transforms.update = false;
-			}
-			transforms.Update();
+				Matrix local_to_world;
+				cgltf_node_transform_world(&gltf_node, &local_to_world.m[0][0]);
 
-			if (node.mesh >= 0)
-			{
-				Matrix model_matrix = transforms.world * parent_transform;
-				for (auto primitive : mesh_primitives_map[node.mesh])
+				for (int32 primitive : mesh_primitives_map[gltf_node.mesh])
 				{
 					SubMeshInstance& instance = mesh.instances.emplace_back();
 					instance.submesh_index = primitive;
-					instance.world_transform = model_matrix;
+					instance.world_transform = local_to_world * params.model_matrix;
 					instance.parent = mesh_entity;
 				}
 			}
-
-			for (int child : node.children) LoadNode(child, transforms.world * parent_transform);
-		};
-
-		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
-		for (uint64 i = 0; i < scene.nodes.size(); ++i)
-		{
-			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 
 		reg.emplace<Mesh>(mesh_entity, mesh);
@@ -939,7 +833,8 @@ namespace adria
 
 		if (gfx->GetCapabilities().SupportsRayTracing()) reg.emplace<RayTracing>(mesh_entity);
 
-		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
+		ADRIA_LOG(INFO, "GLTF Model %s successfully loaded!", params.model_path.c_str());
+		cgltf_free(gltf_data);
 		return mesh_entity;
 	}
 }

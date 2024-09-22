@@ -110,6 +110,9 @@
     <Filter Include="Shaders\Meshlets">
       <UniqueIdentifier>{7c6f2ed7-1031-4d59-83ef-7d4c631af847}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\cgltf">
+      <UniqueIdentifier>{f6fe0bd5-a23e-4986-aaa9-6cc500a30e6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -1161,6 +1164,9 @@
     <ClInclude Include="Graphics\GfxPipelineStatePermutationsFwd.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\External\cgltf\cgltf.h">
+      <Filter>External\cgltf</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1244,6 +1250,9 @@
     </None>
     <None Include="Resources\Shaders\Meshlets\GpuDrivenRendering.hlsli">
       <Filter>Shaders\Meshlets</Filter>
+    </None>
+    <None Include="..\External\cgltf\LICENSE">
+      <Filter>External\cgltf</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
