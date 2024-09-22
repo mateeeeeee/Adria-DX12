@@ -113,6 +113,9 @@
     <Filter Include="External\cgltf">
       <UniqueIdentifier>{f6fe0bd5-a23e-4986-aaa9-6cc500a30e6d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes">
+      <UniqueIdentifier>{ce27b75e-26b1-4295-ac23-d51265bf3c76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -1241,8 +1244,6 @@
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli">
       <Filter>Shaders\Weather</Filter>
     </None>
-    <None Include="Saved\Scenes\sanmiguel.json" />
-    <None Include="Saved\Scenes\sponza.json" />
     <None Include="Saved\Ini\cvars.ini" />
     <None Include="..\README.md" />
     <None Include="Resources\Shaders\Postprocess\AutoExposure\ExposureUtil.hlsli">
@@ -1254,7 +1255,21 @@
     <None Include="..\External\cgltf\LICENSE">
       <Filter>External\cgltf</Filter>
     </None>
-    <None Include="Saved\Scenes\brutalism.json" />
+    <None Include="Saved\Scenes\brutalism.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="Saved\Scenes\sponza.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="Saved\Scenes\sanmiguel.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="Saved\Scenes\toyshop.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="Saved\Scenes\hangar.json">
+      <Filter>Scenes</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">

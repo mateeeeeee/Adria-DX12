@@ -1,0 +1,45 @@
+{
+    "camera": {
+		"position": [
+			108.0,
+			17.0,
+			1.0
+		],
+		"look_at": [
+			 0.0,
+			 17.0,
+			 1.1
+		],
+        "fov": 45.0,
+        "near": 1.0,
+        "far": 475.0,
+        "speed": 50.0,
+		"sensitivity" : 0.3
+    },
+		"skybox" : {
+			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
+	},
+    "models" : [
+			{
+				"path": "Resources/Models/Toyshop_TeddyGI/Toyshop_Teddy_static/Toyshop_Teddy_static.gltf",
+				"scale": [ 20.0, 20.0, -20.0 ],
+				"use_ccw": true,
+				"force_alpha_mask": false
+			}
+	],
+	"lights" : [
+		{
+			"type": "directional",
+			"temperature" :  5900.0,
+			"elevation": 75.0,
+			"azimuth" :  260.0,
+			"intensity": 5.0,
+			"shadows": true,
+			"cascades": true,
+			"volumetric": true,
+			"lens_flare": true,
+			"mesh": "quad",
+			"size": 100
+		}
+	]
+}

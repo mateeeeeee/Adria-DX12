@@ -579,9 +579,11 @@
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />
     <None Include="Saved\Ini\cvars.ini" />
+    <None Include="Saved\Scenes\hangar.json" />
     <None Include="Saved\Scenes\brutalism.json" />
     <None Include="Saved\Scenes\sanmiguel.json" />
     <None Include="Saved\Scenes\sponza.json" />
+    <None Include="Saved\Scenes\toyshop.json" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
