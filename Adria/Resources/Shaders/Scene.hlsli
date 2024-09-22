@@ -31,8 +31,8 @@ struct Material
 
 struct Instance
 {
-	matrix worldMatrix;
-	matrix inverseWorldMatrix;
+	row_major matrix worldMatrix;
+	row_major matrix inverseWorldMatrix;
 	float3 bbOrigin;
 	uint pad;
 	float3 bbExtents;

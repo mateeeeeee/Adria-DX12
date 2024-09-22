@@ -1254,6 +1254,7 @@
     <None Include="..\External\cgltf\LICENSE">
       <Filter>External\cgltf</Filter>
     </None>
+    <None Include="Saved\Scenes\brutalism.json" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
