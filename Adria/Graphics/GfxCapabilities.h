@@ -72,11 +72,13 @@ namespace adria
 		{
 			return shader_model >= sm;
 		}
-
 		bool SupportsEnhancedBarriers() const 
 		{
 			return enhanced_barriers_supported;
 		}
+
+		bool SupportsAdditionalShadingRates() const { return additional_shading_rates_supported; }
+		uint32 GetShadingRateImageTileSize() const { return shading_rate_image_tile_size; }
 
 	private:
 		
@@ -86,5 +88,8 @@ namespace adria
 		WorkGraphSupport work_graph_support = WorkGraphSupport::TierNotSupported;
 		GfxShaderModel shader_model = SM_Unknown;
 		bool enhanced_barriers_supported = false;
+
+		bool additional_shading_rates_supported = false;
+		uint32 shading_rate_image_tile_size = 0;
 	};
 }

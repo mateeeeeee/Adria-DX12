@@ -531,6 +531,9 @@
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp">
       <Filter>Rendering\Passes\Post Effects</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\FFXVRSPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1169,6 +1172,12 @@
     </ClInclude>
     <ClInclude Include="..\External\cgltf\cgltf.h">
       <Filter>External\cgltf</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FFXVRSPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxShadingRate.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

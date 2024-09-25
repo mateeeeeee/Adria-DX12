@@ -64,8 +64,9 @@ namespace adria
 	template<bool>
 	class GfxRingDescriptorAllocator;
 
-	class GfxNsightAftermathGpuCrashTracker;
+	struct GfxShadingRateFeatureInfo;
 
+	class GfxNsightAftermathGpuCrashTracker;
 #if GFX_MULTITHREADED
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;
 #else
@@ -171,6 +172,7 @@ namespace adria
 
 		void GetTimestampFrequency(uint64& frequency) const;
 		GPUMemoryUsage GetMemoryUsage() const;
+
 
 		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
 		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}

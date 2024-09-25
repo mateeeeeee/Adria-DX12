@@ -130,6 +130,7 @@ namespace adria
 		dof_context_desc.resolution.height = height;
 		dof_context_desc.quality = static_cast<uint32>(quality);
 		dof_context_desc.cocLimitFactor = coc_limit;
+		dof_context_desc.backendInterface.device = gfx->GetDevice();
 
 		FfxErrorCode error_code = ffxDofContextCreate(&dof_context, &dof_context_desc);
 		ADRIA_ASSERT(error_code == FFX_OK);

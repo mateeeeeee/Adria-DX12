@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_FRAMEINTERPOLATION_DEBUG_VIEW_H
 #define FFX_FRAMEINTERPOLATION_DEBUG_VIEW_H
@@ -54,7 +54,7 @@ FfxFloat32x4 getUnusedIndicationColor(FfxInt32x2 iPxPos, FfxFrameInterpolationDe
 {
     FfxInt32x2 basePos = iPxPos - vp.offset;
 
-    FfxFloat32 ar = (FfxFloat32)vp.size.x / vp.size.y;
+    FfxFloat32 ar = FfxFloat32(vp.size.x) / FfxFloat32(vp.size.y);
 
     return FfxFloat32x4(basePos.x == FfxInt32(basePos.y * ar), 0, 0, 1);
 }
@@ -136,7 +136,7 @@ void computeDebugView(FfxInt32x2 iPxPos)
 #define VIEWPORT_GRID_SIZE_Y 3
 
     FfxFloat32x2 fViewportScale = FfxFloat32x2(1.0f / VIEWPORT_GRID_SIZE_X, 1.0f / VIEWPORT_GRID_SIZE_Y);
-    FfxInt32x2   iViewportSize  = DisplaySize() * fViewportScale;
+    FfxInt32x2   iViewportSize  = FfxInt32x2(DisplaySize() * fViewportScale);
 
     // compute grid [y][x] for easier placement of viewports
     FfxFrameInterpolationDebugViewport vp[VIEWPORT_GRID_SIZE_Y][VIEWPORT_GRID_SIZE_X];

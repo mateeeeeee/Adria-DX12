@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,23 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-
 #if !defined(FFX_OPTICALFLOW_COMMON_H)
 #define FFX_OPTICALFLOW_COMMON_H
 
 #if defined(FFX_GPU)
 
-#define FFX_ALL_MEMORY_BARRIER AllMemoryBarrierWithGroupSync
-
-#ifndef FFX_GROUP_MEMORY_BARRIER
-#define FFX_GROUP_MEMORY_BARRIER GroupMemoryBarrierWithGroupSync
-#endif
-
 #define SCD_OUTPUT_SCENE_CHANGE_SLOT            0
 #define SCD_OUTPUT_HISTORY_BITS_SLOT            1
 #define SCD_OUTPUT_COMPLETED_WORKGROUPS_SLOT    2
 
+
 #define ffxClamp(x, a, b) (ffxMax(a, ffxMin(b, x)))
+
 
 FfxUInt32 GetPackedLuma(FfxInt32 width, FfxInt32 x, FfxUInt32 luma0, FfxUInt32 luma1, FfxUInt32 luma2, FfxUInt32 luma3)
 {

@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_COMMON_TYPES_H
 #define FFX_COMMON_TYPES_H
@@ -106,7 +106,42 @@ typedef float FfxFloat32x3[3];
 /// @ingroup CPUTypes
 typedef float FfxFloat32x4[4];
 
-/// A typedef for a 2-dimensional 32bit unsigned integer.
+/// A typedef for a 2x2 floating point matrix.
+///
+/// @ingroup CPUTypes
+typedef float FfxFloat32x2x2[4];
+
+/// A typedef for a 3x3 floating point matrix.
+///
+/// @ingroup CPUTypes
+typedef float FfxFloat32x3x3[9];
+
+/// A typedef for a 3x4 floating point matrix.
+///
+/// @ingroup CPUTypes
+typedef float FfxFloat32x3x4[12];
+
+/// A typedef for a 4x4 floating point matrix.
+///
+/// @ingroup CPUTypes
+typedef float FfxFloat32x4x4[16];
+
+/// A typedef for a 2-dimensional 32bit signed integer.
+///
+/// @ingroup CPUTypes
+typedef int32_t FfxInt32x2[2];
+
+/// A typedef for a 3-dimensional 32bit signed integer.
+///
+/// @ingroup CPUTypes
+typedef int32_t FfxInt32x3[3];
+
+/// A typedef for a 4-dimensional 32bit signed integer.
+///
+/// @ingroup CPUTypes
+typedef int32_t FfxInt32x4[4];
+
+/// A typedef for a 2-dimensional 32bit usigned integer.
 ///
 /// @ingroup CPUTypes
 typedef uint32_t FfxUInt32x2[2];
@@ -161,6 +196,7 @@ typedef float32_t4  FfxFloat32x4;
 
 /// A [cacao_placeholder] typedef for matrix type until confirmed.
 typedef float4x4 FfxFloat32x4x4;
+typedef float3x4 FfxFloat32x3x4;
 typedef float3x3 FfxFloat32x3x3;
 typedef float2x2 FfxFloat32x2x2;
 
@@ -218,6 +254,7 @@ typedef int32_t4    FfxInt32x4;
 
 /// A [cacao_placeholder] typedef for matrix type until confirmed.
 #define FfxFloat32x4x4 float4x4
+#define FfxFloat32x3x4 float3x4
 #define FfxFloat32x3x3 float3x3
 #define FfxFloat32x2x2 float2x2
 
@@ -311,6 +348,7 @@ typedef min16int4   FfxInt16x4;
 
 /// A [cacao_placeholder] typedef for matrix type until confirmed.
 #define FfxFloat32x4x4 mat4
+#define FfxFloat32x3x4 mat4x3
 #define FfxFloat32x3x3 mat3
 #define FfxFloat32x2x2 mat2
 

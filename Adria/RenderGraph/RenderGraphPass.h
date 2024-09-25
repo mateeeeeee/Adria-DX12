@@ -21,11 +21,7 @@ namespace adria
 		ForceNoCull = 0x01,						//RGPass will not be culled by Render Graph, useful for debug passes
 		LegacyRenderPass = 0x02,				//RGPass will not use DX12 Render Passes but rather OMSetRenderTargets
 	};
-	template <>
-	struct EnumBitmaskOperators<RGPassFlags>
-	{
-		static constexpr bool enable = true;
-	};
+	ENABLE_ENUM_BIT_OPERATORS(RGPassFlags);
 
 	enum RGReadAccess : uint8
 	{

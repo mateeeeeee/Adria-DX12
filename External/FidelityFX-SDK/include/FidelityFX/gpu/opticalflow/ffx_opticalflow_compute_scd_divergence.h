@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_OPTICALFLOW_COMPUTE_SCD_DIVERGENCE_H
 #define FFX_OPTICALFLOW_COMPUTE_SCD_DIVERGENCE_H
@@ -39,7 +39,7 @@ void ComputeSCDHistogramsDivergence(FfxInt32x3 iGlobalId, FfxInt32x2 iLocalId, F
     };
 
     sourceHistogram[iLocalIndex] = FfxFloat32(LoadRwSCDHistogram(iGlobalId.x));
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     const FfxInt32 kernelShift = -5;
     const FfxInt32 indexToRead = iLocalIndex + kernelShift;
@@ -77,16 +77,16 @@ void ComputeSCDHistogramsDivergence(FfxInt32x3 iGlobalId, FfxInt32x2 iLocalId, F
         else
             filteredHistogram[iLocalIndex + 1] = val;
     }
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     tempBuffer[iLocalIndex] = filteredHistogram[iLocalIndex];
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     if (iLocalIndex < 128) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 128];
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     if (iLocalIndex < 64) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 64];
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     if (iLocalIndex < 32) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 32];
     if (iLocalIndex < 16) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 16];
@@ -94,7 +94,7 @@ void ComputeSCDHistogramsDivergence(FfxInt32x3 iGlobalId, FfxInt32x2 iLocalId, F
     if (iLocalIndex < 4 ) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 4];
     if (iLocalIndex < 2 ) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 2];
     if (iLocalIndex < 1 ) tempBuffer[iLocalIndex] += tempBuffer[iLocalIndex + 1];
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     filteredHistogram[iLocalIndex] /= tempBuffer[0];
 
@@ -105,13 +105,13 @@ void ComputeSCDHistogramsDivergence(FfxInt32x3 iGlobalId, FfxInt32x2 iLocalId, F
         currentFilteredHistogramsValue * log(currentFilteredHistogramsValue / previousHistogramsValue),
         previousHistogramsValue * log(previousHistogramsValue / currentFilteredHistogramsValue)
     );
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     if (iLocalIndex < 128) tempBuffer2[iLocalIndex] += tempBuffer2[iLocalIndex + 128];
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     if (iLocalIndex < 64) tempBuffer2[iLocalIndex] += tempBuffer2[iLocalIndex + 64];
-    FFX_GROUP_MEMORY_BARRIER();
+    FFX_GROUP_MEMORY_BARRIER;
 
     if (iLocalIndex < 32) tempBuffer2[iLocalIndex] += tempBuffer2[iLocalIndex + 32];
     if (iLocalIndex < 16) tempBuffer2[iLocalIndex] += tempBuffer2[iLocalIndex + 16];
@@ -124,7 +124,7 @@ void ComputeSCDHistogramsDivergence(FfxInt32x3 iGlobalId, FfxInt32x2 iLocalId, F
         FfxFloat32x2 sum = tempBuffer2[0] + tempBuffer2[1];
 
         FfxFloat32 resFloat = 1 - exp(-(abs(sum.x) + abs(sum.y)));
-        FfxUInt32 resUInt = (resFloat / FfxFloat32(HistogramCount)) * Factor;
+        FfxUInt32 resUInt = FfxUInt32((resFloat / FfxFloat32(HistogramCount)) * Factor);
         AtomicIncrementSCDTemp(iGlobalId.y, resUInt);
 
         FfxUInt32 oldFinishedGroupCount = AtomicIncrementSCDOutput(SCD_OUTPUT_COMPLETED_WORKGROUPS_SLOT, 1);

@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,11 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-
 #if !defined(FFX_FRAMEINTERPOLATION_COMMON_H)
 #define FFX_FRAMEINTERPOLATION_COMMON_H
 
-#define FFX_FRAMEINTERPOLATION_DISPATCH_DRAW_DEBUG (1 << 0)
+#define FFX_FRAMEINTERPOLATION_DISPATCH_DRAW_DEBUG_TEAR_LINES       (1 << 0)
+#define FFX_FRAMEINTERPOLATION_DISPATCH_DRAW_DEBUG_RESET_INDICATORS (1 << 1)
+#define FFX_FRAMEINTERPOLATION_DISPATCH_DRAW_DEBUG_VIEW             (1 << 2)
 
 FFX_STATIC const FfxFloat32 FFX_FRAMEINTERPOLATION_EPSILON = 1e-03f;
 FFX_STATIC const FfxFloat32 FFX_FRAMEINTERPOLATION_FLT_MAX = 3.402823466e+38f;
@@ -118,7 +120,7 @@ BilinearSamplingData GetBilinearSamplingData(FfxFloat32x2 fUv, FfxInt32x2 iSize)
 
     FfxFloat32x2 fPxSample = (fUv * iSize) - FfxFloat32x2(0.5f, 0.5f);
     data.iBasePos          = FfxInt32x2(floor(fPxSample));
-    FfxFloat32x2 fPxFrac   = frac(fPxSample);
+    FfxFloat32x2 fPxFrac   = ffxFract(fPxSample);
 
     data.iOffsets[0] = FfxInt32x2(0, 0);
     data.iOffsets[1] = FfxInt32x2(1, 0);
@@ -161,12 +163,17 @@ FfxFloat32x3 GetViewSpacePosition(FfxInt32x2 iViewportPos, FfxInt32x2 iViewportS
 
 FfxBoolean IsOnScreen(FfxInt32x2 pos, FfxInt32x2 size)
 {
-    return all((FfxUInt32x2)pos < (FfxUInt32x2)size);
+    return all(FFX_LESS_THAN(FfxUInt32x2(pos), FfxUInt32x2(size)));
 }
 
 FfxBoolean IsUvInside(FfxFloat32x2 fUv)
 {
     return (fUv.x > 0.0f && fUv.x < 1.0f) && (fUv.y > 0.0f && fUv.y < 1.0f);
+}
+
+FfxBoolean IsInRect(FfxInt32x2 pos, FfxInt32x2 iRectCorner, FfxInt32x2 iRectSize)
+{
+    return (pos.x >= iRectCorner.x && pos.x < (iRectSize.x + iRectCorner.x) && pos.y >= iRectCorner.y && pos.y < (iRectSize.y + iRectCorner.y));
 }
 
 FfxFloat32 MinDividedByMax(const FfxFloat32 v0, const FfxFloat32 v1)
@@ -235,6 +242,22 @@ struct VectorFieldEntry
     FfxBoolean   bPosOutside;
 };
 
+VectorFieldEntry NewVectorFieldEntry()
+{
+    VectorFieldEntry vfe;
+    vfe.fMotionVector = FfxFloat32x2(0.0, 0.0);
+    vfe.uHighPriorityFactor = 0.0;
+    vfe.uLowPriorityFactor = 0.0;
+    vfe.bValid = false;
+    vfe.bPrimary = false;
+    vfe.bSecondary = false;
+    vfe.bInPainted = false;
+    vfe.fVelocity = 0.0;
+    vfe.bNegOutside = false;
+    vfe.bPosOutside = false;
+    return vfe;
+}
+
 FfxBoolean PackedVectorFieldEntryIsPrimary(FfxUInt32 packedEntry)
 {
     return ((packedEntry & MOTION_VECTOR_FIELD_PRIMARY_VECTOR_INDICATION_BIT) != 0);
@@ -243,12 +266,12 @@ FfxBoolean PackedVectorFieldEntryIsPrimary(FfxUInt32 packedEntry)
 FfxUInt32x2 PackVectorFieldEntries(FfxBoolean bIsPrimary, FfxUInt32 uHighPriorityFactor, FfxUInt32 uLowPriorityFactor, FfxFloat32x2 fMotionVector)
 {
     const FfxUInt32 uPriority =
-        (bIsPrimary * MOTION_VECTOR_FIELD_PRIMARY_VECTOR_INDICATION_BIT)
+        (FfxUInt32(bIsPrimary) * MOTION_VECTOR_FIELD_PRIMARY_VECTOR_INDICATION_BIT)
         | ((uHighPriorityFactor & PRIORITY_HIGH_MAX) << PRIORITY_HIGH_OFFSET)
         | ((uLowPriorityFactor & PRIORITY_LOW_MAX) << PRIORITY_LOW_OFFSET);
 
-    FfxUInt32 packedX = uPriority | f32tof16(fMotionVector.x);
-    FfxUInt32 packedY = uPriority | f32tof16(fMotionVector.y);
+    FfxUInt32 packedX = uPriority | ffxF32ToF16(fMotionVector.x);
+    FfxUInt32 packedY = uPriority | ffxF32ToF16(fMotionVector.y);
 
     return FfxUInt32x2(packedX, packedY);
 }
@@ -268,8 +291,8 @@ void UnpackVectorFieldEntries(FfxUInt32x2 packed, out VectorFieldEntry vfElement
         vfElement.uHighPriorityFactor = 1.0f - vfElement.uHighPriorityFactor;
     }
 
-    vfElement.fMotionVector.x = f16tof32(packed.x);
-    vfElement.fMotionVector.y = f16tof32(packed.y);
+    vfElement.fMotionVector.x = ffxUnpackF32(packed.x).x;
+    vfElement.fMotionVector.y = ffxUnpackF32(packed.y).x;
     vfElement.bInPainted      = false;
 }
 
@@ -283,7 +306,7 @@ FfxFloat32x4 ComputeMvInpaintingLevel(FfxFloat32x2 fUv, const FfxInt32 iMipLevel
     BilinearSamplingData bilinearInfo = GetBilinearSamplingData(fUv, iTexSize);
 
     FfxFloat32   fSum   = 0.0f;
-    FfxFloat32x4 fColor = 0;
+    FfxFloat32x4 fColor = FfxFloat32x4(0.0, 0.0, 0.0, 0.0);
     fColor.z            = 0;
 
     const FfxFloat32 fMaxPriorityFactor = 1.0f;
@@ -298,7 +321,7 @@ FfxFloat32x4 ComputeMvInpaintingLevel(FfxFloat32x2 fUv, const FfxInt32 iMipLevel
             FfxFloat32x4 fSample = LoadInpaintingPyramid(iMipLevel, iSamplePos);
 
             const FfxFloat32 fPriorityFactor = fSample.z;
-            const FfxFloat32 fValidMvFactor  = (fSample.z > 0);
+            const FfxFloat32 fValidMvFactor  = FfxFloat32(fSample.z > 0);
             const FfxFloat32 fSampleWeight   = bilinearInfo.fWeights[iSampleIndex] * fValidMvFactor * fPriorityFactor;
 
             fSum += fSampleWeight;
@@ -316,7 +339,7 @@ FfxFloat32x4 ComputeMvInpaintingLevel(FfxFloat32x2 fUv, const FfxInt32 iMipLevel
 
 void LoadInpaintedGameFieldMv(FfxFloat32x2 fUv, out VectorFieldEntry vfElement)
 {    
-    FfxInt32x2 iPxSample = fUv * RenderSize();
+    FfxInt32x2 iPxSample = FfxInt32x2(fUv * RenderSize());
     FfxUInt32x2 packedGameFieldMv = LoadGameFieldMv(iPxSample);
     UnpackVectorFieldEntries(packedGameFieldMv, vfElement);
 
@@ -325,10 +348,10 @@ void LoadInpaintedGameFieldMv(FfxFloat32x2 fUv, out VectorFieldEntry vfElement)
         //FfxFloat32x2 fUv = (FfxFloat32x2(iPxSample) + 0.5f) / RenderSize();
         FfxInt32x2 iTexSize = RenderSize();
 
-        FfxFloat32x4 fInPaintedVector = 0;
+        FfxFloat32x4 fInPaintedVector = FfxFloat32x4(0.0, 0.0, 0.0, 0.0);
         for (FfxInt32 iMipLevel = 0; iMipLevel < 11 && (fInPaintedVector.w == 0.0f); iMipLevel++)
         {
-            iTexSize *= 0.5f;
+            iTexSize /= 2;
 
             fInPaintedVector = ComputeMvInpaintingLevel(fUv, iMipLevel, iTexSize);
         }
@@ -353,9 +376,9 @@ void SampleOpticalFlowMotionVectorField(FfxFloat32x2 fUv, out VectorFieldEntry v
 {
     const FfxFloat32 scaleFactor = 1.0f;
 
-    BilinearSamplingData bilinearInfo = GetBilinearSamplingData(fUv, GetOpticalFlowSize2() * scaleFactor);
+    BilinearSamplingData bilinearInfo = GetBilinearSamplingData(fUv, FfxInt32x2(GetOpticalFlowSize2() * scaleFactor));
 
-    vfElement = (VectorFieldEntry)0;
+    vfElement = NewVectorFieldEntry();
 
     FfxFloat32 fWeightSum = 0.0f;
     for (FfxInt32 iSampleIndex = 0; iSampleIndex < 4; iSampleIndex++)
@@ -363,12 +386,12 @@ void SampleOpticalFlowMotionVectorField(FfxFloat32x2 fUv, out VectorFieldEntry v
         const FfxInt32x2 iOffset    = bilinearInfo.iOffsets[iSampleIndex];
         const FfxInt32x2 iSamplePos = bilinearInfo.iBasePos + iOffset;
 
-        if (IsOnScreen(iSamplePos, GetOpticalFlowSize2() * scaleFactor))
+        if (IsOnScreen(iSamplePos, FfxInt32x2(GetOpticalFlowSize2() * scaleFactor)))
         {
             const FfxFloat32 fWeight = bilinearInfo.fWeights[iSampleIndex];
 
-            VectorFieldEntry fOfVectorSample = (VectorFieldEntry)0;
-            FfxInt32x2 packedOpticalFlowMv = LoadOpticalFlowFieldMv(iSamplePos);
+            VectorFieldEntry fOfVectorSample = NewVectorFieldEntry();
+            FfxInt32x2 packedOpticalFlowMv = FfxInt32x2(LoadOpticalFlowFieldMv(iSamplePos));
             UnpackVectorFieldEntries(packedOpticalFlowMv, fOfVectorSample);
 
             vfElement.fMotionVector += fOfVectorSample.fMotionVector * fWeight;
@@ -401,5 +424,22 @@ FfxFloat32x3 InverseTonemap(FfxFloat32x3 fRgb)
 {
     return fRgb / ffxMax(FFX_TONEMAP_EPSILON, 1.f - ffxMax(fRgb.r, ffxMax(fRgb.g, fRgb.b))).xxx;
 }
+
+FfxInt32x2 ComputeHrPosFromLrPos(FfxInt32x2 iPxLrPos)
+{
+    FfxFloat32x2 fSrcJitteredPos = FfxFloat32x2(iPxLrPos) + 0.5f - Jitter();
+    FfxFloat32x2 fLrPosInHr      = (fSrcJitteredPos / RenderSize()) * DisplaySize();
+    FfxInt32x2   iPxHrPos        = FfxInt32x2(floor(fLrPosInHr));
+    return iPxHrPos;
+}
+#if FFX_HALF
+FFX_MIN16_I2 ComputeHrPosFromLrPos(FFX_MIN16_I2 iPxLrPos)
+{
+    FFX_MIN16_F2 fSrcJitteredPos = FFX_MIN16_F2(iPxLrPos) + FFX_MIN16_F(0.5f) - FFX_MIN16_F2(Jitter());
+    FFX_MIN16_F2 fLrPosInHr      = (fSrcJitteredPos / FFX_MIN16_F2(RenderSize())) * FFX_MIN16_F2(DisplaySize());
+    FFX_MIN16_I2 iPxHrPos        = FFX_MIN16_I2(floor(fLrPosInHr));
+    return iPxHrPos;
+}
+#endif
 
 #endif //!defined(FFX_FRAMEINTERPOLATION_COMMON_H)

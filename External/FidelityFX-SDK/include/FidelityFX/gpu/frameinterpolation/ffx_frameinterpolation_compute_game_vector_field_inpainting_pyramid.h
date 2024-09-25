@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_FRAMEINTERPOLATION_COMPUTE_GAME_VECTOR_FIELD_INPAINTING_PYRAMID_H
 #define FFX_FRAMEINTERPOLATION_COMPUTE_GAME_VECTOR_FIELD_INPAINTING_PYRAMID_H
@@ -34,16 +34,16 @@ FFX_GROUPSHARED FfxFloat32 spdIntermediateG[16][16];
 FFX_GROUPSHARED FfxFloat32 spdIntermediateB[16][16];
 FFX_GROUPSHARED FfxFloat32 spdIntermediateA[16][16];
 
-FfxFloat32x4 SpdLoadSourceImage(FfxFloat32x2 tex, FfxUInt32 slice)
+FfxFloat32x4 SpdLoadSourceImage(FfxInt32x2 tex, FfxUInt32 slice)
 {
     VectorFieldEntry gameMv;
     FfxUInt32x2      packedGameFieldMv = LoadGameFieldMv(tex);
     UnpackVectorFieldEntries(packedGameFieldMv, gameMv);
     
-    return FfxFloat32x4(gameMv.fMotionVector, gameMv.uHighPriorityFactor, gameMv.uLowPriorityFactor) * (DisplaySize().x > 0);;
+    return FfxFloat32x4(gameMv.fMotionVector, gameMv.uHighPriorityFactor, gameMv.uLowPriorityFactor) * FfxFloat32(DisplaySize().x > 0);
 }
 
-FfxFloat32x4 SpdLoad(FfxFloat32x2 tex, FfxUInt32 slice)
+FfxFloat32x4 SpdLoad(FfxInt32x2 tex, FfxUInt32 slice)
 {
     return RWLoadInpaintingPyramid(tex, 5);
 }
@@ -55,7 +55,7 @@ void SpdStore(FfxInt32x2 pix, FfxFloat32x4 outValue, FfxUInt32 index, FfxUInt32 
 
 void SpdIncreaseAtomicCounter(FfxUInt32 slice)
 {
-    AtomicIncreaseCounter(FfxInt32x2(COUNTER_SPD, 0), spdCounter);
+    AtomicIncreaseCounter(COUNTER_SPD, spdCounter);
 }
 
 FfxUInt32 SpdGetAtomicCounter()
@@ -64,7 +64,7 @@ FfxUInt32 SpdGetAtomicCounter()
 }
 void SpdResetAtomicCounter(FfxUInt32 slice)
 {
-    StoreCounter(FfxInt32x2(COUNTER_SPD, 0), 0);
+    StoreCounter(COUNTER_SPD, 0);
 }
 
 FfxFloat32x4 SpdLoadIntermediate(FfxUInt32 x, FfxUInt32 y)
@@ -90,7 +90,7 @@ FfxFloat32x4 SpdReduce4(FfxFloat32x4 v0, FfxFloat32x4 v1, FfxFloat32x4 v2, FfxFl
 
     FfxFloat32 fWeightSum = 0.0f;
 #define ADD(SAMPLE) { \
-        FfxFloat32 fWeight = (SAMPLE.z > 0.0f); \
+        FfxFloat32 fWeight = FfxFloat32(SAMPLE.z > 0.0f); \
         vec += SAMPLE * fWeight; \
         fWeightSum += fWeight; \
         }

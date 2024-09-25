@@ -124,11 +124,7 @@ namespace adria
 		DepthStencil = 1 << 2,
 		UnorderedAccess = 1 << 3,
 	};
-	template <>
-	struct EnumBitmaskOperators<GfxBindFlag>
-	{
-		static constexpr bool enable = true;
-	};
+	ENABLE_ENUM_BIT_OPERATORS(GfxBindFlag);
 
 	enum class GfxResourceUsage : uint8
 	{
@@ -142,11 +138,7 @@ namespace adria
 		None = 0,
 		TextureCube = 1 << 0
 	};
-	template <>
-	struct EnumBitmaskOperators<GfxTextureMiscFlag>
-	{
-		static constexpr bool enable = true;
-	};
+	ENABLE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
 
 	enum class GfxBufferMiscFlag : uint32
 	{
@@ -159,11 +151,7 @@ namespace adria
 		IndexBuffer = 1 << 5,
 		AccelStruct = 1 << 6
 	};
-	template <>
-	struct EnumBitmaskOperators<GfxBufferMiscFlag>
-	{
-		static constexpr bool enable = true;
-	};
+	ENABLE_ENUM_BIT_OPERATORS(GfxBufferMiscFlag);
 
 	enum class GfxResourceState : uint64
 	{
@@ -201,11 +189,7 @@ namespace adria
 		GenericWrite = CopyDst | AllUAV,
 		AllShading = AllSRV | AllUAV | ShadingRate | ASRead
 	};
-	template <>
-	struct EnumBitmaskOperators<GfxResourceState>
-	{
-		static constexpr bool enable = true;
-	};
+	ENABLE_ENUM_BIT_OPERATORS(GfxResourceState);
 
 	inline D3D12_BARRIER_SYNC ToD3D12BarrierSync(GfxResourceState flags)
 	{

@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_FRAMEINTERPOLATION_OPTICAL_FLOW_VECTOR_FIELD_H
 #define FFX_FRAMEINTERPOLATION_OPTICAL_FLOW_VECTOR_FIELD_H
@@ -30,7 +30,7 @@ void computeOpticalFlowFieldMvs(FfxUInt32x2 dtID, FfxFloat32x2 fOpticalFlowVecto
     const FfxFloat32 scaleFactor = 1.0f;
     FfxFloat32x2 fMotionVectorHalf = fOpticalFlowVector * 0.5f;
 
-    FfxFloat32 fDilatedDepth = ConvertFromDeviceDepthToViewSpace(LoadDilatedDepth(dtID));
+    FfxFloat32 fDilatedDepth = ConvertFromDeviceDepthToViewSpace(LoadDilatedDepth(FfxInt32x2(dtID)));
 
     FfxFloat32x3 prevBackbufferCol = SamplePreviousBackbuffer(fUv).xyz;
     FfxFloat32x3 curBackbufferCol  = SampleCurrentBackbuffer(fUv + fOpticalFlowVector).xyz;
@@ -38,12 +38,12 @@ void computeOpticalFlowFieldMvs(FfxUInt32x2 dtID, FfxFloat32x2 fOpticalFlowVecto
     FfxFloat32 prevLuma = 0.001f + RawRGBToLuminance(prevBackbufferCol);
     FfxFloat32 currLuma = 0.001f + RawRGBToLuminance(curBackbufferCol);
 
-    FfxFloat32 fVelocity = length(fOpticalFlowVector * DisplaySize());
-    FfxUInt32  uHighPriorityFactor = (fVelocity > 1.0f) * ffxSaturate(fVelocity / length(DisplaySize() * 0.05f)) * PRIORITY_HIGH_MAX;
+    FfxFloat32 fVelocity = length(fOpticalFlowVector * InterpolationRectSize());
+    FfxUInt32  uHighPriorityFactor = FfxUInt32(fVelocity > 1.0f) * FfxUInt32(ffxSaturate(fVelocity / length(InterpolationRectSize() * 0.05f)) * PRIORITY_HIGH_MAX);
 
     if(uHighPriorityFactor > 0) {
-        FfxUInt32 uLowPriorityFactor = round(ffxPow(MinDividedByMax(prevLuma, currLuma), 1.0f / 1.0f) * PRIORITY_LOW_MAX)
-            * IsUvInside(fUv + fOpticalFlowVector);
+        FfxUInt32 uLowPriorityFactor = FfxUInt32(ffxRound(ffxPow(MinDividedByMax(prevLuma, currLuma), 1.0f / 1.0f) * PRIORITY_LOW_MAX))
+            * FfxUInt32(IsUvInside(fUv + fOpticalFlowVector));
 
         // Project current depth into previous frame locations.
         // Push to all pixels having some contribution if reprojection is using bilinear logic.
@@ -66,8 +66,8 @@ void computeOpticalFlowFieldMvs(FfxUInt32x2 dtID, FfxFloat32x2 fOpticalFlowVecto
 
 void computeOpticalFlowVectorField(FfxInt32x2 iPxPos)
 {
-    FfxFloat32x2 fOpticalFlowVector = 0;
-    FfxFloat32x2 fOpticalFlowVector3x3Avg = 0;
+    FfxFloat32x2 fOpticalFlowVector = FfxFloat32x2(0.0, 0.0);
+    FfxFloat32x2 fOpticalFlowVector3x3Avg = FfxFloat32x2(0.0, 0.0);
     FfxInt32 size = 1;
     FfxFloat32 sw = 0.0f;
 
@@ -80,8 +80,8 @@ void computeOpticalFlowVectorField(FfxInt32x2 iPxPos)
             FfxFloat32   fConfidenceFactor = ffxMax(FFX_FRAMEINTERPOLATION_EPSILON, LoadOpticalFlowConfidence(samplePos));
 
 
-            FfxFloat32 len = length(vs * DisplaySize());
-            FfxFloat32 len_factor = ffxMax(0.0f, 512.0f - len) * (len > 1.0f);
+            FfxFloat32 len        = length(vs * InterpolationRectSize());
+            FfxFloat32 len_factor = ffxMax(0.0f, 512.0f - len) * FfxFloat32(len > 1.0f);
             FfxFloat32 w = len_factor;
 
             fOpticalFlowVector3x3Avg += vs * w;
@@ -102,8 +102,8 @@ void computeOpticalFlowVectorField(FfxInt32x2 iPxPos)
             FfxFloat32x2 vs = LoadOpticalFlow(samplePos);
 
             FfxFloat32 fConfidenceFactor = ffxMax(FFX_FRAMEINTERPOLATION_EPSILON, LoadOpticalFlowConfidence(samplePos));
-            FfxFloat32 len = length(vs * DisplaySize());
-            FfxFloat32 len_factor        = ffxMax(0.0f, 512.0f - len) * (len > 1.0f);
+            FfxFloat32 len               = length(vs * InterpolationRectSize());
+            FfxFloat32 len_factor        = ffxMax(0.0f, 512.0f - len) * FfxFloat32(len > 1.0f);
 
 
             FfxFloat32 w = ffxMax(0.0f, ffxPow(dot(fOpticalFlowVector3x3Avg, vs), 1.25f)) * len_factor;

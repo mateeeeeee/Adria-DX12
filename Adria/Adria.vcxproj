@@ -134,7 +134,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)External\NVIDIA_Aftermath_SDK\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nfd_d.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d_dbg.lib;ffx_dof_x64d.lib;ffx_fsr2_x64d.lib;ffx_fsr3_x64d.lib;ffx_cas_x64d.lib;ffx_backend_dx12_x64d.lib;ffx_cacao_x64d.lib;ffx_frameinterpolation_x64d.lib;ffx_opticalflow_x64d.lib;ffx_fsr3upscaler_x64d.lib;GFSDK_Aftermath_Lib.x64.lib</AdditionalDependencies>
+      <AdditionalDependencies>nfd_d.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d_dbg.lib;ffx_dof_x64d.lib;ffx_fsr2_x64d.lib;ffx_fsr3_x64d.lib;ffx_cas_x64d.lib;ffx_backend_dx12_x64d.lib;ffx_cacao_x64d.lib;ffx_frameinterpolation_x64d.lib;ffx_opticalflow_x64d.lib;ffx_fsr3upscaler_x64d.lib;ffx_vrs_x64d.lib;GFSDK_Aftermath_Lib.x64.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -165,7 +165,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)External\NVIDIA_Aftermath_SDK\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d.lib;ffx_dof_x64.lib;ffx_backend_dx12_x64.lib;ffx_fsr2_x64.lib;ffx_fsr3_x64.lib;ffx_cas_x64.lib;ffx_cacao_x64.lib;ffx_frameinterpolation_x64.lib;ffx_opticalflow_x64.lib;ffx_fsr3upscaler_x64.lib;GFSDK_Aftermath_Lib.x64.lib</AdditionalDependencies>
+      <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d.lib;ffx_dof_x64.lib;ffx_backend_dx12_x64.lib;ffx_fsr2_x64.lib;ffx_fsr3_x64.lib;ffx_cas_x64.lib;ffx_cacao_x64.lib;ffx_frameinterpolation_x64.lib;ffx_opticalflow_x64.lib;ffx_fsr3upscaler_x64.lib;ffx_vrs_x64.lib;GFSDK_Aftermath_Lib.x64.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -251,6 +251,7 @@
     </ClCompile>
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPassGroup.cpp" />
+    <ClCompile Include="Rendering\FFXVRSPass.cpp" />
     <ClCompile Include="Rendering\ReflectionPassGroup.cpp" />
     <ClCompile Include="Rendering\RendererOutputPass.cpp" />
     <ClCompile Include="Rendering\FilmEffectsPass.cpp" />
@@ -394,6 +395,7 @@
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderEnums.h" />
     <ClInclude Include="Graphics\GfxShaderKey.h" />
+    <ClInclude Include="Graphics\GfxShadingRate.h" />
     <ClInclude Include="Graphics\GfxStateObject.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
@@ -446,6 +448,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Rendering\DepthOfFieldPass.h" />
+    <ClInclude Include="Rendering\FFXVRSPass.h" />
     <ClInclude Include="Rendering\UpscalerPass.h" />
     <ClInclude Include="Rendering\DepthOfFieldPassGroup.h" />
     <ClInclude Include="Rendering\PostEffect.h" />

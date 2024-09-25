@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #if FFX_HALF
 #if FFX_HLSL_SM >= 62
@@ -563,7 +563,7 @@ FfxFloat16x4 ffxCopySignBitHalf(FfxFloat16x4 d, FfxFloat16x4 s)
 /// @ingroup GPUCore
 FfxFloat16 ffxIsSignedHalf(FfxFloat16 m)
 {
-    return FfxFloat16(ffxSaturate(m * FFX_BROADCAST_FLOAT16(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -586,7 +586,7 @@ FfxFloat16 ffxIsSignedHalf(FfxFloat16 m)
 /// @ingroup GPUCore
 FfxFloat16x2 ffxIsSignedHalf(FfxFloat16x2 m)
 {
-    return FfxFloat16x2(ffxSaturate(m * FFX_BROADCAST_FLOAT16X2(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16X2(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -609,7 +609,7 @@ FfxFloat16x2 ffxIsSignedHalf(FfxFloat16x2 m)
 /// @ingroup GPUCore
 FfxFloat16x3 ffxIsSignedHalf(FfxFloat16x3 m)
 {
-    return FfxFloat16x3(ffxSaturate(m * FFX_BROADCAST_FLOAT16X3(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16X3(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -632,7 +632,7 @@ FfxFloat16x3 ffxIsSignedHalf(FfxFloat16x3 m)
 /// @ingroup GPUCore
 FfxFloat16x4 ffxIsSignedHalf(FfxFloat16x4 m)
 {
-    return FfxFloat16x4(ffxSaturate(m * FFX_BROADCAST_FLOAT16X4(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16X4(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -650,7 +650,7 @@ FfxFloat16x4 ffxIsSignedHalf(FfxFloat16x4 m)
 /// @ingroup GPUCore
 FfxFloat16 ffxIsGreaterThanZeroHalf(FfxFloat16 m)
 {
-    return FfxFloat16(ffxSaturate(m * FFX_BROADCAST_FLOAT16(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -668,7 +668,7 @@ FfxFloat16 ffxIsGreaterThanZeroHalf(FfxFloat16 m)
 /// @ingroup GPUCore
 FfxFloat16x2 ffxIsGreaterThanZeroHalf(FfxFloat16x2 m)
 {
-    return FfxFloat16x2(ffxSaturate(m * FFX_BROADCAST_FLOAT16X2(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16X2(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -686,7 +686,7 @@ FfxFloat16x2 ffxIsGreaterThanZeroHalf(FfxFloat16x2 m)
 /// @ingroup GPUCore
 FfxFloat16x3 ffxIsGreaterThanZeroHalf(FfxFloat16x3 m)
 {
-    return FfxFloat16x3(ffxSaturate(m * FFX_BROADCAST_FLOAT16X3(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16X3(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// A single operation to return the following:
@@ -704,7 +704,7 @@ FfxFloat16x3 ffxIsGreaterThanZeroHalf(FfxFloat16x3 m)
 /// @ingroup GPUCore
 FfxFloat16x4 ffxIsGreaterThanZeroHalf(FfxFloat16x4 m)
 {
-    return FfxFloat16x4(ffxSaturate(m * FFX_BROADCAST_FLOAT16X4(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(m * FFX_BROADCAST_FLOAT16X4(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// Convert a 16bit floating point value to sortable integer.
@@ -2223,7 +2223,7 @@ FfxFloat16x4 ffxSignedZeroOneAndOrHalf(FfxFloat16x4 x, FfxFloat16x4 y)
 /// @ingroup GPUCore
 FfxFloat16 ffxZeroOneAndOrHalf(FfxFloat16 x, FfxFloat16 y, FfxFloat16 z)
 {
-    return FfxFloat16(ffxSaturate(x * y + z));
+    return ffxSaturate(x * y + z);
 }
 
 /// Conditional free logic AND operation using two half-precision values followed by
@@ -2239,7 +2239,7 @@ FfxFloat16 ffxZeroOneAndOrHalf(FfxFloat16 x, FfxFloat16 y, FfxFloat16 z)
 /// @ingroup GPUCore
 FfxFloat16x2 ffxZeroOneAndOrHalf(FfxFloat16x2 x, FfxFloat16x2 y, FfxFloat16x2 z)
 {
-    return FfxFloat16x2(ffxSaturate(x * y + z));
+    return ffxSaturate(x * y + z);
 }
 
 /// Conditional free logic AND operation using two half-precision values followed by
@@ -2255,7 +2255,7 @@ FfxFloat16x2 ffxZeroOneAndOrHalf(FfxFloat16x2 x, FfxFloat16x2 y, FfxFloat16x2 z)
 /// @ingroup GPUCore
 FfxFloat16x3 ffxZeroOneAndOrHalf(FfxFloat16x3 x, FfxFloat16x3 y, FfxFloat16x3 z)
 {
-    return FfxFloat16x3(ffxSaturate(x * y + z));
+    return ffxSaturate(x * y + z);
 }
 
 /// Conditional free logic AND operation using two half-precision values followed by
@@ -2271,7 +2271,7 @@ FfxFloat16x3 ffxZeroOneAndOrHalf(FfxFloat16x3 x, FfxFloat16x3 y, FfxFloat16x3 z)
 /// @ingroup GPUCore
 FfxFloat16x4 ffxZeroOneAndOrHalf(FfxFloat16x4 x, FfxFloat16x4 y, FfxFloat16x4 z)
 {
-    return FfxFloat16x4(ffxSaturate(x * y + z));
+    return ffxSaturate(x * y + z);
 }
 
 /// Given a half-precision value, returns 1.0 if greater than zero and 0.0 if not.
@@ -2284,7 +2284,7 @@ FfxFloat16x4 ffxZeroOneAndOrHalf(FfxFloat16x4 x, FfxFloat16x4 y, FfxFloat16x4 z)
 /// @ingroup GPUCore
 FfxFloat16 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16 x)
 {
-    return FfxFloat16(ffxSaturate(x * FFX_BROADCAST_FLOAT16(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// Given a half-precision value, returns 1.0 if greater than zero and 0.0 if not.
@@ -2297,7 +2297,7 @@ FfxFloat16 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16 x)
 /// @ingroup GPUCore
 FfxFloat16x2 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16x2 x)
 {
-    return FfxFloat16x2(ffxSaturate(x * FFX_BROADCAST_FLOAT16X2(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16X2(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// Given a half-precision value, returns 1.0 if greater than zero and 0.0 if not.
@@ -2310,7 +2310,7 @@ FfxFloat16x2 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16x2 x)
 /// @ingroup GPUCore
 FfxFloat16x3 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16x3 x)
 {
-    return FfxFloat16x3(ffxSaturate(x * FFX_BROADCAST_FLOAT16X3(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16X3(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// Given a half-precision value, returns 1.0 if greater than zero and 0.0 if not.
@@ -2323,7 +2323,7 @@ FfxFloat16x3 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16x3 x)
 /// @ingroup GPUCore
 FfxFloat16x4 ffxZeroOneIsGreaterThanZeroHalf(FfxFloat16x4 x)
 {
-    return FfxFloat16x4(ffxSaturate(x * FFX_BROADCAST_FLOAT16X4(FFX_POSITIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16X4(FFX_POSITIVE_INFINITY_HALF));
 }
 
 /// Conditional free logic signed NOT operation using two half-precision FfxFloat32 values.
@@ -2508,7 +2508,7 @@ FfxFloat16x4 ffxZeroOneSelectHalf(FfxFloat16x4 x, FfxFloat16x4 y, FfxFloat16x4 z
 /// @ingroup GPUCore
 FfxFloat16 ffxZeroOneIsSignedHalf(FfxFloat16 x)
 {
-    return FfxFloat16(ffxSaturate(x * FFX_BROADCAST_FLOAT16(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// Given a half-precision value, returns 1.0 if less than zero and 0.0 if not.
@@ -2521,7 +2521,7 @@ FfxFloat16 ffxZeroOneIsSignedHalf(FfxFloat16 x)
 /// @ingroup GPUCore
 FfxFloat16x2 ffxZeroOneIsSignedHalf(FfxFloat16x2 x)
 {
-    return FfxFloat16x2(ffxSaturate(x * FFX_BROADCAST_FLOAT16X2(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16X2(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// Given a half-precision value, returns 1.0 if less than zero and 0.0 if not.
@@ -2534,7 +2534,7 @@ FfxFloat16x2 ffxZeroOneIsSignedHalf(FfxFloat16x2 x)
 /// @ingroup GPUCore
 FfxFloat16x3 ffxZeroOneIsSignedHalf(FfxFloat16x3 x)
 {
-    return FfxFloat16x3(ffxSaturate(x * FFX_BROADCAST_FLOAT16X3(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16X3(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// Given a half-precision value, returns 1.0 if less than zero and 0.0 if not.
@@ -2547,7 +2547,7 @@ FfxFloat16x3 ffxZeroOneIsSignedHalf(FfxFloat16x3 x)
 /// @ingroup GPUCore
 FfxFloat16x4 ffxZeroOneIsSignedHalf(FfxFloat16x4 x)
 {
-    return FfxFloat16x4(ffxSaturate(x * FFX_BROADCAST_FLOAT16X4(FFX_NEGATIVE_INFINITY_HALF)));
+    return ffxSaturate(x * FFX_BROADCAST_FLOAT16X4(FFX_NEGATIVE_INFINITY_HALF));
 }
 
 /// Compute a Rec.709 color space.
@@ -2936,10 +2936,12 @@ FfxFloat16x3 ffxLinearFromSrgbHalf(FfxFloat16x3 c)
 
 /// A remapping of 64x1 to 8x8 imposing rotated 2x2 pixel quads in quad linear.
 /// 
-///  543210
-///  ======
-///  ..xxx.
-///  yy...y
+/// Remap illustration:
+///
+///     543210
+///     ~~~~~~
+///     ..xxx.
+///     yy...y
 /// 
 /// @param [in] a       The input 1D coordinates to remap.
 ///
@@ -2949,7 +2951,7 @@ FfxFloat16x3 ffxLinearFromSrgbHalf(FfxFloat16x3 c)
 /// @ingroup GPUCore
 FfxUInt16x2 ffxRemapForQuadHalf(FfxUInt32 a)
 {
-    return FfxUInt16x2(bitfieldExtract(a, 1u, 3u), bitfieldInsertMask(bitfieldExtract(a, 3u, 3u), a, 1u));
+    return FfxUInt16x2(ffxBitfieldExtract(a, 1u, 3u), ffxBitfieldInsertMask(ffxBitfieldExtract(a, 3u, 3u), a, 1u));
 }
 
 /// A helper function performing a remap 64x1 to 8x8 remapping which is necessary for 2D wave reductions.
@@ -2973,7 +2975,7 @@ FfxUInt16x2 ffxRemapForQuadHalf(FfxUInt32 a)
 /// @ingroup GPUCore
 FfxUInt16x2 ffxRemapForWaveReductionHalf(FfxUInt32 a)
 {
-    return FfxUInt16x2(bitfieldInsertMask(bitfieldExtract(a, 2u, 3u), a, 1u), bitfieldInsertMask(bitfieldExtract(a, 3u, 3u), bitfieldExtract(a, 1u, 2u), 2u));
+    return FfxUInt16x2(ffxBitfieldInsertMask(ffxBitfieldExtract(a, 2u, 3u), a, 1u), ffxBitfieldInsertMask(ffxBitfieldExtract(a, 3u, 3u), ffxBitfieldExtract(a, 1u, 2u), 2u));
 }
 
 #endif  // FFX_HALF

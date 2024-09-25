@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_FRAMEINTERPOLATION_RESOURCES_H
 #define FFX_FRAMEINTERPOLATION_RESOURCES_H
@@ -28,10 +28,11 @@
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_OUTPUT                                       1
 //#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_BACKBUFFER                                 2
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_PREVIOUS_INTERPOLATION_SOURCE                3
-#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_CURRENT_INTERPOLATION_SOURCE                4
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_CURRENT_INTERPOLATION_SOURCE                 4
 
-#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RESERVED_0                                   5
-#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RESERVED_1                                   6
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_DEPTH                                        5
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_MOTION_VECTORS                               6
+
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RESERVED_2                                   7
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RESERVED_3                                   8
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RESERVED_4                                   9
@@ -80,10 +81,18 @@
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_INPAINTING_PYRAMID_MIPMAP_11                 44
 #define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_INPAINTING_PYRAMID_MIPMAP_12                 45
 
-#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_COUNT                                        46
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_DILATED_DEPTH_0                              46  // resources for ping ponging if async is enabled.
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_DILATED_DEPTH_1                              47  // code relies on them being interleaved
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS_0                     48
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS_1                     49  // code relies on them being interleaved
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RECONSTRUCTED_DEPTH_PREVIOUS_FRAME_0         50
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_RECONSTRUCTED_DEPTH_PREVIOUS_FRAME_1         51  // code relies on them being interleaved
+
+#define FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_COUNT                                        52
 
 #define FFX_FRAMEINTERPOLATION_CONSTANTBUFFER_IDENTIFIER                                        0
 #define FFX_FRAMEINTERPOLATION_INPAINTING_PYRAMID_CONSTANTBUFFER_IDENTIFIER                     1
+#define FFX_FRAMEINTERPOLATION_CONSTANTBUFFER_COUNT                                             2
 
 #endif // #if defined(FFX_CPU) || defined(FFX_GPU)
 

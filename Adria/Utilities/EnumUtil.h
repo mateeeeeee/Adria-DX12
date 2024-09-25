@@ -79,4 +79,8 @@ namespace adria
 		ADRIA_ASSERT(std::has_single_bit((T)flag));
 		return HasAnyFlag(value, flag);
 	}
+
+#define ENABLE_ENUM_BIT_OPERATORS(EnumType) \
+	template<> struct EnumBitmaskOperators<EnumType> \
+	{ static constexpr bool enable = true; }
 }

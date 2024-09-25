@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 // @defgroup OpticalFlow
 
@@ -35,12 +35,12 @@
 /// FidelityFX OpticalFlow minor version.
 ///
 /// @ingroup ffxOpticalflow
-#define FFX_OPTICALFLOW_VERSION_MINOR (0)
+#define FFX_OPTICALFLOW_VERSION_MINOR (1)
 
 /// FidelityFX OpticalFlow patch version.
 ///
 /// @ingroup ffxOpticalflow
-#define FFX_OPTICALFLOW_VERSION_PATCH (0)
+#define FFX_OPTICALFLOW_VERSION_PATCH (1)
 
 /// FidelityFX Optical Flow context count
 ///
@@ -90,8 +90,8 @@ typedef enum FfxOpticalflowInitializationFlagBits
 /// @ingroup ffxOpticalflow
 typedef struct FfxOpticalflowContextDescription {
 
-    FfxInterface                backendInterface;                   ///< A set of pointers to the backend implementation for FidelityFX SDK
-    uint32_t                    flags;                              ///< A collection of <c><i>FfxOpticalflowInitializationFlagBits</i></c>.
+    FfxInterface                backendInterface;       ///< A set of pointers to the backend implementation for FidelityFX SDK
+    uint32_t                    flags;                  ///< A collection of <c><i>FfxOpticalflowInitializationFlagBits</i></c>.
     FfxDimensions2D             resolution;
 } FfxOpticalflowContextDescription;
 
@@ -181,6 +181,8 @@ typedef struct FfxOpticalflowContext
 /// @ingroup ffxOpticalflow
 FFX_API FfxErrorCode ffxOpticalflowContextCreate(FfxOpticalflowContext* context, FfxOpticalflowContextDescription* contextDescription);
 
+FFX_API FfxErrorCode ffxOpticalflowContextGetGpuMemoryUsage(FfxOpticalflowContext* pContext, FfxEffectMemoryUsage* vramUsage);
+
 FFX_API FfxErrorCode ffxOpticalflowGetSharedResourceDescriptions(FfxOpticalflowContext* context, FfxOpticalflowSharedResourceDescriptions* SharedResources);
 
 FFX_API FfxErrorCode ffxOpticalflowContextDispatch(FfxOpticalflowContext* context, const FfxOpticalflowDispatchDescription* dispatchDescription);
@@ -196,6 +198,14 @@ FFX_API FfxErrorCode ffxOpticalflowContextDispatch(FfxOpticalflowContext* contex
 ///
 /// @ingroup ffxOpticalflow
 FFX_API FfxErrorCode ffxOpticalflowContextDestroy(FfxOpticalflowContext* context);
+
+/// Queries the effect version number.
+///
+/// @returns
+/// The SDK version the effect was built with.
+///
+/// @ingroup ffxOpticalflow
+FFX_API FfxVersionNumber ffxOpticalflowGetEffectVersion();
 
 #if defined(__cplusplus)
 }

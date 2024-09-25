@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,270 +20,152 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-
-#ifndef FFX_FSR3UPSCALER_ACCUMULATE_H
-#define FFX_FSR3UPSCALER_ACCUMULATE_H
-
-FfxFloat32 GetPxHrVelocity(FfxFloat32x2 fMotionVector)
+void Accumulate(const AccumulationPassCommonParams params, FFX_PARAMETER_INOUT AccumulationPassData data)
 {
-    return length(fMotionVector * DisplaySize());
-}
-#if FFX_HALF
-FFX_MIN16_F GetPxHrVelocity(FFX_MIN16_F2 fMotionVector)
-{
-    return length(fMotionVector * FFX_MIN16_F2(DisplaySize()));
-}
-#endif
-
-void Accumulate(const AccumulationPassCommonParams params, FFX_PARAMETER_INOUT FfxFloat32x3 fHistoryColor, FfxFloat32x3 fAccumulation, FFX_PARAMETER_IN FfxFloat32x4 fUpsampledColorAndWeight)
-{
-    // Aviod invalid values when accumulation and upsampled weight is 0
-    fAccumulation = ffxMax(FSR3UPSCALER_EPSILON.xxx, fAccumulation + fUpsampledColorAndWeight.www);
+    // Avoid invalid values when accumulation and upsampled weight is 0
+    data.fHistoryWeight *= FfxFloat32(data.fHistoryWeight > FSR3UPSCALER_FP16_MIN);
+    data.fHistoryWeight = ffxMax(FSR3UPSCALER_EPSILON, data.fHistoryWeight + data.fUpsampledWeight);
 
 #if FFX_FSR3UPSCALER_OPTION_HDR_COLOR_INPUT
     //YCoCg -> RGB -> Tonemap -> YCoCg (Use RGB tonemapper to avoid color desaturation)
-    fUpsampledColorAndWeight.xyz = RGBToYCoCg(Tonemap(YCoCgToRGB(fUpsampledColorAndWeight.xyz)));
-    fHistoryColor = RGBToYCoCg(Tonemap(YCoCgToRGB(fHistoryColor)));
+    data.fUpsampledColor    = RGBToYCoCg(Tonemap(YCoCgToRGB(data.fUpsampledColor)));
+    data.fHistoryColor      = RGBToYCoCg(Tonemap(YCoCgToRGB(data.fHistoryColor)));
 #endif
 
-    const FfxFloat32x3 fAlpha = fUpsampledColorAndWeight.www / fAccumulation;
-    fHistoryColor = ffxLerp(fHistoryColor, fUpsampledColorAndWeight.xyz, fAlpha);
-
-    fHistoryColor = YCoCgToRGB(fHistoryColor);
+    const FfxFloat32 fAlpha = ffxSaturate(data.fUpsampledWeight / data.fHistoryWeight);
+    data.fHistoryColor      = ffxLerp(data.fHistoryColor, data.fUpsampledColor, fAlpha);
+    data.fHistoryColor      = YCoCgToRGB(data.fHistoryColor);
 
 #if FFX_FSR3UPSCALER_OPTION_HDR_COLOR_INPUT
-    fHistoryColor = InverseTonemap(fHistoryColor);
+    data.fHistoryColor      = InverseTonemap(data.fHistoryColor);
 #endif
 }
 
 void RectifyHistory(
     const AccumulationPassCommonParams params,
-    RectificationBox clippingBox,
-    FFX_PARAMETER_INOUT FfxFloat32x3 fHistoryColor,
-    FFX_PARAMETER_INOUT FfxFloat32x3 fAccumulation,
-    FfxFloat32 fLockContributionThisFrame,
-    FfxFloat32 fTemporalReactiveFactor,
-    FfxFloat32 fLumaInstabilityFactor)
+    FFX_PARAMETER_INOUT AccumulationPassData data
+)
 {
-    const FfxFloat32 fVecolityFactor = ffxSaturate(params.fHrVelocity / 20.0f);
-    const FfxFloat32 fBoxScaleT = ffxMax(params.fDepthClipFactor, ffxMax(params.fAccumulationMask, fVecolityFactor));
+    const FfxFloat32 fVecolityFactor = ffxSaturate(params.f4KVelocity / 20.0f);
+    const FfxFloat32 fDistanceFactor        = ffxSaturate(0.75f - params.fFarthestDepthInMeters / 20.0f);
+    const FfxFloat32 fAccumulationFactor    = 1.0f - params.fAccumulation;
+    const FfxFloat32 fReactiveFactor        = ffxPow(params.fReactiveMask, 1.0f / 2.0f);
+    const FfxFloat32 fShadingChangeFactor   = params.fShadingChange;
+    const FfxFloat32 fBoxScaleT             = ffxMax(fVecolityFactor, ffxMax(fDistanceFactor, ffxMax(fAccumulationFactor, ffxMax(fReactiveFactor, fShadingChangeFactor))));
+
     const FfxFloat32 fBoxScale = ffxLerp(3.0f, 1.0f, fBoxScaleT);
 
-    const FfxFloat32x3 fScaledBoxVec = clippingBox.boxVec * fBoxScale;
-    const FfxFloat32x3 boxMin = clippingBox.boxCenter - fScaledBoxVec;
-    const FfxFloat32x3 boxMax = clippingBox.boxCenter + fScaledBoxVec;
+    const FfxFloat32x3 fScaledBoxVec = data.clippingBox.boxVec * fBoxScale;
+    const FfxFloat32x3 fBoxMin = data.clippingBox.boxCenter - fScaledBoxVec;
+    const FfxFloat32x3 fBoxMax = data.clippingBox.boxCenter + fScaledBoxVec;
 
-    if (any(FFX_GREATER_THAN(boxMin, fHistoryColor)) || any(FFX_GREATER_THAN(fHistoryColor, boxMax))) {
+    if (any(FFX_GREATER_THAN(fBoxMin, data.fHistoryColor)) || any(FFX_GREATER_THAN(data.fHistoryColor, fBoxMax))) {
 
-        const FfxFloat32x3 fClampedHistoryColor = clamp(fHistoryColor, boxMin, boxMax);
+        const FfxFloat32x3 fClampedHistoryColor = clamp(data.fHistoryColor, fBoxMin, fBoxMax);
 
-        FfxFloat32x3 fHistoryContribution = ffxMax(fLumaInstabilityFactor, fLockContributionThisFrame).xxx;
-        
-        const FfxFloat32 fReactiveFactor = params.fDilatedReactiveFactor;
-        const FfxFloat32 fReactiveContribution = 1.0f - ffxPow(fReactiveFactor, 1.0f / 2.0f);
-        fHistoryContribution *= fReactiveContribution;
+        const FfxFloat32 fHistoryContribution = ffxMax(params.fLumaInstabilityFactor, data.fLockContributionThisFrame) * params.fAccumulation * (1 - params.fDisocclusion);
 
         // Scale history color using rectification info, also using accumulation mask to avoid potential invalid color protection
-        fHistoryColor = ffxLerp(fClampedHistoryColor, fHistoryColor, ffxSaturate(fHistoryContribution));
-
-        // Scale accumulation using rectification info
-        const FfxFloat32x3 fAccumulationMin = ffxMin(fAccumulation, FFX_BROADCAST_FLOAT32X3(0.1f));
-        fAccumulation = ffxLerp(fAccumulationMin, fAccumulation, ffxSaturate(fHistoryContribution));
+        data.fHistoryColor = ffxLerp(fClampedHistoryColor, data.fHistoryColor, ffxSaturate(fHistoryContribution));
     }
 }
 
-void WriteUpscaledOutput(FfxInt32x2 iPxHrPos, FfxFloat32x3 fUpscaledColor)
+void UpdateLockStatus(AccumulationPassCommonParams params, FFX_PARAMETER_INOUT AccumulationPassData data)
 {
-    StoreUpscaledOutput(iPxHrPos, fUpscaledColor);
-}
+    data.fLock *= FfxFloat32(params.bIsNewSample == false);
 
-void FinalizeLockStatus(const AccumulationPassCommonParams params, FfxFloat32x2 fLockStatus, FfxFloat32 fUpsampledWeight)
-{
+    const FfxFloat32 fLifetimeDecreaseFactor = ffxMax(ffxSaturate(params.fShadingChange), ffxMax(params.fReactiveMask, params.fDisocclusion));
+    data.fLock = ffxMax(0.0f, data.fLock - fLifetimeDecreaseFactor * fLockMax);
+
+    // Compute this frame lock contribution
+    data.fLockContributionThisFrame = ffxSaturate(ffxSaturate(data.fLock - fLockThreshold) * (fLockMax - fLockThreshold));
+
+    const FfxFloat32 fNewLockIntensity = LoadRwNewLocks(params.iPxHrPos) * (1.0f - ffxMax(params.fShadingChange * 0, params.fReactiveMask));
+    data.fLock = ffxMax(0.0f, ffxMin(data.fLock + fNewLockIntensity, fLockMax));
+
+    // Preparing for next frame
+    const FfxFloat32 fLifetimeDecrease = (0.1f / JitterSequenceLength()) * (1.0f - fLifetimeDecreaseFactor);
+    data.fLock = ffxMax(0.0f, data.fLock - fLifetimeDecrease);
+
     // we expect similar motion for next frame
     // kill lock if that location is outside screen, avoid locks to be clamped to screen borders
-    FfxFloat32x2 fEstimatedUvNextFrame = params.fHrUv - params.fMotionVector;
-    if (IsUvInside(fEstimatedUvNextFrame) == false) {
-        KillLock(fLockStatus);
-    }
-    else {
-        // Decrease lock lifetime
-        const FfxFloat32 fLifetimeDecreaseLanczosMax = FfxFloat32(JitterSequenceLength()) * FfxFloat32(fAverageLanczosWeightPerFrame);
-        const FfxFloat32 fLifetimeDecrease = FfxFloat32(fUpsampledWeight / fLifetimeDecreaseLanczosMax);
-        fLockStatus[LOCK_LIFETIME_REMAINING] = ffxMax(FfxFloat32(0), fLockStatus[LOCK_LIFETIME_REMAINING] - fLifetimeDecrease);
-    }
-
-    StoreLockStatus(params.iPxHrPos, fLockStatus);
+    const FfxFloat32x2 fEstimatedUvNextFrame = params.fHrUv - params.fMotionVector;
+    data.fLock *= FfxFloat32(IsUvInside(fEstimatedUvNextFrame) == true);
 }
 
-
-FfxFloat32x3 ComputeBaseAccumulationWeight(const AccumulationPassCommonParams params, FfxFloat32 fThisFrameReactiveFactor, FfxBoolean bInMotionLastFrame, FfxFloat32 fUpsampledWeight, LockState lockState)
+void ComputeBaseAccumulationWeight(const AccumulationPassCommonParams params, FFX_PARAMETER_INOUT AccumulationPassData data)
 {
-    // Always assume max accumulation was reached
-    FfxFloat32 fBaseAccumulation = fMaxAccumulationLanczosWeight * FfxFloat32(params.bIsExistingSample) * (1.0f - fThisFrameReactiveFactor) * (1.0f - params.fDepthClipFactor);
+    FfxFloat32 fBaseAccumulation = params.fAccumulation;
 
-    fBaseAccumulation = ffxMin(fBaseAccumulation, ffxLerp(fBaseAccumulation, fUpsampledWeight * 10.0f, ffxMax(FfxFloat32(bInMotionLastFrame), ffxSaturate(params.fHrVelocity * FfxFloat32(10)))));
+    fBaseAccumulation = ffxMin(fBaseAccumulation, ffxLerp(fBaseAccumulation, 0.15f, ffxSaturate(ffxMax(0.0f, params.f4KVelocity / 0.5f))));
 
-    fBaseAccumulation = ffxMin(fBaseAccumulation, ffxLerp(fBaseAccumulation, fUpsampledWeight, ffxSaturate(params.fHrVelocity / FfxFloat32(20))));
-
-    return fBaseAccumulation.xxx;
+    data.fHistoryWeight = fBaseAccumulation;
 }
 
-FfxFloat32 ComputeLumaInstabilityFactor(const AccumulationPassCommonParams params, RectificationBox clippingBox, FfxFloat32 fThisFrameReactiveFactor, FfxFloat32 fLuminanceDiff)
+void InitPassData(FfxInt32x2 iPxHrPos, FFX_PARAMETER_INOUT AccumulationPassCommonParams params, FFX_PARAMETER_INOUT AccumulationPassData data)
 {
-    const FfxFloat32 fUnormThreshold = 1.0f / 255.0f;
-    const FfxInt32 N_MINUS_1 = 0;
-    const FfxInt32 N_MINUS_2 = 1;
-    const FfxInt32 N_MINUS_3 = 2;
-    const FfxInt32 N_MINUS_4 = 3;
+    // Init constant params
+    params.iPxHrPos                     = iPxHrPos;
+    const FfxFloat32x2 fHrUv            = (iPxHrPos + 0.5f) / UpscaleSize();
+    params.fHrUv                        = fHrUv;
+    params.fLrUvJittered                = fHrUv + Jitter() / RenderSize();
+    params.fLrUv_HwSampler              = ClampUv(params.fLrUvJittered, RenderSize(), MaxRenderSize());
 
-    FfxFloat32 fCurrentFrameLuma = clippingBox.boxCenter.x;
+    params.fMotionVector                = GetMotionVector(iPxHrPos, fHrUv);
+    params.f4KVelocity                  = Get4KVelocity(params.fMotionVector);
 
-#if FFX_FSR3UPSCALER_OPTION_HDR_COLOR_INPUT
-    fCurrentFrameLuma = fCurrentFrameLuma / (1.0f + ffxMax(0.0f, fCurrentFrameLuma));
-#endif
+    ComputeReprojectedUVs(params);
 
-    fCurrentFrameLuma = round(fCurrentFrameLuma * 255.0f) / 255.0f;
+    const FfxFloat32x2 fLumaInstabilityUv_HW  = ClampUv(fHrUv, RenderSize(), MaxRenderSize());
+    params.fLumaInstabilityFactor       = SampleLumaInstability(fLumaInstabilityUv_HW);
 
-    const FfxBoolean bSampleLumaHistory = (ffxMax(ffxMax(params.fDepthClipFactor, params.fAccumulationMask), fLuminanceDiff) < 0.1f) && (params.bIsNewSample == false);
-    FfxFloat32x4 fCurrentFrameLumaHistory = bSampleLumaHistory ? SampleLumaHistory(params.fReprojectedHrUv) : FFX_BROADCAST_FLOAT32X4(0.0f);
+    const FfxFloat32x2 fFarthestDepthUv = ClampUv(params.fLrUvJittered, RenderSize() / 2, GetFarthestDepthMip1ResourceDimensions());
+    params.fFarthestDepthInMeters       = SampleFarthestDepthMip1(fFarthestDepthUv);
+    params.bIsNewSample                 = (params.bIsExistingSample == false || 0 == FrameIndex());
 
-    FfxFloat32 fLumaInstability = 0.0f;
-    FfxFloat32 fDiffs0 = (fCurrentFrameLuma - fCurrentFrameLumaHistory[N_MINUS_1]);
+    const FfxFloat32x4 fDilatedReactiveMasks = SampleDilatedReactiveMasks(params.fLrUv_HwSampler);
+    params.fReactiveMask                = ffxSaturate(fDilatedReactiveMasks[REACTIVE]);
+    params.fDisocclusion                = ffxSaturate(fDilatedReactiveMasks[DISOCCLUSION]);
+    params.fShadingChange               = ffxSaturate(fDilatedReactiveMasks[SHADING_CHANGE]);
+    params.fAccumulation                = ffxSaturate(fDilatedReactiveMasks[ACCUMULAION]);
+    params.fAccumulation *= FfxFloat32(round(params.fAccumulation * 100.0f) > 1.0f);
 
-    FfxFloat32 fMin = abs(fDiffs0);
-
-    if (fMin >= fUnormThreshold) {
-        for (int i = N_MINUS_2; i <= N_MINUS_4; i++) {
-            FfxFloat32 fDiffs1 = (fCurrentFrameLuma - fCurrentFrameLumaHistory[i]);
-
-            if (sign(fDiffs0) == sign(fDiffs1)) {
-                
-                // Scale difference to protect historically similar values
-                const FfxFloat32 fMinBias = 1.0f;
-                fMin = ffxMin(fMin, abs(fDiffs1) * fMinBias);
-            }
-        }
-
-        const FfxFloat32 fBoxSize       = clippingBox.boxVec.x;
-        const FfxFloat32 fBoxSizeFactor = ffxPow(ffxSaturate(fBoxSize / 0.1f), 6.0f);
-
-        fLumaInstability = FfxFloat32(fMin != abs(fDiffs0)) * fBoxSizeFactor;
-        fLumaInstability = FfxFloat32(fLumaInstability > fUnormThreshold);
-
-        fLumaInstability *= 1.0f - ffxMax(params.fAccumulationMask, ffxPow(fThisFrameReactiveFactor, 1.0f / 6.0f));
-    }
-
-    //shift history
-    fCurrentFrameLumaHistory[N_MINUS_4] = fCurrentFrameLumaHistory[N_MINUS_3];
-    fCurrentFrameLumaHistory[N_MINUS_3] = fCurrentFrameLumaHistory[N_MINUS_2];
-    fCurrentFrameLumaHistory[N_MINUS_2] = fCurrentFrameLumaHistory[N_MINUS_1];
-    fCurrentFrameLumaHistory[N_MINUS_1] = fCurrentFrameLuma;
-
-    StoreLumaHistory(params.iPxHrPos, fCurrentFrameLumaHistory);
-
-    return fLumaInstability * FfxFloat32(fCurrentFrameLumaHistory[N_MINUS_4] != 0);
-}
-
-FfxFloat32 ComputeTemporalReactiveFactor(const AccumulationPassCommonParams params, FfxFloat32 fTemporalReactiveFactor)
-{
-    FfxFloat32 fNewFactor = ffxMin(0.99f, fTemporalReactiveFactor);
-
-    fNewFactor = ffxMax(fNewFactor, ffxLerp(fNewFactor, 0.4f, ffxSaturate(params.fHrVelocity)));
-
-    fNewFactor = ffxMax(fNewFactor * fNewFactor, ffxMax(params.fDepthClipFactor * 0.1f, params.fDilatedReactiveFactor));
-
-    // Force reactive factor for new samples
-    fNewFactor = params.bIsNewSample ? 1.0f : fNewFactor;
-
-    if (ffxSaturate(params.fHrVelocity * 10.0f) >= 1.0f) {
-        fNewFactor = ffxMax(FSR3UPSCALER_EPSILON, fNewFactor) * -1.0f;
-    }
-    
-    return fNewFactor;
-}
-
-AccumulationPassCommonParams InitParams(FfxInt32x2 iPxHrPos)
-{
-    AccumulationPassCommonParams params;
-
-    params.iPxHrPos = iPxHrPos;
-    const FfxFloat32x2 fHrUv = (iPxHrPos + 0.5f) / DisplaySize();
-    params.fHrUv = fHrUv;
-    
-    const FfxFloat32x2 fLrUvJittered = fHrUv + Jitter() / RenderSize();
-    params.fLrUv_HwSampler = ClampUv(fLrUvJittered, RenderSize(), MaxRenderSize());
-
-    params.fMotionVector = GetMotionVector(iPxHrPos, fHrUv);
-    params.fHrVelocity = GetPxHrVelocity(params.fMotionVector);
-
-    ComputeReprojectedUVs(params, params.fReprojectedHrUv, params.bIsExistingSample);
-
-    params.fDepthClipFactor = ffxSaturate(SampleDepthClip(params.fLrUv_HwSampler));
-    
-    const FfxFloat32x2 fDilatedReactiveMasks = SampleDilatedReactiveMasks(params.fLrUv_HwSampler);
-    params.fDilatedReactiveFactor = fDilatedReactiveMasks.x;
-    params.fAccumulationMask = fDilatedReactiveMasks.y;
-    params.bIsResetFrame = (0 == FrameIndex());
-
-    params.bIsNewSample = (params.bIsExistingSample == false || params.bIsResetFrame);
-
-    return params;
+    // Init variable data
+    data.fUpsampledColor                = FfxFloat32x3(0.0f, 0.0f, 0.0f);
+    data.fHistoryColor                  = FfxFloat32x3(0.0f, 0.0f, 0.0f);
+    data.fHistoryWeight                 = 1.0f;
+    data.fUpsampledWeight               = 0.0f;
+    data.fLock                          = 0.0f;
+    data.fLockContributionThisFrame     = 0.0f;
 }
 
 void Accumulate(FfxInt32x2 iPxHrPos)
 {
-    const AccumulationPassCommonParams params = InitParams(iPxHrPos);
+    AccumulationPassCommonParams params;
+    AccumulationPassData data;
+    InitPassData(iPxHrPos, params, data);
 
-    FfxFloat32x3 fHistoryColor = FfxFloat32x3(0, 0, 0);
-    FfxFloat32x2 fLockStatus;
-    InitializeNewLockSample(fLockStatus);
-
-    FfxFloat32 fTemporalReactiveFactor = 0.0f;
-    FfxBoolean bInMotionLastFrame = FFX_FALSE;
-    LockState lockState = { FFX_FALSE , FFX_FALSE };
-    if (params.bIsExistingSample && !params.bIsResetFrame) {
-        ReprojectHistoryColor(params, fHistoryColor, fTemporalReactiveFactor, bInMotionLastFrame);
-        lockState = ReprojectHistoryLockStatus(params, fLockStatus);
+    if (params.bIsExistingSample && !params.bIsNewSample) {
+        ReprojectHistoryColor(params, data);
     }
-
-    FfxFloat32 fThisFrameReactiveFactor = ffxMax(params.fDilatedReactiveFactor, fTemporalReactiveFactor);
-
-    FfxFloat32 fLuminanceDiff = 0.0f;
-    FfxFloat32 fLockContributionThisFrame = 0.0f;
-    UpdateLockStatus(params, fThisFrameReactiveFactor, lockState, fLockStatus, fLockContributionThisFrame, fLuminanceDiff);
-
-    // Load upsampled input color
-    RectificationBox clippingBox;
-    FfxFloat32x4 fUpsampledColorAndWeight = ComputeUpsampledColorAndWeight(params, clippingBox, fThisFrameReactiveFactor);
     
-    const FfxFloat32 fLumaInstabilityFactor = ComputeLumaInstabilityFactor(params, clippingBox, fThisFrameReactiveFactor, fLuminanceDiff);
+    UpdateLockStatus(params, data);
 
+    ComputeBaseAccumulationWeight(params, data);
 
-    FfxFloat32x3 fAccumulation = ComputeBaseAccumulationWeight(params, fThisFrameReactiveFactor, bInMotionLastFrame, fUpsampledColorAndWeight.w, lockState);
+    ComputeUpsampledColorAndWeight(params, data);
 
-    if (params.bIsNewSample) {
-        fHistoryColor = YCoCgToRGB(fUpsampledColorAndWeight.xyz);
-    }
-    else {
-        RectifyHistory(params, clippingBox, fHistoryColor, fAccumulation, fLockContributionThisFrame, fThisFrameReactiveFactor, fLumaInstabilityFactor);
+    RectifyHistory(params, data);
 
-        Accumulate(params, fHistoryColor, fAccumulation, fUpsampledColorAndWeight);
-    }
+    Accumulate(params, data);
 
-    fHistoryColor = UnprepareRgb(fHistoryColor, Exposure());
+    data.fHistoryColor /= Exposure();
 
-    FinalizeLockStatus(params, fLockStatus, fUpsampledColorAndWeight.w);
-
-    // Get new temporal reactive factor
-    fTemporalReactiveFactor = ComputeTemporalReactiveFactor(params, fThisFrameReactiveFactor);
-
-    StoreInternalColorAndWeight(iPxHrPos, FfxFloat32x4(fHistoryColor, fTemporalReactiveFactor));
+    StoreInternalColorAndWeight(iPxHrPos, FfxFloat32x4(data.fHistoryColor, data.fLock));
 
     // Output final color when RCAS is disabled
 #if FFX_FSR3UPSCALER_OPTION_APPLY_SHARPENING == 0
-    WriteUpscaledOutput(iPxHrPos, fHistoryColor);
+    StoreUpscaledOutput(iPxHrPos, data.fHistoryColor);
 #endif
     StoreNewLocks(iPxHrPos, 0);
 }
-
-#endif // FFX_FSR3UPSCALER_ACCUMULATE_H

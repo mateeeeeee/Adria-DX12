@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,8 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
-
 
 #ifndef FFX_OPTICALFLOW_CALLBACKS_HLSL_H
 #define FFX_OPTICALFLOW_CALLBACKS_HLSL_H
@@ -51,6 +50,7 @@
 #define FFX_PREFER_WAVE64
 #endif
 
+
 #pragma warning(disable: 3205)  // conversion from larger type to smaller
 
 #define DECLARE_SRV_REGISTER(regIndex)  t##regIndex
@@ -75,13 +75,33 @@
 
 #endif //FFX_OPTICALFLOW_BIND_CB_COMMON
 
+#if defined(FFX_OPTICALFLOW_BIND_CB_SPD)
+cbuffer cbOF_SPD : FFX_OPTICALFLOW_DECLARE_CB(FFX_OPTICALFLOW_BIND_CB_SPD) {
+
+    FfxUInt32     mips;
+    FfxUInt32     numWorkGroups;
+    FfxUInt32x2   workGroupOffset;
+    FfxUInt32     numWorkGroupOpticalFlowInputPyramid;
+    FfxUInt32     pad0_;
+    FfxUInt32     pad1_;
+    FfxUInt32     pad2_;
+};
+
+FfxUInt32 NumWorkGroups()
+{
+    return numWorkGroupOpticalFlowInputPyramid;
+}
+#endif //FFX_OPTICALFLOW_BIND_CB_SPD
+
+#define FFX_OPTICALFLOW_CONSTANT_BUFFER_2_SIZE 8
+
 #define FFX_OPTICALFLOW_DESCRIPTOR_COUNT 32
 
 #define FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(p) FFX_OPTICALFLOW_ROOTSIG_STR(p)
 #define FFX_OPTICALFLOW_ROOTSIG_STR(p) #p
 #define FFX_OPTICALFLOW_ROOTSIG [RootSignature( "DescriptorTable(UAV(u0, numDescriptors = " FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(FFX_OPTICALFLOW_DESCRIPTOR_COUNT) ")), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = " FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(FFX_OPTICALFLOW_DESCRIPTOR_COUNT) ")), " \
-                                    "RootConstants(num32BitConstants=" FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(FFX_OPTICALFLOW_CONSTANT_BUFFER_1_SIZE) ", b0), " \
+                                    "CBV(b0), " \
                                     "StaticSampler(s0, filter = FILTER_MIN_MAG_MIP_POINT, " \
                                                       "addressU = TEXTURE_ADDRESS_CLAMP, " \
                                                       "addressV = TEXTURE_ADDRESS_CLAMP, " \
@@ -95,11 +115,9 @@
                                                       "comparisonFunc = COMPARISON_NEVER, " \
                                                       "borderColor = STATIC_BORDER_COLOR_TRANSPARENT_BLACK)" )]
 
-#define FFX_OPTICALFLOW_CONSTANT_BUFFER_2_SIZE 8
-
 #define FFX_OPTICALFLOW_CB2_ROOTSIG [RootSignature( "DescriptorTable(UAV(u0, numDescriptors = " FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(FFX_OPTICALFLOW_DESCRIPTOR_COUNT) ")), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = " FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(FFX_OPTICALFLOW_DESCRIPTOR_COUNT) ")), " \
-                                    "RootConstants(num32BitConstants=" FFX_OPTICALFLOW_ROOTSIG_STRINGIFY(FFX_OPTICALFLOW_CONSTANT_BUFFER_2_SIZE) ", b0), " \
+                                    "CBV(b0), " \
                                     "StaticSampler(s0, filter = FILTER_MIN_MAG_MIP_POINT, " \
                                                       "addressU = TEXTURE_ADDRESS_CLAMP, " \
                                                       "addressV = TEXTURE_ADDRESS_CLAMP, " \
@@ -128,6 +146,16 @@ FfxInt32x2 DisplaySize()
 FfxUInt32 FrameIndex()
 {
     return iFrameIndex;
+}
+
+FfxUInt32 BackbufferTransferFunction()
+{
+    return backbufferTransferFunction;
+}
+
+FfxFloat32x2 MinMaxLuminance()
+{
+    return minMaxLuminance;
 }
 
 FfxBoolean CrossedSceneChangeThreshold(FfxFloat32 sceneChangeValue)
@@ -562,6 +590,44 @@ FfxUInt32 LoadSecondImagePackedLuma(FfxInt32x2 iPxPos)
     return GetPackedLuma(lumaTextureWidth, iPxPos.x, luma0, luma1, luma2, luma3);
 }
 #endif
+
+
+void SPD_SetMipmap(int2 iPxPos, int index, float value)
+{
+    switch (index)
+    {
+    case 0:
+#if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_1
+        rw_optical_flow_input_level_1[iPxPos] = value;
+#endif // #if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_1
+        break;
+    case 1:
+#if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_2
+        rw_optical_flow_input_level_2[iPxPos] = value;
+#endif // #if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_2
+        break;
+    case 2:
+#if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_3
+        rw_optical_flow_input_level_3[iPxPos] = value;
+#endif // #if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_3
+        break;
+    case 3:
+#if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_4
+        rw_optical_flow_input_level_4[iPxPos] = value;
+#endif // #if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_4
+        break;
+    case 4:
+#if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_5
+        rw_optical_flow_input_level_5[iPxPos] = value;
+#endif // #if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_5
+        break;
+    case 5:
+#if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_6
+        rw_optical_flow_input_level_6[iPxPos] = value;
+#endif // #if defined FFX_OPTICALFLOW_BIND_UAV_OPTICAL_FLOW_INPUT_LEVEL_6
+        break;
+    }
+}
 
 #endif // #if defined(FFX_GPU)
 

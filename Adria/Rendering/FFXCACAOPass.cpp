@@ -310,7 +310,7 @@ namespace adria
 			},
 			[=](FFXCACAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
-				static_assert(sizeof(Matrix) == sizeof(FfxCacaoMat4x4));
+				static_assert(sizeof(Matrix) == sizeof(FfxFloat32x4x4));
 
 				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
 				GfxTexture& normal_texture = ctx.GetTexture(*data.gbuffer_normal);
@@ -324,11 +324,11 @@ namespace adria
 				FfxCacaoDispatchDescription cacao_dispatch_desc{};
 				cacao_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
 
-				FfxCacaoMat4x4 proj, world_to_view;
+				FfxFloat32x4x4 proj, world_to_view;
 				Matrix camera_proj(frame_data.camera_proj); 
 				camera_proj.Transpose(camera_proj);
-				memcpy(&proj, &frame_data.camera_proj, sizeof(FfxCacaoMat4x4));
-				memcpy(&world_to_view, &Matrix::Identity, sizeof(FfxCacaoMat4x4));
+				memcpy(&proj, &frame_data.camera_proj, sizeof(FfxFloat32x4x4));
+				memcpy(&world_to_view, &Matrix::Identity, sizeof(FfxFloat32x4x4));
 
 				cacao_dispatch_desc.depthBuffer  = GetFfxResource(depth_texture);
 				cacao_dispatch_desc.normalBuffer = GetFfxResource(normal_texture);
@@ -379,6 +379,7 @@ namespace adria
 		cacao_context_desc.width = width;
 		cacao_context_desc.height = height;
 		cacao_context_desc.useDownsampledSsao = false;
+		cacao_context_desc.backendInterface.device = gfx->GetDevice();
 		FfxErrorCode error_code = ffxCacaoContextCreate(&cacao_context, &cacao_context_desc);
 		ADRIA_ASSERT(error_code == FFX_OK);
 		cacao_context_desc.useDownsampledSsao = true;

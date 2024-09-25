@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-
 #ifndef FFX_FRAMEINTERPOLATION_GAME_MOTION_VECTOR_FIELD_H
 #define FFX_FRAMEINTERPOLATION_GAME_MOTION_VECTOR_FIELD_H
 
@@ -27,29 +27,33 @@ FfxUInt32 getPriorityFactorFromViewSpaceDepth(FfxFloat32 fViewSpaceDepthInMeters
 {
     fViewSpaceDepthInMeters = ffxPow(fViewSpaceDepthInMeters, 0.33f);
 
-    FfxUInt32 uPriorityFactor = FfxFloat32(1 - (fViewSpaceDepthInMeters * (1.0f / (1.0f + fViewSpaceDepthInMeters)))) * PRIORITY_HIGH_MAX;
+    FfxUInt32 uPriorityFactor = FfxUInt32(FfxFloat32(1 - (fViewSpaceDepthInMeters * (1.0f / (1.0f + fViewSpaceDepthInMeters)))) * PRIORITY_HIGH_MAX);
 
     return ffxMax(1, uPriorityFactor);
 }
 
 void computeGameFieldMvs(FfxInt32x2 iPxPos)
 {
-    const FfxFloat32x2 fUv = FfxFloat32x2(FfxFloat32x2(iPxPos) + 0.5f) / RenderSize();
+    const FfxFloat32x2 fUvInScreenSpace            = (FfxFloat32x2(iPxPos) + 0.5f) / RenderSize();
+    const FfxFloat32x2 fUvInInterpolationRectStart = FfxFloat32x2(InterpolationRectBase()) / DisplaySize();
+    const FfxFloat32x2 fUvLetterBoxScale           = FfxFloat32x2(InterpolationRectSize()) / DisplaySize();
+    const FfxFloat32x2 fUvInInterpolationRect      = fUvInInterpolationRectStart + fUvInScreenSpace * fUvLetterBoxScale;
+
     const FfxFloat32 fDepthSample = LoadDilatedDepth(iPxPos);
     const FfxFloat32x2 fGameMotionVector = LoadDilatedMotionVector(iPxPos);
     const FfxFloat32x2 fMotionVectorHalf = fGameMotionVector * 0.5f;
-    const FfxFloat32x2 fInterpolatedLocationUv = fUv + fMotionVectorHalf;
+    const FfxFloat32x2 fInterpolatedLocationUv = fUvInScreenSpace + fMotionVectorHalf;
 
     const FfxFloat32 fViewSpaceDepth = ConvertFromDeviceDepthToViewSpace(fDepthSample);
     const FfxUInt32 uHighPriorityFactorPrimary = getPriorityFactorFromViewSpaceDepth(fViewSpaceDepth);
 
-    FfxFloat32x3 prevBackbufferCol = SamplePreviousBackbuffer(fUv).xyz;
-    FfxFloat32x3 curBackbufferCol  = SamplePreviousBackbuffer(fUv + fGameMotionVector).xyz;
+    FfxFloat32x3 prevBackbufferCol = SamplePreviousBackbuffer(fUvInInterpolationRect).xyz;
+    FfxFloat32x3 curBackbufferCol  = SamplePreviousBackbuffer(fUvInInterpolationRect + fGameMotionVector * fUvLetterBoxScale).xyz;
     FfxFloat32   prevLuma          = 0.001f + RawRGBToLuminance(prevBackbufferCol);
     FfxFloat32   currLuma          = 0.001f + RawRGBToLuminance(curBackbufferCol);
 
-    FfxUInt32 uLowPriorityFactor = round(ffxPow(MinDividedByMax(prevLuma, currLuma), 1.0f / 1.0f) * PRIORITY_LOW_MAX)
-    * IsUvInside(fUv + fGameMotionVector);
+    FfxUInt32 uLowPriorityFactor = FfxUInt32(ffxRound(ffxPow(MinDividedByMax(prevLuma, currLuma), 1.0f / 1.0f) * PRIORITY_LOW_MAX))
+    * FfxUInt32(IsUvInside(fUvInInterpolationRect + fGameMotionVector * fUvLetterBoxScale));
 
     // Update primary motion vectors
     {
@@ -77,7 +81,7 @@ void computeGameFieldMvs(FfxInt32x2 iPxPos)
         FfxUInt32 uNumPrimaryHits = 0;
         const FfxFloat32 fSecondaryStepScale = length(1.0f / RenderSize());
         const FfxFloat32x2 fStepMv = normalize(fGameMotionVector);
-        const FfxFloat32 fBreakDist = length(fMotionVectorHalf);
+        const FfxFloat32 fBreakDist = ffxMin(length(fMotionVectorHalf), length(FfxFloat32x2(0.5f, 0.5f)));
 
         for (FfxFloat32 fMvScale = fSecondaryStepScale; fMvScale <= fBreakDist && bWriteSecondary; fMvScale += fSecondaryStepScale)
         {
@@ -88,7 +92,7 @@ void computeGameFieldMvs(FfxInt32x2 iPxPos)
             FfxUInt32 uHighPriorityFactorSecondary = ffxMax(1, PRIORITY_HIGH_MAX - uHighPriorityFactorPrimary);
 
             const FfxFloat32x2 fToCenter = normalize(FfxFloat32x2(0.5f, 0.5f) - fSecondaryLocationUv);
-            uLowPriorityFactor = ffxMax(0.0f, dot(fToCenter, fStepMv)) * PRIORITY_LOW_MAX;
+            uLowPriorityFactor = FfxUInt32(ffxMax(0.0f, dot(fToCenter, fStepMv)) * PRIORITY_LOW_MAX);
             const FfxUInt32x2 packedVectorSecondary = PackVectorFieldEntries(false, uHighPriorityFactorSecondary, uLowPriorityFactor, fMotionVectorHalf);
 
             // Only write secondary mvs to single bilinear location
@@ -97,14 +101,14 @@ void computeGameFieldMvs(FfxInt32x2 iPxPos)
                 const FfxInt32x2 iOffset = bilinearInfo.iOffsets[iSampleIndex];
                 const FfxInt32x2 iSamplePos = bilinearInfo.iBasePos + iOffset;
 
-                bWriteSecondary &= IsOnScreen(iSamplePos, RenderSize());
+                bWriteSecondary = bWriteSecondary && IsOnScreen(iSamplePos, RenderSize());
 
                 if (bWriteSecondary)
                 {
                     const FfxUInt32 uExistingVectorFieldEntry = UpdateGameMotionVectorFieldEx(iSamplePos, packedVectorSecondary);
 
-                    uNumPrimaryHits += PackedVectorFieldEntryIsPrimary(uExistingVectorFieldEntry);
-                    bWriteSecondary &= (uNumPrimaryHits <= 3);
+                    uNumPrimaryHits += FfxUInt32(PackedVectorFieldEntryIsPrimary(uExistingVectorFieldEntry));
+                    bWriteSecondary = bWriteSecondary && (uNumPrimaryHits <= 3);
                 }
             }
         }

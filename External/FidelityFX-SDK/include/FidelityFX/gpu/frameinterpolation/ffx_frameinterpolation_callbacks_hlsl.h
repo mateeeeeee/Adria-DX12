@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,9 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-
 #include "ffx_frameinterpolation_resources.h"
+
+#if defined(FFX_GPU)
+#ifdef __hlsl_dx_compiler
+#pragma dxc diagnostic push
+#pragma dxc diagnostic ignored "-Wambig-lit-shift"
+#endif //__hlsl_dx_compiler
 #include "ffx_core.h"
+#ifdef __hlsl_dx_compiler
+#pragma dxc diagnostic pop
+#endif //__hlsl_dx_compiler
+#endif // #if defined(FFX_GPU)
+
+#if defined(FFX_GPU)
 
 #define COUNTER_SPD                          0
 #define COUNTER_FRAME_INDEX_SINCE_LAST_RESET 1
@@ -46,15 +58,15 @@
         FfxFloat32x4    fDeviceToViewDepth;
 
         FfxFloat32      deltaTime;
-        FfxFloat32x2    UNUSED;
         FfxInt32        HUDLessAttachedFactor;
+        FfxFloat32x2    UNUSED;
 
         FfxFloat32x2    opticalFlowScale;
         FfxInt32        opticalFlowBlockSize;
         FfxUInt32       dispatchFlags;
 
-        FfxInt32        opticalFlowHalfResMode;
         FfxInt32x2      maxRenderSize;
+        FfxInt32        opticalFlowHalfResMode;
         FfxInt32        NumInstances;
 
         FfxInt32x2      interpolationRectBase;
@@ -66,6 +78,29 @@
         FfxFloat32x2    minMaxLuminance;
         FfxFloat32      fTanHalfFOV;
         FfxInt32        _pad1;
+
+        FfxFloat32x2    fJitter;
+        FfxFloat32x2    fMotionVectorScale;
+    }
+
+    const FfxFloat32x2 Jitter()
+    {
+        return fJitter;
+    }
+
+    const FfxFloat32x2 MotionVectorScale()
+    {
+        return fMotionVectorScale;
+    }
+
+    const FfxInt32x2 InterpolationRectBase()
+    {
+        return interpolationRectBase;
+    }
+
+    const FfxInt32x2 InterpolationRectSize()
+    {
+        return interpolationRectSize;
     }
 
     const FfxInt32x2 RenderSize()
@@ -155,21 +190,69 @@
         return minMaxLuminance[1];
     }
 
-#endif
+#endif // #if defined(FFX_FRAMEINTERPOLATION_BIND_CB_FRAMEINTERPOLATION)
 
+#if defined(FFX_FRAMEINTERPOLATION_BIND_CB_INPAINTING_PYRAMID)
+    cbuffer cbInpaintingPyramid : FFX_DECLARE_CB(FFX_FRAMEINTERPOLATION_BIND_CB_INPAINTING_PYRAMID)
+    {
+        FfxUInt32 mips;
+        FfxUInt32 numWorkGroups;
+        FfxUInt32x2 workGroupOffset;
+    }
 
+    FfxUInt32 NumMips()
+    {
+        return mips;
+    }
+    FfxUInt32 NumWorkGroups()
+    {
+        return numWorkGroups;
+    }
+    FfxUInt32x2 WorkGroupOffset()
+    {
+        return workGroupOffset;
+    }
+#endif // #if defined(FFX_FRAMEINTERPOLATION_BIND_CB_INPAINTING_PYRAMID)
 
+#define FFX_FRAMEINTERPOLATION_ROOTSIG_STRINGIFY(p) FFX_FRAMEINTERPOLATION_ROOTSIG_STR(p)
+#define FFX_FRAMEINTERPOLATION_ROOTSIG_STR(p) #p
+#define FFX_FRAMEINTERPOLATION_ROOTSIG [RootSignature( "DescriptorTable(UAV(u0, numDescriptors = " FFX_FRAMEINTERPOLATION_ROOTSIG_STRINGIFY(FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_COUNT) ")), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = " FFX_FRAMEINTERPOLATION_ROOTSIG_STRINGIFY(FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_COUNT) ")), " \
+                                    "CBV(b0), " \
+                                    "StaticSampler(s0, filter = FILTER_MIN_MAG_MIP_LINEAR, " \
+                                                      "addressU = TEXTURE_ADDRESS_CLAMP, " \
+                                                      "addressV = TEXTURE_ADDRESS_CLAMP, " \
+                                                      "addressW = TEXTURE_ADDRESS_CLAMP, " \
+                                                      "comparisonFunc = COMPARISON_NEVER, " \
+                                                      "borderColor = STATIC_BORDER_COLOR_TRANSPARENT_BLACK)" )]
 
-  ///////////////////////////////////////////////
- // declare samplers
+#define FFX_FRAMEINTERPOLATION_INPAINTING_ROOTSIG [RootSignature( "DescriptorTable(UAV(u0, numDescriptors = " FFX_FRAMEINTERPOLATION_ROOTSIG_STRINGIFY(FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_COUNT) ")), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = " FFX_FRAMEINTERPOLATION_ROOTSIG_STRINGIFY(FFX_FRAMEINTERPOLATION_RESOURCE_IDENTIFIER_COUNT) ")), " \
+                                    "CBV(b0), " \
+                                    "CBV(b1), " \
+                                    "StaticSampler(s0, filter = FILTER_MIN_MAG_MIP_LINEAR, " \
+                                                      "addressU = TEXTURE_ADDRESS_CLAMP, " \
+                                                      "addressV = TEXTURE_ADDRESS_CLAMP, " \
+                                                      "addressW = TEXTURE_ADDRESS_CLAMP, " \
+                                                      "comparisonFunc = COMPARISON_NEVER, " \
+                                                      "borderColor = STATIC_BORDER_COLOR_TRANSPARENT_BLACK)" )]
+
+#if defined(FFX_FRAMEINTERPOLATION_EMBED_ROOTSIG)
+#define FFX_FRAMEINTERPOLATION_EMBED_ROOTSIG_CONTENT FFX_FRAMEINTERPOLATION_ROOTSIG
+#define FFX_FRAMEINTERPOLATION_EMBED_INPAINTING_ROOTSIG_CONTENT FFX_FRAMEINTERPOLATION_INPAINTING_ROOTSIG
+#else
+#define FFX_FRAMEINTERPOLATION_EMBED_ROOTSIG_CONTENT
+#define FFX_FRAMEINTERPOLATION_EMBED_INPAINTING_ROOTSIG_CONTENT
+#endif // #if FFX_FRAMEINTERPOLATION_EMBED_ROOTSIG
+
+///////////////////////////////////////////////
+// declare samplers
 ///////////////////////////////////////////////
 
+SamplerState s_LinearClamp : register(s0);
 
-SamplerState s_PointClamp  : register(s0);
-SamplerState s_LinearClamp : register(s1);
-
-  ///////////////////////////////////////////////
- // declare SRVs and SRV accessors
+///////////////////////////////////////////////
+// declare SRVs and SRV accessors
 ///////////////////////////////////////////////
 
 #ifdef FFX_FRAMEINTERPOLATION_BIND_SRV_PREVIOUS_INTERPOLATION_SOURCE
@@ -183,10 +266,6 @@ SamplerState s_LinearClamp : register(s1);
     {
         return r_previous_interpolation_source.SampleLevel(s_LinearClamp, fUv, 0).xyz;
     }
-    Texture2D<FfxFloat32x4> PreviousBackbufferTexture()
-    {
-        return r_previous_interpolation_source;
-    }
 #endif
 
 #ifdef FFX_FRAMEINTERPOLATION_BIND_SRV_CURRENT_INTERPOLATION_SOURCE
@@ -199,10 +278,6 @@ SamplerState s_LinearClamp : register(s1);
     FfxFloat32x3 SampleCurrentBackbuffer(FFX_PARAMETER_IN FfxFloat32x2 fUv)
     {
         return r_current_interpolation_source.SampleLevel(s_LinearClamp, fUv, 0).xyz;
-    }
-    Texture2D<FfxFloat32x4> CurrentBackbufferTexture()
-    {
-        return r_current_interpolation_source;
     }
 #endif
 
@@ -386,23 +461,44 @@ SamplerState s_LinearClamp : register(s1);
 #endif
 
 #ifdef FFX_FRAMEINTERPOLATION_BIND_SRV_COUNTERS
-    Texture2D<FfxUInt32> r_counters : FFX_DECLARE_SRV(FFX_FRAMEINTERPOLATION_BIND_SRV_COUNTERS);
+    StructuredBuffer<FfxUInt32> r_counters : FFX_DECLARE_SRV(FFX_FRAMEINTERPOLATION_BIND_SRV_COUNTERS);
 
-    FfxUInt32 LoadCounter(FFX_PARAMETER_IN FfxInt32x2 iPxPos)
+    FfxUInt32 LoadCounter(FFX_PARAMETER_IN FfxInt32 iPxPos)
     {
         return r_counters[iPxPos];
     }
 
     const FfxUInt32 FrameIndexSinceLastReset()
     {
-        return LoadCounter(FfxUInt32x2(COUNTER_FRAME_INDEX_SINCE_LAST_RESET, 0));
+        return LoadCounter(COUNTER_FRAME_INDEX_SINCE_LAST_RESET);
     }
 #endif
 
+#if defined(FFX_FRAMEINTERPOLATION_BIND_SRV_INPUT_DEPTH)
+Texture2D<FfxFloat32> r_input_depth : FFX_DECLARE_SRV(FFX_FRAMEINTERPOLATION_BIND_SRV_INPUT_DEPTH);
+FfxFloat32 LoadInputDepth(FfxInt32x2 iPxPos)
+{
+    return r_input_depth[iPxPos];
+}
+#endif
 
+#if defined(FFX_FRAMEINTERPOLATION_BIND_SRV_INPUT_MOTION_VECTORS)
+Texture2D<FfxFloat32x4> r_input_motion_vectors : FFX_DECLARE_SRV(FFX_FRAMEINTERPOLATION_BIND_SRV_INPUT_MOTION_VECTORS);
+FfxFloat32x2 LoadInputMotionVector(FfxInt32x2 iPxDilatedMotionVectorPos)
+{
+    FfxFloat32x2 fSrcMotionVector = r_input_motion_vectors[iPxDilatedMotionVectorPos].xy;
 
-  ///////////////////////////////////////////////
- // declare UAVs and UAV accessors
+    FfxFloat32x2 fUvMotionVector = fSrcMotionVector * MotionVectorScale();
+
+#if FFX_FRAMEINTERPOLATION_OPTION_JITTERED_MOTION_VECTORS
+    fUvMotionVector -= MotionVectorJitterCancellation();
+#endif
+
+    return fUvMotionVector;
+}
+#endif
+///////////////////////////////////////////////
+// declare UAVs and UAV accessors
 ///////////////////////////////////////////////
 #ifdef FFX_FRAMEINTERPOLATION_BIND_UAV_OUTPUT
     RWTexture2D<FfxFloat32x4> rw_output : FFX_DECLARE_UAV(FFX_FRAMEINTERPOLATION_BIND_UAV_OUTPUT);
@@ -449,15 +545,20 @@ SamplerState s_LinearClamp : register(s1);
 #ifdef FFX_FRAMEINTERPOLATION_BIND_UAV_RECONSTRUCTED_DEPTH_PREVIOUS_FRAME
     RWTexture2D<FfxUInt32> rw_reconstructed_depth_previous_frame : FFX_DECLARE_UAV(FFX_FRAMEINTERPOLATION_BIND_UAV_RECONSTRUCTED_DEPTH_PREVIOUS_FRAME);
 
-    FfxUInt32 RWLoadReconstructedDepthPreviousFrame(FFX_PARAMETER_IN FfxInt32x2 iPxPos)
+    FfxFloat32 RWLoadReconstructedDepthPreviousFrame(FFX_PARAMETER_IN FfxInt32x2 iPxPos)
     {
         return ffxAsFloat(rw_reconstructed_depth_previous_frame[iPxPos]);
     }
 
-    void StoreReconstructedDepthPreviousFrame(FFX_PARAMETER_IN FfxInt32x2 iPxPos, FFX_PARAMETER_IN FfxUInt32 value)
+    void UpdateReconstructedDepthPreviousFrame(FfxInt32x2 iPxSample, FfxFloat32 fDepth)
     {
-        FfxUInt32 uDepth                              = ffxAsUInt32(value);
-        rw_reconstructed_depth_previous_frame[iPxPos] = uDepth;
+        FfxUInt32 uDepth = ffxAsUInt32(fDepth);
+
+#if FFX_FRAMEINTERPOLATION_OPTION_INVERTED_DEPTH
+        InterlockedMax(rw_reconstructed_depth_previous_frame[iPxSample], uDepth);
+#else
+        InterlockedMin(rw_reconstructed_depth_previous_frame[iPxSample], uDepth);  // min for standard, max for inverted depth
+#endif
     }
 #endif
 
@@ -568,40 +669,26 @@ SamplerState s_LinearClamp : register(s1);
     {
         rw_optical_flow_motion_vector_field_y[iPxPos] = val;
     }
-    void UpdateOpticalflowMotionVectorField(FFX_PARAMETER_IN FfxInt32x2 iPxPos, FFX_PARAMETER_IN FfxInt32x2 packedVector)
+    void UpdateOpticalflowMotionVectorField(FFX_PARAMETER_IN FfxInt32x2 iPxPos, FFX_PARAMETER_IN FfxUInt32x2 packedVector)
     {
         InterlockedMax(rw_optical_flow_motion_vector_field_x[iPxPos], packedVector.x);
         InterlockedMax(rw_optical_flow_motion_vector_field_y[iPxPos], packedVector.y);
     }
 #endif
 
-#ifdef FFX_FRAMEINTERPOLATION_BIND_UAV_OPTICAL_FLOW_UPSAMPLED
-    RWTexture2D<FfxFloat32x2> rw_optical_flow_upsampled : FFX_DECLARE_UAV(FFX_FRAMEINTERPOLATION_BIND_UAV_OPTICAL_FLOW_UPSAMPLED);
-
-    FfxFloat32x2 RWLoadOpticalFlowUpsampled(FFX_PARAMETER_IN FfxInt32x2 iPxPos)
-    {
-        return rw_optical_flow_upsampled[iPxPos];
-    }
-
-    void StoreOpticalFlowUpsampled(FFX_PARAMETER_IN FfxInt32x2 iPxPos, FFX_PARAMETER_IN FfxFloat32x2 value)
-    {
-        rw_optical_flow_upsampled[iPxPos] = value;
-    }
-#endif
-
 #ifdef FFX_FRAMEINTERPOLATION_BIND_UAV_COUNTERS
-    globallycoherent RWTexture2D<FfxUInt32> rw_counters : FFX_DECLARE_UAV(FFX_FRAMEINTERPOLATION_BIND_UAV_COUNTERS);
+    globallycoherent RWStructuredBuffer<FfxUInt32> rw_counters : FFX_DECLARE_UAV(FFX_FRAMEINTERPOLATION_BIND_UAV_COUNTERS);
 
-    FfxUInt32 RWLoadCounter(FFX_PARAMETER_IN FfxInt32x2 iPxPos)
+    FfxUInt32 RWLoadCounter(FFX_PARAMETER_IN FfxInt32 iPxPos)
     {
         return rw_counters[iPxPos];
     }
 
-    void StoreCounter(FFX_PARAMETER_IN FfxInt32x2 iPxPos, FFX_PARAMETER_IN FfxUInt32 counter)
+    void StoreCounter(FFX_PARAMETER_IN FfxInt32 iPxPos, FFX_PARAMETER_IN FfxUInt32 counter)
     {
         rw_counters[iPxPos] = counter;
     }
-    void AtomicIncreaseCounter(FFX_PARAMETER_IN FfxInt32x2 iPxPos, FFX_PARAMETER_OUT FfxUInt32 oldVal)
+    void AtomicIncreaseCounter(FFX_PARAMETER_IN FfxInt32 iPxPos, FFX_PARAMETER_OUT FfxUInt32 oldVal)
     {
         InterlockedAdd(rw_counters[iPxPos], 1, oldVal);
     }
@@ -687,3 +774,5 @@ SamplerState s_LinearClamp : register(s1);
         #undef STORE
     }
 #endif
+
+#endif // #if defined(FFX_GPU)

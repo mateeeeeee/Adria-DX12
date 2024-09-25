@@ -86,6 +86,9 @@ namespace adria
 		shader_model		= ConvertShaderModel(feature_support.HighestShaderModel());
 		enhanced_barriers_supported = feature_support.EnhancedBarriersSupported();
 
+		shading_rate_image_tile_size = feature_support.ShadingRateImageTileSize();
+		additional_shading_rates_supported = feature_support.AdditionalShadingRatesSupported();
+
 		if (shader_model < SM_6_6)
 		{
 			ADRIA_LOG(ERROR, "Device doesn't support Shader Model 6.6 which is required!");

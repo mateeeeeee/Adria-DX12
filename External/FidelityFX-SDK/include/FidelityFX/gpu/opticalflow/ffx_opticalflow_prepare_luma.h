@@ -1,16 +1,17 @@
 // This file is part of the FidelityFX SDK.
-// 
-// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+//
+// Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 // copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// furnished to do so, subject to the following conditions :
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 
 #ifndef FFX_OPTICALFLOW_PREPARE_LUMA_H
 #define FFX_OPTICALFLOW_PREPARE_LUMA_H
@@ -71,33 +71,34 @@ void PrepareLuma(FfxInt32x2 iGlobalId, FfxInt32 iLocalIndex)
 #define PixelsPerThreadX 2
 #define PixelsPerThreadY 2
 #pragma unroll
-    for (int y = 0; y < PixelsPerThreadY; y++)
+    for (FfxInt32 y = 0; y < PixelsPerThreadY; y++)
     {
 #pragma unroll
-        for (int x = 0; x < PixelsPerThreadX; x++)
+        for (FfxInt32 x = 0; x < PixelsPerThreadX; x++)
         {
-            int2 pos = iGlobalId * int2(PixelsPerThreadX, PixelsPerThreadY) + int2(x, y);
+            FfxInt32x2 pos = iGlobalId * FfxInt32x2(PixelsPerThreadX, PixelsPerThreadY) + FfxInt32x2(x, y);
             FfxInt32x2 iPxHrPos = pos;
             FfxFloat32 fY = 0.0;
 
             FfxFloat32x3 inputColor = LoadInputColor(iPxHrPos).rgb;
 
+            FfxUInt32 backbufferTransferFunction = BackbufferTransferFunction();
             if (backbufferTransferFunction == 0)
             {
                 fY = LinearLdrToLuminance(inputColor);
             }
             else if (backbufferTransferFunction == 1)
             {
-                fY = PQCorrectedHdrToLuminance(inputColor, minMaxLuminance[1]);
+                fY = PQCorrectedHdrToLuminance(inputColor, MinMaxLuminance()[1]);
                 fY = LuminanceToPerceivedLuminance(fY);
             }
             else if (backbufferTransferFunction == 2)
             {
-                fY = SCRGBCorrectedHdrToLuminance(inputColor, minMaxLuminance[0], minMaxLuminance[1]);
+                fY = SCRGBCorrectedHdrToLuminance(inputColor, MinMaxLuminance()[0], MinMaxLuminance()[1]);
                 fY = LuminanceToPerceivedLuminance(fY);
             }
 
-            StoreOpticalFlowInput(pos, fY * 255);
+            StoreOpticalFlowInput(pos, FfxUInt32(fY * 255));
         }
     }
 }
