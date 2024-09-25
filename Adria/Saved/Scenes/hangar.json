@@ -21,9 +21,9 @@
 	},
     "models" : [
 			{
-				"path": "Resources/Models/Hangar/Hangar.gltf",
-				"scale": [ 1.0, 1.0, 1.0 ],
-				"use_ccw": true,
+				"path": "Resources/Models/Hangar/Hangar_1105.gltf",
+				"scale": [ 0.33, 0.33, 0.33 ],
+				"use_ccw": false,
 				"force_alpha_mask": false
 			}
 	],
