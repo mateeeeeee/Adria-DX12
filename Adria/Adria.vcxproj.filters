@@ -1273,6 +1273,9 @@
     <None Include="Saved\Scenes\bistro.json">
       <Filter>Scenes</Filter>
     </None>
+    <None Include="Saved\Scenes\newsponza.json">
+      <Filter>Scenes</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">

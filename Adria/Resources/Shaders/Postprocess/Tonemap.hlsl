@@ -76,5 +76,6 @@ void TonemapCS(CSInput input)
 
             break;
     }
+
 	outputTexture[input.DispatchThreadId.xy] = toneMappedColor;
 }

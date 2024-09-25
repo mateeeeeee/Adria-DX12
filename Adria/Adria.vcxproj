@@ -582,6 +582,7 @@
     <None Include="Saved\Scenes\bistro.json" />
     <None Include="Saved\Scenes\hangar.json" />
     <None Include="Saved\Scenes\brutalism.json" />
+    <None Include="Saved\Scenes\newsponza.json" />
     <None Include="Saved\Scenes\sanmiguel.json" />
     <None Include="Saved\Scenes\sponza.json" />
     <None Include="Saved\Scenes\toyshop.json" />
