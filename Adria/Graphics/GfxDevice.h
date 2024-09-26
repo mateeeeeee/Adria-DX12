@@ -64,8 +64,6 @@ namespace adria
 	template<bool>
 	class GfxRingDescriptorAllocator;
 
-	struct GfxShadingRateFeatureInfo;
-
 	class GfxNsightAftermathGpuCrashTracker;
 #if GFX_MULTITHREADED
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;

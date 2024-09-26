@@ -712,6 +712,27 @@ namespace adria
 		cmd_list->RSSetScissorRects(1, &rect);
 	}
 
+	void GfxCommandList::SetShadingRate(GfxShadingRate shading_rate)
+	{
+		GfxShadingRateCombiner combiners[] = { GfxShadingRateCombiner::Passthrough, GfxShadingRateCombiner::Passthrough };
+		SetShadingRate(shading_rate, combiners);
+	}
+
+	void GfxCommandList::SetShadingRate(GfxShadingRate shading_rate, std::span<GfxShadingRateCombiner, SHADING_RATE_COMBINER_COUNT> combiners)
+	{
+		D3D12_SHADING_RATE_COMBINER d3d12_combiners[SHADING_RATE_COMBINER_COUNT] = {};
+		for (uint32 i = 0; i < SHADING_RATE_COMBINER_COUNT; ++i)
+		{
+			d3d12_combiners[i] = ToD3D12ShadingRateCombiner(combiners[i]);
+		}
+		cmd_list->RSSetShadingRate(ToD3D12ShadingRate(shading_rate), d3d12_combiners);
+	}
+
+	void GfxCommandList::SetShadingRateImage(GfxTexture const& texture)
+	{
+		cmd_list->RSSetShadingRateImage(texture.GetNative());
+	}
+
 	void GfxCommandList::SetRootConstant(uint32 slot, uint32 data, uint32 offset)
 	{
 		ADRIA_ASSERT(current_context != Context::Invalid);

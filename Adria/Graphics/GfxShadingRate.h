@@ -3,6 +3,11 @@
 
 namespace adria
 {
+	static constexpr uint32 SHADING_RATE_SHIFT = 3;
+	static constexpr uint32 MAX_SHADING_RATES  = 7;
+	static constexpr uint32 SHADING_RATE_COMBINER_COUNT = 2;
+	
+
 	enum GfxShadingRate1D : uint32
 	{
 		GfxShadingRate1D_1X = 0x01,
@@ -10,7 +15,6 @@ namespace adria
 		GfxShadingRate1D_4X = 0x04
 	};
 
-	static constexpr uint32 SHADING_RATE_SHIFT = 3;
 
 	enum class GfxVariableShadingMode : uint32
 	{
@@ -23,11 +27,9 @@ namespace adria
 	{
 		GfxShadingRate_1X1 = (GfxShadingRate1D_1X << SHADING_RATE_SHIFT) | GfxShadingRate1D_1X,
 		GfxShadingRate_1X2 = (GfxShadingRate1D_1X << SHADING_RATE_SHIFT) | GfxShadingRate1D_2X,
-		GfxShadingRate_1X4 = (GfxShadingRate1D_1X << SHADING_RATE_SHIFT) | GfxShadingRate1D_4X,
 		GfxShadingRate_2X1 = (GfxShadingRate1D_2X << SHADING_RATE_SHIFT) | GfxShadingRate1D_1X,
 		GfxShadingRate_2X2 = (GfxShadingRate1D_2X << SHADING_RATE_SHIFT) | GfxShadingRate1D_2X,
 		GfxShadingRate_2X4 = (GfxShadingRate1D_2X << SHADING_RATE_SHIFT) | GfxShadingRate1D_4X,
-		GfxShadingRate_4X1 = (GfxShadingRate1D_4X << SHADING_RATE_SHIFT) | GfxShadingRate1D_1X,
 		GfxShadingRate_4X2 = (GfxShadingRate1D_4X << SHADING_RATE_SHIFT) | GfxShadingRate1D_2X,
 		GfxShadingRate_4X4 = (GfxShadingRate1D_4X << SHADING_RATE_SHIFT) | GfxShadingRate1D_4X
 	};
@@ -39,19 +41,34 @@ namespace adria
 		Min = 1 << 2,   
 		Max = 1 << 3,   
 		Sum = 1 << 4,   
-		Mul = 1 << 5    
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxShadingRateCombiner);
 
-	static constexpr uint32 MAX_SHADING_RATES = 9;
-
-	struct GfxShadingRateFeatureInfo
+	inline D3D12_SHADING_RATE ToD3D12ShadingRate(GfxShadingRate shading_rate)
 	{
-		bool                   additional_shading_rates_supported = false;
-		GfxShadingRate         shading_rates[MAX_SHADING_RATES];
-		uint32                 number_of_shading_rates = 0;
-		GfxShadingRateCombiner combiners;
-		uint32                 min_tile_size[2];
-		uint32                 max_tile_size[2];
-	};
+		switch (shading_rate)
+		{
+		case GfxShadingRate_1X1: return D3D12_SHADING_RATE_1X1;
+		case GfxShadingRate_1X2: return D3D12_SHADING_RATE_1X2;
+		case GfxShadingRate_2X1: return D3D12_SHADING_RATE_2X1;
+		case GfxShadingRate_2X2: return D3D12_SHADING_RATE_2X2;
+		case GfxShadingRate_2X4: return D3D12_SHADING_RATE_2X4;
+		case GfxShadingRate_4X2: return D3D12_SHADING_RATE_4X2;
+		case GfxShadingRate_4X4: return D3D12_SHADING_RATE_4X4;
+		}
+		return D3D12_SHADING_RATE_1X1;
+	}
+
+	inline D3D12_SHADING_RATE_COMBINER ToD3D12ShadingRateCombiner(GfxShadingRateCombiner shading_rate_combiner)
+	{
+		switch (shading_rate_combiner)
+		{
+		case GfxShadingRateCombiner::Passthrough: return D3D12_SHADING_RATE_COMBINER_PASSTHROUGH;
+		case GfxShadingRateCombiner::Override:    return D3D12_SHADING_RATE_COMBINER_OVERRIDE;
+		case GfxShadingRateCombiner::Min:		  return D3D12_SHADING_RATE_COMBINER_MIN;		  
+		case GfxShadingRateCombiner::Max:		  return D3D12_SHADING_RATE_COMBINER_MAX;		  
+		case GfxShadingRateCombiner::Sum:		  return D3D12_SHADING_RATE_COMBINER_SUM;		  
+		}
+		return D3D12_SHADING_RATE_COMBINER_PASSTHROUGH;
+	}
 }

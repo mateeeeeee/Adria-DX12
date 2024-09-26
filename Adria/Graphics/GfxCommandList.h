@@ -3,6 +3,7 @@
 #include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
 #include "GfxDynamicAllocation.h"
+#include "GfxShadingRate.h"
 #include "GfxStates.h"
 
 namespace adria
@@ -100,6 +101,10 @@ namespace adria
 		void SetVertexBuffers(std::span<GfxVertexBufferView const> vertex_buffer_views, uint32 start_slot = 0);
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
+
+		void SetShadingRate(GfxShadingRate shading_rate);
+		void SetShadingRate(GfxShadingRate shading_rate, std::span<GfxShadingRateCombiner, SHADING_RATE_COMBINER_COUNT> combiners);
+		void SetShadingRateImage(GfxTexture const& texture);
 
 		void SetRootConstant(uint32 slot, uint32 data, uint32 offset = 0);
 		void SetRootConstants(uint32 slot, void const* data, uint32 data_size, uint32 offset = 0);
