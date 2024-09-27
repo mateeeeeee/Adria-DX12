@@ -7,7 +7,6 @@
 
 namespace adria
 {
-	static wchar_t empty_name[] = L"";
 	static FfxSurfaceFormat GetFfxSurfaceFormat(GfxFormat format)
 	{
 		switch (format)
@@ -134,15 +133,15 @@ namespace adria
 
 	FfxResource GetFfxResource()
 	{
-		return ffxGetResourceDX12(nullptr, FfxResourceDescription{}, empty_name);
+		return ffxGetResourceDX12(nullptr, FfxResourceDescription{}, L"");
 	}
 	FfxResource GetFfxResource(GfxBuffer const& buffer, FfxResourceStates state, FfxResourceUsage additional_usage)
 	{
-		return ffxGetResourceDX12(buffer.GetNative(), GetFfxResourceDescription(buffer, additional_usage), empty_name, state);
+		return ffxGetResourceDX12(buffer.GetNative(), GetFfxResourceDescription(buffer, additional_usage), L"", state);
 	}
 	FfxResource GetFfxResource(GfxTexture const& texture, FfxResourceStates state, FfxResourceUsage additional_usage)
 	{
-		return ffxGetResourceDX12(texture.GetNative(), GetFfxResourceDescription(texture, additional_usage), empty_name, state);
+		return ffxGetResourceDX12(texture.GetNative(), GetFfxResourceDescription(texture, additional_usage), L"", state);
 	}
 
 }

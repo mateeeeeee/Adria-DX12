@@ -13,15 +13,6 @@ namespace adria
 
 	class FFXVRSPass
 	{
-		struct VRSFeatureInfo
-		{
-			bool                   additional_shading_rates_supported = false;
-			GfxShadingRate         shading_rates[MAX_SHADING_RATES];
-			uint32                 number_of_shading_rates = 0;
-			GfxShadingRateCombiner combiners;
-			uint32				   shading_rate_image_tile_size;
-		};
-
 	public:
 		FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FFXVRSPass();
@@ -40,13 +31,16 @@ namespace adria
 		FfxVrsContext            vrs_context;
 		bool                     context_created = false;
 
-		VRSFeatureInfo vrs_feature_info;
 		std::unique_ptr<GfxTexture> vrs_image;
 
-	private:
-		void FillFeatureInfo();
-		void CreateVRSImage();
+		bool  additional_shading_rates_supported = false;
+		uint32 shading_rate_image_tile_size;
 
+		//move to console variables and gui later
+		float    vrs_threshold = 0.015f;
+		float    vrs_motion_factor = 0.01f;
+
+	private:
 		void DestroyContext();
 		void CreateContext();
 	};

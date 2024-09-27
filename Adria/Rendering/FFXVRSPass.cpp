@@ -8,20 +8,21 @@
 namespace adria
 {
 
-	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
+	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
+		ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
 	{
 		if (!gfx->GetCapabilities().SupportsVSR())
 		{
 			return;
 		}
-		FillFeatureInfo();
-		CreateVRSImage();
-
 		sprintf(name_version, "FFX VRS %d.%d.%d", FFX_VRS_VERSION_MAJOR, FFX_VRS_VERSION_MINOR, FFX_VRS_VERSION_PATCH);
 		ffx_interface = CreateFfxInterface(gfx, FFX_VRS_CONTEXT_COUNT);
 		vrs_context_description.backendInterface = *ffx_interface;
 		ADRIA_ASSERT(vrs_context_description.backendInterface.fpGetSDKVersion(&vrs_context_description.backendInterface) == FFX_SDK_MAKE_VERSION(1, 1, 0));
 		ADRIA_ASSERT(ffxVrsGetEffectVersion() == FFX_SDK_MAKE_VERSION(1, 2, 0));
+
+		additional_shading_rates_supported = gfx->GetCapabilities().SupportsAdditionalShadingRates();
+		shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
 
 		CreateContext();
 	}
@@ -32,9 +33,54 @@ namespace adria
 		DestroyFfxInterface(ffx_interface);
 	}
 
-	void FFXVRSPass::AddPass(RenderGraph& rendergraph)
+	void FFXVRSPass::AddPass(RenderGraph& rg)
 	{
+		struct FFXVRSPassData
+		{
+			RGTextureReadOnlyId  color_history;
+			RGTextureReadOnlyId  motion_vectors;
+			RGTextureReadWriteId vrs_image;
+		};
 
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		rg.AddPass<FFXVRSPassData>(name_version,
+			[=](FFXVRSPassData& data, RenderGraphBuilder& builder)
+			{
+				uint32 vrs_image_width, vrs_image_height;
+				ffxVrsGetImageSizeFromeRenderResolution(&vrs_image_width, &vrs_image_height, width, height, shading_rate_image_tile_size);
+				RGTextureDesc vrs_image_desc{};
+				vrs_image_desc.format = GfxFormat::R8_UINT;
+				vrs_image_desc.width = vrs_image_width;
+				vrs_image_desc.height = vrs_image_height;
+				builder.DeclareTexture(RG_NAME(VRSImage), vrs_image_desc);
+
+				data.vrs_image = builder.WriteTexture(RG_NAME(VRSImage));
+				data.color_history = builder.ReadTexture(RG_NAME(History), ReadAccess_NonPixelShader);
+				data.motion_vectors = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+			},
+			[=](FFXVRSPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxTexture& color_history_texture = ctx.GetTexture(*data.color_history);
+				GfxTexture& motion_vectors_texture = ctx.GetTexture(*data.motion_vectors);
+				GfxTexture& vrs_image_texture = ctx.GetTexture(*data.vrs_image);
+
+				FfxVrsDispatchDescription vrs_dispatch_desc{};
+				vrs_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
+				vrs_dispatch_desc.output = GetFfxResource(vrs_image_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				vrs_dispatch_desc.historyColor = GetFfxResource(color_history_texture);
+				vrs_dispatch_desc.motionVectors = GetFfxResource(motion_vectors_texture);
+				vrs_dispatch_desc.motionFactor = vrs_motion_factor;
+				vrs_dispatch_desc.varianceCutoff = vrs_threshold;
+				vrs_dispatch_desc.tileSize = shading_rate_image_tile_size;
+				vrs_dispatch_desc.renderSize = { width, height };
+				vrs_dispatch_desc.motionVectorScale.x = (float)width;
+				vrs_dispatch_desc.motionVectorScale.y = (float)height;
+				FfxErrorCode error_code = ffxVrsContextDispatch(&vrs_context, &vrs_dispatch_desc);
+				ADRIA_ASSERT(error_code == FFX_OK);
+
+				cmd_list->ResetState();
+			}, RGPassType::Compute);
 	}
 
 	void FFXVRSPass::GUI()
@@ -45,49 +91,6 @@ namespace adria
 	void FFXVRSPass::OnResize(uint32 w, uint32 h)
 	{
 
-	}
-
-	void FFXVRSPass::FillFeatureInfo()
-	{
-		uint32& number_of_shading_rates = vrs_feature_info.number_of_shading_rates;
-
-		vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_1X1;
-		vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_1X2;
-		vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_2X1;
-		vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_2X2;
-
-		vrs_feature_info.combiners = GfxShadingRateCombiner::Passthrough |
-											  GfxShadingRateCombiner::Override | GfxShadingRateCombiner::Min |
-											  GfxShadingRateCombiner::Max | GfxShadingRateCombiner::Sum;
-
-		vrs_feature_info.additional_shading_rates_supported = gfx->GetCapabilities().SupportsAdditionalShadingRates();
-		if (vrs_feature_info.additional_shading_rates_supported)
-		{
-			vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_2X4;
-			vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_4X2;
-			vrs_feature_info.shading_rates[number_of_shading_rates++] = GfxShadingRate_4X4;
-		}
-
-		if (gfx->GetCapabilities().CheckVSRSupport(VSRSupport::Tier2))
-		{
-			vrs_feature_info.shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
-			vrs_feature_info.shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
-			vrs_feature_info.shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
-			vrs_feature_info.shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
-		}
-	}
-
-	void FFXVRSPass::CreateVRSImage()
-	{
-		uint32 vrs_image_width, vrs_image_height;
-		ffxVrsGetImageSizeFromeRenderResolution(&vrs_image_width, &vrs_image_height, width, height, vrs_feature_info.shading_rate_image_tile_size);
-		GfxTextureDesc vrsImageDesc{};
-		vrsImageDesc.format = GfxFormat::R8_UINT;
-		vrsImageDesc.width = vrs_image_width;
-		vrsImageDesc.height = vrs_image_height;
-		vrsImageDesc.bind_flags = GfxBindFlag::UnorderedAccess;
-
-		vrs_image = gfx->CreateTexture(vrsImageDesc);
 	}
 
 	void FFXVRSPass::DestroyContext()
@@ -105,11 +108,11 @@ namespace adria
 	{
 		if (!context_created)
 		{
-			if (vrs_feature_info.additional_shading_rates_supported)
+			if (additional_shading_rates_supported)
 			{
 				vrs_context_description.flags |= FFX_VRS_ALLOW_ADDITIONAL_SHADING_RATES;
 			}
-			vrs_context_description.shadingRateImageTileSize = vrs_feature_info.shading_rate_image_tile_size;
+			vrs_context_description.shadingRateImageTileSize = shading_rate_image_tile_size;
 			FfxErrorCode result = ffxVrsContextCreate(&vrs_context, &vrs_context_description);
 			ADRIA_ASSERT(result == FFX_OK);
 
