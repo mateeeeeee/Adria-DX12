@@ -53,6 +53,10 @@ namespace adria
 
 	PostProcessor::~PostProcessor() = default;
 
+	void PostProcessor::ImportResources(RenderGraph& rg)
+	{
+	}
+
 	void PostProcessor::OnRainEvent(bool enabled)
 	{
 		GetPostEffect<VolumetricCloudsPass>()->OnRainEvent(enabled);
@@ -73,13 +77,13 @@ namespace adria
 	{
 		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
 
-		final_resource = AddHDRCopyPass(rg);
+		final_resource = RG_NAME(HDR_RenderTarget);
 		for (uint32 i = 0; i < PostEffectType_Count; ++i)
 		{
-			if (i == PostEffectType_ToneMap) rg.ExportTexture(final_resource, history_buffer.get());
-			
 			if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
 		}
+
+		rg.ExportTexture(GetPostEffect<ToneMapPass>()->GetInput(), history_buffer.get());
 	}
 
 	void PostProcessor::AddTonemapPass(RenderGraph& rg, RGResourceName input)
@@ -227,36 +231,6 @@ namespace adria
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		render_target_desc.initial_state = GfxResourceState::CopyDst;
 		history_buffer = gfx->CreateTexture(render_target_desc);
-	}
-
-	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
-	{
-		struct CopyPassData
-		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
-
-		rg.AddPass<CopyPassData>("Copy HDR Pass",
-			[=](CopyPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc postprocess_desc{};
-				postprocess_desc.width = render_width;
-				postprocess_desc.height = render_height;
-				postprocess_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
-				builder.DeclareTexture(RG_NAME(PostprocessMain), postprocess_desc);
-				data.copy_dst = builder.WriteCopyDstTexture(RG_NAME(PostprocessMain));
-				data.copy_src = builder.ReadCopySrcTexture(RG_NAME(HDR_RenderTarget));
-			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyTexture(dst_texture, src_texture);
-			}, RGPassType::Copy, RGPassFlags::None);
-
-		return RG_NAME(PostprocessMain);
 	}
 
 	template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>

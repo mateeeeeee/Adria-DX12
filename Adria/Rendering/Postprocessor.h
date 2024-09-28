@@ -50,6 +50,7 @@ namespace adria
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
 		~PostProcessor();
 
+		void ImportResources(RenderGraph& rg);
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
@@ -99,7 +100,6 @@ namespace adria
 	private:
 		void InitializePostEffects();
 		void CreateHistoryBuffer();
-		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
 		template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
 		PostEffectT* GetPostEffect() const;

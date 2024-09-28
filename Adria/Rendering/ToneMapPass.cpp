@@ -116,6 +116,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		postprocessor->SetFinalResource(destination);
+		input = source;
 	}
 
 	void ToneMapPass::OnResize(uint32 w, uint32 h)

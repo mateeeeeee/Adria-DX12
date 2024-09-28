@@ -19,12 +19,15 @@ namespace adria
 		virtual void OnSceneInitialized() override;
 		virtual void GUI() override;
 
+		RGResourceName GetInput() const { return input; }
+
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
 		TextureHandle lens_dirt_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle tony_mc_mapface_lut_handle = INVALID_TEXTURE_HANDLE;
 		std::unique_ptr<GfxComputePipelineState> tonemap_pso;
+		RGResourceName input;
 
 	private:
 		void CreatePSO();
