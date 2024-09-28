@@ -4,9 +4,12 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<bool> VariableRateShading("r.VariableRateShading", false, "");
+	static TAutoConsoleVariable<bool> VariableRateShadingImage("r.VariableRateShadingImage", false, "");
 
 	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
 		ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
@@ -34,9 +37,16 @@ namespace adria
 		DestroyFfxInterface(ffx_interface);
 	}
 
-	void FFXVRSPass::AddPass(RenderGraph& rg)
+	void FFXVRSPass::AddPass(RenderGraph& rg, PostProcessor*)
 	{
-		if (!is_supported) return;
+		if (!IsSupported()) return;
+
+		if (!VariableRateShading.Get()) return;
+
+		if (!VariableRateShadingImage.Get())
+		{
+			return;
+		}
 
 		struct FFXVRSPassData
 		{
@@ -59,8 +69,8 @@ namespace adria
 				builder.DeclareTexture(RG_NAME(VRSImage), vrs_image_desc);
 
 				data.vrs_image = builder.WriteTexture(RG_NAME(VRSImage));
-				data.color_history = builder.ReadTexture(RG_NAME(History), ReadAccess_NonPixelShader);
-				data.motion_vectors = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.color_history = builder.ReadTexture(RG_NAME(HistoryBuffer), ReadAccess_NonPixelShader);
+				data.motion_vectors = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 			},
 			[=](FFXVRSPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -88,12 +98,24 @@ namespace adria
 
 	void FFXVRSPass::GUI()
 	{
-
+		QueueGUI([&]()
+			{
+				ImGui::Checkbox("VRS", VariableRateShading.GetPtr());
+				if (VariableRateShading.Get())
+				{
+					ImGui::Checkbox("VRS Image", VariableRateShadingImage.GetPtr());
+				}
+			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_None);
 	}
 
 	void FFXVRSPass::OnResize(uint32 w, uint32 h)
 	{
+		width = w, height = h;
+	}
 
+	bool FFXVRSPass::IsEnabled(PostProcessor const*) const
+	{
+		return VariableRateShading.Get();
 	}
 
 	void FFXVRSPass::DestroyContext()

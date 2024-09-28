@@ -1,4 +1,5 @@
 #pragma once
+#include "PostEffect.h"
 #include "FidelityFX/host/ffx_vrs.h"
 #include "Graphics/GfxShadingRate.h"
 #include "RenderGraph/RenderGraphResourceName.h"
@@ -10,16 +11,19 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 	class GfxTexture;
+	class PostProcessor;
 
-	class FFXVRSPass
+	class FFXVRSPass : public PostEffect
 	{
 	public:
 		FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FFXVRSPass();
 
-		void AddPass(RenderGraph& rendergraph);
-		void GUI();
-		void OnResize(uint32 w, uint32 h);
+		virtual void AddPass(RenderGraph&, PostProcessor*) override;
+		virtual void GUI() override;
+		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual bool IsSupported() const override { return is_supported; }
 
 	private:
 		char name_version[16] = {};

@@ -12,6 +12,7 @@
 #include "ExponentialHeightFogPass.h"
 #include "BloomPass.h"
 #include "MotionVectorsPass.h"
+#include "FFXVRSPass.h"
 #include "MotionBlurPass.h"
 #include "GodRaysPass.h"
 #include "FilmEffectsPass.h"
@@ -52,10 +53,6 @@ namespace adria
 	}
 
 	PostProcessor::~PostProcessor() = default;
-
-	void PostProcessor::ImportResources(RenderGraph& rg)
-	{
-	}
 
 	void PostProcessor::OnRainEvent(bool enabled)
 	{
@@ -202,6 +199,7 @@ namespace adria
 	void PostProcessor::InitializePostEffects()
 	{
 		post_effects[PostEffectType_MotionVectors]	= std::make_unique<MotionVectorsPass>(gfx, render_width, render_height);
+		post_effects[PostEffectType_VRS]			= std::make_unique<FFXVRSPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_LensFlare]		= std::make_unique<LensFlarePass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_Sun]			= std::make_unique<SunPass>(gfx, render_width, render_height);
 		post_effects[PostEffectType_GodRays]		= std::make_unique<GodRaysPass>(gfx, render_width, render_height);

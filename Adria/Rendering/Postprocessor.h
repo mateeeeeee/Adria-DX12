@@ -27,6 +27,7 @@ namespace adria
 		enum PostEffectType : uint32
 		{
 			PostEffectType_MotionVectors,
+			PostEffectType_VRS,
 			PostEffectType_LensFlare,
 			PostEffectType_Sun,
 			PostEffectType_GodRays,
@@ -50,7 +51,6 @@ namespace adria
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
 		~PostProcessor();
 
-		void ImportResources(RenderGraph& rg);
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
