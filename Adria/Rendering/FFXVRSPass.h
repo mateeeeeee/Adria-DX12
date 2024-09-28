@@ -33,6 +33,7 @@ namespace adria
 
 		std::unique_ptr<GfxTexture> vrs_image;
 
+		bool is_supported = false;
 		bool  additional_shading_rates_supported = false;
 		uint32 shading_rate_image_tile_size;
 

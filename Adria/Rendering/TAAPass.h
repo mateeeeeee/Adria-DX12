@@ -23,11 +23,9 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::unique_ptr<GfxComputePipelineState> taa_pso;
-		std::unique_ptr<GfxTexture> history_buffer;
 
 	private:
 		void CreatePSO();
-		void CreateHistoryBuffer();
 	};
 
 }

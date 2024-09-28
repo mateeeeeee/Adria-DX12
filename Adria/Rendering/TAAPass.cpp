@@ -18,13 +18,10 @@ namespace adria
 	TAAPass::TAAPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
-		CreateHistoryBuffer();
 	}
 
 	void TAAPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
-		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
-
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct TAAPassData
@@ -80,7 +77,6 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
-		rg.ExportTexture(RG_NAME(TAAOutput), history_buffer.get());
 
 		postprocessor->SetFinalResource(RG_NAME(TAAOutput));
 	}
@@ -106,13 +102,6 @@ namespace adria
 	void TAAPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
-		if (history_buffer)
-		{
-			GfxTextureDesc render_target_desc = history_buffer->GetDesc();
-			render_target_desc.width = width;
-			render_target_desc.height = height;
-			history_buffer = gfx->CreateTexture(render_target_desc);
-		}
 	}
 
 	void TAAPass::CreatePSO()
@@ -121,16 +110,4 @@ namespace adria
 		compute_pso_desc.CS = CS_Taa;
 		taa_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
-
-	void TAAPass::CreateHistoryBuffer()
-	{
-		GfxTextureDesc render_target_desc{};
-		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-		render_target_desc.width = width;
-		render_target_desc.height = height;
-		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
-		render_target_desc.initial_state = GfxResourceState::CopyDst;
-		history_buffer = gfx->CreateTexture(render_target_desc);
-	}
-
 }

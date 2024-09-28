@@ -46,8 +46,9 @@ namespace adria
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height), cacao_pass(gfx, width, height)
 	{
-		InitializePostEffects();
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
+		InitializePostEffects();
+		CreateHistoryBuffer();
 	}
 
 	PostProcessor::~PostProcessor() = default;
@@ -70,10 +71,13 @@ namespace adria
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
 	{
-		final_resource = AddHDRCopyPass(rg);
+		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
 
+		final_resource = AddHDRCopyPass(rg);
 		for (uint32 i = 0; i < PostEffectType_Count; ++i)
 		{
+			if (i == PostEffectType_ToneMap) rg.ExportTexture(final_resource, history_buffer.get());
+			
 			if (post_effects[i]->IsEnabled(this)) post_effects[i]->AddPass(rg, this);
 		}
 	}
@@ -120,6 +124,14 @@ namespace adria
 		for (uint32 i = PostEffectType_Upscaler; i < PostEffectType_Count; ++i)
 		{
 			post_effects[i]->OnResize(w, h);
+		}
+
+		if (history_buffer)
+		{
+			GfxTextureDesc render_target_desc = history_buffer->GetDesc();
+			render_target_desc.width = w;
+			render_target_desc.height = h;
+			history_buffer = gfx->CreateTexture(render_target_desc);
 		}
 	}
 
@@ -173,6 +185,11 @@ namespace adria
 		return HasTAA() || HasUpscaler() || post_effects[PostEffectType_Clouds]->IsEnabled(this) || post_effects[PostEffectType_MotionBlur]->IsEnabled(this);
 	}
 
+	bool PostProcessor::NeedsHistoryBuffer() const
+	{
+		return true;
+	}
+
 	bool PostProcessor::HasUpscaler() const
 	{
 		return post_effects[PostEffectType_Upscaler]->IsEnabled(this);
@@ -199,6 +216,17 @@ namespace adria
 		post_effects[PostEffectType_FXAA]			= std::make_unique<FXAAPass>(gfx, render_width, render_height);
 
 		GetPostEffect<UpscalerPassGroup>()->AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&PostProcessor::OnRenderResolutionChanged, *this));
+	}
+
+	void PostProcessor::CreateHistoryBuffer()
+	{
+		GfxTextureDesc render_target_desc{};
+		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		render_target_desc.width = display_width;
+		render_target_desc.height = display_height;
+		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
+		render_target_desc.initial_state = GfxResourceState::CopyDst;
+		history_buffer = gfx->CreateTexture(render_target_desc);
 	}
 
 	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
@@ -230,7 +258,6 @@ namespace adria
 
 		return RG_NAME(PostprocessMain);
 	}
-
 
 	template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
 	PostEffectT* PostProcessor::GetPostEffect() const

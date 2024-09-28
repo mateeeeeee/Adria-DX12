@@ -11,7 +11,8 @@ namespace adria
 	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
 		ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
 	{
-		if (!gfx->GetCapabilities().SupportsVSR())
+		is_supported = gfx->GetCapabilities().SupportsVSR();
+		if (!is_supported)
 		{
 			return;
 		}
@@ -35,6 +36,8 @@ namespace adria
 
 	void FFXVRSPass::AddPass(RenderGraph& rg)
 	{
+		if (!is_supported) return;
+
 		struct FFXVRSPassData
 		{
 			RGTextureReadOnlyId  color_history;

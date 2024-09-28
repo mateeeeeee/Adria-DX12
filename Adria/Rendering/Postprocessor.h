@@ -63,6 +63,7 @@ namespace adria
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 		bool NeedsVelocityBuffer() const;
+		bool NeedsHistoryBuffer() const;
 		bool HasUpscaler() const;
 		bool HasTAA() const;
 		bool HasFXAA() const;
@@ -93,9 +94,11 @@ namespace adria
 		RayTracedAmbientOcclusionPass rtao_pass;
 
 		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
+		std::unique_ptr<GfxTexture> history_buffer;
 
 	private:
 		void InitializePostEffects();
+		void CreateHistoryBuffer();
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 
 		template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
