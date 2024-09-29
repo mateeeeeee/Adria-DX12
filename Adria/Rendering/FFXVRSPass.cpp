@@ -11,11 +11,13 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> VariableRateShading("r.VariableRateShading", false, "");
-	static TAutoConsoleVariable<bool> VariableRateShadingImage("r.VariableRateShading.Image", false, "");
-	static TAutoConsoleVariable<bool> VariableRateShadingOverlay("r.VariableRateShading.Overlay", false, "");
-	static TAutoConsoleVariable<int>  VariableRateShadingMode("r.VariableRateShading.Mode", 0, "");
-	static TAutoConsoleVariable<int>  VariableRateShadingCombiner("r.VariableRateShading.Combiner", 0, "");
+	static TAutoConsoleVariable<bool>  VariableRateShading("r.VariableRateShading", false, "");
+	static TAutoConsoleVariable<bool>  VariableRateShadingImage("r.VariableRateShading.Image", false, "");
+	static TAutoConsoleVariable<bool>  VariableRateShadingOverlay("r.VariableRateShading.Overlay", false, "");
+	static TAutoConsoleVariable<int>   VariableRateShadingMode("r.VariableRateShading.Mode", 0, "");
+	static TAutoConsoleVariable<int>   VariableRateShadingCombiner("r.VariableRateShading.Combiner", 0, "");
+	static TAutoConsoleVariable<float> VariableRateShadingThreshold("r.VariableRateShading.Threshold", 0.015f, "");
+	static TAutoConsoleVariable<float> VariableRateShadingMotionFactor("r.VariableRateShading.MotionFactor", 0.01f, "");
 
 	static GfxShadingRate shading_rates[] =
 	{
@@ -109,8 +111,8 @@ namespace adria
 				vrs_dispatch_desc.output = GetFfxResource(*vrs_image, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				vrs_dispatch_desc.historyColor = GetFfxResource(color_history_texture);
 				vrs_dispatch_desc.motionVectors = GetFfxResource(motion_vectors_texture);
-				vrs_dispatch_desc.motionFactor = vrs_motion_factor;
-				vrs_dispatch_desc.varianceCutoff = vrs_threshold;
+				vrs_dispatch_desc.motionFactor = VariableRateShadingMotionFactor.Get();
+				vrs_dispatch_desc.varianceCutoff = VariableRateShadingThreshold.Get();
 				vrs_dispatch_desc.tileSize = shading_rate_image_tile_size;
 				vrs_dispatch_desc.renderSize = { width, height };
 				vrs_dispatch_desc.motionVectorScale.x = -1.0f;
@@ -171,6 +173,8 @@ namespace adria
 
 						if (VariableRateShadingImage.Get())
 						{
+							ImGui::SliderFloat("Threshold", VariableRateShadingThreshold.GetPtr(), 0.0f, 0.1f);
+							ImGui::SliderFloat("Motion Factor", VariableRateShadingMotionFactor.GetPtr(), 0.0f, 0.1f);
 							ImGui::Checkbox("Draw Overlay", VariableRateShadingOverlay.GetPtr());
 						}
 					}
@@ -212,7 +216,7 @@ namespace adria
 		gfx_pso_desc.PS = PS_VRSOverlay;
 		gfx_pso_desc.num_render_targets = 1;
 		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
 		gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
 		gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;

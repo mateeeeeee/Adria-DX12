@@ -27,7 +27,6 @@ namespace adria
 		enum PostEffectType : uint32
 		{
 			PostEffectType_MotionVectors,
-			PostEffectType_VRS,
 			PostEffectType_LensFlare,
 			PostEffectType_Sun,
 			PostEffectType_GodRays,
@@ -43,6 +42,7 @@ namespace adria
 			PostEffectType_Bloom,
 			PostEffectType_CAS,
 			PostEffectType_ToneMap,
+			PostEffectType_VRS,
 			PostEffectType_FXAA,
 			PostEffectType_Count
 		};

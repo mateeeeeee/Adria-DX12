@@ -82,6 +82,11 @@ Graphics engine written in C++ using DirectX12.
 ![](Adria/Saved/Screenshots/pathtracing1.png "Path tracing") 
 ![](Adria/Saved/Screenshots/sanmiguel-pt.png "Path tracing") 
 
+### Variable Rate Shading
+| No VRS | VRS Enabled | VRS Overlay |
+| ------ | ----------- | ----------- |
+| ![No VRS](Adria/Saved/Screenshots/novrs.png) | ![VRS Enabled](Adria/Saved/Screenshots/vrs.png) | ![VRS Overlay](Adria/Saved/Screenshots/vrsoverlay.png) |
+
 ### Editor
 ![](Adria/Saved/Screenshots/editor.png "Editor") 
 

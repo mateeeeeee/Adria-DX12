@@ -45,9 +45,6 @@ namespace adria
 		bool  additional_shading_rates_supported = false;
 		uint32 shading_rate_image_tile_size;
 
-		float    vrs_threshold = 0.015f;
-		float    vrs_motion_factor = 0.01f;
-
 	private:
 		void CreateVRSImage();
 		void CreateOverlayPSO();
