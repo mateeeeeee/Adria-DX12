@@ -49,7 +49,7 @@ int APIENTRY wWinMain(
         g_Input.Initialize(&window);
 
         EngineInit engine_init{};
-        engine_init.scene_file = scene.AsStringOr("newsponza.json");
+        engine_init.scene_file = scene.AsStringOr("sponza.json");
 		engine_init.window = &window;
 		engine_init.gfx_options.vsync = vsync;
 		engine_init.gfx_options.debug_device = debug_device;
