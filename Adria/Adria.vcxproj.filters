@@ -1491,5 +1491,8 @@
     <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\Bokeh.hlsl">
       <Filter>Shaders\Postprocess\DepthOfField</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\VRSOverlay.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

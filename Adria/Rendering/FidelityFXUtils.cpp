@@ -124,7 +124,7 @@ namespace adria
 
 	void DestroyFfxInterface(FfxInterface* ffx_interface)
 	{
-		if (ffx_interface->scratchBuffer)
+		if (ffx_interface && ffx_interface->scratchBuffer)
 		{
 			free(ffx_interface->scratchBuffer);
 			ffx_interface->scratchBuffer = nullptr;

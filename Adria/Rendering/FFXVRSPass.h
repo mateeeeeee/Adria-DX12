@@ -2,6 +2,7 @@
 #include "PostEffect.h"
 #include "FidelityFX/host/ffx_vrs.h"
 #include "Graphics/GfxShadingRate.h"
+#include "Graphics/GfxDescriptor.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
 struct FfxInterface;
@@ -11,6 +12,7 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 	class GfxTexture;
+	class GfxGraphicsPipelineState;
 	class PostProcessor;
 
 	class FFXVRSPass : public PostEffect
@@ -36,19 +38,19 @@ namespace adria
 		bool                     context_created = false;
 
 		std::unique_ptr<GfxTexture> vrs_image;
+		GfxDescriptor vrs_image_srv;
+		std::unique_ptr<GfxGraphicsPipelineState> vrs_overlay_pso;
 
 		bool is_supported = false;
 		bool  additional_shading_rates_supported = false;
 		uint32 shading_rate_image_tile_size;
 
-		//move to console variables and gui later
 		float    vrs_threshold = 0.015f;
 		float    vrs_motion_factor = 0.01f;
-		std::vector<GfxShadingRate> supported_shading_rates;
-		std::vector<GfxShadingRateCombiner> supported_shading_rate_combiners;
 
 	private:
 		void CreateVRSImage();
+		void CreateOverlayPSO();
 		void DestroyContext();
 		void CreateContext();
 	};

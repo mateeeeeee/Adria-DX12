@@ -57,6 +57,7 @@ namespace adria
 			case PS_DDGIVisualize:
 			case PS_Rain:
 			case PS_VolumetricFog_CombineFog:
+			case PS_VRSOverlay:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 				return GfxShaderStage::GS;
@@ -318,6 +319,8 @@ namespace adria
 			case CS_DepthOfField_BokehFirstPass:
 			case CS_DepthOfField_BokehSecondPass:
 				return "Postprocess/DepthOfField/Bokeh.hlsl";
+			case PS_VRSOverlay:
+				return "Other/VRSOverlay.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -525,6 +528,8 @@ namespace adria
 				return "ComputePostfilteredTextureCS";
 			case CS_DepthOfField_Combine:
 				return "CombineCS";
+			case PS_VRSOverlay:
+				return "VRSOverlayPS";
 			}
 			return "main";
 		}

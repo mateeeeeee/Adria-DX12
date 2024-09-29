@@ -108,6 +108,7 @@ namespace adria
 		CS_VolumetricFog_LightInjection,
 		CS_VolumetricFog_ScatteringIntegration,
 		PS_VolumetricFog_CombineFog,
+		PS_VRSOverlay,
 		CS_ReSTIRGI_InitialSampling,
 		LIB_DDGIRayTracing,
 		LIB_Shadows,

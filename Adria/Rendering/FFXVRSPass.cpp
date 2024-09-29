@@ -1,7 +1,10 @@
 #include "FFXVRSPass.h"
 #include "FidelityFXUtils.h"
 #include "BlackboardData.h"
+#include "ShaderManager.h"
+#include "Postprocessor.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
@@ -9,9 +12,10 @@
 namespace adria
 {
 	static TAutoConsoleVariable<bool> VariableRateShading("r.VariableRateShading", false, "");
-	static TAutoConsoleVariable<bool> VariableRateShadingImage("r.VariableRateShadingImage", false, "");
-	static TAutoConsoleVariable<int>  VariableRateShadingMode("r.VariableRateShadingMode", 0, "");
-	static TAutoConsoleVariable<int>  VariableRateShadingCombiner("r.VariableRateShadingCombiner", 0, "");
+	static TAutoConsoleVariable<bool> VariableRateShadingImage("r.VariableRateShading.Image", false, "");
+	static TAutoConsoleVariable<bool> VariableRateShadingOverlay("r.VariableRateShading.Overlay", false, "");
+	static TAutoConsoleVariable<int>  VariableRateShadingMode("r.VariableRateShading.Mode", 0, "");
+	static TAutoConsoleVariable<int>  VariableRateShadingCombiner("r.VariableRateShading.Combiner", 0, "");
 
 	static GfxShadingRate shading_rates[] =
 	{
@@ -42,6 +46,7 @@ namespace adria
 		shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
 
 		CreateVRSImage();
+		CreateOverlayPSO();
 		CreateContext();
 	}
 
@@ -51,7 +56,7 @@ namespace adria
 		DestroyFfxInterface(ffx_interface);
 	}
 
-	void FFXVRSPass::AddPass(RenderGraph& rg, PostProcessor*)
+	void FFXVRSPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		if (!IsSupported()) return;
 
@@ -108,8 +113,8 @@ namespace adria
 				vrs_dispatch_desc.varianceCutoff = vrs_threshold;
 				vrs_dispatch_desc.tileSize = shading_rate_image_tile_size;
 				vrs_dispatch_desc.renderSize = { width, height };
-				vrs_dispatch_desc.motionVectorScale.x = (float)width;
-				vrs_dispatch_desc.motionVectorScale.y = (float)height;
+				vrs_dispatch_desc.motionVectorScale.x = -1.0f;
+				vrs_dispatch_desc.motionVectorScale.y = -1.0f;
 				FfxErrorCode error_code = ffxVrsContextDispatch(&vrs_context, &vrs_dispatch_desc);
 				ADRIA_ASSERT(error_code == FFX_OK);
 
@@ -123,6 +128,29 @@ namespace adria
 				gfx->SetVRSInfo(info);
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+
+		if (VariableRateShadingOverlay.Get())
+		{
+			rg.AddPass<void>("VRS Overlay Pass",
+				[=](RenderGraphBuilder& builder)
+				{
+					builder.WriteRenderTarget(postprocessor->GetFinalResource(), RGLoadStoreAccessOp::Preserve_Preserve);
+					builder.SetViewport(width, height);
+				},
+				[=](RenderGraphContext& context, GfxCommandList* cmd_list)
+				{
+					GfxDescriptor dst = gfx->AllocateDescriptorsGPU();
+					gfx->CopyDescriptors(1, dst, vrs_image_srv);
+
+					cmd_list->SetPipelineState(vrs_overlay_pso.get());
+					cmd_list->TextureBarrier(*vrs_image, GfxResourceState::ComputeUAV, GfxResourceState::PixelSRV);
+					cmd_list->SetRootConstant(1, dst.GetIndex(), 0);
+					cmd_list->SetRootConstant(1, shading_rate_image_tile_size, 1);
+					cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+					cmd_list->Draw(3);
+					cmd_list->TextureBarrier(*vrs_image, GfxResourceState::PixelSRV, GfxResourceState::ComputeUAV);
+				}, RGPassType::Graphics, RGPassFlags::None);
+		}
 	}
 
 	void FFXVRSPass::GUI()
@@ -140,6 +168,11 @@ namespace adria
 						}
 						ImGui::Combo("Shading Rate Combiner", VariableRateShadingCombiner.GetPtr(), "Passthrough\0 Override\0 Min\0 Max\0 Sum\0", 5);
 						ImGui::Checkbox("Shading Rate Image", VariableRateShadingImage.GetPtr());
+
+						if (VariableRateShadingImage.Get())
+						{
+							ImGui::Checkbox("Draw Overlay", VariableRateShadingOverlay.GetPtr());
+						}
 					}
 					ImGui::TreePop();
 				}
@@ -168,6 +201,27 @@ namespace adria
 		vrs_image_desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		vrs_image_desc.initial_state = GfxResourceState::ComputeUAV;
 		vrs_image = gfx->CreateTexture(vrs_image_desc);
+		vrs_image_srv = gfx->CreateTextureSRV(vrs_image.get());
+	}
+
+	void FFXVRSPass::CreateOverlayPSO()
+	{
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_FullscreenTriangle;
+		gfx_pso_desc.PS = PS_VRSOverlay;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
+		gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
+		gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+		gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
+		gfx_pso_desc.blend_state.render_target[0].blend_op_alpha = GfxBlendOp::Add;
+		gfx_pso_desc.blend_state.render_target[0].src_blend_alpha = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend_alpha = GfxBlend::InvSrcAlpha;
+		vrs_overlay_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 	}
 
 	void FFXVRSPass::DestroyContext()
