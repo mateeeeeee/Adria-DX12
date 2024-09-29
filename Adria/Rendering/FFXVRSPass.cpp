@@ -45,6 +45,12 @@ namespace adria
 
 		if (!VariableRateShadingImage.Get())
 		{
+			GfxShadingRateInfo info{};
+			info.shading_mode = GfxVariableShadingMode::PerDraw;
+			info.shading_rate = GfxShadingRate_4X4;
+			info.shading_rate_combiner = GfxShadingRateCombiner::Max;
+			info.shading_rate_image = nullptr;
+			gfx->SetVRSInfo(info);
 			return;
 		}
 
@@ -93,7 +99,7 @@ namespace adria
 				ADRIA_ASSERT(error_code == FFX_OK);
 
 				cmd_list->ResetState();
-			}, RGPassType::Compute);
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
 	void FFXVRSPass::GUI()

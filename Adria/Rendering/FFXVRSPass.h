@@ -45,6 +45,9 @@ namespace adria
 		float    vrs_threshold = 0.015f;
 		float    vrs_motion_factor = 0.01f;
 
+		GfxShadingRate shading_rate = GfxShadingRate_1X1;
+		GfxShadingRateCombiner shading_rate_combiner = GfxShadingRateCombiner::Passthrough;
+
 	private:
 		void DestroyContext();
 		void CreateContext();

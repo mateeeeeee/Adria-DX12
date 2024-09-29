@@ -256,7 +256,7 @@ namespace adria
 	}
 
 	GfxDevice::GfxDevice(Window* window, GfxOptions const& options)
-		: frame_index(0)
+		: frame_index(0), shading_rate_info{}
 	{
 		VSync->Set(options.vsync);
 		hwnd = window->Handle();

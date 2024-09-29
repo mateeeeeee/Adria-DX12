@@ -15,7 +15,6 @@ namespace adria
 		GfxShadingRate1D_4X = 0x04
 	};
 
-
 	enum class GfxVariableShadingMode : uint32
 	{
 		None = 0,
@@ -43,6 +42,15 @@ namespace adria
 		Sum = 1 << 4,   
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxShadingRateCombiner);
+
+	class GfxTexture;
+	struct GfxShadingRateInfo
+	{
+		GfxVariableShadingMode shading_mode = GfxVariableShadingMode::None;
+		GfxShadingRate shading_rate = GfxShadingRate_1X1;
+		GfxShadingRateCombiner shading_rate_combiner = GfxShadingRateCombiner::Passthrough;
+		GfxTexture* shading_rate_image = nullptr;
+	};
 
 	inline D3D12_SHADING_RATE ToD3D12ShadingRate(GfxShadingRate shading_rate)
 	{

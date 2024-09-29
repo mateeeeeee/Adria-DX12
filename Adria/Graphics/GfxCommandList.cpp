@@ -733,6 +733,44 @@ namespace adria
 		cmd_list->RSSetShadingRateImage(texture.GetNative());
 	}
 
+	void GfxCommandList::BeginVRS(GfxShadingRateInfo const& info)
+	{
+		if (info.shading_mode != GfxVariableShadingMode::None)
+		{
+			if (info.shading_mode == GfxVariableShadingMode::Image && info.shading_rate_image != nullptr &&
+				info.shading_rate_combiner != GfxShadingRateCombiner::Passthrough)
+			{
+				GfxTexture* vrs_image = info.shading_rate_image;
+				TextureBarrier(*vrs_image, GfxResourceState::AllShading, GfxResourceState::ShadingRate);
+
+				GfxShadingRateCombiner combiners[] = { GfxShadingRateCombiner::Passthrough, info.shading_rate_combiner };
+				SetShadingRate(info.shading_rate, combiners);
+				SetShadingRateImage(*vrs_image);
+			}
+			else
+			{
+				GfxShadingRateCombiner combiners[] = { GfxShadingRateCombiner::Passthrough, info.shading_rate_combiner };
+				SetShadingRate(info.shading_rate, combiners);
+			}
+		}
+	}
+
+	void GfxCommandList::EndVRS(GfxShadingRateInfo const& info)
+	{
+		if (info.shading_mode != GfxVariableShadingMode::None)
+		{
+			if (info.shading_mode == GfxVariableShadingMode::Image && info.shading_rate_image != nullptr &&
+				info.shading_rate_combiner != GfxShadingRateCombiner::Passthrough)
+			{
+				GfxTexture* vrs_image = info.shading_rate_image;
+				TextureBarrier(*vrs_image, GfxResourceState::ShadingRate, GfxResourceState::AllShading);
+			}
+
+			GfxShadingRateCombiner combiners[] = { GfxShadingRateCombiner::Passthrough, GfxShadingRateCombiner::Passthrough };
+			SetShadingRate(GfxShadingRate_1X1, combiners);
+		}
+	}
+
 	void GfxCommandList::SetRootConstant(uint32 slot, uint32 data, uint32 offset)
 	{
 		ADRIA_ASSERT(current_context != Context::Invalid);

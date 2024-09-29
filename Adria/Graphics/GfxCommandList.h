@@ -19,6 +19,7 @@ namespace adria
 	struct GfxVertexBufferView;
 	struct GfxIndexBufferView;
 	struct GfxRenderPassDesc;
+	struct GfxShadingRateInfo;
 	class GfxRayTracingShaderTable;
 
 	enum class GfxCommandListType : uint8
@@ -105,6 +106,8 @@ namespace adria
 		void SetShadingRate(GfxShadingRate shading_rate);
 		void SetShadingRate(GfxShadingRate shading_rate, std::span<GfxShadingRateCombiner, SHADING_RATE_COMBINER_COUNT> combiners);
 		void SetShadingRateImage(GfxTexture const& texture);
+		void BeginVRS(GfxShadingRateInfo const& info);
+		void EndVRS(GfxShadingRateInfo const& info);
 
 		void SetRootConstant(uint32 slot, uint32 data, uint32 offset = 0);
 		void SetRootConstants(uint32 slot, void const* data, uint32 data_size, uint32 offset = 0);

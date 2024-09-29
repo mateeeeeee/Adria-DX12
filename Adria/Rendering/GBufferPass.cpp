@@ -63,13 +63,16 @@ namespace adria
 					switch (alpha_mode)
 					{
 					case MaterialAlphaMode::Opaque: return gbuffer_psos->Get<0>();
-					case MaterialAlphaMode::Mask: return gbuffer_psos->Get<1>();
-					case MaterialAlphaMode::Blend: return gbuffer_psos->Get<3>();
+					case MaterialAlphaMode::Mask:   return gbuffer_psos->Get<1>();
+					case MaterialAlphaMode::Blend:  return gbuffer_psos->Get<3>();
 					}
 					return gbuffer_psos->Get<0>();
 				};
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+
+				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
+				cmd_list->BeginVRS(vrs);
 
 				reg.sort<Batch>([](Batch const& lhs, Batch const& rhs) { return lhs.alpha_mode < rhs.alpha_mode; });
 				auto batch_view = reg.view<Batch>();
@@ -93,6 +96,8 @@ namespace adria
 					cmd_list->SetIndexBuffer(&ibv);
 					cmd_list->DrawIndexed(batch.submesh->indices_count);
 				}
+
+				cmd_list->EndVRS(vrs);
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 

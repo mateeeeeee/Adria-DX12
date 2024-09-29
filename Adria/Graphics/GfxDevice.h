@@ -23,6 +23,7 @@
 #include "GfxDefines.h"
 #include "GfxCommandSignature.h"
 #include "GfxRayTracingAS.h"
+#include "GfxShadingRate.h"
 #include "Utilities/Releasable.h"
 
 namespace adria
@@ -171,6 +172,14 @@ namespace adria
 		void GetTimestampFrequency(uint64& frequency) const;
 		GPUMemoryUsage GetMemoryUsage() const;
 
+		void SetVRSInfo(GfxShadingRateInfo const& info)
+		{
+			shading_rate_info = info;
+		}
+		GfxShadingRateInfo const& GetVRSInfo() const
+		{
+			return shading_rate_info;
+		}
 
 		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
 		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}
@@ -238,6 +247,8 @@ namespace adria
 		std::unique_ptr<DrawIndexedIndirectSignature> draw_indexed_indirect_signature;
 		std::unique_ptr<DispatchIndirectSignature> dispatch_indirect_signature;
 		std::unique_ptr<DispatchMeshIndirectSignature> dispatch_mesh_indirect_signature;
+
+		GfxShadingRateInfo shading_rate_info;
 
 		struct DRED
 		{
