@@ -10,6 +10,19 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> VariableRateShading("r.VariableRateShading", false, "");
 	static TAutoConsoleVariable<bool> VariableRateShadingImage("r.VariableRateShadingImage", false, "");
+	static TAutoConsoleVariable<int>  VariableRateShadingMode("r.VariableRateShadingMode", 0, "");
+	static TAutoConsoleVariable<int>  VariableRateShadingCombiner("r.VariableRateShadingCombiner", 0, "");
+
+	static GfxShadingRate shading_rates[] =
+	{
+		GfxShadingRate_1X1,
+		GfxShadingRate_1X2,
+		GfxShadingRate_2X1,
+		GfxShadingRate_2X2,
+		GfxShadingRate_2X4,
+		GfxShadingRate_4X2,
+		GfxShadingRate_4X4,
+	};
 
 	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
 		ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
@@ -41,14 +54,26 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		if (!VariableRateShading.Get()) return;
+		GfxShadingRate shading_rate = shading_rates[VariableRateShadingMode.Get()];
+		GfxShadingRateCombiner shading_rate_combiner = static_cast<GfxShadingRateCombiner>(VariableRateShadingCombiner.Get());
+
+		if (!VariableRateShading.Get())
+		{
+			GfxShadingRateInfo info{};
+			info.shading_mode = GfxVariableShadingMode::None;
+			info.shading_rate = GfxShadingRate_1X1;
+			info.shading_rate_combiner = GfxShadingRateCombiner::Passthrough;
+			info.shading_rate_image = nullptr;
+			gfx->SetVRSInfo(info);
+			return;
+		}
 
 		if (!VariableRateShadingImage.Get())
 		{
 			GfxShadingRateInfo info{};
 			info.shading_mode = GfxVariableShadingMode::PerDraw;
-			info.shading_rate = GfxShadingRate_4X4;
-			info.shading_rate_combiner = GfxShadingRateCombiner::Max;
+			info.shading_rate = shading_rate;
+			info.shading_rate_combiner = shading_rate_combiner;
 			info.shading_rate_image = nullptr;
 			gfx->SetVRSInfo(info);
 			return;
@@ -106,10 +131,19 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				ImGui::Checkbox("VRS", VariableRateShading.GetPtr());
-				if (VariableRateShading.Get())
+				if (ImGui::TreeNode("Variable Rate Shading"))
 				{
-					ImGui::Checkbox("VRS Image", VariableRateShadingImage.GetPtr());
+					ImGui::Checkbox("Enable", VariableRateShading.GetPtr());
+					if (VariableRateShading.Get())
+					{
+						if (ImGui::Combo("Shading Rate", VariableRateShadingMode.GetPtr(), "1x1\0 1x2\0 2x1\0 2x2\0 2x4\0 4x2\0 4x4\0", 7))
+						{
+							//#todo verify support
+						}
+						ImGui::Combo("Shading Rate Combiner", VariableRateShadingCombiner.GetPtr(), "Passthrough\0 Override\0 Min\0 Max\0 Sum\0", 5);
+						ImGui::Checkbox("Shading Rate Image", VariableRateShadingImage.GetPtr());
+					}
+					ImGui::TreePop();
 				}
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_None);
 	}
@@ -121,7 +155,7 @@ namespace adria
 
 	bool FFXVRSPass::IsEnabled(PostProcessor const*) const
 	{
-		return VariableRateShading.Get();
+		return true;
 	}
 
 	void FFXVRSPass::DestroyContext()

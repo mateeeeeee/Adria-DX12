@@ -35,13 +35,12 @@ namespace adria
 
 	enum class GfxShadingRateCombiner : uint32
 	{
-		Passthrough = 1 << 0,
-		Override = 1 << 1,   
-		Min = 1 << 2,   
-		Max = 1 << 3,   
-		Sum = 1 << 4,   
+		Passthrough,
+		Override,   
+		Min,
+		Max,
+		Sum,
 	};
-	ENABLE_ENUM_BIT_OPERATORS(GfxShadingRateCombiner);
 
 	class GfxTexture;
 	struct GfxShadingRateInfo

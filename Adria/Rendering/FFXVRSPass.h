@@ -44,9 +44,9 @@ namespace adria
 		//move to console variables and gui later
 		float    vrs_threshold = 0.015f;
 		float    vrs_motion_factor = 0.01f;
+		std::vector<GfxShadingRate> supported_shading_rates;
+		std::vector<GfxShadingRateCombiner> supported_shading_rate_combiners;
 
-		GfxShadingRate shading_rate = GfxShadingRate_1X1;
-		GfxShadingRateCombiner shading_rate_combiner = GfxShadingRateCombiner::Passthrough;
 
 	private:
 		void DestroyContext();

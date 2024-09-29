@@ -513,7 +513,7 @@ namespace adria
 			RGBufferReadOnlyId visible_meshlets;
 			RGBufferIndirectArgsId draw_args;
 		};
-		rg.AddPass<DrawMeshletsPassData>("Draw Meshlets",
+		rg.AddPass<DrawMeshletsPassData>("1st Phase Draw Meshlets",
 			[=](DrawMeshletsPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc gbuffer_desc{};
@@ -561,13 +561,15 @@ namespace adria
 				{
 					.visible_meshlets_idx = i,
 				};
-
+				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
+				cmd_list->BeginVRS(vrs);
 				GfxPipelineState* pso = rain_active ? draw_psos->Get<1>() : draw_psos->Get<0>();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);
+				cmd_list->EndVRS(vrs);
 			}, RGPassType::Graphics, RGPassFlags::None);
 
 		AddHZBPasses(rg);
@@ -818,7 +820,7 @@ namespace adria
 			RGBufferReadOnlyId visible_meshlets;
 			RGBufferIndirectArgsId draw_args;
 		};
-		rg.AddPass<DrawMeshletsPassData>("Draw Meshlets",
+		rg.AddPass<DrawMeshletsPassData>("2nd Phase Draw Meshlets",
 			[=](DrawMeshletsPassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(RG_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
@@ -850,12 +852,15 @@ namespace adria
 					.visible_meshlets_idx = i,
 				};
 
+				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
+				cmd_list->BeginVRS(vrs);
 				GfxPipelineState* pso = rain_active ? draw_psos->Get<1>() : draw_psos->Get<0>();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);
+				cmd_list->EndVRS(vrs);
 			}, RGPassType::Graphics, RGPassFlags::None);
 
 		AddHZBPasses(rg, true);
