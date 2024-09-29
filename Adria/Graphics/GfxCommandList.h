@@ -105,7 +105,7 @@ namespace adria
 
 		void SetShadingRate(GfxShadingRate shading_rate);
 		void SetShadingRate(GfxShadingRate shading_rate, std::span<GfxShadingRateCombiner, SHADING_RATE_COMBINER_COUNT> combiners);
-		void SetShadingRateImage(GfxTexture const& texture);
+		void SetShadingRateImage(GfxTexture const* texture);
 		void BeginVRS(GfxShadingRateInfo const& info);
 		void EndVRS(GfxShadingRateInfo const& info);
 

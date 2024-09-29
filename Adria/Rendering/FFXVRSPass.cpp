@@ -124,6 +124,14 @@ namespace adria
 				ADRIA_ASSERT(error_code == FFX_OK);
 
 				cmd_list->ResetState();
+
+				GfxShadingRateInfo info{};
+				info.shading_mode = GfxVariableShadingMode::Image;
+				info.shading_rate = shading_rate;
+				info.shading_rate_combiner = shading_rate_combiner;
+				info.shading_rate_image = &vrs_image_texture;
+				gfx->SetVRSInfo(info);
+
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
