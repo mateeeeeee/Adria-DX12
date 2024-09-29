@@ -41,6 +41,7 @@ namespace adria
 		additional_shading_rates_supported = gfx->GetCapabilities().SupportsAdditionalShadingRates();
 		shading_rate_image_tile_size = gfx->GetCapabilities().GetShadingRateImageTileSize();
 
+		CreateVRSImage();
 		CreateContext();
 	}
 
@@ -83,7 +84,6 @@ namespace adria
 		{
 			RGTextureReadOnlyId  color_history;
 			RGTextureReadOnlyId  motion_vectors;
-			RGTextureReadWriteId vrs_image;
 		};
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
@@ -91,15 +91,6 @@ namespace adria
 		rg.AddPass<FFXVRSPassData>(name_version,
 			[=](FFXVRSPassData& data, RenderGraphBuilder& builder)
 			{
-				uint32 vrs_image_width, vrs_image_height;
-				ffxVrsGetImageSizeFromeRenderResolution(&vrs_image_width, &vrs_image_height, width, height, shading_rate_image_tile_size);
-				RGTextureDesc vrs_image_desc{};
-				vrs_image_desc.format = GfxFormat::R8_UINT;
-				vrs_image_desc.width = vrs_image_width;
-				vrs_image_desc.height = vrs_image_height;
-				builder.DeclareTexture(RG_NAME(VRSImage), vrs_image_desc);
-
-				data.vrs_image = builder.WriteTexture(RG_NAME(VRSImage));
 				data.color_history = builder.ReadTexture(RG_NAME(HistoryBuffer), ReadAccess_NonPixelShader);
 				data.motion_vectors = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 			},
@@ -107,11 +98,10 @@ namespace adria
 			{
 				GfxTexture& color_history_texture = ctx.GetTexture(*data.color_history);
 				GfxTexture& motion_vectors_texture = ctx.GetTexture(*data.motion_vectors);
-				GfxTexture& vrs_image_texture = ctx.GetTexture(*data.vrs_image);
 
 				FfxVrsDispatchDescription vrs_dispatch_desc{};
 				vrs_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
-				vrs_dispatch_desc.output = GetFfxResource(vrs_image_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				vrs_dispatch_desc.output = GetFfxResource(*vrs_image, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				vrs_dispatch_desc.historyColor = GetFfxResource(color_history_texture);
 				vrs_dispatch_desc.motionVectors = GetFfxResource(motion_vectors_texture);
 				vrs_dispatch_desc.motionFactor = vrs_motion_factor;
@@ -129,7 +119,7 @@ namespace adria
 				info.shading_mode = GfxVariableShadingMode::Image;
 				info.shading_rate = shading_rate;
 				info.shading_rate_combiner = shading_rate_combiner;
-				info.shading_rate_image = &vrs_image_texture;
+				info.shading_rate_image = vrs_image.get();
 				gfx->SetVRSInfo(info);
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
@@ -159,11 +149,25 @@ namespace adria
 	void FFXVRSPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+		CreateVRSImage();
 	}
 
 	bool FFXVRSPass::IsEnabled(PostProcessor const*) const
 	{
 		return true;
+	}
+
+	void FFXVRSPass::CreateVRSImage()
+	{
+		uint32 vrs_image_width, vrs_image_height;
+		ffxVrsGetImageSizeFromeRenderResolution(&vrs_image_width, &vrs_image_height, width, height, shading_rate_image_tile_size);
+		GfxTextureDesc vrs_image_desc{};
+		vrs_image_desc.format = GfxFormat::R8_UINT;
+		vrs_image_desc.width = vrs_image_width;
+		vrs_image_desc.height = vrs_image_height;
+		vrs_image_desc.bind_flags = GfxBindFlag::UnorderedAccess;
+		vrs_image_desc.initial_state = GfxResourceState::ComputeUAV;
+		vrs_image = gfx->CreateTexture(vrs_image_desc);
 	}
 
 	void FFXVRSPass::DestroyContext()

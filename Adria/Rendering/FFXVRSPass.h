@@ -47,8 +47,8 @@ namespace adria
 		std::vector<GfxShadingRate> supported_shading_rates;
 		std::vector<GfxShadingRateCombiner> supported_shading_rate_combiners;
 
-
 	private:
+		void CreateVRSImage();
 		void DestroyContext();
 		void CreateContext();
 	};

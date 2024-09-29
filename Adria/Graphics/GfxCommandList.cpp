@@ -741,7 +741,8 @@ namespace adria
 				info.shading_rate_combiner != GfxShadingRateCombiner::Passthrough)
 			{
 				GfxTexture* vrs_image = info.shading_rate_image;
-				TextureBarrier(*vrs_image, GfxResourceState::PixelSRV | GfxResourceState::ComputeSRV, GfxResourceState::ShadingRate);
+				TextureBarrier(*vrs_image, GfxResourceState::ComputeUAV, GfxResourceState::ShadingRate);
+				FlushBarriers();
 
 				GfxShadingRateCombiner combiners[] = { GfxShadingRateCombiner::Passthrough, info.shading_rate_combiner };
 				SetShadingRate(info.shading_rate, combiners);
@@ -763,13 +764,13 @@ namespace adria
 				info.shading_rate_combiner != GfxShadingRateCombiner::Passthrough)
 			{
 				GfxTexture* vrs_image = info.shading_rate_image;
-
-				SetShadingRateImage(nullptr);
-				TextureBarrier(*vrs_image, GfxResourceState::ShadingRate, GfxResourceState::PixelSRV | GfxResourceState::ComputeSRV);
+				TextureBarrier(*vrs_image, GfxResourceState::ShadingRate, GfxResourceState::ComputeUAV);
+				FlushBarriers();
 			}
 
 			GfxShadingRateCombiner combiners[] = { GfxShadingRateCombiner::Passthrough, GfxShadingRateCombiner::Passthrough };
 			SetShadingRate(GfxShadingRate_1X1, combiners);
+			SetShadingRateImage(nullptr);
 		}
 	}
 
