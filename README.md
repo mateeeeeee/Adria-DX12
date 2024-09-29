@@ -6,21 +6,21 @@ Graphics engine written in C++ using DirectX12.
 
 ## Features
 * Render graph
-	- Automatic resource barriers
-	- Resource reuse using resource pool
-	- Automatic resource bind flags and initial state deduction
-	- Pass culling
+    - Automatic resource barriers
+    - Resource reuse using resource pool
+    - Automatic resource bind flags and initial state deduction
+    - Pass culling
     - Graph visualization
 * DDGI
 * GPU-Driven Rendering : GPU frustum culling + 2 phase GPU occlusion culling
 * Reference path tracer 
 * Temporal upscalers : FSR2, FSR3, XeSS, DLSS3
-* Ultimate Bindless resources
+* Ultimate Bindless resource binding
+* Variable Rate Shading (FFX)
 * Volumetric lighting
     - 2D Raymarching
     - Fog volumes
-* Tiled deferred rendering 
-* Clustered deferred rendering
+* Tiled/Clustered deferred rendering 
 * Shadows
     - PCF shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights
@@ -37,7 +37,6 @@ Graphics engine written in C++ using DirectX12.
 * Reflections: SSR, RTR (DXR)
 * Antialiasing: FXAA, TAA
 * Contrast Adaptive Sharpening (FFX)
-* Variable Rate Shading (FFX)
 * Film effects: Lens distortion, Chromatic aberration, Vignette, Film grain
 * Screen-space god rays
 * Lens flare: texture-based and procedural
@@ -48,7 +47,7 @@ Graphics engine written in C++ using DirectX12.
     - Render graph dump and visualization
     - Shader debug printf
     - Nsight Aftermath SDK
-* D3D12 Enhanced Barriers
+* D3D12 Enhanced Barriers support
 
 ## TODO
 * ReSTIR GI
@@ -83,7 +82,7 @@ Graphics engine written in C++ using DirectX12.
 ![](Adria/Saved/Screenshots/sanmiguel-pt.png "Path tracing") 
 
 ### Variable Rate Shading
-| No VRS | VRS Enabled | VRS Overlay |
+| No VRS | VRS | VRS Overlay |
 | ------ | ----------- | ----------- |
 | ![No VRS](Adria/Saved/Screenshots/novrs.png) | ![VRS Enabled](Adria/Saved/Screenshots/vrs.png) | ![VRS Overlay](Adria/Saved/Screenshots/vrsoverlay.png) |
 
