@@ -13,8 +13,6 @@
         "fov": 45.0,
         "near": 1.0,
         "far": 800.0,
-        "speed": 50.0,
-		"sensitivity" : 0.3
     },
 		"skybox" : {
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]

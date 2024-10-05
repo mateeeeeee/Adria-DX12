@@ -185,8 +185,6 @@ namespace adria
 			config.camera_params.near_plane = camera_params.FindOr<float>("near", 1.0f);
 			config.camera_params.far_plane = camera_params.FindOr<float>("far", 3000.0f);
 			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<float>("fov", 90.0f));
-			config.camera_params.sensitivity = camera_params.FindOr<float>("sensitivity", 0.3f);
-			config.camera_params.speed = camera_params.FindOr<float>("speed", 25.0f);
 
 			float position[3] = { 0.0f, 0.0f, 0.0f };
 			camera_params.FindArray("position", position);
@@ -275,7 +273,7 @@ namespace adria
 
 	void Engine::Update(float dt)
 	{
-		camera->Tick(dt);
+		camera->Update(dt);
 		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
 	}

@@ -10,8 +10,6 @@ namespace adria
 		float near_plane;
 		float far_plane;
 		float fov;
-		float speed;
-		float sensitivity;
 		Vector3 position;
 		Vector3 look_at;
 	};
@@ -31,14 +29,6 @@ namespace adria
 		{
 			return position;
 		}
-		Vector3 Up() const
-		{
-			return up_vector;
-		}
-		Vector3 Right() const
-		{
-			return right_vector;
-		}
 		Vector3 Forward() const
 		{
 			return look_vector;
@@ -57,34 +47,25 @@ namespace adria
 
 		void Zoom(int32 increment);
 		void OnResize(uint32 w, uint32 h);
-		void Tick(float dt);
+		void Update(float dt);
 		void Enable(bool _enabled) { enabled = _enabled; }
-	private:
 
-		Vector3 position;
-		Vector3 right_vector;
-		Vector3 up_vector;
-		Vector3 look_vector;
+	private:
 		Matrix view_matrix;
 		Matrix projection_matrix;
 
-		float aspect_ratio;
-		float fov;
-		float near_plane, far_plane;  
+		Vector3 position;
+		Vector3 velocity;
+		Quaternion orientation;
+		Vector3 look_vector;
 
-		float speed;
-		float sensitivity;
+		float fov;
+		float aspect_ratio;
+		float near_plane, far_plane;
 		bool  enabled;
 
 	private:
-		void UpdateViewMatrix();
-		void Strafe(float dt);
-		void Walk(float dt);
-		void Jump(float dt);
-		void Pitch(int64 dy);
-		void Yaw(int64 dx);
-		void SetLens(float fov, float aspect, float zn, float zf);
-		void SetView();
+		void SetProjectionMatrix(float fov, float aspect, float zn, float zf);
 	};
 
 }

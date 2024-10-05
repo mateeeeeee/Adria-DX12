@@ -798,7 +798,6 @@ namespace adria
 			camera.SetFov(fov);
 			Vector3 look_at = camera.Forward();
 			ImGui::Text("Look Vector: (%f,%f,%f)", look_at.x, look_at.y, look_at.z);
-			
 		}
 		ImGui::End();
 	}
