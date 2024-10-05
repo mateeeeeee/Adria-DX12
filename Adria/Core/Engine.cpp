@@ -314,8 +314,8 @@ namespace adria
 		auto cmd_list = gfx->GetCommandList();
 		cmd_list->Begin();
 
-		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(window->Width()) / window->Height();
 		camera = std::make_unique<Camera>(config.camera_params);
+		camera->SetAspectRatio((float)window->Width() / window->Height());
 		entity_loader->LoadSkybox(config.skybox_params);
 
 		for (auto const& model : config.scene_models) entity_loader->ImportModel_GLTF(model);

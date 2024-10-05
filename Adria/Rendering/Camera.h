@@ -6,7 +6,6 @@ namespace adria
 
 	struct CameraParameters
 	{
-		float aspect_ratio;
 		float near_plane;
 		float far_plane;
 		float fov;
@@ -29,10 +28,7 @@ namespace adria
 		{
 			return position;
 		}
-		Vector3 Forward() const
-		{
-			return look_vector;
-		}
+		Vector3 Forward() const;
 
 		Vector2 Jitter(uint32 frame_index) const;
 		float Near() const;

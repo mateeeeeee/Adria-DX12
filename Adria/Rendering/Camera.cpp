@@ -13,12 +13,17 @@ namespace adria
 	static const Vector3 DEFAULT_RIGHT_VECTOR = Vector3::Right;
 
 	Camera::Camera(CameraParameters const& desc) 
-		: position(desc.position), aspect_ratio(desc.aspect_ratio), fov(desc.fov), near_plane(desc.far_plane), far_plane(desc.near_plane), enabled(true)
+		: position(desc.position), aspect_ratio(1.0f), fov(desc.fov), near_plane(desc.far_plane), far_plane(desc.near_plane), enabled(true)
 	{
 		Vector3 look_vector = desc.look_at - position;
 		look_vector.Normalize();
 		orientation = Quaternion::LookRotation(look_vector, DEFAULT_UP_VECTOR);
 		look_vector = Vector3::Transform(DEFAULT_LOOK_VECTOR, orientation);
+	}
+
+	Vector3 Camera::Forward() const
+	{
+		return Vector3::Transform(DEFAULT_LOOK_VECTOR, orientation);
 	}
 
 	Vector2 Camera::Jitter(uint32 frame_index) const
@@ -60,7 +65,6 @@ namespace adria
 			Quaternion pitch_quaternion = Quaternion::CreateFromYawPitchRoll(dx * dt * 0.25f, 0, 0);
 			orientation = yaw_quaternion * orientation * pitch_quaternion;
 		}
-		look_vector = Vector3::Transform(DEFAULT_LOOK_VECTOR, orientation);
 
 		Vector3 movement{};
 		if (g_Input.GetKey(KeyCode::W)) movement.z += 1.0f;
