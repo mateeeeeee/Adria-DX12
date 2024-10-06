@@ -9,7 +9,7 @@ using namespace DirectX;
 namespace adria
 {
 	Camera::Camera(CameraParameters const& desc) 
-		: position(desc.position), aspect_ratio(1.0f), fov(desc.fov), near_plane(desc.far_plane), far_plane(desc.near_plane), enabled(true)
+		: position(desc.position), aspect_ratio(1.0f), fov(desc.fov), near_plane(desc.far_plane), far_plane(desc.near_plane), enabled(true), changed(false)
 	{
 		Vector3 look_vector = desc.look_at - position;
 		look_vector.Normalize();
@@ -49,6 +49,7 @@ namespace adria
 
 	void Camera::Update(float dt)
 	{
+		changed = false;
 		if (!enabled) return;
 		if (g_Input.GetKey(KeyCode::Space)) return;
 
@@ -59,6 +60,7 @@ namespace adria
 			Quaternion yaw_quaternion = Quaternion::CreateFromYawPitchRoll(0, dy * dt * 0.25f, 0);
 			Quaternion pitch_quaternion = Quaternion::CreateFromYawPitchRoll(dx * dt * 0.25f, 0, 0);
 			orientation = yaw_quaternion * orientation * pitch_quaternion;
+			changed = true;
 		}
 
 		Vector3 movement{};
@@ -71,11 +73,15 @@ namespace adria
 		movement = Vector3::Transform(movement, orientation);
 		velocity = Vector3::SmoothStep(velocity, movement, 0.35f);
 
-		float speed_factor = 1.0f;
-		if (g_Input.GetKey(KeyCode::ShiftLeft)) speed_factor *= 5.0f;
-		if (g_Input.GetKey(KeyCode::CtrlLeft))  speed_factor *= 0.2f;
-		position += velocity * dt * speed_factor * 25.0f;
-
+		if (velocity.LengthSquared() > 1e-4)
+		{
+			float speed_factor = 1.0f;
+			if (g_Input.GetKey(KeyCode::ShiftLeft)) speed_factor *= 5.0f;
+			if (g_Input.GetKey(KeyCode::CtrlLeft))  speed_factor *= 0.2f;
+			position += velocity * dt * speed_factor * 25.0f;
+			changed = true;
+		}
+		
 		Matrix view_inverse = Matrix::CreateFromQuaternion(orientation) * Matrix::CreateTranslation(position);
 		view_inverse.Invert(view_matrix);
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);

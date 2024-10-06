@@ -45,7 +45,7 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 		void Update(float dt);
 		void Enable(bool _enabled) { enabled = _enabled; }
-
+		bool IsChanged() const { return changed; }
 	private:
 		Matrix view_matrix;
 		Matrix projection_matrix;
@@ -59,6 +59,7 @@ namespace adria
 		float aspect_ratio;
 		float near_plane, far_plane;
 		bool  enabled;
+		bool  changed;
 
 	private:
 		void SetProjectionMatrix(float fov, float aspect, float zn, float zf);
