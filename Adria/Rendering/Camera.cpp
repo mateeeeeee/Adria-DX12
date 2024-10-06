@@ -8,22 +8,17 @@ using namespace DirectX;
 
 namespace adria
 {
-	static const Vector3 DEFAULT_LOOK_VECTOR = Vector3::Forward;
-	static const Vector3 DEFAULT_UP_VECTOR = Vector3::Up;
-	static const Vector3 DEFAULT_RIGHT_VECTOR = Vector3::Right;
-
 	Camera::Camera(CameraParameters const& desc) 
 		: position(desc.position), aspect_ratio(1.0f), fov(desc.fov), near_plane(desc.far_plane), far_plane(desc.near_plane), enabled(true)
 	{
 		Vector3 look_vector = desc.look_at - position;
 		look_vector.Normalize();
-		orientation = Quaternion::LookRotation(look_vector, DEFAULT_UP_VECTOR);
-		look_vector = Vector3::Transform(DEFAULT_LOOK_VECTOR, orientation);
+		orientation = Quaternion::LookRotation(look_vector, Vector3::Up);
 	}
 
 	Vector3 Camera::Forward() const
 	{
-		return Vector3::Transform(DEFAULT_LOOK_VECTOR, orientation);
+		return Vector3::Transform(Vector3::Forward, orientation);
 	}
 
 	Vector2 Camera::Jitter(uint32 frame_index) const
