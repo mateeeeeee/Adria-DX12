@@ -13,7 +13,12 @@ namespace adria
 	{
 		Vector3 look_vector = desc.look_at - position;
 		look_vector.Normalize();
-		orientation = Quaternion::LookRotation(look_vector, Vector3::Up);
+
+		float yaw = std::atan2(look_vector.x, look_vector.z);
+		float pitch = std::asin(std::clamp(-look_vector.y, -1.0f, 1.0f));
+		Quaternion pitch_quat = Quaternion::CreateFromYawPitchRoll(0, pitch, 0);
+		Quaternion yaw_quat = Quaternion::CreateFromYawPitchRoll(yaw, 0, 0);
+		orientation = pitch_quat * orientation * yaw_quat;
 	}
 
 	Vector3 Camera::Forward() const
@@ -50,16 +55,18 @@ namespace adria
 	void Camera::Update(float dt)
 	{
 		changed = false;
-		if (!enabled) return;
-		if (g_Input.GetKey(KeyCode::Space)) return;
+		if (!enabled || g_Input.GetKey(KeyCode::Space))
+		{
+			return;
+		}
 
 		if (g_Input.GetKey(KeyCode::MouseRight))
 		{
 			float dx = g_Input.GetMouseDeltaX();
 			float dy = g_Input.GetMouseDeltaY();
-			Quaternion yaw_quaternion = Quaternion::CreateFromYawPitchRoll(0, dy * dt * 0.25f, 0);
-			Quaternion pitch_quaternion = Quaternion::CreateFromYawPitchRoll(dx * dt * 0.25f, 0, 0);
-			orientation = yaw_quaternion * orientation * pitch_quaternion;
+			Quaternion pitch_quat = Quaternion::CreateFromYawPitchRoll(0, dy * dt * 0.25f, 0);
+			Quaternion yaw_quat = Quaternion::CreateFromYawPitchRoll(dx * dt * 0.25f, 0, 0);
+			orientation = pitch_quat * orientation * yaw_quat;
 			changed = true;
 		}
 
