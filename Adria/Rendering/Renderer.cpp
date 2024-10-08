@@ -213,6 +213,11 @@ namespace adria
 		take_screenshot = true;
 	}
 
+	void Renderer::OnLightChanged()
+	{
+		path_tracer.Reset();
+	}
+
 	void Renderer::CreateSizeDependentResources()
 	{
 		GfxTextureDesc ldr_desc{};
@@ -541,10 +546,16 @@ namespace adria
 							static float sun_temperature = 5900.0f;
 							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
 
-							ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
-							ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
-							ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
-							ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+							bool changed = false;
+							changed |= ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
+							changed |= ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
+							changed |= ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+							changed |= ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+
+							if (changed)
+							{
+								path_tracer.Reset();
+							}
 
 							sun_light->color = ConvertTemperatureToColor(sun_temperature);
 							sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);

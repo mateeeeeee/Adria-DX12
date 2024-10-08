@@ -64,6 +64,7 @@ namespace adria
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
 		void OnTakeScreenshot(char const*);
+		void OnLightChanged();
 
 		PickingData const& GetPickingData() const { return picking_data; }
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }

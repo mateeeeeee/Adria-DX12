@@ -505,11 +505,12 @@ namespace adria
 					else if (light->type == LightType::Spot)	ImGui::Text("Spot Light");
 					else if (light->type == LightType::Point)	ImGui::Text("Point Light");
 
+					bool changed = false;
 					float color[3] = { light->color.x, light->color.y, light->color.z };
-					ImGui::ColorEdit3("Light Color", color);
+					changed |= ImGui::ColorEdit3("Light Color", color);
 					light->color = Vector4(color[0], color[1], color[2], 1.0f);
 
-					ImGui::SliderFloat("Light Intensity", &light->intensity, 0.0f, 50.0f);
+					changed |= ImGui::SliderFloat("Light Intensity", &light->intensity, 0.0f, 50.0f);
 
 					if (engine->reg.all_of<Material>(selected_entity))
 					{
@@ -520,7 +521,7 @@ namespace adria
 					if (light->type == LightType::Directional || light->type == LightType::Spot)
 					{
 						float direction[3] = { light->direction.x, light->direction.y, light->direction.z };
-						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
+						changed |= ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 						light->direction = Vector4(direction[0], direction[1], direction[2], 0.0f);
 						if (light->type == LightType::Directional)
 						{
@@ -532,8 +533,8 @@ namespace adria
 					{
 						float inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
 							, outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
-						ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
-						ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
+						changed |= ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
+						changed |= ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
 
 						light->inner_cosine = cos(XMConvertToRadians(inner_angle));
 						light->outer_cosine = cos(XMConvertToRadians(outer_angle));
@@ -542,9 +543,9 @@ namespace adria
 					if (light->type == LightType::Point || light->type == LightType::Spot)
 					{
 						float position[3] = { light->position.x,  light->position.y,  light->position.z };
-						ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
+						changed |= ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
 						light->position = Vector4(position[0], position[1], position[2], 1.0f);
-						ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
+						changed |= ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
 					}
 
 					if (engine->reg.all_of<Transform>(selected_entity))
@@ -552,8 +553,11 @@ namespace adria
 						auto& tr = engine->reg.get<Transform>(selected_entity);
 						tr.current_transform = XMMatrixTranslationFromVector(light->position);
 					}
-
 					ImGui::Checkbox("Active", &light->active);
+					if (light->active && changed)
+					{
+						editor_events.light_changed_event.Broadcast();
+					}
 
 					if (light->type == LightType::Directional)
 					{
@@ -575,13 +579,6 @@ namespace adria
 						{
 							ImGui::Checkbox("Use Cascades", &light->use_cascades);
 						}
-						ImGui::Checkbox("Screen Space Contact Shadows", &light->sscs);
-						if (light->sscs)
-						{
-							ImGui::SliderFloat("Thickness", &light->sscs_thickness, 0.0f, 1.0f);
-							ImGui::SliderFloat("Max Ray Distance", &light->sscs_max_ray_distance, 0.0f, 0.3f);
-							ImGui::SliderFloat("Max Depth Distance", &light->sscs_max_depth_distance, 0.0f, 500.0f);
-						}
 					}
 
 					ImGui::Checkbox("God Rays", &light->god_rays);
@@ -598,7 +595,6 @@ namespace adria
 					{
 						ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 0.1f);
 					}
-
 					ImGui::Checkbox("Lens Flare", &light->lens_flare);
 				}
 
