@@ -4,11 +4,11 @@
 
 namespace adria
 {
-	std::wstring ToWideString(std::string const& in);
-	std::string ToString(std::wstring const& in);
+	std::wstring ToWideString(std::string const&);
+	std::string ToString(std::wstring const&);
 	
-	std::string ToLower(std::string const& in);
-	std::string ToUpper(std::string const& in);
+	std::string ToLower(std::string const&);
+	std::string ToUpper(std::string const&);
 
 	bool FromCString(char const* in, int& out);
 	bool FromCString(char const* in, float& out);

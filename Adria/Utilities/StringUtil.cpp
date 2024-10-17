@@ -1,58 +1,40 @@
-#include <algorithm>
 #include <sstream>
+#include <codecvt>
+#include <locale>
 #include "StringUtil.h"
 
 namespace adria
 {
 
-	std::wstring ToWideString(std::string const& in)
+	std::wstring ToWideString(std::string const& str)
 	{
-		std::wstring out{};
-		out.reserve(in.length());
-		const char* ptr = in.data();
-		const char* const end = in.data() + in.length();
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+		return converter.from_bytes(str);
+	}
+	std::string ToString(std::wstring const& wstr)
+	{
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+		return converter.to_bytes(wstr);
+	}
 
-		mbstate_t state{};
-		wchar_t wc;
-		while (size_t len = mbrtowc(&wc, ptr, end - ptr, &state))
+	std::string ToLower(std::string const& str)
+	{
+		std::string out; out.resize(str.size());
+		for (uint32 i = 0; i < str.size(); ++i)
 		{
-			if (len == static_cast<size_t>(-1)) // bad encoding
-				return std::wstring{};
-			if (len == static_cast<size_t>(-2))
-				break;
-			out.push_back(wc);
-			ptr += len;
+			out[i] = std::tolower(str[i]);
 		}
 		return out;
 	}
-	std::string ToString(std::wstring const& in)
+	std::string ToUpper(std::string const& str)
 	{
-		std::string out{};
-		out.reserve(MB_CUR_MAX * in.length());
-
-		mbstate_t state{};
-		for (wchar_t wc : in)
+		std::string out; out.resize(str.size());
+		for (uint32 i = 0; i < str.size(); ++i)
 		{
-			char mb[8]{}; // ensure null-terminated for UTF-8 (maximum 4 byte)
-			const auto len = wcrtomb(mb, wc, &state);
-			out += std::string_view{ mb, len };
+			out[i] = std::toupper(str[i]);
 		}
 		return out;
 	}
-
-	std::string ToLower(std::string const& in)
-	{
-		std::string out; out.resize(in.size());
-		std::transform(std::begin(in), std::end(in), std::begin(out), [](char c) {return std::tolower(c); });
-		return out;
-	}
-	std::string ToUpper(std::string const& in)
-	{
-		std::string out; out.resize(in.size());
-		std::transform(std::begin(in), std::end(in), std::begin(out), [](char c) {return std::toupper(c); });
-		return out;
-	}
-
 	
 	bool FromCString(const char* in, int& out)
 	{
