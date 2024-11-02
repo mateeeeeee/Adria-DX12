@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include "RayTracedShadowsPass.h"
-#include "Graphics/GfxDefines.h"
+#include "Graphics/GfxMacros.h"
 #include "Graphics/GfxDescriptor.h"
 #include "Graphics/GfxPipelineStatePermutationsFwd.h"
 #include "Utilities/Delegate.h"

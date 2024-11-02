@@ -8,13 +8,25 @@ namespace adria
 
 	std::wstring ToWideString(std::string const& str)
 	{
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-		return converter.from_bytes(str);
+		int num_chars = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
+		std::wstring wstr;
+		if (num_chars)
+		{
+			wstr.resize(num_chars);
+			MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], num_chars);
+		}
+		return wstr;
 	}
 	std::string ToString(std::wstring const& wstr)
 	{
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-		return converter.to_bytes(wstr);
+		int num_chars = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
+		std::string str;
+		if (num_chars > 0)
+		{
+			str.resize(num_chars);
+			WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), &str[0], num_chars, NULL, NULL);
+		}
+		return str;
 	}
 
 	std::string ToLower(std::string const& str)

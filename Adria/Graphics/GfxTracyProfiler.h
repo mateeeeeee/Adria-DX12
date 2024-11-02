@@ -1,5 +1,5 @@
 #pragma once
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "tracy/TracyD3D12.hpp"
 
 namespace adria

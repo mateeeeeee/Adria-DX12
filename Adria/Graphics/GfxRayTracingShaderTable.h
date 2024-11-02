@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "GfxDynamicAllocation.h"
 
 namespace adria

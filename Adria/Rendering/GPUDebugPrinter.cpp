@@ -1,5 +1,5 @@
 #include "GPUDebugPrinter.h"
-#include "Graphics/GfxDefines.h"
+#include "Graphics/GfxMacros.h"
 #if GFX_SHADER_PRINTF
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxDevice.h"

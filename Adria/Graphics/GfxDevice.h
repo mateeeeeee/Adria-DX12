@@ -20,7 +20,7 @@
 #include "GfxCommandQueue.h"
 #include "GfxCapabilities.h"
 #include "GfxDescriptorAllocatorBase.h"
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "GfxCommandSignature.h"
 #include "GfxRayTracingAS.h"
 #include "GfxShadingRate.h"

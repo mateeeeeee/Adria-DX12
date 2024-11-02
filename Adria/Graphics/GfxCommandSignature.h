@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <d3d12.h>
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "Utilities/Ref.h"
 
 namespace adria

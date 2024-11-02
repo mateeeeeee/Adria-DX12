@@ -1,6 +1,6 @@
 #include <d3dcompiler.h>
 #include "dxcapi.h"
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "GfxReflection.h"
 #include "GfxShader.h"
 #include "GfxInputLayout.h"

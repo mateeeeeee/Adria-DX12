@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderGraph/RenderGraphResourceId.h"
-#include "Graphics/GfxDefines.h"
+#include "Graphics/GfxMacros.h"
 #include "Graphics/GfxPipelineStatePermutationsFwd.h"
 
 

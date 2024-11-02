@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "Graphics/GfxDefines.h"
+#include "Graphics/GfxMacros.h"
 #include "Graphics/GfxDescriptor.h"
 
 namespace adria

@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "GfxFormat.h"
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "GfxDescriptor.h"
 
 namespace adria

@@ -31,7 +31,7 @@
 #include "ImGui/imgui.h"
 #include "ImGui/ImGuizmo.h"
 
-#include "Core/CoreTypes.h"
-#include "Core/Defines.h"
+#include "Core/Types.h"
+#include "Core/Macros.h"
 #include "Math/MathCommon.h"
 #include "Utilities/Ref.h"

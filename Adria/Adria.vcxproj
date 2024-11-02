@@ -359,9 +359,9 @@
     <ClInclude Include="..\External\tracy\tracy\TracyD3D12.hpp" />
     <ClInclude Include="Core\ConsoleManager.h" />
     <ClInclude Include="Core\IConsoleManager.h" />
-    <ClInclude Include="Core\CoreTypes.h" />
+    <ClInclude Include="Core\Types.h" />
     <ClInclude Include="Core\Engine.h" />
-    <ClInclude Include="Core\Defines.h" />
+    <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Input.h" />
     <ClInclude Include="Core\Paths.h" />
     <ClInclude Include="Core\Window.h" />
@@ -398,7 +398,7 @@
     <ClInclude Include="Graphics\GfxShadingRate.h" />
     <ClInclude Include="Graphics\GfxStateObject.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
-    <ClInclude Include="Graphics\GfxDefines.h" />
+    <ClInclude Include="Graphics\GfxMacros.h" />
     <ClInclude Include="Graphics\GfxCommon.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxStates.h" />

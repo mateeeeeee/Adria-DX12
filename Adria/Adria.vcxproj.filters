@@ -557,7 +557,7 @@
     <ClInclude Include="Logging\Logger.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="Core\CoreTypes.h">
+    <ClInclude Include="Core\Types.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Window.h">
@@ -572,7 +572,7 @@
     <ClInclude Include="Math\Constants.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Defines.h">
+    <ClInclude Include="Core\Macros.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -812,7 +812,7 @@
     <ClInclude Include="Graphics\GfxDescriptor.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxDefines.h">
+    <ClInclude Include="Graphics\GfxMacros.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxCommandList.h">

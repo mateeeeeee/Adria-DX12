@@ -6,7 +6,7 @@
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
 #include "GfxShaderCompiler.h"
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "Core/Paths.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
