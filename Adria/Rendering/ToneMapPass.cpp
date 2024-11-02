@@ -14,7 +14,7 @@
 
 namespace adria
 {
-	enum ToneMapOperator : uint8
+	enum ToneMapOperator : Uint8
 	{
 		ToneMapOperator_None,
 		ToneMapOperator_Reinhard,
@@ -27,7 +27,7 @@ namespace adria
 	static TAutoConsoleVariable<int>   TonemapOperator("r.Tonemap.Operator", ToneMapOperator_TonyMcMapface, "0 - None, 1 - Reinhard, 2 - Hable, 3 - Linear, 4 - TonyMcMapface, 5 - AgX");
 	static TAutoConsoleVariable<float> TonemapExposure("r.Tonemap.Exposure", 1.0f, "Tonemap exposure applied in addition to exposure from AutoExposure pass");
 	
-	ToneMapPass::ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	ToneMapPass::ToneMapPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
@@ -81,7 +81,7 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors) + 1);
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				bool const bloom_enabled = data.bloom.IsValid();
 				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + ARRAYSIZE(src_descriptors)), ctx.GetReadOnlyTexture(data.bloom));
@@ -89,23 +89,23 @@ namespace adria
 				struct TonemapConstants
 				{
 					float    tonemap_exposure;
-					uint32   tonemap_operator_lut_packed;
-					uint32   hdr_idx;
-					uint32   exposure_idx;
-					uint32   output_idx;
-					int32    bloom_idx;
-					uint32   lens_dirt_idx;
-					uint32   bloom_params_packed;
+					Uint32   tonemap_operator_lut_packed;
+					Uint32   hdr_idx;
+					Uint32   exposure_idx;
+					Uint32   output_idx;
+					Sint32    bloom_idx;
+					Uint32   lens_dirt_idx;
+					Uint32   bloom_params_packed;
 				} constants =
 				{
-					.tonemap_exposure = TonemapExposure.Get(), .tonemap_operator_lut_packed = PackTwoUint16ToUint32((uint16)TonemapOperator.Get(), (uint16)tony_mc_mapface_lut_handle),
+					.tonemap_exposure = TonemapExposure.Get(), .tonemap_operator_lut_packed = PackTwoUint16ToUint32((Uint16)TonemapOperator.Get(), (Uint16)tony_mc_mapface_lut_handle),
 					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2, .bloom_idx = -1
 				};
 				if (bloom_enabled)
 				{
 					ADRIA_ASSERT(bloom_data != nullptr);
 					constants.bloom_idx = i + ARRAYSIZE(src_descriptors);
-					constants.lens_dirt_idx = (uint32)lens_dirt_handle;
+					constants.lens_dirt_idx = (Uint32)lens_dirt_handle;
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 
@@ -119,7 +119,7 @@ namespace adria
 		input = source;
 	}
 
-	void ToneMapPass::OnResize(uint32 w, uint32 h)
+	void ToneMapPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

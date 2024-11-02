@@ -6,7 +6,7 @@ namespace adria
 	{
 		static constexpr int FloorConstExpr(const float val)
 		{
-			const auto val_int = (int64)val;
+			const auto val_int = (Sint64)val;
 			const float fval_int = (float)val_int;
 			return (int)(val >= (float)0 ? fval_int : (val == fval_int ? val : fval_int - (float)1));
 		}
@@ -24,16 +24,16 @@ namespace adria
 		}
 	};
 
-	template<uint32 SIZE, uint32 BASE>
+	template<Uint32 SIZE, Uint32 BASE>
 	struct HaltonSequence
 	{
 		constexpr HaltonSequence() : sequence{}
 		{
 			constexpr Halton generator;
-			for (uint32 i = 0; i < SIZE; ++i) sequence[i] = generator(i + 1, BASE);
+			for (Uint32 i = 0; i < SIZE; ++i) sequence[i] = generator(i + 1, BASE);
 		}
 
-		constexpr float operator[](int32 index) const
+		constexpr float operator[](Sint32 index) const
 		{
 			return sequence[index % SIZE];
 		}

@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	enum class IndirectCommandType : uint8
+	enum class IndirectCommandType : Uint8
 	{
 		Draw,
 		DrawIndexed,

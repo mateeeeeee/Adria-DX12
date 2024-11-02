@@ -49,7 +49,7 @@ namespace adria
 		std::vector<AccumulatedTimeStamp> displayed_timestamps;
 		std::vector<AccumulatedTimeStamp> accumulating_timestamps;
 		double last_reset_time = 0.0;
-		uint32 accumulating_frame_count = 0;
+		Uint32 accumulating_frame_count = 0;
 	};
 
 	Editor::Editor() = default;
@@ -300,7 +300,7 @@ namespace adria
 				{
 					static RealRandomGenerator real(0.0f, 1.0f);
 
-					for (int32 i = 0; i < light_count_to_add; ++i)
+					for (Sint32 i = 0; i < light_count_to_add; ++i)
 					{
 						LightParameters light_params{};
 						light_params.light_data.casts_shadows = false;
@@ -327,7 +327,7 @@ namespace adria
 				{
 					static RealRandomGenerator real(0.0f, 1.0f);
 
-					for (int32 i = 0; i < light_count_to_add; ++i)
+					for (Sint32 i = 0; i < light_count_to_add; ++i)
 					{
 						LightParameters light_params{};
 						light_params.light_data.casts_shadows = false;
@@ -353,7 +353,7 @@ namespace adria
 			if (ImGui::TreeNodeEx("Ocean", 0))
 			{
 				static GridParameters ocean_params{};
-				static int32 tile_count[2] = { 512, 512 };
+				static Sint32 tile_count[2] = { 512, 512 };
 				static float tile_size[2] = { 40.0f, 40.0f };
 				static float texture_scale[2] = { 20.0f, 20.0f };
 
@@ -918,7 +918,7 @@ namespace adria
 
 		if (ImGui::Begin(ICON_FA_GEAR" Settings", &visibility_flags[Flag_Settings]))
 		{
-			for (uint32 i = 0; i < GUICommandGroup_Count; ++i)
+			for (Uint32 i = 0; i < GUICommandGroup_Count; ++i)
 			{
 				if (i != GUICommandGroup_None)
 				{
@@ -929,7 +929,7 @@ namespace adria
 				{
 					subgrouped_commands[cmd->subgroup].push_back(cmd);
 				}
-				for (uint32 i = 0; i < GUICommandSubGroup_Count; ++i)
+				for (Uint32 i = 0; i < GUICommandSubGroup_Count; ++i)
 				{
 					if (subgrouped_commands[i].empty()) continue;
 
@@ -967,30 +967,30 @@ namespace adria
 			ImGui::Checkbox("Show Profiling Results", &show_profiling);
 			if (show_profiling)
 			{
-				static constexpr uint64 NUM_FRAMES = 128;
-				static constexpr int32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
+				static constexpr Uint64 NUM_FRAMES = 128;
+				static constexpr Sint32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
 
 				static ProfilerState state{};
 				static float FrameTimeArray[NUM_FRAMES] = { 0 };
 				static float RecentHighestFrameTime = 0.0f;
 				static float FrameTimeGraphMaxValues[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
-				for (uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
+				for (Uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
 				std::vector<GfxTimestamp> time_stamps = g_GfxProfiler.GetResults();
 				FrameTimeArray[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
-				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
+				for (Uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
 				RecentHighestFrameTime = std::max(RecentHighestFrameTime, FrameTimeArray[NUM_FRAMES - 1]);
 
 				float frame_time_ms = FrameTimeArray[NUM_FRAMES - 1];
-				int32 const fps = static_cast<int32>(1000.0f / frame_time_ms);
+				Sint32 const fps = static_cast<Sint32>(1000.0f / frame_time_ms);
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Checkbox("Show Avg/Min/Max", &state.show_average);
 					ImGui::Spacing();
 
-					uint64 max_i = 0;
-					for (uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i)
+					Uint64 max_i = 0;
+					for (Uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i)
 					{
 						if (RecentHighestFrameTime < FrameTimeGraphMaxValues[i])
 						{
@@ -1000,7 +1000,7 @@ namespace adria
 					}
 					ImGui::PlotLines("", FrameTimeArray, NUM_FRAMES, 0, "GPU frame time (ms)", 0.0f, FrameTimeGraphMaxValues[max_i], ImVec2(0, 80));
 
-					constexpr uint32 avg_timestamp_update_interval = 1000;
+					constexpr Uint32 avg_timestamp_update_interval = 1000;
 					static auto MillisecondsNow = []()
 					{
 						static LARGE_INTEGER s_frequency;
@@ -1022,7 +1022,7 @@ namespace adria
 						((current_time - state.last_reset_time) > avg_timestamp_update_interval))
 					{
 						std::swap(state.displayed_timestamps, state.accumulating_timestamps);
-						for (uint32 i = 0; i < state.displayed_timestamps.size(); i++)
+						for (Uint32 i = 0; i < state.displayed_timestamps.size(); i++)
 						{
 							state.displayed_timestamps[i].sum /= state.accumulating_frame_count;
 						}
@@ -1042,7 +1042,7 @@ namespace adria
 					ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
 					ImGui::TableSetupColumn("Pass");
 					ImGui::TableSetupColumn("Time");
-					for (uint64 i = 0; i < time_stamps.size(); i++)
+					for (Uint64 i = 0; i < time_stamps.size(); i++)
 					{
 						ImGui::TableNextRow();
 
@@ -1206,11 +1206,11 @@ namespace adria
 			{
 				struct VoidPointerHash
 				{
-					uint64 operator()(void const* ptr) const { return reinterpret_cast<uint64>(ptr); }
+					Uint64 operator()(void const* ptr) const { return reinterpret_cast<Uint64>(ptr); }
 				};
 				static std::unordered_map<void const*, GfxDescriptor, VoidPointerHash> debug_srv_map;
 
-				for (int32 i = 0; i < debug_textures.size(); ++i)
+				for (Sint32 i = 0; i < debug_textures.size(); ++i)
 				{
 					ImGui::PushID(i);
 					auto& debug_texture = debug_textures[i];
@@ -1227,8 +1227,8 @@ namespace adria
 						debug_srv_map[debug_texture.gfx_texture] = debug_srv_cpu;
 						gfx->CopyDescriptors(1, debug_srv_gpu, debug_srv_cpu);
 					}
-					uint32 width = debug_texture.gfx_texture->GetDesc().width;
-					uint32 height = debug_texture.gfx_texture->GetDesc().height;
+					Uint32 width = debug_texture.gfx_texture->GetDesc().width;
+					Uint32 height = debug_texture.gfx_texture->GetDesc().height;
 					float window_width = ImGui::GetWindowWidth();
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(debug_srv_gpu).ptr, ImVec2(window_width * 0.9f, window_width * 0.9f * (float)height / width));
 					ImGui::PopID();

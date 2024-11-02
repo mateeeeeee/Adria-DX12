@@ -7,7 +7,7 @@
 
 namespace adria
 {
-	enum class RGPassType : uint8
+	enum class RGPassType : Uint8
 	{
 		Graphics,
 		Compute,
@@ -15,7 +15,7 @@ namespace adria
 		Copy
 	};
 
-	enum class RGPassFlags : uint32
+	enum class RGPassFlags : Uint32
 	{
 		None = 0x00,
 		ForceNoCull = 0x01,						//RGPass will not be culled by Render Graph, useful for debug passes
@@ -23,14 +23,14 @@ namespace adria
 	};
 	ENABLE_ENUM_BIT_OPERATORS(RGPassFlags);
 
-	enum RGReadAccess : uint8
+	enum RGReadAccess : Uint8
 	{
 		ReadAccess_PixelShader,
 		ReadAccess_NonPixelShader,
 		ReadAccess_AllShader
 	};
 
-	enum class RGLoadAccessOp : uint8
+	enum class RGLoadAccessOp : Uint8
 	{
 		Discard,
 		Preserve,
@@ -38,7 +38,7 @@ namespace adria
 		NoAccess
 	};
 
-	enum class RGStoreAccessOp : uint8
+	enum class RGStoreAccessOp : Uint8
 	{
 		Discard,
 		Preserve,
@@ -46,11 +46,11 @@ namespace adria
 		NoAccess
 	};
 
-	inline constexpr uint8 CombineAccessOps(RGLoadAccessOp load_op, RGStoreAccessOp store_op)
+	inline constexpr Uint8 CombineAccessOps(RGLoadAccessOp load_op, RGStoreAccessOp store_op)
 	{
-		return (uint8)load_op << 2 | (uint8)store_op;
+		return (Uint8)load_op << 2 | (Uint8)store_op;
 	}
-	enum class RGLoadStoreAccessOp : uint8
+	enum class RGLoadStoreAccessOp : Uint8
 	{
 		Discard_Discard = CombineAccessOps(RGLoadAccessOp::Discard, RGStoreAccessOp::Discard),
 		Discard_Preserve = CombineAccessOps(RGLoadAccessOp::Discard, RGStoreAccessOp::Preserve),
@@ -66,8 +66,8 @@ namespace adria
 
 	inline constexpr void SplitAccessOp(RGLoadStoreAccessOp load_store_op, RGLoadAccessOp& load_op, RGStoreAccessOp& store_op)
 	{
-		store_op = static_cast<RGStoreAccessOp>((uint8)load_store_op & 0b11);
-		load_op = static_cast<RGLoadAccessOp>(((uint8)load_store_op >> 2) & 0b11);
+		store_op = static_cast<RGStoreAccessOp>((Uint8)load_store_op & 0b11);
+		load_op = static_cast<RGLoadAccessOp>(((Uint8)load_store_op >> 2) & 0b11);
 	}
 
 	class RenderGraph;
@@ -92,7 +92,7 @@ namespace adria
 			bool depth_read_only;
 		};
 
-		inline static uint32 unique_pass_id = 0;
+		inline static Uint32 unique_pass_id = 0;
 
 	public:
 		explicit RenderGraphPassBase(char const* name, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
@@ -110,10 +110,10 @@ namespace adria
 
 	private:
 		std::string const name;
-		uint64 ref_count = 0ull;
+		Uint64 ref_count = 0ull;
 		RGPassType type;
 		RGPassFlags flags = RGPassFlags::None;
-		uint64 id;
+		Uint64 id;
 
 		std::unordered_set<RGTextureId> texture_creates;
 		std::unordered_set<RGTextureId> texture_reads;
@@ -129,7 +129,7 @@ namespace adria
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;
-		uint32 viewport_width = 0, viewport_height = 0;
+		Uint32 viewport_width = 0, viewport_height = 0;
 	};
 	using RGPassBase = RenderGraphPassBase;
 

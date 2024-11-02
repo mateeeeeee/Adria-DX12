@@ -3,13 +3,13 @@
 
 namespace adria
 {
-	enum class ReflectionType : uint8;
+	enum class ReflectionType : Uint8;
 	class GfxDevice;
 
 	class ReflectionPassGroup final : public PostEffectGroup
 	{
 	public:
-		ReflectionPassGroup(GfxDevice* gfx, uint32 width, uint32 height);
+		ReflectionPassGroup(GfxDevice* gfx, Uint32 width, Uint32 height);
 
 	private:
 		ReflectionType reflection_type;

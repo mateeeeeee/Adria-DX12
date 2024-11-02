@@ -33,9 +33,9 @@ namespace adria
 
 		std::vector<entt::entity> chunks;
 		std::vector<TexturedNormalVertex> vertices{};
-		for (uint64 j = 0; j <= params.tile_count_z; j++)
+		for (Uint64 j = 0; j <= params.tile_count_z; j++)
 		{
-			for (uint64 i = 0; i <= params.tile_count_x; i++)
+			for (Uint64 i = 0; i <= params.tile_count_x; i++)
 			{
 				TexturedNormalVertex vertex{};
 
@@ -50,12 +50,12 @@ namespace adria
 
 		if (!params.split_to_chunks)
 		{
-			std::vector<uint32> indices{};
-			uint32 i1 = 0;
-			uint32 i2 = 1;
-			uint32 i3 = static_cast<uint32>(i1 + params.tile_count_x + 1);
-			uint32 i4 = static_cast<uint32>(i2 + params.tile_count_x + 1);
-			for (uint64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
+			std::vector<Uint32> indices{};
+			Uint32 i1 = 0;
+			Uint32 i2 = 1;
+			Uint32 i3 = static_cast<Uint32>(i1 + params.tile_count_x + 1);
+			Uint32 i4 = static_cast<Uint32>(i2 + params.tile_count_x + 1);
+			for (Uint64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
 			{
 				indices.push_back(i1);
 				indices.push_back(i3);
@@ -92,14 +92,14 @@ namespace adria
 			};
 
 			GfxBufferDesc ib_desc{
-				.size = indices.size() * sizeof(uint32),
+				.size = indices.size() * sizeof(Uint32),
 				.bind_flags = GfxBindFlag::None,
-				.stride = sizeof(uint32),
+				.stride = sizeof(Uint32),
 				.format = GfxFormat::R32_UINT
 			};
 
 			SubMesh submesh{};
-			submesh.indices_count = (uint32)indices.size();
+			submesh.indices_count = (Uint32)indices.size();
 			submesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
 			submesh.index_buffer = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
 			submesh.bounding_box = AABBFromRange(vertices.begin(), vertices.end());
@@ -110,27 +110,27 @@ namespace adria
 		}
 		else
 		{
-			std::vector<uint32> indices{};
-			for (uint64 j = 0; j < params.tile_count_z; j += params.chunk_count_z)
+			std::vector<Uint32> indices{};
+			for (Uint64 j = 0; j < params.tile_count_z; j += params.chunk_count_z)
 			{
-				for (uint64 i = 0; i < params.tile_count_x; i += params.chunk_count_x)
+				for (Uint64 i = 0; i < params.tile_count_x; i += params.chunk_count_x)
 				{
 					entt::entity chunk = reg.create();
 
-					uint32 const indices_count = static_cast<uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
-					uint32 const indices_offset = static_cast<uint32>(indices.size());
+					Uint32 const indices_count = static_cast<Uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
+					Uint32 const indices_offset = static_cast<Uint32>(indices.size());
 
 
 					std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
-					for (uint64 k = j; k < j + params.chunk_count_z; ++k)
+					for (Uint64 k = j; k < j + params.chunk_count_z; ++k)
 					{
-						for (uint64 m = i; m < i + params.chunk_count_x; ++m)
+						for (Uint64 m = i; m < i + params.chunk_count_x; ++m)
 						{
 
-							uint32 i1 = static_cast<uint32>(k * (params.tile_count_x + 1) + m);
-							uint32 i2 = static_cast<uint32>(i1 + 1);
-							uint32 i3 = static_cast<uint32>((k + 1) * (params.tile_count_x + 1) + m);
-							uint32 i4 = static_cast<uint32>(i3 + 1);
+							Uint32 i1 = static_cast<Uint32>(k * (params.tile_count_x + 1) + m);
+							Uint32 i2 = static_cast<Uint32>(i1 + 1);
+							Uint32 i3 = static_cast<Uint32>((k + 1) * (params.tile_count_x + 1) + m);
+							Uint32 i4 = static_cast<Uint32>(i3 + 1);
 
 							indices.push_back(i1);
 							indices.push_back(i3);
@@ -166,9 +166,9 @@ namespace adria
 			};
 
 			GfxBufferDesc ib_desc{
-				.size = indices.size() * sizeof(uint32),
+				.size = indices.size() * sizeof(Uint32),
 				.bind_flags = GfxBindFlag::None,
-				.stride = sizeof(uint32),
+				.stride = sizeof(Uint32),
 				.format = GfxFormat::R32_UINT
 			};
 
@@ -208,35 +208,35 @@ namespace adria
 
 		// Loop over shapes
 		std::vector<TexturedNormalVertex> vertices{};
-		std::vector<uint32> indices{};
+		std::vector<Uint32> indices{};
 		std::vector<entt::entity> entities{};
 
-		for (uint64 s = 0; s < shapes.size(); s++)
+		for (Uint64 s = 0; s < shapes.size(); s++)
 		{
 			entt::entity e = reg.create();
 			entities.push_back(e);
 
 			SubMesh mesh_component{};
-			mesh_component.start_index_location = static_cast<uint32>(indices.size());
-			mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
+			mesh_component.start_index_location = static_cast<Uint32>(indices.size());
+			mesh_component.base_vertex_location = static_cast<Uint32>(vertices.size());
 
 			// Loop over faces(polygon)
-			uint64 index_offset = 0;
-			for (uint64 f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
+			Uint64 index_offset = 0;
+			for (Uint64 f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 			{
-				uint64 fv = uint64(shapes[s].mesh.num_face_vertices[f]);
+				Uint64 fv = Uint64(shapes[s].mesh.num_face_vertices[f]);
 
 				// Loop over vertices in the face.
-				for (uint64 v = 0; v < fv; v++)
+				for (Uint64 v = 0; v < fv; v++)
 				{
 					// access to vertex
 					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-					indices.push_back((uint32)(index_offset + v));
+					indices.push_back((Uint32)(index_offset + v));
 
 					TexturedNormalVertex vertex{};
-					tinyobj::real_t vx = attrib.vertices[3 * uint64(idx.vertex_index) + 0];
-					tinyobj::real_t vy = attrib.vertices[3 * uint64(idx.vertex_index) + 1];
-					tinyobj::real_t vz = attrib.vertices[3 * uint64(idx.vertex_index) + 2];
+					tinyobj::real_t vx = attrib.vertices[3 * Uint64(idx.vertex_index) + 0];
+					tinyobj::real_t vy = attrib.vertices[3 * Uint64(idx.vertex_index) + 1];
+					tinyobj::real_t vz = attrib.vertices[3 * Uint64(idx.vertex_index) + 2];
 
 					vertex.position.x = vx;
 					vertex.position.y = vy;
@@ -245,9 +245,9 @@ namespace adria
 					// Check if `normal_index` is zero or positive. negative = no normal data
 					if (idx.normal_index >= 0)
 					{
-						tinyobj::real_t nx = attrib.normals[3 * uint64(idx.normal_index) + 0];
-						tinyobj::real_t ny = attrib.normals[3 * uint64(idx.normal_index) + 1];
-						tinyobj::real_t nz = attrib.normals[3 * uint64(idx.normal_index) + 2];
+						tinyobj::real_t nx = attrib.normals[3 * Uint64(idx.normal_index) + 0];
+						tinyobj::real_t ny = attrib.normals[3 * Uint64(idx.normal_index) + 1];
+						tinyobj::real_t nz = attrib.normals[3 * Uint64(idx.normal_index) + 2];
 
 						vertex.normal.x = nx;
 						vertex.normal.y = ny;
@@ -257,8 +257,8 @@ namespace adria
 					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
 					if (idx.texcoord_index >= 0)
 					{
-						tinyobj::real_t tx = attrib.texcoords[2 * uint64(idx.texcoord_index) + 0];
-						tinyobj::real_t ty = attrib.texcoords[2 * uint64(idx.texcoord_index) + 1];
+						tinyobj::real_t tx = attrib.texcoords[2 * Uint64(idx.texcoord_index) + 0];
+						tinyobj::real_t ty = attrib.texcoords[2 * Uint64(idx.texcoord_index) + 1];
 
 						vertex.uv.x = tx;
 						vertex.uv.y = ty;
@@ -271,7 +271,7 @@ namespace adria
 				// per-face material
 				//shapes[s].mesh.material_ids[f];
 			}
-			mesh_component.indices_count = static_cast<uint32>(index_offset);
+			mesh_component.indices_count = static_cast<Uint32>(index_offset);
 		}
 
 		GfxBufferDesc vb_desc{
@@ -281,9 +281,9 @@ namespace adria
 		};
 
 		GfxBufferDesc ib_desc{
-			.size = indices.size() * sizeof(uint32),
+			.size = indices.size() * sizeof(Uint32),
 			.bind_flags = GfxBindFlag::None,
-			.stride = sizeof(uint32),
+			.stride = sizeof(Uint32),
 			.format = GfxFormat::R32_UINT
 		};
 
@@ -339,7 +339,7 @@ namespace adria
         reg.emplace<Light>(light, params.light_data);
         if (params.mesh_type == LightMesh::Quad)
         {
-            uint32 const size = params.mesh_size;
+            Uint32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
             {
                 { {-0.5f * size, -0.5f * size, 0.0f}, {0.0f, 0.0f}},
@@ -348,7 +348,7 @@ namespace adria
                 { {-0.5f * size,  0.5f * size, 0.0f}, {0.0f, 1.0f}}
             };
 
-            std::vector<uint16> const indices =
+            std::vector<Uint16> const indices =
             {
                     0, 2, 1, 2, 0, 3
             };
@@ -360,15 +360,15 @@ namespace adria
 			};
 
 			GfxBufferDesc ib_desc{
-				.size = indices.size() * sizeof(uint16),
+				.size = indices.size() * sizeof(Uint16),
 				.bind_flags = GfxBindFlag::None,
-				.stride = sizeof(uint16),
+				.stride = sizeof(Uint16),
 				.format = GfxFormat::R16_UINT };
 
             SubMesh submesh{};
             submesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
 			submesh.index_buffer = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
-            submesh.indices_count = static_cast<uint32>(indices.size());
+            submesh.indices_count = static_cast<Uint32>(indices.size());
 
             reg.emplace<SubMesh>(light, submesh);
 
@@ -506,7 +506,7 @@ namespace adria
 		Mesh mesh{};
 
 		mesh.materials.reserve(gltf_data->materials_count);
-		for (uint32 i = 0; i < gltf_data->materials_count; ++i)
+		for (Uint32 i = 0; i < gltf_data->materials_count; ++i)
 		{
 			cgltf_material const& gltf_material = gltf_data->materials[i];
 			Material& material = mesh.materials.emplace_back();
@@ -582,47 +582,47 @@ namespace adria
 			}
 		}
 
-		std::unordered_map<cgltf_mesh const*, std::vector<int32>> mesh_primitives_map; //mesh -> vector of primitive indices
-		int32 primitive_count = 0;
+		std::unordered_map<cgltf_mesh const*, std::vector<Sint32>> mesh_primitives_map; //mesh -> vector of primitive indices
+		Sint32 primitive_count = 0;
 
 		struct MeshData
 		{
 			DirectX::BoundingBox bounding_box;
-			int32 material_index = -1;
+			Sint32 material_index = -1;
 			GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
 
 			std::vector<Vector3> positions_stream;
 			std::vector<Vector3> normals_stream;
 			std::vector<Vector4> tangents_stream;
 			std::vector<Vector2> uvs_stream;
-			std::vector<uint32>   indices;
+			std::vector<Uint32>   indices;
 
 			std::vector<Meshlet>		 meshlets;
-			std::vector<uint32>			 meshlet_vertices;
+			std::vector<Uint32>			 meshlet_vertices;
 			std::vector<MeshletTriangle> meshlet_triangles;
 		};
 		std::vector<MeshData> mesh_datas{};
-		for (uint32 i = 0; i < gltf_data->meshes_count; ++i)
+		for (Uint32 i = 0; i < gltf_data->meshes_count; ++i)
 		{
 			cgltf_mesh const& gltf_mesh = gltf_data->meshes[i];
-			std::vector<int32>& primitives = mesh_primitives_map[&gltf_mesh];
-			for (uint32 j = 0; j < gltf_mesh.primitives_count; ++j)
+			std::vector<Sint32>& primitives = mesh_primitives_map[&gltf_mesh];
+			for (Uint32 j = 0; j < gltf_mesh.primitives_count; ++j)
 			{
 				auto const& gltf_primitive = gltf_mesh.primitives[j];
 				ADRIA_ASSERT(gltf_primitive.indices->count >= 0);
 
 				MeshData& mesh_data = mesh_datas.emplace_back();
-				mesh_data.material_index = (int32)(gltf_primitive.material - gltf_data->materials);
+				mesh_data.material_index = (Sint32)(gltf_primitive.material - gltf_data->materials);
 				mesh_data.indices.reserve(gltf_primitive.indices->count);
 				
-				uint32 triangle_cw[] = { 0, 1, 2 };
-				uint32 triangle_ccw[] = { 0, 2, 1 };
-				uint32* order = params.triangle_ccw ? triangle_ccw : triangle_cw;
-				for (uint64 i = 0; i < gltf_primitive.indices->count; i += 3)
+				Uint32 triangle_cw[] = { 0, 1, 2 };
+				Uint32 triangle_ccw[] = { 0, 2, 1 };
+				Uint32* order = params.triangle_ccw ? triangle_ccw : triangle_cw;
+				for (Uint64 i = 0; i < gltf_primitive.indices->count; i += 3)
 				{
-					mesh_data.indices.push_back((uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[0]));
-					mesh_data.indices.push_back((uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[1]));
-					mesh_data.indices.push_back((uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[2]));
+					mesh_data.indices.push_back((Uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[0]));
+					mesh_data.indices.push_back((Uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[1]));
+					mesh_data.indices.push_back((Uint32)cgltf_accessor_read_index(gltf_primitive.indices, i + order[2]));
 				}
 
 				switch (gltf_primitive.type)
@@ -646,7 +646,7 @@ namespace adria
 					ADRIA_ASSERT(false);
 				}
 
-				for (uint32 k = 0; k < gltf_primitive.attributes_count; ++k)
+				for (Uint32 k = 0; k < gltf_primitive.attributes_count; ++k)
 				{
 					cgltf_attribute const& gltf_attribute = gltf_primitive.attributes[k];
 					std::string const& attr_name = gltf_attribute.name;
@@ -656,7 +656,7 @@ namespace adria
 						if (!attr_name.compare(stream_name))
 						{
 							stream.resize(gltf_attribute.data->count);
-							for (uint64 i = 0; i < gltf_attribute.data->count; ++i)
+							for (Uint64 i = 0; i < gltf_attribute.data->count; ++i)
 							{
 								cgltf_accessor_read_float(gltf_attribute.data, i, &stream[i].x, sizeof(T) / sizeof(float));
 							}
@@ -671,11 +671,11 @@ namespace adria
 			}
 		}
 
-		uint64 total_buffer_size = 0;
+		Uint64 total_buffer_size = 0;
 		for (auto& mesh_data : mesh_datas)
 		{
-			std::vector<uint32> const& indices = mesh_data.indices;
-			uint64 vertex_count = mesh_data.positions_stream.size();
+			std::vector<Uint32> const& indices = mesh_data.indices;
+			Uint64 vertex_count = mesh_data.positions_stream.size();
 
 			bool has_tangents = !mesh_data.tangents_stream.empty();
 			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
@@ -690,7 +690,7 @@ namespace adria
 
 			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
 			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(Vector3), 1.05f);
-			std::vector<uint32> remap(vertex_count);
+			std::vector<Uint32> remap(vertex_count);
 			meshopt_optimizeVertexFetchRemap(&remap[0], mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
 			meshopt_remapIndexBuffer(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(Vector3), &remap[0]);
@@ -698,14 +698,14 @@ namespace adria
 			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(Vector4), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(Vector2), &remap[0]);
 
-			uint64 const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
+			Uint64 const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
 			mesh_data.meshlets.resize(max_meshlets);
 			mesh_data.meshlet_vertices.resize(max_meshlets * MESHLET_MAX_VERTICES);
 
 			std::vector<unsigned char> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
 			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
 
-			uint64 meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
+			Uint64 meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
 				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(Vector3),
 				MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES, 0);
 
@@ -717,15 +717,15 @@ namespace adria
 			mesh_data.meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
 			mesh_data.meshlet_triangles.resize(meshlet_triangles.size() / 3);
 
-			uint32 triangle_offset = 0;
-			for (uint64 i = 0; i < meshlet_count; ++i)
+			Uint32 triangle_offset = 0;
+			for (Uint64 i = 0; i < meshlet_count; ++i)
 			{
 				meshopt_Meshlet const& m = meshlets[i];
 				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
 					m.triangle_count, reinterpret_cast<float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
 
 				unsigned char* src_triangles = meshlet_triangles.data() + m.triangle_offset;
-				for (uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
+				for (Uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
 				{
 					MeshletTriangle& tri = mesh_data.meshlet_triangles[triangle_idx + triangle_offset];
 					tri.V0 = *src_triangles++;
@@ -746,13 +746,13 @@ namespace adria
 			}
 			mesh_data.meshlet_triangles.resize(triangle_offset);
 
-			total_buffer_size += Align(mesh_data.indices.size() * sizeof(uint32), 16);
+			total_buffer_size += Align(mesh_data.indices.size() * sizeof(Uint32), 16);
 			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(Vector3), 16);
 			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(Vector2), 16);
 			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(Vector3), 16);
 			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(Vector4), 16);
 			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
-			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(uint32), 16);
+			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(Uint32), 16);
 			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
 
 			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
@@ -760,26 +760,26 @@ namespace adria
 
 		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
 
-		uint32 current_offset = 0;
+		Uint32 current_offset = 0;
 		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)
 		{
-			uint64 current_copy_size = _data.size() * sizeof(T);
+			Uint64 current_copy_size = _data.size() * sizeof(T);
 			staging_buffer.Update(_data.data(), current_copy_size, current_offset);
-			current_offset += (uint32)Align(current_copy_size, 16);
+			current_offset += (Uint32)Align(current_copy_size, 16);
 		};
 
 		mesh.submeshes.reserve(mesh_datas.size());
-		for (uint64 i = 0; i < mesh_datas.size(); ++i)
+		for (Uint64 i = 0; i < mesh_datas.size(); ++i)
 		{
 			auto const& mesh_data = mesh_datas[i];
 
 			SubMeshGPU& submesh = mesh.submeshes.emplace_back();
 
 			submesh.indices_offset = current_offset;
-			submesh.indices_count = (uint32)mesh_data.indices.size();
+			submesh.indices_count = (Uint32)mesh_data.indices.size();
 			CopyData(mesh_data.indices);
 
-			submesh.vertices_count = (uint32)mesh_data.positions_stream.size();
+			submesh.vertices_count = (Uint32)mesh_data.positions_stream.size();
 			submesh.positions_offset = current_offset;
 			CopyData(mesh_data.positions_stream);
 
@@ -801,7 +801,7 @@ namespace adria
 			submesh.meshlet_triangles_offset = current_offset;
 			CopyData(mesh_data.meshlet_triangles);
 
-			submesh.meshlet_count = (uint32)mesh_data.meshlets.size();
+			submesh.meshlet_count = (Uint32)mesh_data.meshlets.size();
 
 			submesh.bounding_box = mesh_data.bounding_box;
 			submesh.topology = mesh_data.topology;
@@ -809,7 +809,7 @@ namespace adria
 		}
 		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
-		for (uint64 i = 0; i < gltf_data->nodes_count; ++i)
+		for (Uint64 i = 0; i < gltf_data->nodes_count; ++i)
 		{
 			cgltf_node const& gltf_node = gltf_data->nodes[i];
 
@@ -818,7 +818,7 @@ namespace adria
 				Matrix local_to_world;
 				cgltf_node_transform_world(&gltf_node, &local_to_world.m[0][0]);
 
-				for (int32 primitive : mesh_primitives_map[gltf_node.mesh])
+				for (Sint32 primitive : mesh_primitives_map[gltf_node.mesh])
 				{
 					SubMeshInstance& instance = mesh.instances.emplace_back();
 					instance.submesh_index = primitive;

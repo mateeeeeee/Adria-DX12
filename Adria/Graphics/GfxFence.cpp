@@ -25,7 +25,7 @@ namespace adria
 		return true;
 	}
 
-	void GfxFence::Wait(uint64 value)
+	void GfxFence::Wait(Uint64 value)
 	{
 		if (!IsCompleted(value))
 		{
@@ -34,17 +34,17 @@ namespace adria
 		}
 	}
 
-	void GfxFence::Signal(uint64 value)
+	void GfxFence::Signal(Uint64 value)
 	{
 		fence->Signal(value);
 	}
 
-	bool GfxFence::IsCompleted(uint64 value)
+	bool GfxFence::IsCompleted(Uint64 value)
 	{
 		return GetCompletedValue() >= value;
 	}
 
-	uint64 GfxFence::GetCompletedValue() const
+	Uint64 GfxFence::GetCompletedValue() const
 	{
 		return fence->GetCompletedValue();
 	}

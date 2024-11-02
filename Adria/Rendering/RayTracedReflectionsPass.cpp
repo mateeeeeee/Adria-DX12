@@ -13,7 +13,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> RTR("r.RTR", true, "0 - Disabled, 1 - Enabled");
 	
-	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
+	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, Uint32 width, Uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx), copy_to_texture_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1);
@@ -64,15 +64,15 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct RayTracedReflectionsConstants
 				{
 					float   roughness_scale;
-					uint32  depth_idx;
-					uint32  normal_idx;
-					uint32  albedo_idx;
-					uint32  output_idx;
+					Uint32  depth_idx;
+					Uint32  normal_idx;
+					Uint32  albedo_idx;
+					Uint32  output_idx;
 				} constants =
 				{
 					.roughness_scale = reflection_roughness_scale,
@@ -92,7 +92,7 @@ namespace adria
 		copy_to_texture_pass.AddPass(rg, postprocessor->GetFinalResource(), RG_NAME(RTR_Output), BlendMode::AdditiveBlend);
 	}
 
-	void RayTracedReflectionsPass::OnResize(uint32 w, uint32 h)
+	void RayTracedReflectionsPass::OnResize(Uint32 w, Uint32 h)
 	{
 		if (!IsSupported()) return;
 		width = w, height = h;

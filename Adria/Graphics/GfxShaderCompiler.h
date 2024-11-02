@@ -8,7 +8,7 @@ namespace adria
 	{
 		GfxShader shader;
 		std::vector<std::string> includes;
-		uint64 shader_hash[2];
+		Uint64 shader_hash[2];
 	};
 	using GfxShaderCompileInput = GfxShaderDesc;
 

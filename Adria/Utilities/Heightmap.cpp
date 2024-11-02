@@ -55,10 +55,10 @@ namespace adria
 		noise.SetFrequency(0.1f);
 		hm.resize(desc.depth);
 
-		for (uint32 z = 0; z < desc.depth; z++)
+		for (Uint32 z = 0; z < desc.depth; z++)
 		{
 			hm[z].resize(desc.width);
-			for (uint32 x = 0; x < desc.width; x++)
+			for (Uint32 x = 0; x < desc.width; x++)
 			{
 
 				float xf = x * desc.noise_scale / desc.width; // - desc.width / 2;
@@ -74,15 +74,15 @@ namespace adria
 	{
 		//todo
 	}
-	float Heightmap::HeightAt(uint64 x, uint64 z)
+	float Heightmap::HeightAt(Uint64 x, Uint64 z)
 	{
 		return hm[z][x];
 	}
-	uint64 Heightmap::Width() const
+	Uint64 Heightmap::Width() const
 	{
 		return hm[0].size();
 	}
-	uint64 Heightmap::Depth() const
+	Uint64 Heightmap::Depth() const
 	{
 		return hm.size();
 	}

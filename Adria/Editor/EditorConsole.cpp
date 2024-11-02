@@ -13,7 +13,7 @@ namespace adria
 	}
 	static char* Strdup(const char* s)
 	{
-		IM_ASSERT(s); uint64 len = strlen(s) + 1; void* buf = malloc(len); IM_ASSERT(buf); return (char*)memcpy(buf, (const void*)s, len);
+		IM_ASSERT(s); Uint64 len = strlen(s) + 1; void* buf = malloc(len); IM_ASSERT(buf); return (char*)memcpy(buf, (const void*)s, len);
 	}
 	static void  Strtrim(char* s)
 	{

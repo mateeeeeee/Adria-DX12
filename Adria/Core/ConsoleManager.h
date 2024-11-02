@@ -80,7 +80,7 @@ namespace adria
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 		}
-		AutoConsoleVariable(char const* name, int32 default_value, char const* help)
+		AutoConsoleVariable(char const* name, Sint32 default_value, char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 		}
@@ -98,7 +98,7 @@ namespace adria
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariable(char const* name, int32 default_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariable(char const* name, Sint32 default_value, char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
@@ -158,15 +158,15 @@ namespace adria
 	private:
 	};
 
-	template <uint32 N>
+	template <Uint32 N>
 	TAutoConsoleVariable(char const* name, const char(&)[N], char const* help) -> TAutoConsoleVariable<std::string>;
-	template <uint32 N>
+	template <Uint32 N>
 	TAutoConsoleVariable(char const* name, const char(&)[N], char const* help, ConsoleVariableDelegate const& callback) -> TAutoConsoleVariable<std::string>;
 
 	class AutoConsoleVariableRef : private AutoConsoleObject
 	{
 	public:
-		AutoConsoleVariableRef(char const* name, int32& ref_value, char const* help)
+		AutoConsoleVariableRef(char const* name, Sint32& ref_value, char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 		}
@@ -183,7 +183,7 @@ namespace adria
 		{
 		}
 
-		AutoConsoleVariableRef(char const* name, int32& ref_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariableRef(char const* name, Sint32& ref_value, char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);

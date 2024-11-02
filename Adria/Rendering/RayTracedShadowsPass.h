@@ -12,17 +12,17 @@ namespace adria
 	class RayTracedShadowsPass
 	{
 	public:
-		RayTracedShadowsPass(GfxDevice* gfx, uint32 width, uint32 height);
+		RayTracedShadowsPass(GfxDevice* gfx, Uint32 width, Uint32 height);
 		~RayTracedShadowsPass();
-		void AddPass(RenderGraph& rendergraph, uint32 light_index);
-		void OnResize(uint32 w, uint32 h);
+		void AddPass(RenderGraph& rendergraph, Uint32 light_index);
+		void OnResize(Uint32 w, Uint32 h);
 
 		bool IsSupported() const;
 
 	private:
 		GfxDevice* gfx;
 		std::unique_ptr<GfxStateObject> ray_traced_shadows_so;
-		uint32 width, height;
+		Uint32 width, height;
 		bool is_supported;
 
 	private:

@@ -14,9 +14,9 @@ using namespace DirectX;
 
 namespace adria
 {
-	static constexpr uint32 SKYCUBE_SIZE = 128;
+	static constexpr Uint32 SKYCUBE_SIZE = 128;
 
-	SkyPass::SkyPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)
+	SkyPass::SkyPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h)
 		: reg(reg), gfx(gfx), width(w), height(h), sky_type(SkyType::HosekWilkie)
 	{
 		CreatePSOs();
@@ -163,12 +163,12 @@ namespace adria
 		);
 	}
 
-	void SkyPass::OnResize(uint32 w, uint32 h)
+	void SkyPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
 
-	int32 SkyPass::GetSkyIndex() const
+	Sint32 SkyPass::GetSkyIndex() const
 	{
 		if (sky_type == SkyType::Skybox)
 		{
@@ -179,13 +179,13 @@ namespace adria
 				if (!skybox.active) continue;
 
 				ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-				return (int32)skybox.cubemap_texture;
+				return (Sint32)skybox.cubemap_texture;
 			}
 		}
 
 		GfxDescriptor sky_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, sky_srv_gpu, sky_texture_srv);
-		return (int32)sky_srv_gpu.GetIndex();
+		return (Sint32)sky_srv_gpu.GetIndex();
 	}
 
 	void SkyPass::CreatePSOs()
@@ -242,7 +242,7 @@ namespace adria
 			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		uint16 const cube_indices[36] =
+		Uint16 const cube_indices[36] =
 		{
 			// front
 			0, 1, 2,
@@ -273,7 +273,7 @@ namespace adria
 		GfxBufferDesc ib_desc{};
 		ib_desc.bind_flags = GfxBindFlag::None;
 		ib_desc.format = GfxFormat::R16_UINT;
-		ib_desc.stride = sizeof(uint16);
+		ib_desc.stride = sizeof(Uint16);
 		ib_desc.size = sizeof(cube_indices);
 		cube_ib = gfx->CreateBuffer(ib_desc, cube_indices);
 	}

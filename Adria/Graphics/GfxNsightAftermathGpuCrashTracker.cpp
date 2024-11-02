@@ -59,7 +59,7 @@ namespace adria
 			return;
 		}
 
-		uint32 const aftermath_flags =
+		Uint32 const aftermath_flags =
 			GFSDK_Aftermath_FeatureFlags_EnableMarkers |             // Enable event marker tracking.
 			GFSDK_Aftermath_FeatureFlags_CallStackCapturing |        // Enable automatic call stack event markers.
 			GFSDK_Aftermath_FeatureFlags_EnableResourceTracking |    // Enable tracking of resources.
@@ -101,13 +101,13 @@ namespace adria
 		}
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::OnCrashDump(const void* gpu_crash_dump_data, const uint32 gpu_crash_dump_size)
+	void GfxNsightAftermathGpuCrashTracker::OnCrashDump(const void* gpu_crash_dump_data, const Uint32 gpu_crash_dump_size)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 		WriteGpuCrashDumpToFile(gpu_crash_dump_data, gpu_crash_dump_size);
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::OnShaderDebugInfo(const void* shader_debug_info, const uint32 shader_debug_info_size)
+	void GfxNsightAftermathGpuCrashTracker::OnShaderDebugInfo(const void* shader_debug_info, const Uint32 shader_debug_info_size)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -119,7 +119,7 @@ namespace adria
 			&identifier);
 		ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
 
-		std::vector<uint8> data((uint8*)shader_debug_info, (uint8*)shader_debug_info + shader_debug_info_size);
+		std::vector<Uint8> data((Uint8*)shader_debug_info, (Uint8*)shader_debug_info + shader_debug_info_size);
 		shader_debug_info_map[identifier] = std::move(data);
 		WriteShaderDebugInformationToFile(identifier, shader_debug_info, shader_debug_info_size);
 	}
@@ -136,7 +136,7 @@ namespace adria
 		if (!shader_debug_info_map.contains(identifier)) return;
 		auto const& debug_info = (*shader_debug_info_map.find(identifier)).second;
 		// Let the GPU crash dump decoder know about the shader debug information that was found.
-		set_shader_debug_info(debug_info.data(), (uint32)debug_info.size());
+		set_shader_debug_info(debug_info.data(), (Uint32)debug_info.size());
 	}
 
 	// Handler for shader lookup callbacks.
@@ -148,7 +148,7 @@ namespace adria
 	void GfxNsightAftermathGpuCrashTracker::OnShaderLookup(GFSDK_Aftermath_ShaderBinaryHash const& shader_hash, PFN_GFSDK_Aftermath_SetData set_shader_binary) const
 	{
 		GfxShader const& shader = GetGfxShader(shader_hash_map[shader_hash.hash]);
-		set_shader_binary(shader.GetData(), (uint32)shader.GetSize());
+		set_shader_binary(shader.GetData(), (Uint32)shader.GetSize());
 	}
 	// Handler for shader source debug info lookup callbacks.
 	// This is used by the JSON decoder for mapping shader instruction addresses to
@@ -157,18 +157,18 @@ namespace adria
 	void GfxNsightAftermathGpuCrashTracker::OnShaderSourceDebugInfoLookup(GFSDK_Aftermath_ShaderDebugName const& shader_debug_name, PFN_GFSDK_Aftermath_SetData set_shader_binary) const
 	{
 		std::ifstream file(paths::ShaderPDBDir + shader_debug_name.name, std::ios::binary); 
-		std::vector<uint8> debug_info;
+		std::vector<Uint8> debug_info;
 		if (file)
 		{
 			file.seekg(0, std::ios::end);
 			std::streamsize file_size = file.tellg();
 			file.seekg(0, std::ios::beg);
 			debug_info.resize(file_size);
-			if (file.read(reinterpret_cast<char*>(debug_info.data()), file_size)) set_shader_binary(debug_info.data(), uint32(debug_info.size()));
+			if (file.read(reinterpret_cast<char*>(debug_info.data()), file_size)) set_shader_binary(debug_info.data(), Uint32(debug_info.size()));
 		}
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, uint32 gpu_crash_dump_size)
+	void GfxNsightAftermathGpuCrashTracker::WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, Uint32 gpu_crash_dump_size)
 	{
 		// Create a GPU crash dump decoder object for the GPU crash dump.
 		GFSDK_Aftermath_GpuCrashDump_Decoder decoder{};
@@ -183,7 +183,7 @@ namespace adria
 		result = GFSDK_Aftermath_GpuCrashDump_GetBaseInfo(decoder, &base_info);
 		if (result != GFSDK_Aftermath_Result_Success) return;
 		
-		uint32 application_name_length = 0;
+		Uint32 application_name_length = 0;
 		GFSDK_Aftermath_GpuCrashDump_GetDescriptionSize(
 			decoder, GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName,
 			&application_name_length);
@@ -192,9 +192,9 @@ namespace adria
 
 		GFSDK_Aftermath_GpuCrashDump_GetDescription(
 			decoder, GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName,
-			uint32(application_name.size()), application_name.data());
+			Uint32(application_name.size()), application_name.data());
 
-		static uint32 count = 0;
+		static Uint32 count = 0;
 		const std::string base_file_name =
 			std::string(application_name.data())
 			+ "-"
@@ -210,7 +210,7 @@ namespace adria
 			dump_file.close();
 		}
 
-		uint32 json_size = 0;
+		Uint32 json_size = 0;
 		result = GFSDK_Aftermath_GpuCrashDump_GenerateJSON(
 			decoder,
 			GFSDK_Aftermath_GpuCrashDumpDecoderFlags_ALL_INFO,
@@ -235,7 +235,7 @@ namespace adria
 		GFSDK_Aftermath_GpuCrashDump_DestroyDecoder(decoder);
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, uint32 shader_debug_info_size)
+	void GfxNsightAftermathGpuCrashTracker::WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, Uint32 shader_debug_info_size)
 	{
 		std::string file_path = paths::AftermathDir + "shader-" + ToString(identifier) + ".nvdbg";
 		std::ofstream f(file_path, std::ios::out | std::ios::binary);

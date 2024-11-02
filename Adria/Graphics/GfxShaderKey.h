@@ -2,7 +2,7 @@
 
 namespace adria
 {
-	enum ShaderID : uint8;
+	enum ShaderID : Uint8;
 	struct GfxShaderDefine;
 
 	class GfxShaderKey
@@ -34,12 +34,12 @@ namespace adria
 		std::unique_ptr<Impl> impl;
 
 	private:
-		uint64 GetHash() const;
+		Uint64 GetHash() const;
 	};
 
 	struct GfxShaderKeyHash
 	{
-		uint64 operator()(GfxShaderKey const& key) const
+		Uint64 operator()(GfxShaderKey const& key) const
 		{
 			return key.GetHash();
 		}

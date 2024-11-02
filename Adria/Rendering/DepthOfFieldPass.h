@@ -13,18 +13,18 @@ namespace adria
 	class DepthOfFieldPass : public PostEffect
 	{
 	public:
-		DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
+		DepthOfFieldPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~DepthOfFieldPass();
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual void OnResize(uint32, uint32) override;
+		virtual void OnResize(Uint32, Uint32) override;
 		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void OnSceneInitialized() override;
 		virtual void GUI();
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		BlurPass blur_pass;
 
 		std::unique_ptr<GfxComputePipelineState> compute_coc_pso;

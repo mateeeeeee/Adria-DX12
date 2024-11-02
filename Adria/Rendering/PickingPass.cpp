@@ -10,14 +10,14 @@
 namespace adria
 {
 
-	PickingPass::PickingPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx),
+	PickingPass::PickingPass(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx),
 		width(width), height(height)
 	{
 		CreatePSO();
 		CreatePickingBuffers();
 	}
 
-	void PickingPass::OnResize(uint32 w, uint32 h)
+	void PickingPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
@@ -59,13 +59,13 @@ namespace adria
 				};	
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct PickingConstants
 				{
-					uint32 depth_idx;
-					uint32 normal_idx;
-					uint32 buffer_idx;
+					Uint32 depth_idx;
+					Uint32 normal_idx;
+					Uint32 buffer_idx;
 				} constants =
 				{
 					.depth_idx = i, .normal_idx = i + 1, .buffer_idx = i + 2
@@ -112,7 +112,7 @@ namespace adria
 
 	void PickingPass::CreatePickingBuffers()
 	{
-		for (uint64 i = 0; i < gfx->GetBackbufferCount(); ++i)
+		for (Uint64 i = 0; i < gfx->GetBackbufferCount(); ++i)
 		{
 			read_picking_buffers.emplace_back(gfx->CreateBuffer(ReadBackBufferDesc(sizeof(PickingData))));
 		}

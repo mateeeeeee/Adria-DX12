@@ -20,16 +20,16 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> GpuDrivenRendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
 
-	static constexpr uint32 MAX_NUM_MESHLETS = 1 << 20u;
-	static constexpr uint32 MAX_NUM_INSTANCES = 1 << 14u;
+	static constexpr Uint32 MAX_NUM_MESHLETS = 1 << 20u;
+	static constexpr Uint32 MAX_NUM_INSTANCES = 1 << 14u;
 
 	struct MeshletCandidate
 	{
-		uint32 instance_id;
-		uint32 meshlet_index;
+		Uint32 instance_id;
+		Uint32 meshlet_index;
 	};
 
-	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) 
+	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height) 
 		: reg(reg), gfx(gfx), width(width), height(height)
 	{
 		GpuDrivenRendering->Set(IsSupported());
@@ -79,7 +79,7 @@ namespace adria
 
 							ImGui::SeparatorText("GPU Driven Debug Stats");
 							{
-								uint32 backbuffer_index = gfx->GetBackbufferIndex();
+								Uint32 backbuffer_index = gfx->GetBackbufferIndex();
 								DebugStats current_debug_stats = debug_stats[backbuffer_index];
 
 								ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
@@ -232,17 +232,17 @@ namespace adria
 			[=](ClearCountersPassData& data, RenderGraphBuilder& builder)
 			{
 				RGBufferDesc counter_desc{};
-				counter_desc.size = 3 * sizeof(uint32);
+				counter_desc.size = 3 * sizeof(Uint32);
 				counter_desc.format = GfxFormat::R32_UINT;
-				counter_desc.stride = sizeof(uint32);
+				counter_desc.stride = sizeof(Uint32);
 				builder.DeclareBuffer(RG_NAME(CandidateMeshletsCounter), counter_desc);
 				data.candidate_meshlets_counter = builder.WriteBuffer(RG_NAME(CandidateMeshletsCounter));
 
-				counter_desc.size = 2 * sizeof(uint32);
+				counter_desc.size = 2 * sizeof(Uint32);
 				builder.DeclareBuffer(RG_NAME(VisibleMeshletsCounter), counter_desc);
 				data.visible_meshlets_counter = builder.WriteBuffer(RG_NAME(VisibleMeshletsCounter));
 
-				counter_desc.size = sizeof(uint32);
+				counter_desc.size = sizeof(Uint32);
 				builder.DeclareBuffer(RG_NAME(OccludedInstancesCounter), counter_desc);
 				data.occluded_instances_counter = builder.WriteBuffer(RG_NAME(OccludedInstancesCounter));
 			},
@@ -255,13 +255,13 @@ namespace adria
 												ctx.GetReadWriteBuffer(data.visible_meshlets_counter),
 												ctx.GetReadWriteBuffer(data.occluded_instances_counter) };
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct ClearCountersConstants
 				{
-					uint32 candidate_meshlets_counter_idx;
-					uint32 visible_meshlets_counter_idx;
-					uint32 occluded_instances_counter_idx;
+					Uint32 candidate_meshlets_counter_idx;
+					Uint32 visible_meshlets_counter_idx;
+					Uint32 occluded_instances_counter_idx;
 				} constants =
 				{
 					.candidate_meshlets_counter_idx = i,
@@ -302,8 +302,8 @@ namespace adria
 				RGBufferDesc occluded_instances_buffer_desc{};
 				occluded_instances_buffer_desc.resource_usage = GfxResourceUsage::Default;
 				occluded_instances_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
-				occluded_instances_buffer_desc.stride = sizeof(uint32);
-				occluded_instances_buffer_desc.size = sizeof(uint32) * MAX_NUM_INSTANCES;
+				occluded_instances_buffer_desc.stride = sizeof(Uint32);
+				occluded_instances_buffer_desc.size = sizeof(Uint32) * MAX_NUM_INSTANCES;
 				builder.DeclareBuffer(RG_NAME(OccludedInstances), occluded_instances_buffer_desc);
 
 				data.hzb = builder.ReadTexture(RG_NAME(HZB));
@@ -323,17 +323,17 @@ namespace adria
 												ctx.GetReadWriteBuffer(data.candidate_meshlets_counter) };
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
-				uint32 const num_instances = (uint32)reg.view<Batch>().size();
+				Uint32 const num_instances = (Uint32)reg.view<Batch>().size();
 				struct CullInstances1stPhaseConstants
 				{
-					uint32 num_instances;
-					uint32 hzb_idx;
-					uint32 occluded_instances_idx;
-					uint32 occluded_instances_counter_idx;
-					uint32 candidate_meshlets_idx;
-					uint32 candidate_meshlets_counter_idx;
+					Uint32 num_instances;
+					Uint32 hzb_idx;
+					Uint32 occluded_instances_idx;
+					Uint32 occluded_instances_counter_idx;
+					Uint32 candidate_meshlets_idx;
+					Uint32 candidate_meshlets_counter_idx;
 				} constants =
 				{
 					.num_instances = num_instances,
@@ -380,12 +380,12 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct BuildMeshletCullArgsConstants
 				{
-					uint32 candidate_meshlets_counter_idx;
-					uint32 meshlet_cull_args_idx;
+					Uint32 candidate_meshlets_counter_idx;
+					Uint32 meshlet_cull_args_idx;
 				} constants =
 				{
 					.candidate_meshlets_counter_idx = i + 0,
@@ -436,15 +436,15 @@ namespace adria
 												ctx.GetReadWriteBuffer(data.visible_meshlets_counter)};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct CullMeshlets1stPhaseConstants
 				{
-					uint32 hzb_idx;
-					uint32 candidate_meshlets_idx;
-					uint32 candidate_meshlets_counter_idx;
-					uint32 visible_meshlets_idx;
-					uint32 visible_meshlets_counter_idx;
+					Uint32 hzb_idx;
+					Uint32 candidate_meshlets_idx;
+					Uint32 candidate_meshlets_counter_idx;
+					Uint32 visible_meshlets_idx;
+					Uint32 visible_meshlets_counter_idx;
 				} constants =
 				{
 					.hzb_idx = i,
@@ -491,12 +491,12 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct BuildMeshletDrawArgsConstants
 				{
-					uint32 visible_meshlets_counter_idx;
-					uint32 meshlet_draw_args_idx;
+					Uint32 visible_meshlets_counter_idx;
+					Uint32 meshlet_draw_args_idx;
 				} constants =
 				{
 					.visible_meshlets_counter_idx = i + 0,
@@ -552,11 +552,11 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct DrawMeshlets1stPhaseConstants
 				{
-					uint32 visible_meshlets_idx;
+					Uint32 visible_meshlets_idx;
 				} constants =
 				{
 					.visible_meshlets_idx = i,
@@ -608,12 +608,12 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct BuildInstanceCullArgsConstants
 				{
-					uint32  occluded_instances_counter_idx;
-					uint32  instance_cull_args_idx;
+					Uint32  occluded_instances_counter_idx;
+					Uint32  instance_cull_args_idx;
 				} constants =
 				{
 					.occluded_instances_counter_idx = i + 0,
@@ -655,16 +655,16 @@ namespace adria
 												ctx.GetReadWriteBuffer(data.candidate_meshlets_counter) };
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct CullInstances2ndPhaseConstants
 				{
-					uint32 num_instances;
-					uint32 hzb_idx;
-					uint32 occluded_instances_idx;
-					uint32 occluded_instances_counter_idx;
-					uint32 candidate_meshlets_idx;
-					uint32 candidate_meshlets_counter_idx;
+					Uint32 num_instances;
+					Uint32 hzb_idx;
+					Uint32 occluded_instances_idx;
+					Uint32 occluded_instances_counter_idx;
+					Uint32 candidate_meshlets_idx;
+					Uint32 candidate_meshlets_counter_idx;
 				} constants =
 				{
 					.num_instances = 0,
@@ -703,12 +703,12 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct BuildMeshletCullArgsConstants
 				{
-					uint32 candidate_meshlets_counter_idx;
-					uint32 meshlet_cull_args_idx;
+					Uint32 candidate_meshlets_counter_idx;
+					Uint32 meshlet_cull_args_idx;
 				} constants =
 				{
 					.candidate_meshlets_counter_idx = i + 0,
@@ -752,15 +752,15 @@ namespace adria
 												ctx.GetReadWriteBuffer(data.visible_meshlets_counter) };
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct CullMeshlets2ndPhaseConstants
 				{
-					uint32 hzb_idx;
-					uint32 candidate_meshlets_idx;
-					uint32 candidate_meshlets_counter_idx;
-					uint32 visible_meshlets_idx;
-					uint32 visible_meshlets_counter_idx;
+					Uint32 hzb_idx;
+					Uint32 candidate_meshlets_idx;
+					Uint32 candidate_meshlets_counter_idx;
+					Uint32 visible_meshlets_idx;
+					Uint32 visible_meshlets_counter_idx;
 				} constants =
 				{
 					.hzb_idx = i,
@@ -798,12 +798,12 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct BuildMeshletDrawArgsConstants
 				{
-					uint32 visible_meshlets_counter_idx;
-					uint32 meshlet_draw_args_idx;
+					Uint32 visible_meshlets_counter_idx;
+					Uint32 meshlet_draw_args_idx;
 				} constants =
 				{
 					.visible_meshlets_counter_idx = i + 0,
@@ -842,11 +842,11 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct DrawMeshlets1stPhaseConstants
 				{
-					uint32 visible_meshlets_idx;
+					Uint32 visible_meshlets_idx;
 				} constants =
 				{
 					.visible_meshlets_idx = i,
@@ -894,12 +894,12 @@ namespace adria
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct InitializeHZBConstants
 				{
-					uint32 depth_idx;
-					uint32 hzb_idx;
+					Uint32 depth_idx;
+					Uint32 hzb_idx;
 					float inv_hzb_width;
 					float inv_hzb_height;
 				} constants =
@@ -928,14 +928,14 @@ namespace adria
 				if (!second_phase)
 				{
 					RGBufferDesc counter_desc{};
-					counter_desc.size = sizeof(uint32);
+					counter_desc.size = sizeof(Uint32);
 					counter_desc.format = GfxFormat::R32_UINT;
-					counter_desc.stride = sizeof(uint32);
+					counter_desc.stride = sizeof(Uint32);
 					builder.DeclareBuffer(RG_NAME(SPDCounter), counter_desc);
 				}
 
 				ADRIA_ASSERT(hzb_mip_count <= 12);
-				for (uint32 i = 0; i < hzb_mip_count; ++i)
+				for (Uint32 i = 0; i < hzb_mip_count; ++i)
 				{
 					data.hzb_mips[i] = builder.WriteTexture(RG_NAME(HZB), i, 1);
 				}
@@ -949,7 +949,7 @@ namespace adria
 				varAU2(workGroupOffset);
 				varAU2(numWorkGroupsAndMips);
 				varAU4(rectInfo) = initAU4(0, 0, hzb_width, hzb_height);
-				uint32 mips = hzb_mip_count;
+				Uint32 mips = hzb_mip_count;
 
 				SpdSetup(
 					dispatchThreadGroupCountXY,
@@ -960,25 +960,25 @@ namespace adria
 
 				std::vector<GfxDescriptor> src_handles(hzb_mip_count + 1);
 				src_handles[0] = ctx.GetReadWriteBuffer(data.spd_counter);
-				for (uint32 i = 0; i < hzb_mip_count; ++i) src_handles[i + 1] = ctx.GetReadWriteTexture(data.hzb_mips[i]);
+				for (Uint32 i = 0; i < hzb_mip_count; ++i) src_handles[i + 1] = ctx.GetReadWriteTexture(data.hzb_mips[i]);
 
-				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU((uint32)src_handles.size());
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU((Uint32)src_handles.size());
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				GfxDescriptor counter_uav_cpu = src_handles[0];
 				GfxDescriptor counter_uav_gpu = dst_handle;
 				GfxBuffer& spd_counter = ctx.GetBuffer(*data.spd_counter);
-				uint32 clear[] = { 0u };
+				Uint32 clear[] = { 0u };
 				cmd_list->ClearUAV(spd_counter, counter_uav_gpu, counter_uav_cpu, clear);
 				cmd_list->GlobalBarrier(GfxResourceState::ComputeUAV, GfxResourceState::ComputeUAV);
 
 				struct HZBMipsConstants
 				{
-					uint32 num_mips;
-					uint32 num_work_groups;
-					uint32 work_group_offset_x;
-					uint32 work_group_offset_y;
+					Uint32 num_mips;
+					Uint32 num_work_groups;
+					Uint32 work_group_offset_x;
+					Uint32 work_group_offset_y;
 				} constants
 				{
 					.num_mips = numWorkGroupsAndMips[1],
@@ -991,9 +991,9 @@ namespace adria
 				struct SPDIndices
 				{
 					XMUINT4	dstIdx[12];
-					uint32	spdGlobalAtomicIdx;
+					Uint32	spdGlobalAtomicIdx;
 				} indices{ .spdGlobalAtomicIdx = i };
-				for (uint32 j = 0; j < hzb_mip_count; ++j) indices.dstIdx[j].x = i + 1 + j;
+				for (Uint32 j = 0; j < hzb_mip_count; ++j) indices.dstIdx[j].x = i + 1 + j;
 
 				cmd_list->SetPipelineState(hzb_mips_pso.get());
 				cmd_list->SetRootConstants(1, constants);
@@ -1031,16 +1031,16 @@ namespace adria
 				GfxBuffer const& src_buffer3 = context.GetCopySrcBuffer(data.candidate_meshlets_counter);
 				GfxBuffer& debug_buffer = context.GetCopyDstBuffer(data.debug_buffer);
 
-				uint32 backbuffer_index = gfx->GetBackbufferIndex();
-				uint32 buffer_offset = 6 * sizeof(uint32) * backbuffer_index;
-				cmd_list->CopyBuffer(debug_buffer, buffer_offset, src_buffer1, 0, sizeof(uint32));
-				cmd_list->CopyBuffer(debug_buffer, buffer_offset + sizeof(uint32), src_buffer2, 0, 2 * sizeof(uint32));
-				cmd_list->CopyBuffer(debug_buffer, buffer_offset + 3 * sizeof(uint32), src_buffer3, 0, 3 * sizeof(uint32));
+				Uint32 backbuffer_index = gfx->GetBackbufferIndex();
+				Uint32 buffer_offset = 6 * sizeof(Uint32) * backbuffer_index;
+				cmd_list->CopyBuffer(debug_buffer, buffer_offset, src_buffer1, 0, sizeof(Uint32));
+				cmd_list->CopyBuffer(debug_buffer, buffer_offset + sizeof(Uint32), src_buffer2, 0, 2 * sizeof(Uint32));
+				cmd_list->CopyBuffer(debug_buffer, buffer_offset + 3 * sizeof(Uint32), src_buffer3, 0, 3 * sizeof(Uint32));
 
 				ADRIA_ASSERT(debug_buffer.IsMapped());
-				uint32* buffer_data = debug_buffer.GetMappedData<uint32>();
+				Uint32* buffer_data = debug_buffer.GetMappedData<Uint32>();
 				buffer_data += 6 * backbuffer_index;
-				uint32 num_instances = (uint32)reg.view<Batch>().size();
+				Uint32 num_instances = (Uint32)reg.view<Batch>().size();
 				debug_stats[backbuffer_index].occluded_instances = buffer_data[0];
 				debug_stats[backbuffer_index].num_instances = num_instances;
 				debug_stats[backbuffer_index].visible_instances = num_instances - buffer_data[0];
@@ -1056,8 +1056,8 @@ namespace adria
 
 	void GPUDrivenGBufferPass::CalculateHZBParameters()
 	{
-		uint32 mips_x = (uint32)std::max(ceilf(log2f((float)width)), 1.0f);
-		uint32 mips_y = (uint32)std::max(ceilf(log2f((float)height)), 1.0f);
+		Uint32 mips_x = (Uint32)std::max(ceilf(log2f((float)width)), 1.0f);
+		Uint32 mips_y = (Uint32)std::max(ceilf(log2f((float)height)), 1.0f);
 
 		hzb_mip_count = std::max(mips_x, mips_y);
 		ADRIA_ASSERT(hzb_mip_count <= MAX_HZB_MIP_COUNT);
@@ -1068,7 +1068,7 @@ namespace adria
 	void GPUDrivenGBufferPass::CreateDebugBuffer()
 	{
 		GfxBufferDesc debug_buffer_desc{};
-		debug_buffer_desc.size = 6 * sizeof(uint32) * GFX_BACKBUFFER_COUNT;
+		debug_buffer_desc.size = 6 * sizeof(Uint32) * GFX_BACKBUFFER_COUNT;
 		debug_buffer_desc.resource_usage = GfxResourceUsage::Readback;
 		debug_buffer = gfx->CreateBuffer(debug_buffer_desc);
 	}

@@ -16,7 +16,7 @@ using namespace DirectX;
 namespace adria
 {
 	
-	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), gfx(gfx), width(w), height(h),
+	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h) : reg(reg), gfx(gfx), width(w), height(h),
 		add_textures_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)
 	{
 		CreatePSOs();
@@ -75,22 +75,22 @@ namespace adria
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 				struct TiledLightingConstants
 				{
-					int32  visualize_max_lights;
-					uint32 normal_idx;
-					uint32 diffuse_idx;
-					uint32 depth_idx;
-					uint32 emissive_idx;
-					uint32 ao_idx;
-					uint32 output_idx;
-					int32  debug_idx;
+					Sint32  visualize_max_lights;
+					Uint32 normal_idx;
+					Uint32 diffuse_idx;
+					Uint32 depth_idx;
+					Uint32 emissive_idx;
+					Uint32 ao_idx;
+					Uint32 output_idx;
+					Sint32  debug_idx;
 				} constants =
 				{
 					.visualize_max_lights = visualize_max_lights,
 					.normal_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4,
-					.output_idx = i + 5, .debug_idx = visualize_tiled ? int32(i + 6) : -1
+					.output_idx = i + 5, .debug_idx = visualize_tiled ? Sint32(i + 6) : -1
 				};
 
 				static constexpr float black[] = {0.0f,0.0f,0.0f,0.0f};

@@ -11,18 +11,18 @@ namespace adria
 
 	class ClusteredDeferredLightingPass
 	{
-		static constexpr uint32 CLUSTER_SIZE_X = 16;
-		static constexpr uint32 CLUSTER_SIZE_Y = 16;
-		static constexpr uint32 CLUSTER_SIZE_Z = 16;
-		static constexpr uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
-		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
+		static constexpr Uint32 CLUSTER_SIZE_X = 16;
+		static constexpr Uint32 CLUSTER_SIZE_Y = 16;
+		static constexpr Uint32 CLUSTER_SIZE_Z = 16;
+		static constexpr Uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
+		static constexpr Uint32 CLUSTER_MAX_LIGHTS = 128;
 
 	public:
-		ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, bool recreate_clusters);
 
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 		}
@@ -30,7 +30,7 @@ namespace adria
 	private:
 		entt::registry& reg; 
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		GfxBuffer clusters;
 		GfxBuffer light_counter;
 		GfxBuffer light_list;

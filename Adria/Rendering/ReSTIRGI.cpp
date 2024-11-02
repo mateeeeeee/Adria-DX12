@@ -10,7 +10,7 @@
 namespace adria
 {
 
-	ReSTIRGI::ReSTIRGI(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
+	ReSTIRGI::ReSTIRGI(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
 		{
@@ -50,8 +50,8 @@ namespace adria
 	void ReSTIRGI::AddInitialSamplingPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		uint32 half_width = (width + 1) / 2;
-		uint32 half_height = (height + 1) / 2;
+		Uint32 half_width = (width + 1) / 2;
+		Uint32 half_height = (height + 1) / 2;
 
 		struct InitialSamplingPassData
 		{
@@ -87,7 +87,7 @@ namespace adria
 			[=](InitialSamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+				Uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
 				GfxDescriptor src_descriptors[] =
 				{
 					ctx.GetReadOnlyTexture(data.depth),
@@ -100,11 +100,11 @@ namespace adria
 
 				struct InitialSamplingPassParameters
 				{
-					uint32 depth_idx;
-					uint32 normal_idx;
-					uint32 irradiance_history_idx;
-					uint32 output_irradiance_idx;
-					uint32 output_ray_direction_idx;
+					Uint32 depth_idx;
+					Uint32 normal_idx;
+					Uint32 irradiance_history_idx;
+					Uint32 output_irradiance_idx;
+					Uint32 output_ray_direction_idx;
 				} parameters = 
 				{
 					.depth_idx = i,
@@ -162,7 +162,7 @@ namespace adria
 			temporal_reservoir_buffers[0].reservoir->GetWidth() != width ||
 			temporal_reservoir_buffers[0].reservoir->GetHeight() != height)
 		{
-			for (uint32 i = 0; i < ARRAYSIZE(temporal_reservoir_buffers); ++i)
+			for (Uint32 i = 0; i < ARRAYSIZE(temporal_reservoir_buffers); ++i)
 			{
 				GfxTextureDesc sample_radiance_desc{};
 				sample_radiance_desc.width = width;

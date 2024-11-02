@@ -6,7 +6,7 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxCommandList;
-	enum class GfxCommandListType : uint8;
+	enum class GfxCommandListType : Uint8;
 
 	class GfxCommandListPool
 	{

@@ -17,14 +17,14 @@ namespace adria
 	struct Light;
 	class RainEvent;
 
-	enum AmbientOcclusionType : uint8;
-	enum class UpscalerType : uint8;
-	enum AntiAliasing : uint8;
+	enum AmbientOcclusionType : Uint8;
+	enum class UpscalerType : Uint8;
+	enum AntiAliasing : Uint8;
 
-	using RenderResolutionChangedDelegate = Delegate<void(uint32, uint32)>;
+	using RenderResolutionChangedDelegate = Delegate<void(Uint32, Uint32)>;
 	class PostProcessor
 	{
-		enum PostEffectType : uint32
+		enum PostEffectType : Uint32
 		{
 			PostEffectType_MotionVectors,
 			PostEffectType_LensFlare,
@@ -48,7 +48,7 @@ namespace adria
 		};
 
 	public:
-		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
+		PostProcessor(GfxDevice* gfx, entt::registry& reg, Uint32 width, Uint32 height);
 		~PostProcessor();
 
 		void AddAmbientOcclusionPass(RenderGraph& rg);
@@ -58,8 +58,8 @@ namespace adria
 		void GUI();
 
 		void OnRainEvent(bool enabled);
-		void OnResize(uint32 w, uint32 h);
-		void OnRenderResolutionChanged(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
+		void OnRenderResolutionChanged(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
@@ -80,10 +80,10 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		entt::registry& reg;
-		uint32 display_width;
-		uint32 display_height;
-		uint32 render_width;
-		uint32 render_height;
+		Uint32 display_width;
+		Uint32 display_height;
+		Uint32 render_width;
+		Uint32 render_height;
 		bool ray_tracing_supported = false;
 		bool is_path_tracing_path = false;
 

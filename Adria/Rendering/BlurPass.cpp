@@ -22,7 +22,7 @@ namespace adria
 		char const* pass_name)
 	{
 
-		static uint64 counter = 0;
+		static Uint64 counter = 0;
 		counter++;
 
 		std::string horizontal_name = "Horizontal Blur Pass " + std::string(pass_name);
@@ -56,12 +56,12 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct BlurConstants
 				{
-					uint32 input_idx;
-					uint32 output_idx;
+					Uint32 input_idx;
+					Uint32 output_idx;
 				} constants =
 				{
 					.input_idx = i, .output_idx = i + 1
@@ -93,12 +93,12 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct BlurConstants
 				{
-					uint32 input_idx;
-					uint32 output_idx;
+					Uint32 input_idx;
+					Uint32 output_idx;
 				} constants =
 				{
 					.input_idx = i, .output_idx = i + 1

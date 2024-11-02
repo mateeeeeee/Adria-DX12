@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	GfxLinearDynamicAllocator::GfxLinearDynamicAllocator(GfxDevice* gfx, uint64 page_size, uint64 page_count)
+	GfxLinearDynamicAllocator::GfxLinearDynamicAllocator(GfxDevice* gfx, Uint64 page_size, Uint64 page_count)
 		: gfx(gfx), page_size(page_size)
 	{
 		alloc_pages.reserve(page_count);
@@ -12,7 +12,7 @@ namespace adria
 	}
 	GfxLinearDynamicAllocator::~GfxLinearDynamicAllocator() = default;
 
-	GfxDynamicAllocation GfxLinearDynamicAllocator::Allocate(uint64 size_in_bytes, uint64 alignment)
+	GfxDynamicAllocation GfxLinearDynamicAllocator::Allocate(Uint64 size_in_bytes, Uint64 alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		GfxAllocationPage& last_page = alloc_pages[current_page];
@@ -25,7 +25,7 @@ namespace adria
 		{
 			GfxDynamicAllocation allocation{};
 			allocation.buffer = last_page.buffer.get();
-			allocation.cpu_address = reinterpret_cast<uint8*>(last_page.cpu_address) + offset;
+			allocation.cpu_address = reinterpret_cast<Uint8*>(last_page.cpu_address) + offset;
 			allocation.gpu_address = last_page.buffer->GetGpuAddress() + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
@@ -46,10 +46,10 @@ namespace adria
 			for (auto& page : alloc_pages) page.linear_allocator.Clear();
 		}
 		
-		uint32 i = gfx->GetFrameIndex() % PAGE_COUNT_HISTORY_SIZE;
+		Uint32 i = gfx->GetFrameIndex() % PAGE_COUNT_HISTORY_SIZE;
 		used_page_count_history[i] = current_page;
-		uint64 max_used_page_count = 0;
-		for (uint32 j = 0; j < PAGE_COUNT_HISTORY_SIZE; ++j) max_used_page_count = std::max(max_used_page_count, used_page_count_history[j]);
+		Uint64 max_used_page_count = 0;
+		for (Uint32 j = 0; j < PAGE_COUNT_HISTORY_SIZE; ++j) max_used_page_count = std::max(max_used_page_count, used_page_count_history[j]);
 		if (max_used_page_count < alloc_pages.size())
 		{
 			while (alloc_pages.size() == max_used_page_count) 
@@ -58,7 +58,7 @@ namespace adria
 		current_page = 0;
 	}
 
-	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxDevice* gfx, uint64 page_size) : linear_allocator(page_size)
+	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxDevice* gfx, Uint64 page_size) : linear_allocator(page_size)
 	{
 		GfxBufferDesc desc{};
 		desc.size = page_size;

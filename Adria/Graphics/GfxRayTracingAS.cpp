@@ -65,7 +65,7 @@ namespace adria
 		inputs.Flags = ConvertASFlags(flags);
 		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 
-		inputs.NumDescs = (uint32)geo_descs.size();
+		inputs.NumDescs = (Uint32)geo_descs.size();
 		inputs.pGeometryDescs = geo_descs.data();
 
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bl_prebuild_info{};
@@ -97,7 +97,7 @@ namespace adria
 
 	GfxRayTracingBLAS::~GfxRayTracingBLAS() = default;
 
-	uint64 GfxRayTracingBLAS::GetGpuAddress() const
+	Uint64 GfxRayTracingBLAS::GetGpuAddress() const
 	{
 		return result_buffer->GetGpuAddress();
 	}
@@ -108,7 +108,7 @@ namespace adria
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};
 		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 		inputs.Flags = ConvertASFlags(flags);
-		inputs.NumDescs = (uint32)instances.size();
+		inputs.NumDescs = (Uint32)instances.size();
 		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO tl_prebuild_info;
@@ -133,7 +133,7 @@ namespace adria
 		instance_buffer = gfx->CreateBuffer(instance_buffer_desc);
 
 		D3D12_RAYTRACING_INSTANCE_DESC* p_instance_desc = instance_buffer->GetMappedData<D3D12_RAYTRACING_INSTANCE_DESC>();
-		for (uint64 i = 0; i < instances.size(); ++i)
+		for (Uint64 i = 0; i < instances.size(); ++i)
 		{
 			p_instance_desc[i].InstanceID = instances[i].instance_id;
 			p_instance_desc[i].InstanceContributionToHitGroupIndex = 0;
@@ -156,7 +156,7 @@ namespace adria
 
 	GfxRayTracingTLAS::~GfxRayTracingTLAS() = default;
 
-	uint64 GfxRayTracingTLAS::GetGpuAddress() const
+	Uint64 GfxRayTracingTLAS::GetGpuAddress() const
 	{
 		return result_buffer->GetGpuAddress();
 	}

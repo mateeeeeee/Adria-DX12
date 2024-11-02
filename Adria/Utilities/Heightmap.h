@@ -22,15 +22,15 @@ namespace adria
 	};
 	struct NoiseDesc
 	{
-		uint32 width;
-		uint32 depth;
-		uint32 max_height;
+		Uint32 width;
+		Uint32 depth;
+		Uint32 max_height;
 		FractalType fractal_type = FractalType::None;
 		NoiseType noise_type = NoiseType::Perlin;
-		int32 seed = 1337;
+		Sint32 seed = 1337;
 		float persistence = 0.5f;
 		float lacunarity = 2.0f;
-		int32 octaves = 3;
+		Sint32 octaves = 3;
 		float noise_scale = 10;
 	};
 
@@ -41,9 +41,9 @@ namespace adria
 		explicit Heightmap(NoiseDesc const& desc);
 		explicit Heightmap(std::string_view heightmap_path);
 
-		float HeightAt(uint64 x, uint64 z);
-		uint64 Width() const;
-		uint64 Depth() const;
+		float HeightAt(Uint64 x, Uint64 z);
+		Uint64 Width() const;
+		Uint64 Depth() const;
 
 	private:
 		std::vector<std::vector<float>> hm;

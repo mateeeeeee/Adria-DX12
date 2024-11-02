@@ -21,7 +21,7 @@ namespace adria
 	static TAutoConsoleVariable<bool> Clouds("r.Clouds", true, "Enable or Disable Clouds");
 
 		
-	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h)
+	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, Uint32 w, Uint32 h)
 		: gfx(gfx), width{ w }, height{ h }
 	{
 		CreatePSOs();
@@ -55,11 +55,11 @@ namespace adria
 			struct CloudNoiseConstants
 			{
 				float resolution_inv;
-				uint32 frequency;
-				uint32 output_idx;
+				Uint32 frequency;
+				Uint32 output_idx;
 			};
 
-			for (uint32 i = 0; i < cloud_shape_noise->GetDesc().mip_levels; ++i)
+			for (Uint32 i = 0; i < cloud_shape_noise->GetDesc().mip_levels; ++i)
 			{
 				struct CloudShapePassData
 				{
@@ -74,27 +74,27 @@ namespace adria
 					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 					{
 						GfxDevice* gfx = cmd_list->GetDevice();
-						uint32 resolution = cloud_shape_noise->GetDesc().width >> i;
+						Uint32 resolution = cloud_shape_noise->GetDesc().width >> i;
 
 						GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
 						GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.shape) };
 						gfx->CopyDescriptors(dst_handle, src_handles);
-						uint32 j = dst_handle.GetIndex();
+						Uint32 j = dst_handle.GetIndex();
 
 						CloudNoiseConstants constants
 						{
 							.resolution_inv = 1.0f / resolution,
-							.frequency = (uint32)params.shape_noise_frequency,
+							.frequency = (Uint32)params.shape_noise_frequency,
 							.output_idx = j
 						};
 						cmd_list->SetPipelineState(clouds_shape_pso.get());
 						cmd_list->SetRootConstants(1, constants);
-						uint32 const dispatch = DivideAndRoundUp(resolution, 8);
+						Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
 					}, RGPassType::Compute, RGPassFlags::None);
 			}
 
-			for (uint32 i = 0; i < cloud_detail_noise->GetDesc().mip_levels; ++i)
+			for (Uint32 i = 0; i < cloud_detail_noise->GetDesc().mip_levels; ++i)
 			{
 				struct CloudShapePassData
 				{
@@ -109,22 +109,22 @@ namespace adria
 					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 					{
 						GfxDevice* gfx = cmd_list->GetDevice();
-						uint32 resolution = cloud_detail_noise->GetDesc().width >> i;
+						Uint32 resolution = cloud_detail_noise->GetDesc().width >> i;
 
 						GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
 						GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.detail) };
 						gfx->CopyDescriptors(dst_handle, src_handles);
-						uint32 j = dst_handle.GetIndex();
+						Uint32 j = dst_handle.GetIndex();
 
 						CloudNoiseConstants constants
 						{
 							.resolution_inv = 1.0f / resolution,
-							.frequency = (uint32)params.detail_noise_frequency,
+							.frequency = (Uint32)params.detail_noise_frequency,
 							.output_idx = j
 						};
 						cmd_list->SetPipelineState(clouds_detail_pso.get());
 						cmd_list->SetRootConstants(1, constants);
-						uint32 const dispatch = DivideAndRoundUp(resolution, 8);
+						Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
 					}, RGPassType::Compute, RGPassFlags::None);
 			}
@@ -142,12 +142,12 @@ namespace adria
 				[=](CloudTypePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 				{
 					GfxDevice* gfx = cmd_list->GetDevice();
-					uint32 resolution = cloud_type->GetDesc().width;
+					Uint32 resolution = cloud_type->GetDesc().width;
 
 					GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
 					GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.type) };
 					gfx->CopyDescriptors(dst_handle, src_handles);
-					uint32 j = dst_handle.GetIndex();
+					Uint32 j = dst_handle.GetIndex();
 
 					CloudNoiseConstants constants
 					{
@@ -156,7 +156,7 @@ namespace adria
 					};
 					cmd_list->SetPipelineState(clouds_type_pso.get());
 					cmd_list->SetRootConstants(1, constants);
-					uint32 const dispatch = DivideAndRoundUp(resolution, 8);
+					Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 					cmd_list->Dispatch(dispatch, dispatch, dispatch);
 				}, RGPassType::Compute, RGPassFlags::None);
 		}
@@ -203,17 +203,17 @@ namespace adria
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
 				struct CloudsConstants
 				{
-					uint32      type_idx;
-					uint32      shape_idx;
-					uint32      detail_idx;
-					uint32      output_idx;
+					Uint32      type_idx;
+					Uint32      shape_idx;
+					Uint32      detail_idx;
+					Uint32      output_idx;
 
-					uint32      prev_output_idx;
+					Uint32      prev_output_idx;
 					float		cloud_type;
 					float 	    cloud_min_height;
 					float 	    cloud_max_height;
@@ -239,7 +239,7 @@ namespace adria
 					float 	    sun_light_factor;
 					float 	    henyey_greenstein_g_forward;
 					float 	    henyey_greenstein_g_backward;
-					uint32      resolution_factor;
+					Uint32      resolution_factor;
 				} constants =
 				{
 					.type_idx = i + 0,
@@ -273,7 +273,7 @@ namespace adria
 					.sun_light_factor = params.sun_light_factor,
 					.henyey_greenstein_g_forward = params.henyey_greenstein_g_forward,
 					.henyey_greenstein_g_backward = params.henyey_greenstein_g_backward,
-					.resolution_factor = (uint32)resolution
+					.resolution_factor = (Uint32)resolution
 				};
 
 				GfxPipelineState* clouds_pso = temporal_reprojection ? clouds_psos->Get<1>() : clouds_psos->Get<0>();
@@ -336,7 +336,7 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void VolumetricCloudsPass::OnResize(uint32 w, uint32 h)
+	void VolumetricCloudsPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 		if (prev_clouds)

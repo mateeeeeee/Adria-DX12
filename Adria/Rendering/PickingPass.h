@@ -18,9 +18,9 @@ namespace adria
 	{
 	public:
 		
-		PickingPass(GfxDevice* gfx, uint32 width, uint32 height);
+		PickingPass(GfxDevice* gfx, Uint32 width, Uint32 height);
 
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 
 		void AddPass(RenderGraph& rg);
 
@@ -28,7 +28,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::vector<std::unique_ptr<GfxBuffer>> read_picking_buffers;
 		std::unique_ptr<GfxComputePipelineState> picking_pso;
 

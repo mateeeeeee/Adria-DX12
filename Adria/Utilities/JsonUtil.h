@@ -55,7 +55,7 @@ namespace adria
 			}
 		}
 
-		template<typename T, uint64 N>
+		template<typename T, Uint64 N>
 		ADRIA_MAYBE_UNUSED bool FindArray(std::string const& name, T(&arr)[N])
 		{
 			bool has_field = _json.contains(name);
@@ -64,7 +64,7 @@ namespace adria
 				json const key_value_json = _json[name];
 				if (key_value_json.is_array() && key_value_json.size() == N)
 				{
-					for (uint64 i = 0; i < N; ++i)
+					for (Uint64 i = 0; i < N; ++i)
 					{
 						if (!CheckValueTypeAndAssign(key_value_json[i], arr[i])) return false;
 					}
@@ -85,7 +85,7 @@ namespace adria
 				{
 					arr.clear();
 					arr.resize(key_value_json.size());
-					for (uint64 i = 0; i < key_value_json.size(); ++i)
+					for (Uint64 i = 0; i < key_value_json.size(); ++i)
 					{
 						if (!CheckValueTypeAndAssign(key_value_json[i], arr[i])) return false;
 					}
@@ -129,14 +129,14 @@ namespace adria
 			}
 			else if (key_value_json.is_number_unsigned())
 			{
-				if constexpr (std::is_same_v<std::decay_t<T>, uint64>)
+				if constexpr (std::is_same_v<std::decay_t<T>, Uint64>)
 				{
-					return_value = key_value_json.get<uint64>();
+					return_value = key_value_json.get<Uint64>();
 					return true;
 				}
-				else if constexpr (std::is_same_v<std::decay_t<T>, uint32>)
+				else if constexpr (std::is_same_v<std::decay_t<T>, Uint32>)
 				{
-					return_value = key_value_json.get<uint32>();
+					return_value = key_value_json.get<Uint32>();
 					return true;
 				}
 				else return false;

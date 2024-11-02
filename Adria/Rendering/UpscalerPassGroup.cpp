@@ -11,7 +11,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<int>  Upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
 	
-	enum class UpscalerType : uint8
+	enum class UpscalerType : Uint8
 	{
 		None,
 		FSR2,
@@ -21,30 +21,30 @@ namespace adria
 		Count
 	};
 
-	UpscalerPassGroup::UpscalerPassGroup(GfxDevice* gfx, uint32 width, uint32 height) : upscaler_type(UpscalerType::None), display_width(width), display_height(height)
+	UpscalerPassGroup::UpscalerPassGroup(GfxDevice* gfx, Uint32 width, Uint32 height) : upscaler_type(UpscalerType::None), display_width(width), display_height(height)
 	{
-		post_effect_idx = static_cast<uint32>(upscaler_type);
+		post_effect_idx = static_cast<Uint32>(upscaler_type);
 		Upscaler->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
 			{ 
 				upscaler_type = static_cast<UpscalerType>(cvar->GetInt());
-				post_effect_idx = static_cast<uint32>(upscaler_type);
+				post_effect_idx = static_cast<Uint32>(upscaler_type);
 			}));
 
 		using enum UpscalerType; 
-		post_effects.resize((uint32)Count);
-		post_effects[(uint32)None]  = std::make_unique<EmptyUpscalerPass>();
-		post_effects[(uint32)FSR2]  = std::make_unique<FSR2Pass>(gfx, width, height);
-		post_effects[(uint32)FSR3]  = std::make_unique<FSR3Pass>(gfx, width, height);
-		post_effects[(uint32)XeSS]  = std::make_unique<XeSSPass>(gfx, width, height);
-		post_effects[(uint32)DLSS3] = std::make_unique<DLSS3Pass>(gfx, width, height);
+		post_effects.resize((Uint32)Count);
+		post_effects[(Uint32)None]  = std::make_unique<EmptyUpscalerPass>();
+		post_effects[(Uint32)FSR2]  = std::make_unique<FSR2Pass>(gfx, width, height);
+		post_effects[(Uint32)FSR3]  = std::make_unique<FSR3Pass>(gfx, width, height);
+		post_effects[(Uint32)XeSS]  = std::make_unique<XeSSPass>(gfx, width, height);
+		post_effects[(Uint32)DLSS3] = std::make_unique<DLSS3Pass>(gfx, width, height);
 	}
 
-	void UpscalerPassGroup::OnResize(uint32 w, uint32 h)
+	void UpscalerPassGroup::OnResize(Uint32 w, Uint32 h)
 	{
 		display_width = w, display_height = h;
 		if (upscaler_type != UpscalerType::None)
 		{
-			post_effects[(uint32)upscaler_type]->OnResize(display_width, display_height);
+			post_effects[(Uint32)upscaler_type]->OnResize(display_width, display_height);
 		}
 		else
 		{
@@ -60,7 +60,7 @@ namespace adria
 				if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0FSR3\0XeSS\0DLSS3\0", 5))
 				{
 					upscaler_type = static_cast<UpscalerType>(current_upscaler);
-					if (upscaler_type == UpscalerType::DLSS3 && !post_effects[(uint32)UpscalerType::DLSS3]->IsSupported())
+					if (upscaler_type == UpscalerType::DLSS3 && !post_effects[(Uint32)UpscalerType::DLSS3]->IsSupported())
 					{
 						upscaler_type = UpscalerType::None;
 						current_upscaler = 0;
@@ -70,7 +70,7 @@ namespace adria
 
 					if (upscaler_type != UpscalerType::None)
 					{
-						post_effects[(uint32)upscaler_type]->OnResize(display_width, display_height);
+						post_effects[(Uint32)upscaler_type]->OnResize(display_width, display_height);
 					}
 					else
 					{

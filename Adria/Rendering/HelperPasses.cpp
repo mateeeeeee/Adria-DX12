@@ -10,7 +10,7 @@
 namespace adria
 {
 
-	CopyToTexturePass::CopyToTexturePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	CopyToTexturePass::CopyToTexturePass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSOs();
 	}
@@ -61,12 +61,12 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void CopyToTexturePass::OnResize(uint32 w, uint32 h)
+	void CopyToTexturePass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
 
-	void CopyToTexturePass::SetResolution(uint32 w, uint32 h)
+	void CopyToTexturePass::SetResolution(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
@@ -99,7 +99,7 @@ namespace adria
 		copy_psos->Finalize(gfx);
 	}
 
-	AddTexturesPass::AddTexturesPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h) 
+	AddTexturesPass::AddTexturesPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h) 
 	{
 		CreatePSOs();
 	}
@@ -145,7 +145,7 @@ namespace adria
 
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(2);
 				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.texture_src1), context.GetReadOnlyTexture(data.texture_src2) };
-				uint32 i = dst_descriptor.GetIndex();
+				Uint32 i = dst_descriptor.GetIndex();
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 
 				cmd_list->SetRootConstant(1, i, 0);
@@ -155,12 +155,12 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void AddTexturesPass::OnResize(uint32 w, uint32 h)
+	void AddTexturesPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
 
-	void AddTexturesPass::SetResolution(uint32 w, uint32 h)
+	void AddTexturesPass::SetResolution(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

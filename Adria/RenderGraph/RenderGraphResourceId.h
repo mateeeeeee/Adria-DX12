@@ -3,13 +3,13 @@
 
 namespace adria
 {
-	enum class RGResourceType : uint8
+	enum class RGResourceType : Uint8
 	{
 		Buffer,
 		Texture
 	};
 
-	enum class RGResourceMode : uint8
+	enum class RGResourceMode : Uint8
 	{
 		CopySrc,
 		CopyDst,
@@ -21,17 +21,17 @@ namespace adria
 
 	struct RenderGraphResourceId
 	{
-		inline constexpr static uint32 invalid_id = uint32(-1);
+		inline constexpr static Uint32 invalid_id = Uint32(-1);
 
 		RenderGraphResourceId() : id(invalid_id) {}
 		RenderGraphResourceId(RenderGraphResourceId const&) = default;
-		explicit RenderGraphResourceId(uint64 _id) : id(static_cast<uint32>(_id)) {}
+		explicit RenderGraphResourceId(Uint64 _id) : id(static_cast<Uint32>(_id)) {}
 
 		void Invalidate() { id = invalid_id; }
 		bool IsValid() const { return id != invalid_id; }
 		auto operator<=>(RenderGraphResourceId const&) const = default;
 
-		uint32 id;
+		Uint32 id;
 	};
 	using RGResourceId = RenderGraphResourceId;
 
@@ -80,20 +80,20 @@ namespace adria
 
 	struct RenderGraphResourceDescriptorId
 	{
-		inline constexpr static uint64 invalid_id = uint64(-1);
+		inline constexpr static Uint64 invalid_id = Uint64(-1);
 
 		RenderGraphResourceDescriptorId() : id(invalid_id) {}
-		RenderGraphResourceDescriptorId(uint64 view_id, RenderGraphResourceId resource_handle)
+		RenderGraphResourceDescriptorId(Uint64 view_id, RenderGraphResourceId resource_handle)
 			: id(invalid_id)
 		{
-			uint32 _resource_id = resource_handle.id;
+			Uint32 _resource_id = resource_handle.id;
 			id = (view_id << 32) | _resource_id;
 		}
 
-		uint64 GetViewId() const { return (id >> 32); };
-		uint64 GetResourceId() const
+		Uint64 GetViewId() const { return (id >> 32); };
+		Uint64 GetResourceId() const
 		{
-			return (uint64)static_cast<uint32>(id);
+			return (Uint64)static_cast<Uint32>(id);
 		};
 
 		RenderGraphResourceId operator*() const
@@ -105,10 +105,10 @@ namespace adria
 		bool IsValid() const { return id != invalid_id; }
 		auto operator<=>(RenderGraphResourceDescriptorId const&) const = default;
 
-		uint64 id;
+		Uint64 id;
 	};
 
-	enum class RGDescriptorType : uint8
+	enum class RGDescriptorType : Uint8
 	{
 		ReadOnly,
 		ReadWrite,
@@ -155,42 +155,42 @@ namespace std
 {
 	template <> struct hash<adria::RGTextureId>
 	{
-		adria::uint64 operator()(adria::RGTextureId const& h) const
+		adria::Uint64 operator()(adria::RGTextureId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 	template <> struct hash<adria::RGBufferId>
 	{
-		adria::uint64 operator()(adria::RGBufferId const& h) const
+		adria::Uint64 operator()(adria::RGBufferId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 	template <> struct hash<adria::RGTextureReadOnlyId>
 	{
-		adria::uint64 operator()(adria::RGTextureReadOnlyId const& h) const
+		adria::Uint64 operator()(adria::RGTextureReadOnlyId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 	template <> struct hash<adria::RGTextureReadWriteId>
 	{
-		adria::uint64 operator()(adria::RGTextureReadWriteId const& h) const
+		adria::Uint64 operator()(adria::RGTextureReadWriteId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 	template <> struct hash<adria::RGRenderTargetId>
 	{
-		adria::uint64 operator()(adria::RGRenderTargetId const& h) const
+		adria::Uint64 operator()(adria::RGRenderTargetId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 	template <> struct hash<adria::RGDepthStencilId>
 	{
-		adria::uint64 operator()(adria::RGDepthStencilId const& h) const
+		adria::Uint64 operator()(adria::RGDepthStencilId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
@@ -198,7 +198,7 @@ namespace std
 
 	template <> struct hash<adria::RGBufferReadOnlyId>
 	{
-		adria::uint64 operator()(adria::RGBufferReadOnlyId const& h) const
+		adria::Uint64 operator()(adria::RGBufferReadOnlyId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
@@ -206,7 +206,7 @@ namespace std
 
 	template <> struct hash<adria::RGBufferReadWriteId>
 	{
-		adria::uint64 operator()(adria::RGBufferReadWriteId const& h) const
+		adria::Uint64 operator()(adria::RGBufferReadWriteId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}

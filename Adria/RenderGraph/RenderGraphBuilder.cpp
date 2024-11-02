@@ -289,7 +289,7 @@ namespace adria
 		return read_write_id;
 	}
 
-	void RenderGraphBuilder::SetViewport(uint32 width, uint32 height)
+	void RenderGraphBuilder::SetViewport(Uint32 width, Uint32 height)
 	{
 		rg_pass.viewport_width = width;
 		rg_pass.viewport_height = height;

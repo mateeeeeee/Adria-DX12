@@ -29,7 +29,7 @@ namespace adria
 		NumDebugPrintArgCodes
 	};
 
-	constexpr uint32 ArgCodeSizes[NumDebugPrintArgCodes] =
+	constexpr Uint32 ArgCodeSizes[NumDebugPrintArgCodes] =
 	{
 		4, 8, 12, 16,
 		4, 8, 12, 16,
@@ -37,15 +37,15 @@ namespace adria
 	};
 	struct DebugPrintHeader
 	{
-		uint32 NumBytes;
-		uint32 StringSize;
-		uint32 NumArgs;
+		Uint32 NumBytes;
+		Uint32 StringSize;
+		Uint32 NumArgs;
 	};
 	struct DebugPrintReader
 	{
-		DebugPrintReader(uint8* data, uint32 size) : data(data), size(size), current_offset(0) {}
+		DebugPrintReader(Uint8* data, Uint32 size) : data(data), size(size), current_offset(0) {}
 
-		bool HasMoreData(uint32 count) const
+		bool HasMoreData(Uint32 count) const
 		{
 			return current_offset + count <= size;
 		}
@@ -56,7 +56,7 @@ namespace adria
 			current_offset += sizeof(T);
 			return consumed_data;
 		}
-		std::string ConsumeString(uint32 char_count)
+		std::string ConsumeString(Uint32 char_count)
 		{
 			char* char_data = (char*)data;
 			std::string consumed_string(char_data + current_offset, char_count);
@@ -64,9 +64,9 @@ namespace adria
 			return consumed_string;
 		}
 
-		uint8* data;
-		uint32 const size;
-		uint32 current_offset;
+		Uint8* data;
+		Uint32 const size;
+		Uint32 current_offset;
 	};
 
 	static std::string MakeArgString(DebugPrintReader& reader, ArgCode arg_code)
@@ -75,15 +75,15 @@ namespace adria
 		{
 		case DebugPrint_Uint:
 		{
-			uint32 value = *reader.Consume<uint32>();
+			Uint32 value = *reader.Consume<Uint32>();
 			return std::to_string(value);
 		}
 		case DebugPrint_Uint2:
 		{
 			struct Uint2
 			{
-				uint32 value1;
-				uint32 value2;
+				Uint32 value1;
+				Uint32 value2;
 			};
 			Uint2 uint2 = *reader.Consume<Uint2>();
 			return "(" + std::to_string(uint2.value1) + "," + std::to_string(uint2.value2) + ")";
@@ -92,9 +92,9 @@ namespace adria
 		{
 			struct Uint3
 			{
-				uint32 value1;
-				uint32 value2;
-				uint32 value3;
+				Uint32 value1;
+				Uint32 value2;
+				Uint32 value3;
 			};
 			Uint3 uint3 = *reader.Consume<Uint3>();
 			return "(" + std::to_string(uint3.value1) + "," + std::to_string(uint3.value2) + "," + std::to_string(uint3.value3) + ")";
@@ -103,25 +103,25 @@ namespace adria
 		{
 			struct Uint4
 			{
-				uint32 value1;
-				uint32 value2;
-				uint32 value3;
-				uint32 value4;
+				Uint32 value1;
+				Uint32 value2;
+				Uint32 value3;
+				Uint32 value4;
 			};
 			Uint4 uint4 = *reader.Consume<Uint4>();
 			return "(" + std::to_string(uint4.value1) + "," + std::to_string(uint4.value2) + "," + std::to_string(uint4.value3) + "," + std::to_string(uint4.value4) + ")";
 		}
 		case DebugPrint_Int:
 		{
-			int32 value = *reader.Consume<int32>();
+			Sint32 value = *reader.Consume<Sint32>();
 			return std::to_string(value);
 		}
 		case DebugPrint_Int2:
 		{
 			struct Int2
 			{
-				int32 value1;
-				int32 value2;
+				Sint32 value1;
+				Sint32 value2;
 			};
 			Int2 int2 = *reader.Consume<Int2>();
 			return "(" + std::to_string(int2.value1) + "," + std::to_string(int2.value2) + ")";
@@ -130,9 +130,9 @@ namespace adria
 		{
 			struct Int3
 			{
-				int32 value1;
-				int32 value2;
-				int32 value3;
+				Sint32 value1;
+				Sint32 value2;
+				Sint32 value3;
 			};
 			Int3 int3 = *reader.Consume<Int3>();
 			return "(" + std::to_string(int3.value1) + "," + std::to_string(int3.value2) + "," + std::to_string(int3.value3) + ")";
@@ -141,10 +141,10 @@ namespace adria
 		{
 			struct Int4
 			{
-				int32 value1;
-				int32 value2;
-				int32 value3;
-				int32 value4;
+				Sint32 value1;
+				Sint32 value2;
+				Sint32 value3;
+				Sint32 value4;
 			};
 			Int4 int4 = *reader.Consume<Int4>();
 			return "(" + std::to_string(int4.value1) + "," + std::to_string(int4.value2) + "," + std::to_string(int4.value3) + "," + std::to_string(int4.value4) + ")";
@@ -198,7 +198,7 @@ namespace adria
 	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) : gfx(gfx)
 	{
 		GfxBufferDesc printf_buffer_desc{};
-		printf_buffer_desc.stride = sizeof(uint32);
+		printf_buffer_desc.stride = sizeof(Uint32);
 		printf_buffer_desc.resource_usage = GfxResourceUsage::Default;
 		printf_buffer_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		printf_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
@@ -214,11 +214,11 @@ namespace adria
 		for (auto& readback_buffer : readback_buffers)
 			readback_buffer = gfx->CreateBuffer(ReadBackBufferDesc(printf_buffer_desc.size));
 }
-	int32 GPUDebugPrinter::GetPrintfBufferIndex()
+	Sint32 GPUDebugPrinter::GetPrintfBufferIndex()
 	{
 		gpu_uav_descriptor = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, gpu_uav_descriptor, uav_descriptor);
-		return (int32)gpu_uav_descriptor.GetIndex();
+		return (Sint32)gpu_uav_descriptor.GetIndex();
 	}
 
 	void GPUDebugPrinter::AddClearPass(RenderGraph& rg)
@@ -235,7 +235,7 @@ namespace adria
 			},
 			[=](ClearPrintfBufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
-				uint32 clear[] = { 0,0,0,0 };
+				Uint32 clear[] = { 0,0,0,0 };
 				cmd_list->ClearUAV(*printf_buffer, gpu_uav_descriptor, uav_descriptor, clear);
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
@@ -255,15 +255,15 @@ namespace adria
 			[&](CopyPrintfBufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				uint64 current_backbuffer_index = gfx->GetBackbufferIndex();
+				Uint64 current_backbuffer_index = gfx->GetBackbufferIndex();
 				GfxBuffer& readback_buffer = *readback_buffers[current_backbuffer_index];
 				cmd_list->CopyBuffer(readback_buffer, *printf_buffer);
 
-				uint64 old_backbuffer_index = (current_backbuffer_index + 1) % gfx->GetBackbufferCount();
+				Uint64 old_backbuffer_index = (current_backbuffer_index + 1) % gfx->GetBackbufferCount();
 				GfxBuffer& old_readback_buffer = *readback_buffers[old_backbuffer_index];
 
-				static constexpr uint32 MaxDebugPrintArgs = 4;
-				DebugPrintReader print_reader(old_readback_buffer.GetMappedData<uint8>() + sizeof(uint32), (uint32)old_readback_buffer.GetSize() - sizeof(uint32));
+				static constexpr Uint32 MaxDebugPrintArgs = 4;
+				DebugPrintReader print_reader(old_readback_buffer.GetMappedData<Uint8>() + sizeof(Uint32), (Uint32)old_readback_buffer.GetSize() - sizeof(Uint32));
 
 				while (print_reader.HasMoreData(sizeof(DebugPrintHeader)))
 				{
@@ -278,12 +278,12 @@ namespace adria
 
 					std::vector<std::string> arg_strings;
 					arg_strings.reserve(header->NumArgs);
-					for (uint32 arg_idx = 0; arg_idx < header->NumArgs; ++arg_idx)
+					for (Uint32 arg_idx = 0; arg_idx < header->NumArgs; ++arg_idx)
 					{
-						ArgCode const arg_code = (ArgCode)*print_reader.Consume<uint8>();
+						ArgCode const arg_code = (ArgCode)*print_reader.Consume<Uint8>();
 						if (arg_code >= NumDebugPrintArgCodes || arg_code < 0) break;
 
-						uint32 const arg_size = ArgCodeSizes[arg_code];
+						Uint32 const arg_size = ArgCodeSizes[arg_code];
 						if (!print_reader.HasMoreData(arg_size)) break;
 
 						std::string const arg_string = MakeArgString(print_reader, arg_code);
@@ -292,10 +292,10 @@ namespace adria
 
 					if (header->NumArgs > 0)
 					{
-						for (uint64 i = 0; i < arg_strings.size(); ++i)
+						for (Uint64 i = 0; i < arg_strings.size(); ++i)
 						{
 							std::string placeholder = "{" + std::to_string(i) + "}";
-							uint64 pos = fmt.find(placeholder);
+							Uint64 pos = fmt.find(placeholder);
 							while (pos != std::string::npos)
 							{
 								fmt.replace(pos, placeholder.length(), arg_strings[i]);
@@ -309,7 +309,7 @@ namespace adria
 	}
 #else
 	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) : gfx(gfx) {}
-	int32 GPUDebugPrinter::GetPrintfBufferIndex() { return -1; }
+	Sint32 GPUDebugPrinter::GetPrintfBufferIndex() { return -1; }
 	void GPUDebugPrinter::AddClearPass(RenderGraph& rg) {}
 	void GPUDebugPrinter::AddPrintPass(RenderGraph& rg) {}
 #endif

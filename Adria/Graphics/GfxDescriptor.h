@@ -14,8 +14,8 @@ namespace adria
 		operator D3D12_CPU_DESCRIPTOR_HANDLE() const { return cpu; }
 		operator D3D12_GPU_DESCRIPTOR_HANDLE() const { return gpu; }
 
-		uint32 GetIndex() const { return index; }
-		void Increment(uint32 increment, uint32 multiply = 1)
+		Uint32 GetIndex() const { return index; }
+		void Increment(Uint32 increment, Uint32 multiply = 1)
 		{
 			cpu.ptr += increment * multiply;
 			if(gpu.ptr != NULL) gpu.ptr += increment * multiply;
@@ -35,6 +35,6 @@ namespace adria
 	private:
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu = { NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE gpu = { NULL };
-		uint32 index = -1;
+		Uint32 index = -1;
 	};
 }

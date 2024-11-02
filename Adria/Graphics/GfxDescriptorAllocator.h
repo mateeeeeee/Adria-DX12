@@ -7,7 +7,7 @@ namespace adria
 	struct GfxDescriptorAllocatorDesc
 	{
 		GfxDescriptorHeapType type = GfxDescriptorHeapType::Invalid;
-		uint32 descriptor_count = 0;
+		Uint32 descriptor_count = 0;
 		bool shader_visible = false;
 	};
 

@@ -32,7 +32,7 @@ namespace adria
 		}
 	}
 
-	FSR3Pass::FSR3Pass(GfxDevice* _gfx, uint32 w, uint32 h) : gfx(_gfx), display_width(w), display_height(h), render_width(), render_height(), ffx_interface(nullptr)
+	FSR3Pass::FSR3Pass(GfxDevice* _gfx, Uint32 w, Uint32 h) : gfx(_gfx), display_width(w), display_height(h), render_width(), render_height(), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR3_VERSION_MAJOR, FFX_FSR3_VERSION_MINOR, FFX_FSR3_VERSION_PATCH);
@@ -136,7 +136,7 @@ namespace adria
 					ImGui::Checkbox("Enable", FSR3.GetPtr());
 					if (FSR3.Get())
 					{
-						if (ImGui::Combo("Quality Mode", (int32*)&fsr3_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
+						if (ImGui::Combo("Quality Mode", (Sint32*)&fsr3_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 						{
 							RecreateRenderResolution();
 							recreate_context = true;
@@ -182,8 +182,8 @@ namespace adria
 	void FSR3Pass::RecreateRenderResolution()
 	{
 		float upscale_ratio = (fsr3_quality_mode == 0 ? custom_upscale_ratio : ffxFsr3GetUpscaleRatioFromQualityMode(fsr3_quality_mode));
-		render_width = (uint32)((float)display_width / upscale_ratio);
-		render_height = (uint32)((float)display_height / upscale_ratio);
+		render_width = (Uint32)((float)display_width / upscale_ratio);
+		render_height = (Uint32)((float)display_height / upscale_ratio);
 		BroadcastRenderResolutionChanged(render_width, render_height);
 	}
 

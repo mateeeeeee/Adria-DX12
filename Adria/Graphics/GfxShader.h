@@ -18,7 +18,7 @@ namespace adria
 		ShaderCompilerFlag_Debug = 1 << 0,
 		ShaderCompilerFlag_DisableOptimization = 1 << 1
 	};
-	using GfxShaderCompilerFlags = uint32;
+	using GfxShaderCompilerFlags = Uint32;
 	struct GfxShaderDesc
 	{
 		GfxShaderStage stage = GfxShaderStage::ShaderStageCount;
@@ -29,8 +29,8 @@ namespace adria
 		GfxShaderCompilerFlags flags = ShaderCompilerFlag_None;
 	};
 
-	using GfxShaderBlob = std::vector<uint8>;
-	using GfxDebugBlob = std::vector<uint8>;
+	using GfxShaderBlob = std::vector<Uint8>;
+	using GfxDebugBlob = std::vector<Uint8>;
 	class GfxShader
 	{
 	public:
@@ -39,7 +39,7 @@ namespace adria
 		{
 			desc = _desc;
 		}
-		void SetShaderData(void const* data, uint64 size)
+		void SetShaderData(void const* data, Uint64 size)
 		{
 			shader_blob.resize(size);
 			memcpy(shader_blob.data(), data, size);
@@ -51,7 +51,7 @@ namespace adria
 		{
 			return !shader_blob.empty() ? (void*)shader_blob.data() : nullptr;
 		}
-		uint64 GetSize() const
+		Uint64 GetSize() const
 		{
 			return shader_blob.size();
 		}

@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	enum class RendererOutput : uint32
+	enum class RendererOutput : Uint32
 	{
 		Final,
 		Diffuse,
@@ -21,12 +21,12 @@ namespace adria
 
 	class RendererOutputPass
 	{
-		static constexpr uint32 PERMUTATION_COUNT = (uint32)RendererOutput::Count;
+		static constexpr Uint32 PERMUTATION_COUNT = (Uint32)RendererOutput::Count;
 	public:
-		RendererOutputPass(GfxDevice* gfx, uint32 width, uint32 height);
+		RendererOutputPass(GfxDevice* gfx, Uint32 width, Uint32 height);
 		~RendererOutputPass();
 
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 		}
@@ -34,8 +34,8 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		uint32 width;
-		uint32 height;
+		Uint32 width;
+		Uint32 height;
 		std::unique_ptr<GfxComputePipelineStatePermutations> renderer_output_psos;
 
 	private:

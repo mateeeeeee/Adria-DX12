@@ -25,7 +25,7 @@ namespace adria
         )
         {
             std::vector<XMVECTOR> normals(vertices.size());
-            for (uint64 face = 0; face < indices.size() / 3; ++face)
+            for (Uint64 face = 0; face < indices.size() / 3; ++face)
             {
                 index_t i0 = indices[face * 3];
                 index_t i1 = indices[face * 3 + 1];
@@ -234,21 +234,21 @@ namespace adria
         }
 
         static void ComputeTangentFrame(
-            _In_reads_(index_count) uint32 const* indices, uint64 index_count,
+            _In_reads_(index_count) Uint32 const* indices, Uint64 index_count,
             _In_reads_(vertex_count) XMFLOAT3 const* positions,
             _In_reads_(vertex_count) XMFLOAT3 const* normals,
             _In_reads_(vertex_count) XMFLOAT2 const* texcoords,
-            uint64 vertex_count,
+            Uint64 vertex_count,
             _Out_writes_opt_(vertex_count) XMFLOAT4* out_tangents)
         {
 			XMFLOAT3* tangents = new XMFLOAT3[vertex_count]{}; //use unique_ptr<T[]>
 			XMFLOAT3* bitangents = new XMFLOAT3[vertex_count]{};
 
-			for (uint32 i = 0; i <= index_count - 3; i += 3)
+			for (Uint32 i = 0; i <= index_count - 3; i += 3)
 			{
-				uint32 i0 = indices[i + 0];
-				uint32 i1 = indices[i + 1];
-				uint32 i2 = indices[i + 2];
+				Uint32 i0 = indices[i + 0];
+				Uint32 i1 = indices[i + 1];
+				Uint32 i2 = indices[i + 2];
 
 				XMFLOAT3 p0 = positions[i0];
 				XMFLOAT3 p1 = positions[i1];
@@ -297,7 +297,7 @@ namespace adria
 				XMStoreFloat3(bitangents + i2, _bitangent2);
 			}
 
-			for (uint64 i = 0; i < vertex_count; ++i)
+			for (Uint64 i = 0; i < vertex_count; ++i)
 			{
 				XMFLOAT3 const& n = normals[i];
 				XMFLOAT3 const& t = tangents[i];
@@ -343,11 +343,11 @@ namespace adria
     }
    
 	inline void ComputeTangentFrame(
-		_In_reads_(index_count) uint32 const* indices, uint64 index_count,
+		_In_reads_(index_count) Uint32 const* indices, Uint64 index_count,
 		_In_reads_(vertex_count) DirectX::XMFLOAT3 const* positions,
 		_In_reads_(vertex_count) DirectX::XMFLOAT3 const* normals,
 		_In_reads_(vertex_count) DirectX::XMFLOAT2 const* texcoords,
-        uint64 vertex_count,
+        Uint64 vertex_count,
 		_Out_writes_opt_(vertex_count) DirectX::XMFLOAT4* out_tangents)
 	{
         impl::ComputeTangentFrame(indices, index_count, positions, normals, texcoords, vertex_count, out_tangents);

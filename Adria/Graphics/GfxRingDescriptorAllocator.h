@@ -10,14 +10,14 @@ namespace adria
 	{
 		using Mutex = std::conditional_t<UseMutex, std::mutex, DummyMutex>;
 	public:
-		GfxRingDescriptorAllocator(GfxDevice* gfx, uint32 count, uint32 reserve = 0)
+		GfxRingDescriptorAllocator(GfxDevice* gfx, Uint32 count, Uint32 reserve = 0)
 			: GfxDescriptorAllocatorBase(gfx, GfxDescriptorHeapType::CBV_SRV_UAV, count, true),
 			ring_allocator(count, reserve)
 		{}
 
 		~GfxRingDescriptorAllocator() = default;
 
-		ADRIA_NODISCARD GfxDescriptor Allocate(uint32 count = 1)
+		ADRIA_NODISCARD GfxDescriptor Allocate(Uint32 count = 1)
 		{
 			OffsetType start = INVALID_OFFSET;
 			{
@@ -25,15 +25,15 @@ namespace adria
 				start = ring_allocator.Allocate(count);
 			}
 			ADRIA_ASSERT(start != INVALID_OFFSET && "Don't have enough space");
-			return GetHandle((uint32)start);
+			return GetHandle((Uint32)start);
 		}
 
-		void FinishCurrentFrame(uint64 frame)
+		void FinishCurrentFrame(Uint64 frame)
 		{
 			std::lock_guard guard(alloc_mutex);
 			ring_allocator.FinishCurrentFrame(frame);
 		}
-		void ReleaseCompletedFrames(uint64 completed_frame)
+		void ReleaseCompletedFrames(Uint64 completed_frame)
 		{
 			std::lock_guard guard(alloc_mutex);
 			ring_allocator.ReleaseCompletedFrames(completed_frame);

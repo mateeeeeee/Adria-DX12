@@ -25,12 +25,12 @@ namespace adria
 		}
 	};
 
-	uint32 DebugRenderer::ColorToUint(Color const& col)
+	Uint32 DebugRenderer::ColorToUint(Color const& col)
 	{
 		return PackToUint(col.R(), col.G(), col.B(), col.A());
 	}
 
-	void DebugRenderer::Initialize(GfxDevice* _gfx, uint32 _width, uint32 _height)
+	void DebugRenderer::Initialize(GfxDevice* _gfx, Uint32 _width, Uint32 _height)
 	{
 		gfx = _gfx;
 		width = _width;
@@ -46,7 +46,7 @@ namespace adria
 		gfx = nullptr;
 	}
 
-	void DebugRenderer::OnResize(uint32 w, uint32 h)
+	void DebugRenderer::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
@@ -70,20 +70,20 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
-				constexpr uint32 vb_stride = (uint32)sizeof(DebugVertex);
-				uint32 transient_lines_count = (uint32)transient_lines.size();
-				uint32 persistent_lines_count = (uint32)persistent_lines.size();
-				uint32 lines_count = transient_lines_count + persistent_lines_count;
+				constexpr Uint32 vb_stride = (Uint32)sizeof(DebugVertex);
+				Uint32 transient_lines_count = (Uint32)transient_lines.size();
+				Uint32 persistent_lines_count = (Uint32)persistent_lines.size();
+				Uint32 lines_count = transient_lines_count + persistent_lines_count;
 
-				uint32 transient_triangles_count = (uint32)transient_triangles.size();
-				uint32 persistent_triangles_count = (uint32)persistent_triangles.size();
-				uint32 triangles_count = transient_triangles_count + persistent_triangles_count;
+				Uint32 transient_triangles_count = (Uint32)transient_triangles.size();
+				Uint32 persistent_triangles_count = (Uint32)persistent_triangles.size();
+				Uint32 triangles_count = transient_triangles_count + persistent_triangles_count;
 
 				if (lines_count != 0)
 				{
-					uint32 transient_vb_count = transient_lines_count * sizeof(DebugLine) / vb_stride;
-					uint32 persistent_vb_count = persistent_lines_count * sizeof(DebugLine) / vb_stride;
-					uint32 vb_count = transient_vb_count + persistent_vb_count;
+					Uint32 transient_vb_count = transient_lines_count * sizeof(DebugLine) / vb_stride;
+					Uint32 persistent_vb_count = persistent_lines_count * sizeof(DebugLine) / vb_stride;
+					Uint32 vb_count = transient_vb_count + persistent_vb_count;
 					GfxDynamicAllocation vb_alloc = cmd_list->AllocateTransient(vb_stride * vb_count, 16);
 
 					vb_alloc.Update(transient_lines.data(), transient_vb_count * vb_stride, 0);
@@ -99,9 +99,9 @@ namespace adria
 				}
 				if (triangles_count != 0)
 				{
-					uint32 transient_vb_count = transient_triangles_count * sizeof(DebugTriangle) / vb_stride;
-					uint32 persistent_vb_count = persistent_triangles_count * sizeof(DebugTriangle) / vb_stride;
-					uint32 vb_count = transient_vb_count + persistent_vb_count;
+					Uint32 transient_vb_count = transient_triangles_count * sizeof(DebugTriangle) / vb_stride;
+					Uint32 persistent_vb_count = persistent_triangles_count * sizeof(DebugTriangle) / vb_stride;
+					Uint32 vb_count = transient_vb_count + persistent_vb_count;
 					GfxDynamicAllocation vb_alloc = cmd_list->AllocateTransient(vb_stride * vb_count, 16);
 
 					vb_alloc.Update(transient_triangles.data(), transient_vb_count * vb_stride, 0);
@@ -253,8 +253,8 @@ namespace adria
 
 	void DebugRenderer::AddSphere(Vector3 const& center, float radius, Color color, bool wireframe /*= true*/)
 	{
-		static constexpr uint32 SLICES = 16;
-		static constexpr uint32 STACKS = 16;
+		static constexpr Uint32 SLICES = 16;
+		static constexpr Uint32 STACKS = 16;
 
 		SpherePointHelper sphere_point_helper{ .center = center, .radius = radius };
 

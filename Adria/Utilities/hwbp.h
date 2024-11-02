@@ -39,7 +39,7 @@ namespace adria::hwbp
             };
         }
 
-        uint8 register_index;
+        Uint8 register_index;
         Result error;
     };
 
@@ -56,7 +56,7 @@ namespace adria::hwbp
             }
 
             std::array<bool, 4> busyDebugRegister{{false, false, false, false}};
-            auto checkBusyRegister = [&](uint64 index, DWORD64 mask)
+            auto checkBusyRegister = [&](Uint64 index, DWORD64 mask)
             {
                 if (ctx.Dr7 & mask)
                     busyDebugRegister[index] = true;
@@ -157,7 +157,7 @@ namespace adria::hwbp
                     return Breakpoint::MakeFailed(Result::BadSize);
                 }
                 memcpy(&ctx.Dr7, &dr7, sizeof(ctx.Dr7));
-                return Breakpoint{ static_cast<uint8>(registerIndex), Result::Success };
+                return Breakpoint{ static_cast<Uint8>(registerIndex), Result::Success };
             },
             [](auto failureCode)
             {

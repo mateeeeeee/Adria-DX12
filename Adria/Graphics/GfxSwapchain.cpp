@@ -71,12 +71,12 @@ namespace adria
 		return SUCCEEDED(hr);
 	}
 
-	void GfxSwapchain::OnResize(uint32 w, uint32 h)
+	void GfxSwapchain::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w;
 		height = h;
 
-		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
+		for (Uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			back_buffers[i].reset(nullptr);
 		}
@@ -92,15 +92,15 @@ namespace adria
 
 	void GfxSwapchain::CreateBackbuffers()
 	{
-		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
+		for (Uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			Ref<ID3D12Resource> backbuffer = nullptr;
 			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(backbuffer.GetAddressOf()));
 			GFX_CHECK_HR(hr);
 			D3D12_RESOURCE_DESC desc = backbuffer->GetDesc();
 			GfxTextureDesc gfx_desc{};
-			gfx_desc.width = (uint32)desc.Width;
-			gfx_desc.height = (uint32)desc.Height;
+			gfx_desc.width = (Uint32)desc.Width;
+			gfx_desc.height = (Uint32)desc.Height;
 			gfx_desc.format = ConvertDXGIFormat(desc.Format);
 			gfx_desc.initial_state = GfxResourceState::Present;
 			gfx_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);

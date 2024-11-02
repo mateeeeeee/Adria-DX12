@@ -116,28 +116,28 @@ namespace adria
 			if (SUCCEEDED(dred->GetAutoBreadcrumbsOutput1(&DredAutoBreadcrumbsOutput)))
 			{
 				ADRIA_LOG(DEBUG, "[DRED] Last tracked GPU operations:");
-				std::map<int32, wchar_t const*> contextStrings;
+				std::map<Sint32, wchar_t const*> contextStrings;
 				D3D12_AUTO_BREADCRUMB_NODE1 const* pNode = DredAutoBreadcrumbsOutput.pHeadAutoBreadcrumbNode;
 				while (pNode && pNode->pLastBreadcrumbValue)
 				{
-					int32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
+					Sint32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
 					if (lastCompletedOp != (int)pNode->BreadcrumbCount && lastCompletedOp != 0)
 					{
 						char const* cmd_list_name = "cmd_list";
 						char const* queue_name = "graphics queue";
 						ADRIA_LOG(DEBUG, "[DRED] Commandlist \"%s\" on CommandQueue \"%s\", %d completed of %d", cmd_list_name, queue_name, lastCompletedOp, pNode->BreadcrumbCount);
 
-						int32 firstOp = std::max<int32>(lastCompletedOp - 100, 0);
-						int32 lastOp = std::min<int32>(lastCompletedOp + 20, int32(pNode->BreadcrumbCount) - 1);
+						Sint32 firstOp = std::max<Sint32>(lastCompletedOp - 100, 0);
+						Sint32 lastOp = std::min<Sint32>(lastCompletedOp + 20, Sint32(pNode->BreadcrumbCount) - 1);
 
 						contextStrings.clear();
-						for (uint32 breadcrumbContext = firstOp; breadcrumbContext < pNode->BreadcrumbContextsCount; ++breadcrumbContext)
+						for (Uint32 breadcrumbContext = firstOp; breadcrumbContext < pNode->BreadcrumbContextsCount; ++breadcrumbContext)
 						{
 							const D3D12_DRED_BREADCRUMB_CONTEXT& context = pNode->pBreadcrumbContexts[breadcrumbContext];
 							contextStrings[context.BreadcrumbIndex] = context.pContextString;
 						}
 
-						for (int32 op = firstOp; op <= lastOp; ++op)
+						for (Sint32 op = firstOp; op <= lastOp; ++op)
 						{
 							D3D12_AUTO_BREADCRUMB_OP breadcrumbOp = pNode->pCommandHistory[op];
 
@@ -179,7 +179,7 @@ namespace adria
 					ADRIA_LOG(DEBUG, "[DRED] Recent freed objects with VA ranges that match the faulting VA:");
 					while (pNode)
 					{
-						uint32 allocTypeIndex = pNode->AllocationType - D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE;
+						Uint32 allocTypeIndex = pNode->AllocationType - D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE;
 						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType);
 						ADRIA_LOG(DEBUG, "\tName: %s (Type: %ls)", pNode->ObjectNameA, AllocTypeName);
 						pNode = pNode->pNext;
@@ -207,14 +207,14 @@ namespace adria
 			}
 		}
 
-		enum GfxVendorId : uint32
+		enum GfxVendorId : Uint32
 		{
 			GfxVendorId_AMD = 0x1002,
 			GfxVendorId_Nvidia = 0x10de,
 			GfxVendorId_Intel = 0x8086,
 			GfxVendorId_Microsoft = 0x1414
 		};
-		inline GfxVendor GetGfxVendor(uint32 vendor_id)
+		inline GfxVendor GetGfxVendor(Uint32 vendor_id)
 		{
 			switch (vendor_id)
 			{
@@ -264,12 +264,12 @@ namespace adria
 		height = window->Height();
 
 		HRESULT hr = E_FAIL;
-		uint32 dxgi_factory_flags = 0;
+		Uint32 dxgi_factory_flags = 0;
 		SetupOptions(options, dxgi_factory_flags);
 		GFX_CHECK_HR(CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(dxgi_factory.GetAddressOf())));
 
 		Ref<IDXGIAdapter4> adapter;
-		uint32 adapter_index = 0;
+		Uint32 adapter_index = 0;
 		ADRIA_LOG(INFO, "Available adapters:");
 		DXGI_GPU_PREFERENCE gpu_preference = DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE;
 		while (dxgi_factory->EnumAdapterByGpuPreference(adapter_index++, gpu_preference, IID_PPV_ARGS(adapter.ReleaseAndGetAddressOf())) == S_OK)
@@ -330,14 +330,14 @@ namespace adria
 		compute_queue.Create(this, GfxCommandListType::Compute, "Compute Queue");
 		copy_queue.Create(this, GfxCommandListType::Copy, "Copy Queue");
 
-		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
+		for (Uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			graphics_cmd_list_pool[i] = std::make_unique<GfxGraphicsCommandListPool>(this);
 			compute_cmd_list_pool[i]  = std::make_unique<GfxComputeCommandListPool>(this);
 			copy_cmd_list_pool[i]	  = std::make_unique<GfxCopyCommandListPool>(this);
 		}
 
-		for (uint32 i = 0; i < (uint32)GfxDescriptorHeapType::Count; ++i)
+		for (Uint32 i = 0; i < (Uint32)GfxDescriptorHeapType::Count; ++i)
 		{
 			GfxDescriptorAllocatorDesc desc{};
 			desc.descriptor_count = 1024;
@@ -345,7 +345,7 @@ namespace adria
 			desc.type = static_cast<GfxDescriptorHeapType>(i);
 			cpu_descriptor_allocators[i] = std::make_unique<GfxDescriptorAllocator>(this, desc);
 		}
-		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new GfxLinearDynamicAllocator(this, 1 << 20));
+		for (Uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new GfxLinearDynamicAllocator(this, 1 << 20));
 		dynamic_allocator_on_init.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
 
 		GfxSwapchainDesc swapchain_desc{};
@@ -388,22 +388,22 @@ namespace adria
 		wait_fence_value++;
 	}
 
-	void GfxDevice::OnResize(uint32 w, uint32 h)
+	void GfxDevice::OnResize(Uint32 w, Uint32 h)
 	{
 		if ((width != w || height != h) && width > 0 && height > 0)
 		{
 			width = w;
 			height = h;
 			WaitForGPU();
-			for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) frame_fence_values[i] = frame_fence_values[swapchain->GetBackbufferIndex()];
+			for (Uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) frame_fence_values[i] = frame_fence_values[swapchain->GetBackbufferIndex()];
 			swapchain->OnResize(w, h);
 		}
 	}
-	uint32 GfxDevice::GetBackbufferIndex() const
+	Uint32 GfxDevice::GetBackbufferIndex() const
 	{
 		return swapchain->GetBackbufferIndex();
 	}
-	uint32 GfxDevice::GetFrameIndex() const { return frame_index; }
+	Uint32 GfxDevice::GetFrameIndex() const { return frame_index; }
 
 	void GfxDevice::BeginFrame()
 	{
@@ -413,7 +413,7 @@ namespace adria
 			dynamic_allocator_on_init.reset();
 		}
 
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		gpu_descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		dynamic_allocators[backbuffer_index]->Clear();
 
@@ -422,7 +422,7 @@ namespace adria
 	}
 	void GfxDevice::EndFrame()
 	{
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 
 		graphics_cmd_list_pool[backbuffer_index]->EndCmdLists();
 		copy_cmd_list_pool[backbuffer_index]->EndCmdLists();
@@ -451,7 +451,7 @@ namespace adria
 		gpu_descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
 
-	void GfxDevice::TakePixCapture(char const* capture_name, uint32 num_frames)
+	void GfxDevice::TakePixCapture(char const* capture_name, Uint32 num_frames)
 	{
 		ADRIA_ASSERT(num_frames != 0);
 		if (!pix_dll_loaded)
@@ -506,7 +506,7 @@ namespace adria
 
 	GfxCommandList* GfxDevice::GetCommandList(GfxCommandListType type) const
 	{
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		switch (type)
 		{
 		case GfxCommandListType::Graphics:
@@ -526,7 +526,7 @@ namespace adria
 	}
 	GfxCommandList* GfxDevice::GetLatestCommandList(GfxCommandListType type) const
 	{
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		switch (type)
 		{
 		case GfxCommandListType::Graphics:
@@ -542,7 +542,7 @@ namespace adria
 	}
 	GfxCommandList* GfxDevice::AllocateCommandList(GfxCommandListType type) const
 	{
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		switch (type)
 		{
 		case GfxCommandListType::Graphics:
@@ -558,7 +558,7 @@ namespace adria
 	}
 	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list, GfxCommandListType type)
 	{
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		switch (type)
 		{
 		case GfxCommandListType::Graphics:
@@ -573,40 +573,40 @@ namespace adria
 		ADRIA_UNREACHABLE();
 	}
 
-	void GfxDevice::CopyDescriptors(uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
+	void GfxDevice::CopyDescriptors(Uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
 	{
 		device->CopyDescriptorsSimple(count, dst, src, ToD3D12HeapType(type));
 	}
 	void GfxDevice::CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
 	{
-		uint32 const dst_ranges_count = 1;
-		uint32 const src_ranges_count = (uint32)src_descriptors.size();
+		Uint32 const dst_ranges_count = 1;
+		Uint32 const src_ranges_count = (Uint32)src_descriptors.size();
 
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_handles[] = { dst };
-		uint32 dst_range_sizes[] = { (uint32)src_descriptors.size() };
+		Uint32 dst_range_sizes[] = { (Uint32)src_descriptors.size() };
 
-		std::vector<uint32> src_range_sizes(src_descriptors.size(), 1);
+		std::vector<Uint32> src_range_sizes(src_descriptors.size(), 1);
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_descriptors.size());
-		for (uint64 i = 0; i < src_handles.size(); ++i) src_handles[i] = src_descriptors[i];
+		for (Uint64 i = 0; i < src_handles.size(); ++i) src_handles[i] = src_descriptors[i];
 
 		device->CopyDescriptors(dst_ranges_count, dst_handles, dst_range_sizes,
 			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
 	}
-	void GfxDevice::CopyDescriptors(std::span<std::pair<GfxDescriptor, uint32>> dst_range_starts_and_size, std::span<std::pair<GfxDescriptor, uint32>> src_range_starts_and_size, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
+	void GfxDevice::CopyDescriptors(std::span<std::pair<GfxDescriptor, Uint32>> dst_range_starts_and_size, std::span<std::pair<GfxDescriptor, Uint32>> src_range_starts_and_size, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
 	{
-		uint32 const dst_ranges_count = (uint32)dst_range_starts_and_size.size();
-		uint32 const src_ranges_count = (uint32)src_range_starts_and_size.size();
+		Uint32 const dst_ranges_count = (Uint32)dst_range_starts_and_size.size();
+		Uint32 const src_ranges_count = (Uint32)src_range_starts_and_size.size();
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dst_handles(dst_ranges_count);
-		std::vector<uint32> dst_range_sizes(dst_ranges_count);
-		for (uint64 i = 0; i < dst_ranges_count; ++i)
+		std::vector<Uint32> dst_range_sizes(dst_ranges_count);
+		for (Uint64 i = 0; i < dst_ranges_count; ++i)
 		{
 			dst_handles[i] = dst_range_starts_and_size[i].first;
 			dst_range_sizes[i] = dst_range_starts_and_size[i].second;
 		}
 
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_ranges_count);
-		std::vector<uint32> src_range_sizes(src_ranges_count);
-		for (uint64 i = 0; i < src_ranges_count; ++i)
+		std::vector<Uint32> src_range_sizes(src_ranges_count);
+		for (Uint64 i = 0; i < src_ranges_count; ++i)
 		{
 			src_handles[i] = src_range_starts_and_size[i].first;
 			src_range_sizes[i] = src_range_starts_and_size[i].second;
@@ -618,18 +618,18 @@ namespace adria
 
 	GfxDescriptor GfxDevice::AllocateDescriptorCPU(GfxDescriptorHeapType type)
 	{
-		return cpu_descriptor_allocators[(uint64)type]->AllocateDescriptor();
+		return cpu_descriptor_allocators[(Uint64)type]->AllocateDescriptor();
 	}
 	void GfxDevice::FreeDescriptorCPU(GfxDescriptor descriptor, GfxDescriptorHeapType type)
 	{
-		cpu_descriptor_allocators[(uint64)type]->FreeDescriptor(descriptor);
+		cpu_descriptor_allocators[(Uint64)type]->FreeDescriptor(descriptor);
 	}
 
-	GfxDescriptor GfxDevice::AllocateDescriptorsGPU(uint32 count)
+	GfxDescriptor GfxDevice::AllocateDescriptorsGPU(Uint32 count)
 	{
 		return GetDescriptorAllocator()->Allocate(count);
 	}
-	GfxDescriptor GfxDevice::GetDescriptorGPU(uint32 i) const
+	GfxDescriptor GfxDevice::GetDescriptorGPU(Uint32 i) const
 	{
 		return GetDescriptorAllocator()->GetHandle(i);
 	}
@@ -644,7 +644,7 @@ namespace adria
 		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
 	}
 
-	void GfxDevice::InitShaderVisibleAllocator(uint32 reserve)
+	void GfxDevice::InitShaderVisibleAllocator(Uint32 reserve)
 	{
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
 	}
@@ -738,7 +738,7 @@ namespace adria
 		return CreateTextureView(texture, GfxSubresourceType::DSV, _desc);
 	}
 
-	void GfxDevice::GetTimestampFrequency(uint64& frequency) const
+	void GfxDevice::GetTimestampFrequency(Uint64& frequency) const
 	{
 		frequency = graphics_queue.GetTimestampFrequency();
 	}
@@ -811,7 +811,7 @@ namespace adria
 		}
 	}
 
-	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
+	void GfxDevice::SetupOptions(GfxOptions const& options, Uint32& dxgi_factory_flags)
 	{
 		if (options.aftermath) return;
 		if (options.debug_device)
@@ -940,16 +940,16 @@ namespace adria
 				{
 					// This is a Raw Buffer
 					srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-					srv_desc.Buffer.FirstElement = (uint32)view_desc.offset / sizeof(uint32);
+					srv_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
 					srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-					srv_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32);
+					srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
 					// This is a Structured Buffer
 					srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-					srv_desc.Buffer.FirstElement = (uint32)view_desc.offset / desc.stride;
-					srv_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					srv_desc.Buffer.FirstElement = (Uint32)view_desc.offset / desc.stride;
+					srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 					srv_desc.Buffer.StructureByteStride = desc.stride;
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
@@ -966,7 +966,7 @@ namespace adria
 				srv_desc.Format = ConvertGfxFormat(format);
 				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 				srv_desc.Buffer.FirstElement = view_desc.offset / stride;
-				srv_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
+				srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
 			}
 			device->CreateShaderResourceView(!is_accel_struct ? buffer->GetNative() : nullptr, &srv_desc, heap_descriptor);
 		}
@@ -983,30 +983,30 @@ namespace adria
 				{
 					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
 					uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-					uav_desc.Buffer.FirstElement = (uint32)view_desc.offset / sizeof(uint32);
-					uav_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32);
+					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
+					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
 					uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
-					uav_desc.Buffer.NumElements = (UINT)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					uav_desc.Buffer.NumElements = (UINT)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 					uav_desc.Buffer.StructureByteStride = desc.stride;
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))
 				{
 					uav_desc.Format = DXGI_FORMAT_R32_UINT;
-					uav_desc.Buffer.FirstElement = (uint32)view_desc.offset / sizeof(uint32);
-					uav_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32);
+					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
+					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
 
 				}
 			}
 			else
 			{
-				uint32 stride = GetGfxFormatStride(format);
+				Uint32 stride = GetGfxFormatStride(format);
 				uav_desc.Format = ConvertGfxFormat(format);
-				uav_desc.Buffer.FirstElement = (uint32)view_desc.offset / stride;
-				uav_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
+				uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / stride;
+				uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
 			}
 
 			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter ? uav_counter->GetNative() : nullptr, &uav_desc, heap_descriptor);
@@ -1077,7 +1077,7 @@ namespace adria
 						{
 							srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
 							srv_desc.TextureCubeArray.First2DArrayFace = view_desc.first_slice;
-							srv_desc.TextureCubeArray.NumCubes = std::min<uint32>(desc.array_size, view_desc.slice_count) / 6;
+							srv_desc.TextureCubeArray.NumCubes = std::min<Uint32>(desc.array_size, view_desc.slice_count) / 6;
 							srv_desc.TextureCubeArray.MostDetailedMip = view_desc.first_mip;
 							srv_desc.TextureCubeArray.MipLevels = view_desc.mip_count;
 						}

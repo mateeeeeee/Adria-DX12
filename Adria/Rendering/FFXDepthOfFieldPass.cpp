@@ -13,7 +13,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> FFXDepthOfField("r.FFXDepthOfField", true, "0 - Disabled, 1 - Enabled");
 
-	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
+	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 
@@ -79,7 +79,7 @@ namespace adria
 		postprocessor->SetFinalResource(RG_NAME(FFXDoFOutput));
 	}
 
-	void FFXDepthOfFieldPass::OnResize(uint32 w, uint32 h)
+	void FFXDepthOfFieldPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 		DestroyContext();
@@ -128,7 +128,7 @@ namespace adria
 		
 		dof_context_desc.resolution.width = width;
 		dof_context_desc.resolution.height = height;
-		dof_context_desc.quality = static_cast<uint32>(quality);
+		dof_context_desc.quality = static_cast<Uint32>(quality);
 		dof_context_desc.cocLimitFactor = coc_limit;
 		dof_context_desc.backendInterface.device = gfx->GetDevice();
 

@@ -14,7 +14,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> SSR("r.SSR", true, "0 - Disabled, 1 - Enabled");
 
-	SSRPass::SSRPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	SSRPass::SSRPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
@@ -66,18 +66,18 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct SSRConstants
 				{
 					float ssr_ray_step;
 					float ssr_ray_hit_threshold;
 
-					uint32 depth_idx;
-					uint32 normal_idx;
-					uint32 diffuse_idx;
-					uint32 scene_idx;
-					uint32 output_idx;
+					Uint32 depth_idx;
+					Uint32 normal_idx;
+					Uint32 diffuse_idx;
+					Uint32 scene_idx;
+					Uint32 output_idx;
 				} constants =
 				{
 					.ssr_ray_step = params.ssr_ray_step, .ssr_ray_hit_threshold = params.ssr_ray_hit_threshold,
@@ -93,7 +93,7 @@ namespace adria
 		postprocessor->SetFinalResource(RG_NAME(SSR_Output));
 	}
 
-	void SSRPass::OnResize(uint32 w, uint32 h)
+	void SSRPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

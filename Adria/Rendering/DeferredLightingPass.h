@@ -12,9 +12,9 @@ namespace adria
 	class DeferredLightingPass
 	{
 	public:
-		DeferredLightingPass(GfxDevice* gfx, uint32 w, uint32 h);
+		DeferredLightingPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		void AddPass(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 		}
@@ -26,7 +26,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::vector<RGResourceName> shadow_textures;
 		std::unique_ptr<GfxComputePipelineState> deferred_lighting_pso;
 

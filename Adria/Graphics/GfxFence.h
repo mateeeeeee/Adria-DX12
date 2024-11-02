@@ -14,11 +14,11 @@ namespace adria
 
 		bool Create(GfxDevice* gfx, char const* name);
 
-		void Wait(uint64 value);
-		void Signal(uint64 value);
+		void Wait(Uint64 value);
+		void Signal(Uint64 value);
 
-		bool IsCompleted(uint64 value);
-		uint64 GetCompletedValue() const;
+		bool IsCompleted(Uint64 value);
+		Uint64 GetCompletedValue() const;
 
 		operator ID3D12Fence* () const { return fence.Get(); }
 	private:

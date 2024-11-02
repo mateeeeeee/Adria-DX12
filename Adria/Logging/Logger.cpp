@@ -12,7 +12,7 @@ namespace adria
 		LogLevel level;
 		std::string str;
 		std::string filename;
-		uint32 line;
+		Uint32 line;
 	};
 
 	class LogManagerImpl
@@ -30,7 +30,7 @@ namespace adria
 		{
 			loggers.emplace_back(logger);
 		}
-		void Log(LogLevel level, char const* str, char const* filename, uint32 line)
+		void Log(LogLevel level, char const* str, char const* filename, Uint32 line)
 		{
 			log_queue.Push(QueueEntry{ level, str, filename, line });
 		}
@@ -79,7 +79,7 @@ namespace adria
 		time_str.pop_back();
 		return "[" + time_str + "]";
 	}
-	std::string LineInfoToString(char const* file, uint32 line)
+	std::string LineInfoToString(char const* file, Uint32 line)
 	{
 		return "[File: " + std::string(file) + "  Line: " + std::to_string(line) + "]";
 	}
@@ -92,7 +92,7 @@ namespace adria
 		pimpl->RegisterLogger(logger);
 	}
 
-	void LogManager::Log(LogLevel level, char const* str, char const* filename, uint32 line)
+	void LogManager::Log(LogLevel level, char const* str, char const* filename, Uint32 line)
 	{
 		pimpl->Log(level, str, filename, line);
 	}

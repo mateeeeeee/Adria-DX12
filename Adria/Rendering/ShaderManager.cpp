@@ -569,7 +569,7 @@ namespace adria
 		{
 			for (auto const& [shader, files] : dependent_files_map)
 			{
-				for (uint64 i = 0; i < files.size(); ++i)
+				for (Uint64 i = 0; i < files.size(); ++i)
 				{
 					fs::path const& file = files[i];
 					if (fs::equivalent(file, fs::path(filename))) CompileShader(shader, i != 0);

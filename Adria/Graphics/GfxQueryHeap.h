@@ -5,7 +5,7 @@ namespace adria
 {
 	class GfxDevice;
 
-	enum class GfxQueryType : uint8
+	enum class GfxQueryType : Uint8
 	{
 		Occlusion,
 		BinaryOcclusion,
@@ -14,7 +14,7 @@ namespace adria
 	};
 	struct GfxQueryHeapDesc
 	{
-		uint32 count;
+		Uint32 count;
 		GfxQueryType type;
 	};
 

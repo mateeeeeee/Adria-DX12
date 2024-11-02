@@ -5,7 +5,7 @@
 namespace adria
 {
 
-	void WriteImageToFile(FileType type, std::string_view filename, uint32 width, uint32 height, void const* data, uint32 stride)
+	void WriteImageToFile(FileType type, std::string_view filename, Uint32 width, Uint32 height, void const* data, Uint32 stride)
 	{
 		switch (type)
 		{

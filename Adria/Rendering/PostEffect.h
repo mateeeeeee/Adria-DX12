@@ -12,7 +12,7 @@ namespace adria
 		virtual ~PostEffect() = default;
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) = 0;
-		virtual void OnResize(uint32, uint32) = 0;
+		virtual void OnResize(Uint32, Uint32) = 0;
 		virtual bool IsEnabled(PostProcessor const*) const = 0;
 		virtual void OnSceneInitialized() {}
 		virtual void GUI() {}
@@ -26,7 +26,7 @@ namespace adria
 		EmptyPostEffect() {}
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) {}
-		virtual void OnResize(uint32, uint32) {}
+		virtual void OnResize(Uint32, Uint32) {}
 		virtual bool IsEnabled(PostProcessor const*) const { return true; }
 	};
 
@@ -39,7 +39,7 @@ namespace adria
 			ADRIA_ASSERT(post_effect_idx < post_effects.size());
 			if(post_effects[post_effect_idx]->IsEnabled(postprocessor)) post_effects[post_effect_idx]->AddPass(rg, postprocessor);
 		}
-		virtual void OnResize(uint32 w, uint32 h) override
+		virtual void OnResize(Uint32 w, Uint32 h) override
 		{
 			for (auto& post_effect : post_effects) post_effect->OnResize(w, h);
 		}
@@ -59,7 +59,7 @@ namespace adria
 
 	protected:
 		std::vector<std::unique_ptr<PostEffectT>> post_effects;
-		uint32 post_effect_idx;
+		Uint32 post_effect_idx;
 
 	protected:
 		virtual void GroupGUI() {}

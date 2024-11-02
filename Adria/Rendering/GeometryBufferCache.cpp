@@ -16,7 +16,7 @@ namespace adria
 		gfx = nullptr;
 	}
 
-	ArcGeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size, uint64 src_offset)
+	ArcGeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, Uint64 total_buffer_size, Uint64 src_offset)
 	{
 		GfxBufferDesc desc{};
 		desc.size = total_buffer_size;

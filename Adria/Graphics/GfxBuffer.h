@@ -5,19 +5,19 @@ namespace adria
 {
 	struct GfxBufferDesc
 	{
-		uint64 size = 0;
+		Uint64 size = 0;
 		GfxResourceUsage resource_usage = GfxResourceUsage::Default;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxBufferMiscFlag misc_flags = GfxBufferMiscFlag::None;
-		uint32 stride = 0; 
+		Uint32 stride = 0; 
 		GfxFormat format = GfxFormat::UNKNOWN; 
 		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 
 	struct GfxBufferDescriptorDesc
 	{
-		uint64 offset = 0;
-		uint64 size = uint64(-1);
+		Uint64 offset = 0;
+		Uint64 size = Uint64(-1);
 		std::strong_ordering operator<=>(GfxBufferDescriptorDesc const& other) const = default;
 	};
 
@@ -41,10 +41,10 @@ namespace adria
 		ID3D12Resource* GetNative() const;
 
 		GfxBufferDesc const& GetDesc() const;
-		uint64 GetGpuAddress() const;
-		uint64 GetSize() const;
-		uint32 GetStride() const;
-		uint32 GetCount() const;
+		Uint64 GetGpuAddress() const;
+		Uint64 GetSize() const;
+		Uint32 GetStride() const;
+		Uint32 GetCount() const;
 		GfxFormat GetFormat() const;
 
 		bool IsMapped() const;
@@ -53,7 +53,7 @@ namespace adria
 		T* GetMappedData() const;
 		ADRIA_MAYBE_UNUSED void* Map();
 		void Unmap();
-		void Update(void const* src_data, uint64 data_size, uint64 offset = 0);
+		void Update(void const* src_data, Uint64 data_size, Uint64 offset = 0);
 		template<typename T>
 		void Update(T const& src_data);
 
@@ -81,34 +81,34 @@ namespace adria
 	struct GfxVertexBufferView
 	{
 		explicit GfxVertexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetSize()), stride_in_bytes(buffer->GetStride())
+			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((Uint32)buffer->GetSize()), stride_in_bytes(buffer->GetStride())
 		{}
 
-		GfxVertexBufferView(uint64 buffer_location, uint32 count, uint32 stride_in_bytes)
+		GfxVertexBufferView(Uint64 buffer_location, Uint32 count, Uint32 stride_in_bytes)
 			: buffer_location(buffer_location), size_in_bytes(count * stride_in_bytes), stride_in_bytes(stride_in_bytes)
 		{}
 
-		uint64					    buffer_location = 0;
-		uint32                      size_in_bytes = 0;
-		uint32                      stride_in_bytes = 0;
+		Uint64					    buffer_location = 0;
+		Uint32                      size_in_bytes = 0;
+		Uint32                      stride_in_bytes = 0;
 	};
 
 	struct GfxIndexBufferView
 	{
 		explicit GfxIndexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetSize()), format(buffer->GetFormat())
+			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((Uint32)buffer->GetSize()), format(buffer->GetFormat())
 		{}
 
-		GfxIndexBufferView(uint64 buffer_location, uint32 count, GfxFormat format = GfxFormat::R32_UINT)
+		GfxIndexBufferView(Uint64 buffer_location, Uint32 count, GfxFormat format = GfxFormat::R32_UINT)
 			: buffer_location(buffer_location), size_in_bytes(count * GetGfxFormatStride(format)), format(format)
 		{}
 
-		uint64					    buffer_location = 0;
-		uint32                      size_in_bytes;
+		Uint64					    buffer_location = 0;
+		Uint32                      size_in_bytes;
 		GfxFormat                   format;
 	};
 
-	inline GfxBufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
+	inline GfxBufferDesc VertexBufferDesc(Uint64 vertex_count, Uint32 stride, bool ray_tracing = true)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = ray_tracing ? GfxBindFlag::ShaderResource : GfxBindFlag::None;
@@ -117,7 +117,7 @@ namespace adria
 		desc.stride = stride;
 		return desc;
 	}
-	inline GfxBufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
+	inline GfxBufferDesc IndexBufferDesc(Uint64 index_count, bool small_indices, bool ray_tracing = true)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = ray_tracing ? GfxBindFlag::ShaderResource : GfxBindFlag::None;
@@ -127,7 +127,7 @@ namespace adria
 		desc.format = small_indices ? GfxFormat::R16_UINT : GfxFormat::R32_UINT;
 		return desc;
 	}
-	inline GfxBufferDesc ReadBackBufferDesc(uint64 size)
+	inline GfxBufferDesc ReadBackBufferDesc(Uint64 size)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = GfxBindFlag::None;
@@ -137,7 +137,7 @@ namespace adria
 		return desc;
 	}
 	template<typename T>
-	inline GfxBufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
+	inline GfxBufferDesc StructuredBufferDesc(Uint64 count, bool uav = true, bool dynamic = false)
 	{
 		GfxBufferDesc desc{};
 		desc.resource_usage = (uav || !dynamic) ? GfxResourceUsage::Default : GfxResourceUsage::Upload;
@@ -151,7 +151,7 @@ namespace adria
 	inline GfxBufferDesc CounterBufferDesc()
 	{
 		GfxBufferDesc desc{};
-		desc.size = sizeof(uint32);
+		desc.size = sizeof(Uint32);
 		desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		return desc;
 	}

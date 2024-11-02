@@ -11,11 +11,11 @@ namespace adria
 	{
 		
 	public:
-		FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
+		FFXDepthOfFieldPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~FFXDepthOfFieldPass();
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual void OnResize(uint32, uint32) override;
+		virtual void OnResize(Uint32, Uint32) override;
 		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
 
@@ -23,7 +23,7 @@ namespace adria
 	private:
 		char name_version[20] = {};
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		FfxInterface* ffx_interface;
 		FfxDofContextDescription dof_context_desc{};
 		FfxDofContext            dof_context{};
@@ -32,7 +32,7 @@ namespace adria
 		float focus_dist = 400.0f;
 		float sensor_size = 0.02f;
 		float coc_limit = 0.01f; 
-		int32 quality = 10;
+		Sint32 quality = 10;
 		bool  enable_ring_merge = false;
 
 	private:

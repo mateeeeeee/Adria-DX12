@@ -20,7 +20,7 @@ namespace adria
 	};
 
 	class GfxDevice;
-	enum ShaderID : uint8;
+	enum ShaderID : Uint8;
 
 	class GfxNsightAftermathGpuCrashTracker
 	{
@@ -36,14 +36,14 @@ namespace adria
 		GfxDevice* gfx;
 		bool initialized = false;
 		mutable std::mutex m_mutex;
-		std::map<GFSDK_Aftermath_ShaderDebugInfoIdentifier, std::vector<uint8>, GFSDK_Aftermath_ShaderDebugInfoIdentifierComparator> shader_debug_info_map;
-		mutable std::unordered_map<uint64, GfxShaderKey> shader_hash_map;
+		std::map<GFSDK_Aftermath_ShaderDebugInfoIdentifier, std::vector<Uint8>, GFSDK_Aftermath_ShaderDebugInfoIdentifierComparator> shader_debug_info_map;
+		mutable std::unordered_map<Uint64, GfxShaderKey> shader_hash_map;
 
 	private:
-		void OnCrashDump(const void* gpu_crash_dump_data, const uint32 gpu_crash_dump_size);
-		void OnShaderDebugInfo(const void* shader_debug_info, const uint32 shader_debug_info_size);
+		void OnCrashDump(const void* gpu_crash_dump_data, const Uint32 gpu_crash_dump_size);
+		void OnShaderDebugInfo(const void* shader_debug_info, const Uint32 shader_debug_info_size);
 		void OnDescription(PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description);
-		void OnResolveMarker(void const* marker_data, uint32 marker_data_size, void** resolved_marker_data, uint32* resolved_marker_data_size)
+		void OnResolveMarker(void const* marker_data, Uint32 marker_data_size, void** resolved_marker_data, Uint32* resolved_marker_data_size)
 		{
 
 		}
@@ -52,12 +52,12 @@ namespace adria
 		void OnShaderLookup(GFSDK_Aftermath_ShaderBinaryHash const& shader_hash, PFN_GFSDK_Aftermath_SetData set_shader_binary) const;
 		void OnShaderSourceDebugInfoLookup(GFSDK_Aftermath_ShaderDebugName const& shaderDebugName, PFN_GFSDK_Aftermath_SetData setShaderBinary) const;
 
-		static void GpuCrashDumpCallback(void const* gpu_crash_dump_data,  uint32 gpu_crash_dump_size, void* user_data)
+		static void GpuCrashDumpCallback(void const* gpu_crash_dump_data,  Uint32 gpu_crash_dump_size, void* user_data)
 		{
 			GfxNsightAftermathGpuCrashTracker* gpu_crash_tracker = reinterpret_cast<GfxNsightAftermathGpuCrashTracker*>(user_data);
 			gpu_crash_tracker->OnCrashDump(gpu_crash_dump_data, gpu_crash_dump_size);
 		}
-		static void ShaderDebugInfoCallback(void const* shader_debug_info, uint32 shader_debug_info_size, void* user_data)
+		static void ShaderDebugInfoCallback(void const* shader_debug_info, Uint32 shader_debug_info_size, void* user_data)
 		{
 			GfxNsightAftermathGpuCrashTracker* gpu_crash_tracker = reinterpret_cast<GfxNsightAftermathGpuCrashTracker*>(user_data);
 			gpu_crash_tracker->OnShaderDebugInfo(shader_debug_info, shader_debug_info_size);
@@ -67,7 +67,7 @@ namespace adria
 			GfxNsightAftermathGpuCrashTracker* gpu_crash_tracker = reinterpret_cast<GfxNsightAftermathGpuCrashTracker*>(user_data);
 			gpu_crash_tracker->OnDescription(add_description);
 		}
-		static void ResolveMarkerCallback(void const* marker_data, uint32 marker_data_size, void* user_data, void** resolved_marker_data, uint32* resolved_marker_data_size)
+		static void ResolveMarkerCallback(void const* marker_data, Uint32 marker_data_size, void* user_data, void** resolved_marker_data, Uint32* resolved_marker_data_size)
 		{
 			GfxNsightAftermathGpuCrashTracker* gpu_crash_tracker = reinterpret_cast<GfxNsightAftermathGpuCrashTracker*>(user_data);
 			gpu_crash_tracker->OnResolveMarker(marker_data, marker_data_size, resolved_marker_data, resolved_marker_data_size);
@@ -89,8 +89,8 @@ namespace adria
 			gpu_crash_tracker->OnShaderSourceDebugInfoLookup(*shader_debug_name, set_shader_binary);
 		}
 
-		void WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, uint32 gpu_crash_dump_size);
-		void WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, uint32 shader_debug_info_size);
+		void WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, Uint32 gpu_crash_dump_size);
+		void WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, Uint32 shader_debug_info_size);
 
 		void OnShaderOrLibraryCompiled(GfxShaderKey const&);
 	};

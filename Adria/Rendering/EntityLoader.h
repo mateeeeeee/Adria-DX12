@@ -32,14 +32,14 @@ namespace adria
     };
 	struct GridParameters
 	{
-		uint64 tile_count_x;
-		uint64 tile_count_z;
+		Uint64 tile_count_x;
+		Uint64 tile_count_z;
 		float tile_size_x;
 		float tile_size_z;
 		float texture_scale_x;
 		float texture_scale_z;
-		uint64 chunk_count_x;
-		uint64 chunk_count_z;
+		Uint64 chunk_count_x;
+		Uint64 chunk_count_z;
 		bool split_to_chunks = false;
 		NormalCalculation normal_type = NormalCalculation::None;
 		std::unique_ptr<Heightmap> heightmap;
@@ -53,7 +53,7 @@ namespace adria
     {
         Light light_data;
         LightMesh mesh_type = LightMesh::NoMesh;
-        uint32 mesh_size = 0u;
+        Uint32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
 	struct DecalParameters

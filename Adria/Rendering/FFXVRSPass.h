@@ -18,19 +18,19 @@ namespace adria
 	class FFXVRSPass : public PostEffect
 	{
 	public:
-		FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h);
+		FFXVRSPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~FFXVRSPass();
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void GUI() override;
-		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void OnResize(Uint32 w, Uint32 h) override;
 		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual bool IsSupported() const override { return is_supported; }
 
 	private:
 		char name_version[16] = {};
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 
 		FfxInterface*			 ffx_interface;
 		FfxVrsContextDescription vrs_context_description;
@@ -43,7 +43,7 @@ namespace adria
 
 		bool is_supported = false;
 		bool  additional_shading_rates_supported = false;
-		uint32 shading_rate_image_tile_size;
+		Uint32 shading_rate_image_tile_size;
 
 	private:
 		void CreateVRSImage();

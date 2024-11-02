@@ -37,7 +37,7 @@ namespace adria
 	}
 	
 
-	XeSSPass::XeSSPass(GfxDevice* gfx, uint32 w, uint32 h) 
+	XeSSPass::XeSSPass(GfxDevice* gfx, Uint32 w, Uint32 h) 
 		: gfx(gfx), display_width(), display_height(), render_width(), render_height()
 	{
 		if (!gfx->GetCapabilities().SupportsRayTracing()) return;

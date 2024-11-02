@@ -19,7 +19,7 @@ namespace adria
 		resource_desc.Height = desc.height;
 		resource_desc.MipLevels = desc.mip_levels;
 		resource_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		resource_desc.DepthOrArraySize = (uint16)desc.array_size;
+		resource_desc.DepthOrArraySize = (Uint16)desc.array_size;
 		resource_desc.SampleDesc.Count = desc.sample_count;
 		resource_desc.SampleDesc.Quality = 0;
 		resource_desc.Alignment = 0;
@@ -184,21 +184,21 @@ namespace adria
 		}
 		if (desc.mip_levels == 0)
 		{
-			const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32_t)log2(std::max<uint32>(desc.width, desc.height)) + 1;
+			const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32_t)log2(std::max<Uint32>(desc.width, desc.height)) + 1;
 		}
 
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
 		auto cmd_list = gfx->GetCommandList();
 		if (data.sub_data != nullptr)
 		{
-			uint32 subresource_count = data.sub_count;
-			if (subresource_count == uint32(-1)) subresource_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
-			uint64 required_size;
-			device->GetCopyableFootprints(&resource_desc, 0, (uint32)subresource_count, 0, nullptr, nullptr, nullptr, &required_size);
+			Uint32 subresource_count = data.sub_count;
+			if (subresource_count == Uint32(-1)) subresource_count = desc.array_size * std::max<Uint32>(1u, desc.mip_levels);
+			Uint64 required_size;
+			device->GetCopyableFootprints(&resource_desc, 0, (Uint32)subresource_count, 0, nullptr, nullptr, nullptr, &required_size);
 			GfxDynamicAllocation dyn_alloc = dynamic_allocator->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 			
 			std::vector<D3D12_SUBRESOURCE_DATA> subresource_data(subresource_count);
-			for (uint32 i = 0; i < subresource_count; ++i)
+			for (Uint32 i = 0; i < subresource_count; ++i)
 			{
 				GfxTextureSubData init_data = data.sub_data[i];
 				subresource_data[i].pData = init_data.data;
@@ -238,7 +238,7 @@ namespace adria
 		}
 	}
 
-	uint64 GfxTexture::GetGpuAddress() const
+	Uint64 GfxTexture::GetGpuAddress() const
 	{
 		return resource->GetGPUVirtualAddress();
 	}

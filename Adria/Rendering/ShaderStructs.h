@@ -4,11 +4,11 @@
 #define DECLSPEC_ALIGN(x)   __declspec(align(x))
 #endif
 
-#define PAD uint32 ADRIA_CONCAT(pad, __COUNTER__)
+#define PAD Uint32 ADRIA_CONCAT(pad, __COUNTER__)
 
 namespace adria
 {
-	using bool32 = int32;
+	using Bool32 = Sint32;
 
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
@@ -48,20 +48,20 @@ namespace adria
 		float  delta_time;
 		float  total_time;
 
-		uint32 frame_count;
-		int32  lights_idx;
-		int32  lights_matrices_idx;
-		int32  accel_struct_idx;
-		int32  env_map_idx;
-		int32  meshes_idx;
-		int32  materials_idx;
-		int32  instances_idx;
-		int32  ddgi_volumes_idx;
-		int32  printf_buffer_idx;
+		Uint32 frame_count;
+		Sint32  lights_idx;
+		Sint32  lights_matrices_idx;
+		Sint32  accel_struct_idx;
+		Sint32  env_map_idx;
+		Sint32  meshes_idx;
+		Sint32  materials_idx;
+		Sint32  instances_idx;
+		Sint32  ddgi_volumes_idx;
+		Sint32  printf_buffer_idx;
 
-		int32  rain_splash_diffuse_idx;
-		int32  rain_splash_bump_idx;
-		int32  rain_blocker_map_idx;
+		Sint32  rain_splash_diffuse_idx;
+		Sint32  rain_splash_bump_idx;
+		Sint32  rain_blocker_map_idx;
 		float  rain_total_time;
 	};
 
@@ -70,42 +70,42 @@ namespace adria
 		Vector4 position;
 		Vector4 direction;
 		Vector4 color;
-		int32 active;
+		Sint32 active;
 		float range;
-		int32 type;
+		Sint32 type;
 		float outer_cosine;
 
 		float inner_cosine;
-		bool32 volumetric;
+		Bool32 volumetric;
 		float volumetric_strength;
-		bool32 use_cascades;
+		Bool32 use_cascades;
 
-		int32 shadow_texture_index;
-		int32 shadow_matrix_index;
-		int32 shadow_mask_index;
-		int32 padd;
+		Sint32 shadow_texture_index;
+		Sint32 shadow_matrix_index;
+		Sint32 shadow_mask_index;
+		Sint32 padd;
 	};
 
 	struct MeshGPU
 	{
-		uint32 buffer_idx;
-		uint32 positions_offset;
-		uint32 uvs_offset;
-		uint32 normals_offset;
-		uint32 tangents_offset;
-		uint32 indices_offset;
-		uint32 meshlet_offset;
-		uint32 meshlet_vertices_offset;
-		uint32 meshlet_triangles_offset;
-		uint32 meshlet_count;
+		Uint32 buffer_idx;
+		Uint32 positions_offset;
+		Uint32 uvs_offset;
+		Uint32 normals_offset;
+		Uint32 tangents_offset;
+		Uint32 indices_offset;
+		Uint32 meshlet_offset;
+		Uint32 meshlet_vertices_offset;
+		Uint32 meshlet_triangles_offset;
+		Uint32 meshlet_count;
 	};
 
 	struct MaterialGPU
 	{
-		uint32 diffuse_idx;
-		uint32 normal_idx;
-		uint32 roughness_metallic_idx;
-		uint32 emissive_idx;
+		Uint32 diffuse_idx;
+		Uint32 normal_idx;
+		Uint32 roughness_metallic_idx;
+		Uint32 emissive_idx;
 		Vector3 base_color_factor;
 		float emissive_factor;
 		float metallic_factor;
@@ -120,9 +120,9 @@ namespace adria
 		Vector3 bb_origin;
 		PAD;
 		Vector3 bb_extents;
-		uint32 instance_id;
-		uint32 material_idx;
-		uint32 mesh_index;
+		Uint32 instance_id;
+		Uint32 material_idx;
+		Uint32 mesh_index;
 		PAD[2];
 	};
 }

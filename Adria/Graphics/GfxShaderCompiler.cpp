@@ -164,7 +164,7 @@ namespace adria
 
 			metadata_archive(output.shader_hash);
 			metadata_archive(output.includes);
-			uint64 binary_size = 0;
+			Uint64 binary_size = 0;
 			metadata_archive(binary_size);
 
 			std::ifstream is2(cache_binary, std::ios::binary);
@@ -217,7 +217,7 @@ namespace adria
 				define_key += define.name;
 				define_key += define.value;
 			}
-			uint64 define_hash = crc64(define_key.c_str(), define_key.size());
+			Uint64 define_hash = crc64(define_key.c_str(), define_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir.c_str(), GetFilenameWithoutExtension(input.file).c_str(),
@@ -227,7 +227,7 @@ namespace adria
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
 
 			compile:
-			uint32 code_page = CP_UTF8;
+			Uint32 code_page = CP_UTF8;
 			Ref<IDxcBlobEncoding> source_blob;
 
 			std::wstring shader_source = ToWideString(input.file);
@@ -292,7 +292,7 @@ namespace adria
 			Ref<IDxcResult> result;
 			hr = compiler->Compile(
 				&source_buffer,
-				compile_args.data(), (uint32)compile_args.size(),
+				compile_args.data(), (Uint32)compile_args.size(),
 				&custom_include_handler,
 				IID_PPV_ARGS(result.GetAddressOf()));
 
@@ -305,7 +305,7 @@ namespace adria
 					ADRIA_LOG(ERROR, "%s", err_msg);
 					std::string msg = "Click OK after you fixed the following errors: \n";
 					msg += err_msg;
-					int32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
+					Sint32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
 					if (result == IDOK) goto compile;
 					else if (result == IDCANCEL) return false;
 				}
@@ -339,7 +339,7 @@ namespace adria
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr)))
 			{
 				DxcShaderHash* hash_buf = (DxcShaderHash*)hash->GetBufferPointer();
-				memcpy(output.shader_hash, hash_buf->HashDigest, sizeof(uint64) * 2);
+				memcpy(output.shader_hash, hash_buf->HashDigest, sizeof(Uint64) * 2);
 			}
 
 			output.shader.SetDesc(input);
@@ -352,7 +352,7 @@ namespace adria
 		void ReadBlobFromFile(std::string const& filename, GfxShaderBlob& blob)
 		{
 			std::wstring wide_filename = ToWideString(filename);
-			uint32 code_page = CP_UTF8;
+			Uint32 code_page = CP_UTF8;
 			Ref<IDxcBlobEncoding> source_blob;
 			HRESULT hr = library->CreateBlobFromFile(wide_filename.data(), &code_page, source_blob.GetAddressOf());
 			GFX_CHECK_HR(hr);

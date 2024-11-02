@@ -14,7 +14,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	DecalsPass::DecalsPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)
+	DecalsPass::DecalsPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h)
 	 : reg{ reg }, gfx{ gfx }, width{ w }, height{ h }
 	{
 		CreatePSOs();
@@ -45,15 +45,15 @@ namespace adria
 				GfxDescriptor depth_srv = gfx->AllocateDescriptorsGPU();
 				gfx->CopyDescriptors(1, depth_srv, context.GetReadOnlyTexture(data.depth_srv));
 
-				uint32 depth_idx = depth_srv.GetIndex();
+				Uint32 depth_idx = depth_srv.GetIndex();
 				struct DecalsConstants
 				{
 					Matrix model_matrix;
 					Matrix transposed_inverse_model;
-					uint32 decal_type;
-					uint32 decal_albedo_idx;
-					uint32 decal_normal_idx;
-					uint32 depth_idx;
+					Uint32 decal_type;
+					Uint32 decal_albedo_idx;
+					Uint32 decal_normal_idx;
+					Uint32 depth_idx;
 				} constants = 
 				{
 					.depth_idx = depth_idx
@@ -74,9 +74,9 @@ namespace adria
 
 						constants.model_matrix = decal.decal_model_matrix;
 						constants.transposed_inverse_model = decal.decal_model_matrix.Invert().Transpose(); 
-						constants.decal_type = static_cast<uint32>(decal.decal_type);
-						constants.decal_albedo_idx = (uint32)decal.albedo_decal_texture;
-						constants.decal_normal_idx = (uint32)decal.normal_decal_texture;
+						constants.decal_type = static_cast<Uint32>(decal.decal_type);
+						constants.decal_albedo_idx = (Uint32)decal.albedo_decal_texture;
+						constants.decal_normal_idx = (Uint32)decal.normal_decal_texture;
 						
 						cmd_list->SetRootCBV(2, constants);
 						cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
@@ -91,7 +91,7 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void DecalsPass::OnResize(uint32 w, uint32 h)
+	void DecalsPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
@@ -138,7 +138,7 @@ namespace adria
 			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		uint16 const cube_indices[36] =
+		Uint16 const cube_indices[36] =
 		{
 			// front
 			0, 1, 2,
@@ -169,7 +169,7 @@ namespace adria
 		GfxBufferDesc ib_desc{};
 		ib_desc.bind_flags = GfxBindFlag::None;
 		ib_desc.format = GfxFormat::R16_UINT;
-		ib_desc.stride = sizeof(uint16);
+		ib_desc.stride = sizeof(Uint16);
 		ib_desc.size = sizeof(cube_indices);
 		cube_ib = gfx->CreateBuffer(ib_desc, cube_indices);
 	}

@@ -77,13 +77,13 @@ namespace adria
 		ADRIA_ASSERT(result);
 	}
 
-	uint64 Image::SetData(uint32 _width, uint32 _height, uint32 _depth, uint32 _mip_levels, void const* _data)
+	Uint64 Image::SetData(Uint32 _width, Uint32 _height, Uint32 _depth, Uint32 _mip_levels, void const* _data)
 	{
 		width = std::max(_width, 1u);
 		height = std::max(_height, 1u);
 		depth = std::max(_depth, 1u);
 		mip_levels = std::max(_mip_levels, 1u);
-		uint64 texture_byte_size = GetTextureByteSize(format, width, height, depth, mip_levels);
+		Uint64 texture_byte_size = GetTextureByteSize(format, width, height, depth, mip_levels);
 		pixels.resize(texture_byte_size);
 		memcpy(pixels.data(), _data, pixels.size());
 		return texture_byte_size;
@@ -99,7 +99,7 @@ namespace adria
 			return false;
 
 		fseek(file, 0, SEEK_END);
-		std::vector<char> data((uint64)ftell(file));
+		std::vector<char> data((Uint64)ftell(file));
 		fseek(file, 0, SEEK_SET);
 		fread(data.data(), data.size(), 1, file);
 
@@ -107,14 +107,14 @@ namespace adria
 #pragma pack(push,1)
 		struct PixelFormatHeader
 		{
-			uint32 dwSize;
-			uint32 dwFlags;
-			uint32 dwFourCC;
-			uint32 dwRGBBitCount;
-			uint32 dwRBitMask;
-			uint32 dwGBitMask;
-			uint32 dwBBitMask;
-			uint32 dwABitMask;
+			Uint32 dwSize;
+			Uint32 dwFlags;
+			Uint32 dwFourCC;
+			Uint32 dwRGBBitCount;
+			Uint32 dwRBitMask;
+			Uint32 dwGBitMask;
+			Uint32 dwBBitMask;
+			Uint32 dwABitMask;
 		};
 #pragma pack(pop)
 
@@ -122,20 +122,20 @@ namespace adria
 #pragma pack(push,1)
 		struct FileHeader
 		{
-			uint32 dwSize;
-			uint32 dwFlags;
-			uint32 dwHeight;
-			uint32 dwWidth;
-			uint32 dwLinearSize;
-			uint32 dwDepth;
-			uint32 dwMipMapCount;
-			uint32 dwReserved1[11];
+			Uint32 dwSize;
+			Uint32 dwFlags;
+			Uint32 dwHeight;
+			Uint32 dwWidth;
+			Uint32 dwLinearSize;
+			Uint32 dwDepth;
+			Uint32 dwMipMapCount;
+			Uint32 dwReserved1[11];
 			PixelFormatHeader ddpf;
-			uint32 dwCaps;
-			uint32 dwCaps2;
-			uint32 dwCaps3;
-			uint32 dwCaps4;
-			uint32 dwReserved2;
+			Uint32 dwCaps;
+			Uint32 dwCaps2;
+			Uint32 dwCaps3;
+			Uint32 dwCaps4;
+			Uint32 dwReserved2;
 		};
 #pragma pack(pop)
 
@@ -143,11 +143,11 @@ namespace adria
 #pragma pack(push,1)
 		struct DX10FileHeader
 		{
-			uint32 dxgiFormat;
-			uint32 resourceDimension;
-			uint32 miscFlag;
-			uint32 arraySize;
-			uint32 reserved;
+			Uint32 dxgiFormat;
+			Uint32 resourceDimension;
+			Uint32 miscFlag;
+			Uint32 arraySize;
+			Uint32 reserved;
 		};
 #pragma pack(pop)
 
@@ -160,7 +160,7 @@ namespace adria
 			DDSCAPS2_CUBEMAP = 0x00000200U,
 		};
 
-		auto MakeFourCC = [](uint32 a, uint32 b, uint32 c, uint32 d) { return a | (b << 8u) | (c << 16u) | (d << 24u); };
+		auto MakeFourCC = [](Uint32 a, Uint32 b, Uint32 c, Uint32 d) { return a | (b << 8u) | (c << 16u) | (d << 24u); };
 
 		constexpr const char magic[] = "DDS ";
 		if (memcmp(magic, bytes, 4) != 0) return false;
@@ -173,9 +173,9 @@ namespace adria
 			dds_header->ddpf.dwSize == sizeof(PixelFormatHeader))
 		{
 			is_srgb = false;
-			uint32 bpp = dds_header->ddpf.dwRGBBitCount;
+			Uint32 bpp = dds_header->ddpf.dwRGBBitCount;
 
-			uint32 four_cc = dds_header->ddpf.dwFourCC;
+			Uint32 four_cc = dds_header->ddpf.dwFourCC;
 			bool has_dxgi = four_cc == MakeFourCC('D', 'X', '1', '0');
 			const DX10FileHeader* pDx10Header = nullptr;
 
@@ -215,7 +215,7 @@ namespace adria
 				case 0:
 					if (bpp == 32)
 					{
-						auto TestMask = [=](uint32 r, uint32 g, uint32 b, uint32 a)
+						auto TestMask = [=](Uint32 r, Uint32 g, Uint32 b, Uint32 a)
 						{
 							return dds_header->ddpf.dwRBitMask == r &&
 								dds_header->ddpf.dwGBitMask == g &&
@@ -234,7 +234,7 @@ namespace adria
 			}
 
 			bool _is_cubemap = (dds_header->dwCaps2 & 0x0000FC00U) != 0 || (has_dxgi && (pDx10Header->miscFlag & 0x4) != 0);
-			uint32 image_chain_count = 1;
+			Uint32 image_chain_count = 1;
 			if (_is_cubemap)
 			{
 				image_chain_count = 6;
@@ -246,9 +246,9 @@ namespace adria
 			}
 
 			Image* current_image = this;
-			for (uint32 image_idx = 0; image_idx < image_chain_count; ++image_idx)
+			for (Uint32 image_idx = 0; image_idx < image_chain_count; ++image_idx)
 			{
-				uint64 offset = current_image->SetData(dds_header->dwWidth, dds_header->dwHeight, dds_header->dwDepth, dds_header->dwMipMapCount, bytes);
+				Uint64 offset = current_image->SetData(dds_header->dwWidth, dds_header->dwHeight, dds_header->dwDepth, dds_header->dwMipMapCount, bytes);
 				bytes += offset;
 				if (image_idx < image_chain_count - 1)
 				{
@@ -263,15 +263,15 @@ namespace adria
 
 	bool Image::LoadSTB(std::string_view texture_path)
 	{
-		int32 components = 0;
+		Sint32 components = 0;
 		is_hdr = stbi_is_hdr(texture_path.data());
 		if (is_hdr)
 		{
-			int32 _width, _height;
+			Sint32 _width, _height;
 			float* _pixels = stbi_loadf(texture_path.data(), &_width, &_height, &components, 4);
 			if (_pixels == nullptr) return false;
-			width = (uint32)_width;
-			height = (uint32)_height;
+			width = (Uint32)_width;
+			height = (Uint32)_height;
 			depth = 1;
 			mip_levels = 1;
 			format = GfxFormat::R32G32B32A32_FLOAT;
@@ -285,8 +285,8 @@ namespace adria
 			int _width, _height;
 			stbi_uc* _pixels = stbi_load(texture_path.data(), &_width, &_height, &components, 4);
 			if (_pixels == nullptr) return false;
-			width = (uint32)_width;
-			height = (uint32)_height;
+			width = (Uint32)_width;
+			height = (Uint32)_height;
 			depth = 1;
 			mip_levels = 1;
 			format = GfxFormat::R8G8B8A8_UNORM;

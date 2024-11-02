@@ -4,7 +4,7 @@
 namespace adria
 {
 
-	enum SkyParams : uint16
+	enum SkyParams : Uint16
 	{
 		SkyParam_A = 0,
 		SkyParam_B,

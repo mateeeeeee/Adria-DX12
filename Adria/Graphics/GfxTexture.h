@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	enum GfxTextureType : uint8
+	enum GfxTextureType : Uint8
 	{
 		GfxTextureType_1D,
 		GfxTextureType_2D,
@@ -23,12 +23,12 @@ namespace adria
 	struct GfxTextureDesc
 	{
 		GfxTextureType type = GfxTextureType_2D;
-		uint32 width = 0;
-		uint32 height = 0;
-		uint32 depth = 0;
-		uint32 array_size = 1;
-		uint32 mip_levels = 1;
-		uint32 sample_count = 1;
+		Uint32 width = 0;
+		Uint32 height = 0;
+		Uint32 depth = 0;
+		Uint32 array_size = 1;
+		Uint32 mip_levels = 1;
+		Uint32 sample_count = 1;
 		GfxResourceUsage heap_type = GfxResourceUsage::Default;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
@@ -45,14 +45,14 @@ namespace adria
 		}
 	};
 
-	enum GfxTextureDescriptorFlags : uint8
+	enum GfxTextureDescriptorFlags : Uint8
 	{
 		GfxTextureDescriptorFlag_None = 0x0,
 		GfxTextureDescriptorFlag_DepthReadOnly = 0x1
 	};
 
 
-	enum GfxTextureChannelMapping : uint32
+	enum GfxTextureChannelMapping : Uint32
 	{
 		GfxTextureChannelMapping_Red,
 		GfxTextureChannelMapping_Green,
@@ -65,9 +65,9 @@ namespace adria
 	static constexpr GfxTextureChannelMapping GfxCustomTextureChannelMapping(GfxTextureChannelMapping R, GfxTextureChannelMapping G,
 		GfxTextureChannelMapping B, GfxTextureChannelMapping A)
 	{
-		constexpr uint32 GfxTextureChannelMappingMask = 0x7;
-		constexpr uint32 GfxTextureChannelMappingShift = 3;
-		constexpr uint32 GfxTextureChannelMappingAlwaysSetBit = 1 << (GfxTextureChannelMappingShift * 4);
+		constexpr Uint32 GfxTextureChannelMappingMask = 0x7;
+		constexpr Uint32 GfxTextureChannelMappingShift = 3;
+		constexpr Uint32 GfxTextureChannelMappingAlwaysSetBit = 1 << (GfxTextureChannelMappingShift * 4);
 
 		return GfxTextureChannelMapping(
 			(((R) & GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 0)) |
@@ -84,10 +84,10 @@ namespace adria
 
 	struct GfxTextureDescriptorDesc
 	{
-		uint32 first_slice = 0;
-		uint32 slice_count = static_cast<uint32>(-1);
-		uint32 first_mip = 0;
-		uint32 mip_count = static_cast<uint32>(-1);
+		Uint32 first_slice = 0;
+		Uint32 slice_count = static_cast<Uint32>(-1);
+		Uint32 first_mip = 0;
+		Uint32 mip_count = static_cast<Uint32>(-1);
 
 		GfxTextureDescriptorFlags flags = GfxTextureDescriptorFlag_None;
 		GfxTextureChannelMapping channel_mapping = GfxDefaultTextureChannelMapping;
@@ -97,14 +97,14 @@ namespace adria
 	struct GfxTextureSubData
 	{
 		void const* data;
-		uint64 row_pitch;
-		uint64 slice_pitch;
+		Uint64 row_pitch;
+		Uint64 slice_pitch;
 	};
 
 	struct GfxTextureData
 	{
 		GfxTextureSubData* sub_data = nullptr;
-		uint32 sub_count = uint32(-1);
+		Uint32 sub_count = Uint32(-1);
 	};
 
 	class GfxTexture
@@ -120,11 +120,11 @@ namespace adria
 
 		GfxDevice* GetParent() const { return gfx; }
 		GfxTextureDesc const& GetDesc() const { return desc; }
-		uint32 GetWidth() const { return desc.width; }
-		uint32 GetHeight() const { return desc.height; }
-		uint32 GetDepth() const { return desc.depth; }
+		Uint32 GetWidth() const { return desc.width; }
+		Uint32 GetHeight() const { return desc.height; }
+		Uint32 GetDepth() const { return desc.depth; }
 		GfxFormat GetFormat() const { return desc.format; }
-		uint64 GetGpuAddress() const;
+		Uint64 GetGpuAddress() const;
 
 		bool IsMapped() const;
 		void* GetMappedData() const;

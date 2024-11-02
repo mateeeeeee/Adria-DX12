@@ -3,26 +3,26 @@
 
 namespace adria
 {
-	static constexpr uint32 SHADING_RATE_SHIFT = 3;
-	static constexpr uint32 MAX_SHADING_RATES  = 7;
-	static constexpr uint32 SHADING_RATE_COMBINER_COUNT = 2;
+	static constexpr Uint32 SHADING_RATE_SHIFT = 3;
+	static constexpr Uint32 MAX_SHADING_RATES  = 7;
+	static constexpr Uint32 SHADING_RATE_COMBINER_COUNT = 2;
 	
 
-	enum GfxShadingRate1D : uint32
+	enum GfxShadingRate1D : Uint32
 	{
 		GfxShadingRate1D_1X = 0x01,
 		GfxShadingRate1D_2X = 0x02,
 		GfxShadingRate1D_4X = 0x04
 	};
 
-	enum class GfxVariableShadingMode : uint32
+	enum class GfxVariableShadingMode : Uint32
 	{
 		None = 0,
 		PerDraw,
 		Image
 	};
 
-	enum GfxShadingRate : uint32
+	enum GfxShadingRate : Uint32
 	{
 		GfxShadingRate_1X1 = (GfxShadingRate1D_1X << SHADING_RATE_SHIFT) | GfxShadingRate1D_1X,
 		GfxShadingRate_1X2 = (GfxShadingRate1D_1X << SHADING_RATE_SHIFT) | GfxShadingRate1D_2X,
@@ -33,7 +33,7 @@ namespace adria
 		GfxShadingRate_4X4 = (GfxShadingRate1D_4X << SHADING_RATE_SHIFT) | GfxShadingRate1D_4X
 	};
 
-	enum class GfxShadingRateCombiner : uint32
+	enum class GfxShadingRateCombiner : Uint32
 	{
 		Passthrough,
 		Override,   

@@ -21,14 +21,14 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> DDGI("r.DDGI", true, "Enable DDGI if supported");
 
-	Vector2u DDGIPass::ProbeTextureDimensions(Vector3u const& num_probes, uint32 texels_per_probe)
+	Vector2u DDGIPass::ProbeTextureDimensions(Vector3u const& num_probes, Uint32 texels_per_probe)
 	{
-		uint32 width = (1 + texels_per_probe + 1) * num_probes.y * num_probes.x;
-		uint32 height = (1 + texels_per_probe + 1) * num_probes.z;
+		Uint32 width = (1 + texels_per_probe + 1) * num_probes.y * num_probes.x;
+		Uint32 height = (1 + texels_per_probe + 1) * num_probes.z;
 		return Vector2u(width, height);
 	}
 
-	DDGIPass::DDGIPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
+	DDGIPass::DDGIPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
 		DDGI->Set(is_supported);
@@ -88,7 +88,7 @@ namespace adria
 		ddgi_volume.distance_history_srv = gfx->CreateTextureSRV(ddgi_volume.distance_history.get());
 	}
 
-	void DDGIPass::OnResize(uint32 w, uint32 h)
+	void DDGIPass::OnResize(Uint32 w, Uint32 h)
 	{
 		if (!IsSupported()) return;
 		width = w, height = h;
@@ -98,7 +98,7 @@ namespace adria
 	{
 		ADRIA_ASSERT(IsSupported());
 
-		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
+		Uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 		RealRandomGenerator rng(0.0f, 1.0f);
 		Vector3 random_vector(2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f); random_vector.Normalize();
 		float random_angle = rng() * pi<float> * 2.0f;
@@ -109,7 +109,7 @@ namespace adria
 
 		struct DDGIBlackboardData
 		{
-			uint32 heap_index;
+			Uint32 heap_index;
 		};
 
 		struct DDGIRayTracePassData
@@ -136,7 +136,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				Uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteBuffer(data.ray_buffer));
 				ctx.GetBlackboard().Create<DDGIBlackboardData>(i);
 
@@ -145,7 +145,7 @@ namespace adria
 					Vector3  random_vector;
 					float    random_angle;
 					float    history_blend_weight;
-					uint32   ray_buffer_index;
+					Uint32   ray_buffer_index;
 				} parameters
 				{
 					.random_vector = random_vector,
@@ -192,7 +192,7 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 				DDGIBlackboardData const& ddgi_blackboard = ctx.GetBlackboard().Get<DDGIBlackboardData>();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				Uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteTexture(data.irradiance));
 
 				struct DDGIParameters
@@ -200,8 +200,8 @@ namespace adria
 					Vector3  random_vector;
 					float    random_angle;
 					float    history_blend_weight;
-					uint32   ray_buffer_index;
-					uint32   irradiance_idx;
+					Uint32   ray_buffer_index;
+					Uint32   irradiance_idx;
 				} parameters
 				{
 					.random_vector = random_vector,
@@ -245,7 +245,7 @@ namespace adria
 
 				DDGIBlackboardData const& ddgi_blackboard = ctx.GetBlackboard().Get<DDGIBlackboardData>();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				Uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteTexture(data.distance));
 
 				struct DDGIParameters
@@ -253,8 +253,8 @@ namespace adria
 					Vector3  random_vector;
 					float    random_angle;
 					float    history_blend_weight;
-					uint32   ray_buffer_index;
-					uint32   distance_idx;
+					Uint32   ray_buffer_index;
+					Uint32   distance_idx;
 				} parameters
 				{
 					.random_vector = random_vector,
@@ -294,10 +294,10 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 				struct DDGIVisualizeParameters
 				{
-					uint32 visualize_mode;
+					Uint32 visualize_mode;
 				} parameters
 				{
-					.visualize_mode = (uint32)ddgi_visualize_mode
+					.visualize_mode = (Uint32)ddgi_visualize_mode
 				};
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->SetPipelineState(visualize_probes_pso.get());
@@ -347,7 +347,7 @@ namespace adria
 		return DDGI.Get();
 	}
 
-	int32 DDGIPass::GetDDGIVolumeIndex()
+	Sint32 DDGIPass::GetDDGIVolumeIndex()
 	{
 		if (!IsSupported())  return -1;
 
@@ -366,8 +366,8 @@ namespace adria
 		gfx->CopyDescriptors(1, irradiance_gpu, ddgi_volume.irradiance_history_srv);
 		gfx->CopyDescriptors(1, distance_gpu, ddgi_volume.distance_history_srv);
 
-		ddgi_gpu.irradiance_history_idx = (int32)irradiance_gpu.GetIndex();
-		ddgi_gpu.distance_history_idx = (int32)distance_gpu.GetIndex();
+		ddgi_gpu.irradiance_history_idx = (Sint32)irradiance_gpu.GetIndex();
+		ddgi_gpu.distance_history_idx = (Sint32)distance_gpu.GetIndex();
 		if (!ddgi_volume_buffer || ddgi_volume_buffer->GetCount() < ddgi_data.size())
 		{
 			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeGPU>(ddgi_data.size(), false, true));
@@ -377,7 +377,7 @@ namespace adria
 		ddgi_volume_buffer->Update(ddgi_data.data(), ddgi_data.size() * sizeof(DDGIVolumeGPU));
 		GfxDescriptor ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
-		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
+		return (Sint32)ddgi_volume_buffer_srv_gpu.GetIndex();
 	}
 
 	void DDGIPass::CreatePSOs()

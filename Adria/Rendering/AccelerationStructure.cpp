@@ -17,7 +17,7 @@ namespace adria
 	{
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
 		blases.resize(mesh.instances.size());
-		uint32 instance_id = 0;
+		Uint32 instance_id = 0;
 
 		GfxBuffer* geometry_buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
 		for (SubMeshInstance const& instance : mesh.instances)
@@ -56,11 +56,11 @@ namespace adria
 		tlas_srv = gfx->CreateBufferSRV(&tlas->GetBuffer());
 	}
 
-	int32 AccelerationStructure::GetTLASIndex() const
+	Sint32 AccelerationStructure::GetTLASIndex() const
 	{
 		GfxDescriptor tlas_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, tlas_srv_gpu, tlas_srv);
-		return (int32)tlas_srv_gpu.GetIndex();
+		return (Sint32)tlas_srv_gpu.GetIndex();
 	}
 
 	void AccelerationStructure::BuildBottomLevels()
@@ -68,7 +68,7 @@ namespace adria
 		GfxCommandList* cmd_list = gfx->GetCommandList();
 
 		std::span<GfxRayTracingGeometry> geometry_span(rt_geometries);
-		for (uint64 i = 0; i < blases.size(); ++i)
+		for (Uint64 i = 0; i < blases.size(); ++i)
 		{
 			blases[i] = gfx->CreateRayTracingBLAS(geometry_span.subspan(i, 1), GfxRayTracingASFlag_PreferFastTrace);
 		}

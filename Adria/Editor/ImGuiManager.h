@@ -33,14 +33,14 @@ namespace adria
 		void ToggleVisibility();
 		bool IsVisible() const;
 
-		GfxDescriptor AllocateDescriptorsGPU(uint32 count = 1) const;
+		GfxDescriptor AllocateDescriptorsGPU(Uint32 count = 1) const;
 
 	private:
 		GfxDevice* gfx;
 		std::string ini_file;
 		std::unique_ptr<GUIDescriptorAllocator> imgui_allocator;
 		bool visible = true;
-		mutable uint64 frame_count = 0;
+		mutable Uint64 frame_count = 0;
 	};
 
 }

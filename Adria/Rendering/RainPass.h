@@ -17,17 +17,17 @@ namespace adria
 
 	class RainPass
 	{
-		static constexpr uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 20;
+		static constexpr Uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 20;
 
 	public:
-		RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		RainPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 
 		void Update(float dt);
 		void AddBlockerPass(RenderGraph& rg);
 		void AddPass(RenderGraph& rg);
 		void GUI();
 		bool IsEnabled() const;
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 			rain_blocker_map_pass.OnResize(w, h);
@@ -41,15 +41,15 @@ namespace adria
 		}
 
 		float GetRainTotalTime()		  const { return rain_total_time; }
-		int32 GetRainSplashDiffuseIndex() const { return (int32)rain_splash_diffuse_handle; }
-		int32 GetRainSplashBumpIndex()    const { return (int32)rain_splash_bump_handle;    }
-		int32 GetRainBlockerMapIndex()    const { return rain_blocker_map_pass.GetRainBlockerMapIdx(); }
+		Sint32 GetRainSplashDiffuseIndex() const { return (Sint32)rain_splash_diffuse_handle; }
+		Sint32 GetRainSplashBumpIndex()    const { return (Sint32)rain_splash_bump_handle;    }
+		Sint32 GetRainBlockerMapIndex()    const { return rain_blocker_map_pass.GetRainBlockerMapIdx(); }
 		Matrix GetRainViewProjection()    const { return rain_blocker_map_pass.GetViewProjection(); }
 	private:
 		GfxDevice* gfx;
 		std::unique_ptr<GfxBuffer> rain_data_buffer;
-		uint32 width;
-		uint32 height;
+		Uint32 width;
+		Uint32 height;
 
 		TextureHandle rain_streak_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle rain_splash_diffuse_handle = INVALID_TEXTURE_HANDLE;

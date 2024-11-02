@@ -12,19 +12,19 @@ namespace adria
 	class FFXCACAOPass
 	{
 	public:
-		FFXCACAOPass(GfxDevice* gfx, uint32 w, uint32 h);
+		FFXCACAOPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~FFXCACAOPass();
 
 		void AddPass(RenderGraph& rendergraph);
 		void GUI();
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 
 	private:
 		char name_version[16] = {};
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		FfxInterface*			   ffx_interface;
-		int32					   preset_id = 0;
+		Sint32					   preset_id = 0;
 		bool                       use_downsampled_ssao = false;
 		bool                       generate_normals = false;
 		FfxCacaoSettings		   cacao_settings{};

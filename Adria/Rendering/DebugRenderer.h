@@ -19,12 +19,12 @@ namespace adria
 	{
 		friend class Singleton<DebugRenderer>;
 
-		static uint32 ColorToUint(Color const& col);
+		static Uint32 ColorToUint(Color const& col);
 
 		struct DebugVertex
 		{
 			Vector3 position = Vector3(0,0,0);
-			uint32 color = 0xffffffff;
+			Uint32 color = 0xffffffff;
 		};
 		struct DebugLine
 		{
@@ -54,9 +54,9 @@ namespace adria
 			DebugVertex vertex2;
 		};
 	public:
-		void Initialize(GfxDevice* gfx, uint32 width, uint32 height);
+		void Initialize(GfxDevice* gfx, Uint32 width, Uint32 height);
 		void Destroy();
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 
 		void Render(RenderGraph& rg);
 
@@ -81,7 +81,7 @@ namespace adria
 		DebugRendererMode mode = DebugRendererMode::Transient;
 		std::vector<DebugLine> transient_lines, persistent_lines;
 		std::vector<DebugTriangle> transient_triangles, persistent_triangles;
-		uint32 width = 0, height = 0;
+		Uint32 width = 0, height = 0;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> debug_psos;
 
 	private:

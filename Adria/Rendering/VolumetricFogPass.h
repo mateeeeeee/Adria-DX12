@@ -30,12 +30,12 @@ namespace adria
 			float       density_base;
 			float       density_change;
 		};
-		static constexpr uint32 BLUE_NOISE_TEXTURE_COUNT = 16;
+		static constexpr Uint32 BLUE_NOISE_TEXTURE_COUNT = 16;
 	public:
 
-		VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
+		VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h);
 		void AddPasses(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 			CreateLightInjectionHistoryTexture();
@@ -46,7 +46,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		entt::registry& reg;
-		uint32 width, height;
+		Uint32 width, height;
 
 		std::unique_ptr<GfxTexture> light_injection_target_history;
 		GfxDescriptor light_injection_target_history_srv;
@@ -54,7 +54,7 @@ namespace adria
 		std::vector<FogVolume> fog_volumes;
 		std::unique_ptr<GfxBuffer> fog_volume_buffer;
 		GfxDescriptor fog_volume_buffer_srv;
-		uint32 fog_volume_buffer_idx;
+		Uint32 fog_volume_buffer_idx;
 
 		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles;
 		std::unique_ptr<GfxComputePipelineState>  light_injection_pso;

@@ -6,7 +6,7 @@ namespace adria
 {
 	class UpscalerPass : public PostEffect
 	{
-		DECLARE_EVENT(RenderResolutionChanged, UpscalerPass, uint32, uint32)
+		DECLARE_EVENT(RenderResolutionChanged, UpscalerPass, Uint32, Uint32)
 	public:
 		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
 
@@ -14,7 +14,7 @@ namespace adria
 		RenderResolutionChanged render_resolution_changed_event;
 
 	protected:
-		void BroadcastRenderResolutionChanged(uint32 w, uint32 h)
+		void BroadcastRenderResolutionChanged(Uint32 w, Uint32 h)
 		{
 			render_resolution_changed_event.Broadcast(w, h);
 		}
@@ -25,7 +25,7 @@ namespace adria
 	public:
 		EmptyUpscalerPass() {}
 		virtual void AddPass(RenderGraph&, PostProcessor*) {}
-		virtual void OnResize(uint32, uint32) {}
+		virtual void OnResize(Uint32, Uint32) {}
 		virtual bool IsEnabled(PostProcessor const*) const { return false; }
 	};
 }

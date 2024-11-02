@@ -11,7 +11,7 @@
 namespace adria
 {
 	
-	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height)
+	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, Uint32 width, Uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
@@ -61,13 +61,13 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct RayTracedAmbientOcclusionConstants
 				{
-					uint32  depth_idx;
-					uint32  gbuf_normals_idx;
-					uint32  output_idx;
+					Uint32  depth_idx;
+					Uint32  gbuf_normals_idx;
+					Uint32  output_idx;
 					float   ao_radius;
 					float   ao_power;
 				} constants =
@@ -119,20 +119,20 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct RTAOFilterIndices
 				{
-					uint32  depth_idx;
-					uint32  input_idx;
-					uint32  output_idx;
+					Uint32  depth_idx;
+					Uint32  input_idx;
+					Uint32  output_idx;
 				} indices =
 				{
 					.depth_idx = i + 0, .input_idx = i + 1, .output_idx = i + 2
 				};
 
 				float distance_kernel[6];
-				for (uint64 i = 0; i < 6; ++i)
+				for (Uint64 i = 0; i < 6; ++i)
 				{
 					distance_kernel[i] = (float)exp(-float(i * i) / (2.f * params.filter_distance_sigma * params.filter_distance_sigma));
 				}
@@ -184,7 +184,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
-	void RayTracedAmbientOcclusionPass::OnResize(uint32 w, uint32 h)
+	void RayTracedAmbientOcclusionPass::OnResize(Uint32 w, Uint32 h)
 	{
 		if (!IsSupported()) return;
 		width = w, height = h;

@@ -12,7 +12,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<bool> FXAA("r.FXAA", true, "Enable or Disable FXAA");
 
-	FXAAPass::FXAAPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	FXAAPass::FXAAPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
@@ -44,12 +44,12 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct FXAAConstants
 				{
-					uint32 depth_idx;
-					uint32 output_idx;
+					Uint32 depth_idx;
+					Uint32 output_idx;
 				} constants =
 				{
 					.depth_idx = i, .output_idx = i + 1
@@ -75,7 +75,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Antialiasing);
 	}
 
-	void FXAAPass::OnResize(uint32 w, uint32 h)
+	void FXAAPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

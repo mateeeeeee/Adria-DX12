@@ -22,7 +22,7 @@ namespace adria
 		void AddInstance(Mesh const& mesh);
 		void Build();
 
-		int32 GetTLASIndex() const;
+		Sint32 GetTLASIndex() const;
 
 	private:
 		GfxDevice* gfx;
@@ -34,7 +34,7 @@ namespace adria
 		GfxDescriptor tlas_srv;
 
 		GfxFence build_fence;
-		uint64 build_fence_value = 0;
+		Uint64 build_fence_value = 0;
 	private:
 		void BuildBottomLevels();
 		void BuildTopLevel();

@@ -12,11 +12,11 @@ namespace adria
 	class TiledDeferredLightingPass
 	{
 	public:
-		TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 		void GUI();
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 			copy_to_texture_pass.OnResize(w, h);
@@ -25,12 +25,12 @@ namespace adria
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxComputePipelineState> tiled_deferred_lighting_pso;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		bool visualize_tiled = false;
-		int32 visualize_max_lights = 16;
+		Sint32 visualize_max_lights = 16;
 
 	private:
 		void CreatePSOs();

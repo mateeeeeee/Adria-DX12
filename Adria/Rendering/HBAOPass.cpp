@@ -11,7 +11,7 @@
 namespace adria
 {
 	
-	HBAOPass::HBAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), hbao_random_texture(nullptr),
+	HBAOPass::HBAOPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), hbao_random_texture(nullptr),
 		blur_pass(gfx)
 	{
 		CreatePSO();
@@ -53,7 +53,7 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				struct HBAOConstants
 				{
@@ -62,10 +62,10 @@ namespace adria
 					float  power;
 					float  noise_scale;
 
-					uint32   depth_idx;
-					uint32   normal_idx;
-					uint32   noise_idx;
-					uint32   output_idx;
+					Uint32   depth_idx;
+					Uint32   normal_idx;
+					Uint32   noise_idx;
+					Uint32   output_idx;
 				} constants =
 				{
 					.r2 = params.hbao_radius * params.hbao_radius, .radius_to_screen = params.hbao_radius * 0.5f * float(height) / (tanf(frame_data.camera_fov * 0.5f) * 2.0f),
@@ -98,7 +98,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
-	void HBAOPass::OnResize(uint32 w, uint32 h)
+	void HBAOPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
@@ -107,7 +107,7 @@ namespace adria
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<float> random_texture_data;
-		for (int32 i = 0; i < 8 * 8; i++)
+		for (Sint32 i = 0; i < 8 * 8; i++)
 		{
 			float rand = rand_float();
 			random_texture_data.push_back(sin(rand));

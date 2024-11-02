@@ -91,7 +91,7 @@ namespace adria
 		return visible;
 	}
 	
-	GfxDescriptor ImGuiManager::AllocateDescriptorsGPU(uint32 count /*= 1*/) const
+	GfxDescriptor ImGuiManager::AllocateDescriptorsGPU(Uint32 count /*= 1*/) const
 	{
 		return imgui_allocator->Allocate(count);
 	}

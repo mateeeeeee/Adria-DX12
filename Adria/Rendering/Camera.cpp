@@ -26,7 +26,7 @@ namespace adria
 		return Vector3::Transform(Vector3::Forward, orientation);
 	}
 
-	Vector2 Camera::Jitter(uint32 frame_index) const
+	Vector2 Camera::Jitter(Uint32 frame_index) const
 	{
 		Vector2 jitter{};
 		constexpr HaltonSequence<16, 2> x;
@@ -93,14 +93,14 @@ namespace adria
 		view_inverse.Invert(view_matrix);
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::Zoom(int32 increment)
+	void Camera::Zoom(Sint32 increment)
 	{
 		if (!enabled) return;
 		fov -= XMConvertToRadians(increment * 1.0f);
 		fov = std::clamp(fov, 0.00005f, pi_div_2<float>);
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::OnResize(uint32 w, uint32 h)
+	void Camera::OnResize(Uint32 w, Uint32 h)
 	{
 		SetAspectRatio(static_cast<float>(w) / h);
 	}

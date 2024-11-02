@@ -2,7 +2,7 @@
 
 namespace adria
 {
-	using TextureHandle = uint64;
+	using TextureHandle = Uint64;
 	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(-1);
 	inline constexpr TextureHandle DEFAULT_BLACK_TEXTURE_HANDLE = TextureHandle(0);
 	inline constexpr TextureHandle DEFAULT_WHITE_TEXTURE_HANDLE = TextureHandle(1);

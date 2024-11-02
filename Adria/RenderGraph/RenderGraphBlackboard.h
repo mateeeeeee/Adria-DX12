@@ -24,7 +24,7 @@ namespace adria
 		{
 			static_assert(std::is_trivial_v<T> && std::is_standard_layout_v<T>);
 			ADRIA_ASSERT(board_data.find(typeid(T)) == board_data.end() && "Cannot create same type more than once in blackboard!");
-			board_data[typeid(T)] = std::make_unique<uint8[]>(sizeof(T));
+			board_data[typeid(T)] = std::make_unique<Uint8[]>(sizeof(T));
 			T* data_entry = reinterpret_cast<T*>(board_data[typeid(T)].get());
 			*data_entry = T{ std::forward<Args>(args)... };
 			return *data_entry;
@@ -54,7 +54,7 @@ namespace adria
 		}
 
 	private:
-		std::unordered_map<std::type_index, std::unique_ptr<uint8[]>> board_data;
+		std::unordered_map<std::type_index, std::unique_ptr<Uint8[]>> board_data;
 	};
 
 	using RGBlackboard = RenderGraphBlackboard;

@@ -32,7 +32,7 @@ namespace adria
 	std::string ToLower(std::string const& str)
 	{
 		std::string out; out.resize(str.size());
-		for (uint32 i = 0; i < str.size(); ++i)
+		for (Uint32 i = 0; i < str.size(); ++i)
 		{
 			out[i] = std::tolower(str[i]);
 		}
@@ -41,7 +41,7 @@ namespace adria
 	std::string ToUpper(std::string const& str)
 	{
 		std::string out; out.resize(str.size());
-		for (uint32 i = 0; i < str.size(); ++i)
+		for (Uint32 i = 0; i < str.size(); ++i)
 		{
 			out[i] = std::toupper(str[i]);
 		}

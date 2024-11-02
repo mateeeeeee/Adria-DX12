@@ -22,18 +22,18 @@ namespace adria
 		};
 
 	public:
-		ReSTIRGI(GfxDevice* gfx, uint32 width, uint32 height);
+		ReSTIRGI(GfxDevice* gfx, Uint32 width, Uint32 height);
 
 		void AddPasses(RenderGraph& rg);
 
-		void OnResize(uint32 w, uint32 h)
+		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 		}
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 
 		bool enable = false;
 		ResamplingMode resampling_mode = ResamplingMode::TemporalAndSpatial;

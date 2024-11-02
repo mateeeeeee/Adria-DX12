@@ -22,7 +22,7 @@ namespace adria
 		}
 	}
 
-	DLSS3Pass::DLSS3Pass(GfxDevice* gfx, uint32 w, uint32 h) 
+	DLSS3Pass::DLSS3Pass(GfxDevice* gfx, Uint32 w, Uint32 h) 
 		: gfx(gfx), display_width(), display_height(), render_width(), render_height()
 	{
 		sprintf(name_version, "DLSS 3.5");

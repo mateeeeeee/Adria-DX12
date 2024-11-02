@@ -10,7 +10,7 @@ namespace adria
 	class GfxReflectionBlob : public IDxcBlob
 	{
 	public:
-		GfxReflectionBlob(void const* pShaderBytecode, uint64 byteLength) : bytecodeSize{ byteLength }
+		GfxReflectionBlob(void const* pShaderBytecode, Uint64 byteLength) : bytecodeSize{ byteLength }
 		{
 			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
@@ -67,7 +67,7 @@ namespace adria
 
 		input_layout.elements.clear();
 		input_layout.elements.resize(shader_desc.InputParameters);
-		for (uint32 i = 0; i < shader_desc.InputParameters; i++)
+		for (Uint32 i = 0; i < shader_desc.InputParameters; i++)
 		{
 			vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
 			input_layout.elements[i].semantic_name = std::string(param_desc.SemanticName);

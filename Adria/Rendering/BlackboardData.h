@@ -15,7 +15,7 @@ namespace adria
 		float						camera_jitter_y;
 		float						camera_position[4];
 		float						delta_time;
-		uint64						frame_cbuffer_address;
+		Uint64						frame_cbuffer_address;
 	};
 
 	struct DoFBlackboardData

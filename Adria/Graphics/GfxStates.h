@@ -3,7 +3,7 @@
 namespace adria
 {
 
-	enum class GfxPrimitiveTopologyType : uint8
+	enum class GfxPrimitiveTopologyType : Uint8
 	{
 		Undefined,
 		Point,
@@ -11,7 +11,7 @@ namespace adria
 		Triangle,
 		Patch
 	};
-	enum class GfxPrimitiveTopology : uint8
+	enum class GfxPrimitiveTopology : Uint8
 	{
 		Undefined,
 		TriangleList,
@@ -52,7 +52,7 @@ namespace adria
 		PatchList31,
 		PatchList32
 	};
-	enum class GfxComparisonFunc : uint8
+	enum class GfxComparisonFunc : Uint8
 	{
 		Never,
 		Less,
@@ -63,12 +63,12 @@ namespace adria
 		GreaterEqual,
 		Always,
 	};
-	enum class GfxDepthWriteMask : uint8
+	enum class GfxDepthWriteMask : Uint8
 	{
 		Zero,	
 		All,	
 	};
-	enum class GfxStencilOp : uint8
+	enum class GfxStencilOp : Uint8
 	{
 		Keep,
 		Zero,
@@ -79,7 +79,7 @@ namespace adria
 		Incr,
 		Decr,
 	};
-	enum class GfxBlend : uint8
+	enum class GfxBlend : Uint8
 	{
 		Zero,
 		One,
@@ -99,7 +99,7 @@ namespace adria
 		Src1Alpha,
 		InvSrc1Alpha,
 	};
-	enum class GfxBlendOp : uint8
+	enum class GfxBlendOp : Uint8
 	{
 		Add,
 		Subtract,
@@ -107,12 +107,12 @@ namespace adria
 		Min,
 		Max,
 	};
-	enum class GfxFillMode : uint8
+	enum class GfxFillMode : Uint8
 	{
 		Wireframe,
 		Solid,
 	};
-	enum class GfxCullMode : uint8
+	enum class GfxCullMode : Uint8
 	{
 		None,
 		Front,
@@ -133,14 +133,14 @@ namespace adria
 		GfxFillMode fill_mode = GfxFillMode::Solid;
 		GfxCullMode cull_mode = GfxCullMode::Back;
 		bool front_counter_clockwise = false;
-		int32 depth_bias = 0;
+		Sint32 depth_bias = 0;
 		float depth_bias_clamp = 0.0f;
 		float slope_scaled_depth_bias = 0.0f;
 		bool depth_clip_enable = true;
 		bool multisample_enable = false;
 		bool antialiased_line_enable = false;
 		bool conservative_rasterization_enable = false;
-		uint32 forced_sample_count = 0;
+		Uint32 forced_sample_count = 0;
 	};
 	struct GfxDepthStencilState
 	{
@@ -148,8 +148,8 @@ namespace adria
 		GfxDepthWriteMask depth_write_mask = GfxDepthWriteMask::All;
 		GfxComparisonFunc depth_func = GfxComparisonFunc::Greater;
 		bool stencil_enable = false;
-		uint8 stencil_read_mask = 0xff;
-		uint8 stencil_write_mask = 0xff;
+		Uint8 stencil_read_mask = 0xff;
+		Uint8 stencil_write_mask = 0xff;
 		struct GfxDepthStencilOp
 		{
 			GfxStencilOp stencil_fail_op = GfxStencilOp::Keep;

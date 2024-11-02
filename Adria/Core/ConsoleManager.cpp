@@ -42,7 +42,7 @@ namespace adria
 		{
 		public:
 			static bool GetBool(T Value);
-			static int32 GetInt(T Value);
+			static Sint32 GetInt(T Value);
 			static float GetFloat(T Value);
 			static std::string GetString(T Value);
 		};
@@ -50,7 +50,7 @@ namespace adria
 		{
 			return Value;
 		}
-		template<> int32 ConsoleVariableConversionHelper<bool>::GetInt(bool Value)
+		template<> Sint32 ConsoleVariableConversionHelper<bool>::GetInt(bool Value)
 		{
 			return Value ? 1 : 0;
 		}
@@ -62,19 +62,19 @@ namespace adria
 		{
 			return Value ? "true" : "false";
 		}
-		template<> bool ConsoleVariableConversionHelper<int32>::GetBool(int32 Value)
+		template<> bool ConsoleVariableConversionHelper<Sint32>::GetBool(Sint32 Value)
 		{
 			return Value != 0;
 		}
-		template<> int32 ConsoleVariableConversionHelper<int32>::GetInt(int32 Value)
+		template<> Sint32 ConsoleVariableConversionHelper<Sint32>::GetInt(Sint32 Value)
 		{
 			return Value;
 		}
-		template<> float ConsoleVariableConversionHelper<int32>::GetFloat(int32 Value)
+		template<> float ConsoleVariableConversionHelper<Sint32>::GetFloat(Sint32 Value)
 		{
 			return (float)Value;
 		}
-		template<> std::string ConsoleVariableConversionHelper<int32>::GetString(int32 Value)
+		template<> std::string ConsoleVariableConversionHelper<Sint32>::GetString(Sint32 Value)
 		{
 			return std::to_string(Value);
 		}
@@ -82,9 +82,9 @@ namespace adria
 		{
 			return Value != 0.0f;
 		}
-		template<> int32 ConsoleVariableConversionHelper<float>::GetInt(float Value)
+		template<> Sint32 ConsoleVariableConversionHelper<float>::GetInt(float Value)
 		{
-			return (int32)Value;
+			return (Sint32)Value;
 		}
 		template<> float ConsoleVariableConversionHelper<float>::GetFloat(float Value)
 		{
@@ -100,9 +100,9 @@ namespace adria
 			FromCString(Value.c_str(), out);
 			return out;
 		}
-		template<> int32 ConsoleVariableConversionHelper<std::string>::GetInt(std::string Value)
+		template<> Sint32 ConsoleVariableConversionHelper<std::string>::GetInt(std::string Value)
 		{
-			int32 out = false;
+			Sint32 out = false;
 			FromCString(Value.c_str(), out);
 			return out;
 		}
@@ -248,7 +248,7 @@ namespace adria
 		}
 
 		virtual bool GetBool() const override { return detail::ConsoleVariableConversionHelper<T>::GetBool(value); }
-		virtual int32 GetInt() const override { return detail::ConsoleVariableConversionHelper<T>::GetInt(value); }
+		virtual Sint32 GetInt() const override { return detail::ConsoleVariableConversionHelper<T>::GetInt(value); }
 		virtual float GetFloat() const override { return detail::ConsoleVariableConversionHelper<T>::GetFloat(value); }
 		virtual std::string GetString() const override { return detail::ConsoleVariableConversionHelper<T>::GetString(value); }
 
@@ -258,7 +258,7 @@ namespace adria
 		virtual bool IsString() const override { return false; }
 
 		virtual bool* GetBoolPtr() override { return nullptr; }
-		virtual int32* GetIntPtr() override { return nullptr; }
+		virtual Sint32* GetIntPtr() override { return nullptr; }
 		virtual float* GetFloatPtr() override { return nullptr; }
 		virtual std::string* GetStringPtr() override { return nullptr; }
 
@@ -270,7 +270,7 @@ namespace adria
 	{
 		return true;
 	}
-	template<> bool ConsoleVariable<int32>::IsInt() const
+	template<> bool ConsoleVariable<Sint32>::IsInt() const
 	{
 		return true;
 	}
@@ -286,7 +286,7 @@ namespace adria
 	{
 		return &value;
 	}
-	template<> int32* ConsoleVariable<int32>::GetIntPtr()
+	template<> Sint32* ConsoleVariable<Sint32>::GetIntPtr()
 	{
 		return &value;
 	}
@@ -403,7 +403,7 @@ namespace adria
 
 
 		virtual bool GetBool() const override { return detail::ConsoleVariableConversionHelper<T>::GetBool(value); }
-		virtual int32 GetInt() const override { return detail::ConsoleVariableConversionHelper<T>::GetInt(value); }
+		virtual Sint32 GetInt() const override { return detail::ConsoleVariableConversionHelper<T>::GetInt(value); }
 		virtual float GetFloat() const override { return detail::ConsoleVariableConversionHelper<T>::GetFloat(value); }
 		virtual std::string GetString() const override { return detail::ConsoleVariableConversionHelper<T>::GetString(value); }
 
@@ -420,7 +420,7 @@ namespace adria
 	{
 		return true;
 	}
-	template<> bool ConsoleVariableRef<int32>::IsInt() const
+	template<> bool ConsoleVariableRef<Sint32>::IsInt() const
 	{
 		return true;
 	}
@@ -587,7 +587,7 @@ namespace adria
 		else if (IConsoleCommand* ccommand = object->AsCommand())
 		{
 			std::vector<char const*> command_args; command_args.reserve(args.size() - 1);
-			for (uint64 i = 1; i < args.size(); ++i) command_args.push_back(args[i].c_str());
+			for (Uint64 i = 1; i < args.size(); ++i) command_args.push_back(args[i].c_str());
 			return ccommand->Execute(command_args);
 		}
 		return false;

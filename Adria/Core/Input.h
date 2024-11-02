@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	enum class KeyCode : uint32
+	enum class KeyCode : Uint32
 	{
 
 		F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
@@ -40,9 +40,9 @@ namespace adria
 	class Window;
 	struct WindowEventData;
 
-	DECLARE_EVENT(WindowResizedEvent, Input, uint32, uint32)
-	DECLARE_EVENT(RightMouseClickedEvent, Input, int32, int32)
-	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, int32)
+	DECLARE_EVENT(WindowResizedEvent, Input, Uint32, Uint32)
+	DECLARE_EVENT(RightMouseClickedEvent, Input, Sint32, Sint32)
+	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, Sint32)
 	DECLARE_EVENT(F5PressedEvent, Input)
 	DECLARE_EVENT(PrintScreenPressedEvent, Input, char const*)
 	struct InputEvents
@@ -68,9 +68,9 @@ namespace adria
 		void Tick();
 		void OnWindowEvent(WindowEventData const&);
 
-		bool GetKey(KeyCode key)    const { return keys[(uint64)key]; }
-		bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(uint64)key]; }
-		bool IsKeyUp(KeyCode key)   const { return !GetKey(key) && prev_keys[(uint64)key]; }
+		bool GetKey(KeyCode key)    const { return keys[(Uint64)key]; }
+		bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(Uint64)key]; }
+		bool IsKeyUp(KeyCode key)   const { return !GetKey(key) && prev_keys[(Uint64)key]; }
 
 		void SetMouseVisibility(bool visible);
 		void SetMousePosition(float xpos, float ypos);
@@ -84,8 +84,8 @@ namespace adria
 
 	private:
 		InputEvents input_events;
-		std::array<bool, (uint64)KeyCode::Count> keys;
-		std::array<bool, (uint64)KeyCode::Count> prev_keys;
+		std::array<bool, (Uint64)KeyCode::Count> keys;
+		std::array<bool, (Uint64)KeyCode::Count> prev_keys;
 
 		float mouse_position_x = 0.0f;
 		float mouse_position_y = 0.0f;

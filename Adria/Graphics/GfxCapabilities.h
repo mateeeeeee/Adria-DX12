@@ -5,25 +5,25 @@ namespace adria
 {
 	class GfxDevice;
 
-	enum class RayTracingSupport : uint8
+	enum class RayTracingSupport : Uint8
 	{
 		TierNotSupported,
 		Tier1_0,
 		Tier1_1
 	};
-	enum class VSRSupport : uint8
+	enum class VSRSupport : Uint8
 	{
 		TierNotSupported,
 		Tier1,
 		Tier2
 	};
-	enum class MeshShaderSupport : uint8
+	enum class MeshShaderSupport : Uint8
 	{
 		TierNotSupported,
 		Tier1
 	};
 
-	enum class WorkGraphSupport : uint8
+	enum class WorkGraphSupport : Uint8
 	{
 		TierNotSupported,
 		Tier1_0
@@ -78,7 +78,7 @@ namespace adria
 		}
 
 		bool SupportsAdditionalShadingRates() const { return additional_shading_rates_supported; }
-		uint32 GetShadingRateImageTileSize() const { return shading_rate_image_tile_size; }
+		Uint32 GetShadingRateImageTileSize() const { return shading_rate_image_tile_size; }
 
 	private:
 		
@@ -90,6 +90,6 @@ namespace adria
 		bool enhanced_barriers_supported = false;
 
 		bool additional_shading_rates_supported = false;
-		uint32 shading_rate_image_tile_size = 0;
+		Uint32 shading_rate_image_tile_size = 0;
 	};
 }

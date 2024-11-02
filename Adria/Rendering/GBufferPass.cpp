@@ -16,7 +16,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	GBufferPass::GBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) :
+	GBufferPass::GBufferPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h) :
 		reg{ reg }, gfx{ gfx }, width{ w }, height{ h }
 	{
 		CreatePSOs();
@@ -87,7 +87,7 @@ namespace adria
 
 					struct GBufferConstants
 					{
-						uint32 instance_id;
+						Uint32 instance_id;
 					} constants { .instance_id = batch.instance_id };
 					cmd_list->SetRootConstants(1, constants);
 
@@ -101,7 +101,7 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void GBufferPass::OnResize(uint32 w, uint32 h)
+	void GBufferPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

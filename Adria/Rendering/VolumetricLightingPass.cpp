@@ -14,7 +14,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	VolumetricLightingPass::VolumetricLightingPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
+	VolumetricLightingPass::VolumetricLightingPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
 	{
 		CreatePSOs();
 	}
@@ -50,16 +50,16 @@ namespace adria
 												context.GetReadWriteTexture(data.output) };
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct VolumetricLightingConstants
 				{
-					uint32 depth_idx;
-					uint32 output_idx;
-					uint32 resolution_scale;
+					Uint32 depth_idx;
+					Uint32 output_idx;
+					Uint32 resolution_scale;
 				} constants =
 				{
-					.depth_idx = i, .output_idx = i + 1, .resolution_scale = (uint32)resolution
+					.depth_idx = i, .output_idx = i + 1, .resolution_scale = (Uint32)resolution
 				};
 				
 				cmd_list->SetPipelineState(volumetric_lighting_pso.get());

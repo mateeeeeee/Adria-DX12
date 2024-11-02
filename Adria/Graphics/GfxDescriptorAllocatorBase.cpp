@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	GfxDescriptor GfxDescriptorAllocatorBase::GetHandle(uint32 index /*= 0*/) const
+	GfxDescriptor GfxDescriptorAllocatorBase::GetHandle(Uint32 index /*= 0*/) const
 	{
 		ADRIA_ASSERT(heap != nullptr);
 		ADRIA_ASSERT(index < descriptor_count);
@@ -13,7 +13,7 @@ namespace adria
 		return handle;
 	}
 
-	GfxDescriptorAllocatorBase::GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, uint32 descriptor_count, bool shader_visible) : gfx(gfx),
+	GfxDescriptorAllocatorBase::GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, bool shader_visible) : gfx(gfx),
 		type(type),
 		descriptor_count(descriptor_count),
 		shader_visible(shader_visible), head_descriptor{}

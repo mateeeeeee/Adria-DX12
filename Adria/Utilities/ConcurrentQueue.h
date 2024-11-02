@@ -54,7 +54,7 @@ namespace adria
             return queue.empty();
         }
 
-        uint64 Size() const
+        Uint64 Size() const
         {
             std::lock_guard<std::mutex> lock(mutex);
             return queue.size();

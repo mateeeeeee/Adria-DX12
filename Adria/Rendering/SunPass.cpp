@@ -12,7 +12,7 @@
 namespace adria
 {
 
-	SunPass::SunPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
+	SunPass::SunPass(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		CreatePSO();
 	}
@@ -64,12 +64,12 @@ namespace adria
 				{
 					Matrix model_matrix;
 					Vector3 diffuse_color;
-					uint32   diffuse_idx;
+					Uint32   diffuse_idx;
 				} constants =
 				{
 					.model_matrix = transform.current_transform,
 					.diffuse_color = Vector3(material.base_color),
-					.diffuse_idx = (uint32)material.albedo_texture
+					.diffuse_idx = (Uint32)material.albedo_texture
 				};
 				cmd_list->SetRootCBV(2, constants);
 				Draw(mesh, cmd_list);

@@ -7,7 +7,7 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 
-	enum class BlendMode : uint8
+	enum class BlendMode : Uint8
 	{
 		None,
 		AlphaBlend,
@@ -17,19 +17,19 @@ namespace adria
 	class CopyToTexturePass
 	{
 	public:
-		CopyToTexturePass(GfxDevice* gfx, uint32 w, uint32 h);
+		CopyToTexturePass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~CopyToTexturePass();
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName texture_dst,
 			RGResourceName texture_src, BlendMode mode = BlendMode::None);
 
-		void OnResize(uint32 w, uint32 h);
-		void SetResolution(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
+		void SetResolution(Uint32 w, Uint32 h);
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> copy_psos;
 
 	private:
@@ -39,19 +39,19 @@ namespace adria
 	class AddTexturesPass
 	{
 	public:
-		AddTexturesPass(GfxDevice* gfx, uint32 w, uint32 h);
+		AddTexturesPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~AddTexturesPass();
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName texture_dst,
 			RGResourceName texture_src1, RGResourceName texture_src2, BlendMode mode = BlendMode::None);
 
-		void OnResize(uint32 w, uint32 h);
-		void SetResolution(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
+		void SetResolution(Uint32 w, Uint32 h);
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> add_psos;
 
 	private:

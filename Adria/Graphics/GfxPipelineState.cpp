@@ -205,9 +205,9 @@ namespace adria
 			}
 			return D3D12_COMPARISON_FUNC_NEVER;
 		}
-		constexpr uint32 ParseColorWriteMask(GfxColorWrite value)
+		constexpr Uint32 ParseColorWriteMask(GfxColorWrite value)
 		{
-			uint32 _flag = 0;
+			Uint32 _flag = 0;
 			if (value == GfxColorWrite::EnableAll)
 			{
 				return D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -265,7 +265,7 @@ namespace adria
 			CD3DX12_BLEND_DESC bd{};
 			bd.AlphaToCoverageEnable = _bd.alpha_to_coverage_enable;
 			bd.IndependentBlendEnable = _bd.independent_blend_enable;
-			for (int32 i = 0; i < 8; ++i)
+			for (Sint32 i = 0; i < 8; ++i)
 			{
 				bd.RenderTarget[i].BlendEnable = _bd.render_target[i].blend_enable;
 				bd.RenderTarget[i].SrcBlend = ConvertBlend(_bd.render_target[i].src_blend);
@@ -300,7 +300,7 @@ namespace adria
 		inline void ConvertInputLayout(GfxInputLayout const& input_layout, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs)
 		{
 			element_descs.resize(input_layout.elements.size());
-			for (uint32 i = 0; i < element_descs.size(); ++i)
+			for (Uint32 i = 0; i < element_descs.size(); ++i)
 			{
 				GfxInputLayout::GfxInputElement const& element = input_layout.elements[i];
 				D3D12_INPUT_ELEMENT_DESC desc{};
@@ -342,7 +342,7 @@ namespace adria
 	void GfxGraphicsPipelineState::OnShaderRecompiled(GfxShaderKey const& s)
 	{
 		GfxShaderKey shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
-		for (uint64 i = 0; i < ARRAYSIZE(shaders); ++i)
+		for (Uint64 i = 0; i < ARRAYSIZE(shaders); ++i)
 		{
 			if (s == shaders[i])
 			{
@@ -369,7 +369,7 @@ namespace adria
 		d3d12_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
 		d3d12_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
 		d3d12_desc.NumRenderTargets = desc.num_render_targets;
-		for (uint64 i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
+		for (Uint64 i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
 		{
 			d3d12_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
 		}
@@ -428,7 +428,7 @@ namespace adria
 		d3d12_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
 		d3d12_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
 		d3d12_desc.NumRenderTargets = desc.num_render_targets;
-		for (uint32 i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
+		for (Uint32 i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
 		{
 			d3d12_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
 		}

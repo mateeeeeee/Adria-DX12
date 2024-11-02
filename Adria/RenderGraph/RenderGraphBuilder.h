@@ -8,12 +8,12 @@ namespace adria
 	struct RGTextureDesc
 	{
 		GfxTextureType type = GfxTextureType_2D;
-		uint32 width = 0;
-		uint32 height = 0;
-		uint32 depth = 0;
-		uint32 array_size = 1;
-		uint32 mip_levels = 1;
-		uint32 sample_count = 1;
+		Uint32 width = 0;
+		Uint32 height = 0;
+		Uint32 depth = 0;
+		Uint32 array_size = 1;
+		Uint32 mip_levels = 1;
+		Uint32 sample_count = 1;
 		GfxResourceUsage heap_type = GfxResourceUsage::Default;
 		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
 		GfxClearValue clear_value{};
@@ -21,8 +21,8 @@ namespace adria
 	};
 	struct RGBufferDesc
 	{
-		uint64 size = 0;
-		uint32 stride = 0;
+		Uint64 size = 0;
+		Uint32 stride = 0;
 		GfxResourceUsage resource_usage = GfxResourceUsage::Default;
 		GfxBufferMiscFlag misc_flags = GfxBufferMiscFlag::None;
 		GfxFormat format = GfxFormat::UNKNOWN;
@@ -105,51 +105,51 @@ namespace adria
 		ADRIA_NODISCARD RGBufferIndexId ReadIndexBuffer(RGResourceName name);
 		
 		ADRIA_NODISCARD RGTextureReadOnlyId ReadTexture(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader,
-			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+			Uint32 first_mip = 0, Uint32 mip_count = -1, Uint32 first_slice = 0, Uint32 slice_count = -1)
 		{
 			return ReadTextureImpl(name, read_access, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		ADRIA_NODISCARD RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureChannelMapping channel_mapping,
 			RGReadAccess read_access = ReadAccess_AllShader,
-			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+			Uint32 first_mip = 0, Uint32 mip_count = -1, Uint32 first_slice = 0, Uint32 slice_count = -1)
 		{
 			return ReadTextureImpl(name, read_access, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_None, channel_mapping });
 		}
 		ADRIA_NODISCARD RGTextureReadWriteId WriteTexture(RGResourceName name,
-			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+			Uint32 first_mip = 0, Uint32 mip_count = -1, Uint32 first_slice = 0, Uint32 slice_count = -1)
 		{
 			return WriteTextureImpl(name, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		ADRIA_MAYBE_UNUSED RGRenderTargetId WriteRenderTarget(RGResourceName name, RGLoadStoreAccessOp load_store_op,
-			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+			Uint32 first_mip = 0, Uint32 mip_count = -1, Uint32 first_slice = 0, Uint32 slice_count = -1)
 		{
 			return WriteRenderTargetImpl(name, load_store_op, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		ADRIA_MAYBE_UNUSED RGDepthStencilId WriteDepthStencil(RGResourceName name, RGLoadStoreAccessOp load_store_op,
-			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+			Uint32 first_mip = 0, Uint32 mip_count = -1, Uint32 first_slice = 0, Uint32 slice_count = -1)
 		{
 			return WriteDepthStencilImpl(name, load_store_op, RGLoadStoreAccessOp::NoAccess_NoAccess, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_None });
 		}
 		ADRIA_MAYBE_UNUSED RGDepthStencilId ReadDepthStencil(RGResourceName name, RGLoadStoreAccessOp load_store_op,
-			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+			Uint32 first_mip = 0, Uint32 mip_count = -1, Uint32 first_slice = 0, Uint32 slice_count = -1)
 		{
 			return ReadDepthStencilImpl(name, load_store_op, RGLoadStoreAccessOp::NoAccess_NoAccess, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_DepthReadOnly });
 		}
 
-		ADRIA_NODISCARD RGBufferReadOnlyId ReadBuffer(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader, uint32 offset = 0, uint32 size = -1)
+		ADRIA_NODISCARD RGBufferReadOnlyId ReadBuffer(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader, Uint32 offset = 0, Uint32 size = -1)
 		{
 			return ReadBufferImpl(name, read_access, GfxBufferDescriptorDesc{ offset, size });
 		}
-		ADRIA_NODISCARD RGBufferReadWriteId WriteBuffer(RGResourceName name, uint32 offset = 0, uint32 size = -1)
+		ADRIA_NODISCARD RGBufferReadWriteId WriteBuffer(RGResourceName name, Uint32 offset = 0, Uint32 size = -1)
 		{
 			return WriteBufferImpl(name, GfxBufferDescriptorDesc{ offset, size });
 		}
-		ADRIA_NODISCARD RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, uint32 offset = 0, uint32 size = -1)
+		ADRIA_NODISCARD RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, Uint32 offset = 0, Uint32 size = -1)
 		{
 			return WriteBufferImpl(name, counter_name, GfxBufferDescriptorDesc{ offset, size });
 		}
 
-		void SetViewport(uint32 width, uint32 height);
+		void SetViewport(Uint32 width, Uint32 height);
 		RGTextureDesc GetTextureDesc(RGResourceName);
 		RGBufferDesc  GetBufferDesc(RGResourceName);
 		void AddBufferBindFlags(RGResourceName name, GfxBindFlag flags);

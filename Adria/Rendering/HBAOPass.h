@@ -20,18 +20,18 @@ namespace adria
 		};
 
 	public:
-		static constexpr uint32 NOISE_DIM = 8;
+		static constexpr Uint32 NOISE_DIM = 8;
 
 	public:
-		HBAOPass(GfxDevice* gfx, uint32 w, uint32 h);
+		HBAOPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		void AddPass(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
 		void GUI();
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		HBAOParams params{};
 		std::unique_ptr<GfxTexture> hbao_random_texture;
 		GfxDescriptor hbao_random_texture_srv;

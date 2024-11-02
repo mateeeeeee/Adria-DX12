@@ -30,7 +30,7 @@ namespace adria
 		}
 		Vector3 Forward() const;
 
-		Vector2 Jitter(uint32 frame_index) const;
+		Vector2 Jitter(Uint32 frame_index) const;
 		float Near() const;
 		float Far() const;
 		float Fov() const;
@@ -41,8 +41,8 @@ namespace adria
 		void SetAspectRatio(float ar);
 		void SetFov(float fov);
 
-		void Zoom(int32 increment);
-		void OnResize(uint32 w, uint32 h);
+		void Zoom(Sint32 increment);
+		void OnResize(Uint32 w, Uint32 h);
 		void Update(float dt);
 		void Enable(bool _enabled) { enabled = _enabled; }
 		bool IsChanged() const { return changed; }

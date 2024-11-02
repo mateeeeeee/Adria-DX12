@@ -13,18 +13,18 @@ namespace adria
 	class AutoExposurePass : public PostEffect
 	{
 	public:
-		AutoExposurePass(GfxDevice* gfx, uint32 w, uint32 h);
+		AutoExposurePass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		//void AddPasses(RenderGraph& rg, RGResourceName input);
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual void OnResize(uint32, uint32) override;
+		virtual void OnResize(Uint32, Uint32) override;
 		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void OnSceneInitialized() override;
 		virtual void GUI() override;
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxTexture> previous_ev100;
 		GfxDescriptor previous_ev100_uav;
 		std::unique_ptr<GfxBuffer> histogram_copy;

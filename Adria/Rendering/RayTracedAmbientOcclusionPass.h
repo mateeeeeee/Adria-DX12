@@ -22,19 +22,19 @@ namespace adria
 		};
 
 	public:
-		RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height);
+		RayTracedAmbientOcclusionPass(GfxDevice* gfx, Uint32 width, Uint32 height);
 		~RayTracedAmbientOcclusionPass();
 
 		void AddPass(RenderGraph& rendergraph);
 		void GUI();
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 		bool IsSupported() const;
 
 	private:
 		GfxDevice* gfx;
 		std::unique_ptr<GfxStateObject> ray_traced_ambient_occlusion_so;
 		std::unique_ptr<GfxComputePipelineState> rtao_filter_pso;
-		uint32 width, height;
+		Uint32 width, height;
 		BlurPass blur_pass;
 
 		bool is_supported;

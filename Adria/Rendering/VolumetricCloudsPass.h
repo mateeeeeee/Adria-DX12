@@ -12,12 +12,12 @@ namespace adria
 	{
 		struct CloudParameters
 		{
-			int32 shape_noise_frequency = 4;
-			int32 shape_noise_resolution = 128;
-			int32 detail_noise_frequency = 6;
-			int32 detail_noise_resolution = 32;
+			Sint32 shape_noise_frequency = 4;
+			Sint32 shape_noise_resolution = 128;
+			Sint32 detail_noise_frequency = 6;
+			Sint32 detail_noise_resolution = 32;
 
-			int32 max_num_steps = 64;
+			Sint32 max_num_steps = 64;
 			float cloud_min_height = 1500.0f;
 			float cloud_max_height = 4000.0f;
 			float shape_noise_scale = 0.3f;
@@ -48,12 +48,12 @@ namespace adria
 		};
 
 	public:
-		VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h);
+		VolumetricCloudsPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~VolumetricCloudsPass();
 
 		virtual bool IsEnabled(PostProcessor const*) const override;
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void OnResize(Uint32 w, Uint32 h) override;
 		virtual void OnSceneInitialized() override;
 		virtual void GUI() override;
 
@@ -61,7 +61,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 
 		std::unique_ptr<GfxTexture> prev_clouds;
 		std::unique_ptr<GfxTexture> cloud_detail_noise;

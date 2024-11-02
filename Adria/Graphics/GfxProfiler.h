@@ -50,7 +50,7 @@ namespace adria
 		{
 			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, name.c_str());
 		}
-		GfxProfileScope(GfxCommandList* _cmd_list, char const* _name, uint32 color, bool active)
+		GfxProfileScope(GfxCommandList* _cmd_list, char const* _name, Uint32 color, bool active)
 			: name{ _name }, cmd_list{ _cmd_list }, color{ color }, active{ active }
 		{
 			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, name.c_str());
@@ -64,7 +64,7 @@ namespace adria
 		GfxCommandList* cmd_list;
 		std::string name;
 		bool const active;
-		uint32 color;
+		Uint32 color;
 	};
 	#define AdriaGfxProfileScope(cmd_list, name) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name)
 	#define AdriaGfxProfileCondScope(cmd_list, name, active) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name, active)

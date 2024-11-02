@@ -17,7 +17,7 @@ namespace adria
 {
 
 	static TAutoConsoleVariable<bool> Fog("r.Fog", false, "Enable or Disable Fog");
-	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, uint32 w, uint32 h)
+	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, Uint32 w, Uint32 h)
 		: gfx(gfx), width(w), height(h), params()
 	{
 		CreatePSO();
@@ -61,7 +61,7 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
 				float density = params.fog_density / 1000.0f;
 				float falloff = params.fog_falloff / 1000.0f;
@@ -76,11 +76,11 @@ namespace adria
 					float   fog_at_view_position;
 					float   fog_min_opacity;
 					float   fog_cutoff_distance;
-					uint32  fog_color;
+					Uint32  fog_color;
 
-					uint32  depth_idx;
-					uint32  scene_idx;
-					uint32  output_idx;
+					Uint32  depth_idx;
+					Uint32  scene_idx;
+					Uint32  output_idx;
 				} constants =
 				{
 					.fog_falloff = params.fog_falloff, .fog_density = params.fog_density, .fog_height = params.fog_height, .fog_start = params.fog_start,
@@ -128,7 +128,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing);
 	}
 
-	void ExponentialHeightFogPass::OnResize(uint32 w, uint32 h)
+	void ExponentialHeightFogPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

@@ -26,11 +26,11 @@ namespace adria
 	static TAutoConsoleVariable<float> SSAORadius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
 	static TAutoConsoleVariable<int>   SSAOResolution("r.SSAO.Resolution", SSAOResolution_Half, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
 
-	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr), blur_pass(gfx)
+	SSAOPass::SSAOPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr), blur_pass(gfx)
 	{
 		CreatePSO();
 		RealRandomGenerator rand_float(0.0f, 1.0f);
-		for (uint32 i = 0; i < ARRAYSIZE(ssao_kernel); i++)
+		for (Uint32 i = 0; i < ARRAYSIZE(ssao_kernel); i++)
 		{
 			Vector4 offset(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
 			offset.Normalize();
@@ -75,24 +75,24 @@ namespace adria
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 const i = dst_descriptor.GetIndex();
+				Uint32 const i = dst_descriptor.GetIndex();
 
-				int32 resolution = SSAOResolution.Get();
+				Sint32 resolution = SSAOResolution.Get();
 
 				struct SSAOConstants
 				{
-					uint32 ssao_params_packed;
-					uint32 resolution_factor;
+					Uint32 ssao_params_packed;
+					Uint32 resolution_factor;
 					float  noise_scale_x;
 					float  noise_scale_y;
 		
-					uint32   depth_idx;
-					uint32   normal_idx;
-					uint32   noise_idx;
-					uint32   output_idx;
+					Uint32   depth_idx;
+					Uint32   normal_idx;
+					Uint32   noise_idx;
+					Uint32   output_idx;
 				} constants = 
 				{
-					.ssao_params_packed = PackTwoFloatsToUint32(SSAORadius.Get(),SSAOPower.Get()), .resolution_factor = (uint32)resolution,
+					.ssao_params_packed = PackTwoFloatsToUint32(SSAORadius.Get(),SSAOPower.Get()), .resolution_factor = (Uint32)resolution,
 					.noise_scale_x = (width >> resolution) * 1.0f / NOISE_DIM, .noise_scale_y = (height >> resolution) * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
@@ -127,7 +127,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_AO);
 	}
 
-	void SSAOPass::OnResize(uint32 w, uint32 h)
+	void SSAOPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}
@@ -136,7 +136,7 @@ namespace adria
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<float> random_texture_data;
-		for (int32 i = 0; i < 8 * 8; i++)
+		for (Sint32 i = 0; i < 8 * 8; i++)
 		{
 			random_texture_data.push_back(rand_float()); 
 			random_texture_data.push_back(rand_float());

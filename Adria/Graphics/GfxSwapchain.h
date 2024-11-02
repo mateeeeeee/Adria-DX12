@@ -12,8 +12,8 @@ namespace adria
 
 	struct GfxSwapchainDesc
 	{
-		uint32 width = 0;
-		uint32 height = 0;
+		Uint32 width = 0;
+		Uint32 height = 0;
 		GfxFormat backbuffer_format = GfxFormat::R8G8B8A8_UNORM_SRGB;
 		bool fullscreen_windowed = false;
 	};
@@ -27,9 +27,9 @@ namespace adria
 		void SetAsRenderTarget(GfxCommandList* cmd_list);
 		void ClearBackbuffer(GfxCommandList* cmd_list);
 		bool Present(bool vsync);
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 
-		uint32 GetBackbufferIndex() const { return backbuffer_index; }
+		Uint32 GetBackbufferIndex() const { return backbuffer_index; }
 		GfxTexture* GetBackbuffer() const { return back_buffers[backbuffer_index].get(); }
 		
 	private:
@@ -37,9 +37,9 @@ namespace adria
 		Ref<IDXGISwapChain4>				swapchain = nullptr;
 		std::unique_ptr<GfxTexture>			back_buffers[GFX_BACKBUFFER_COUNT] = { nullptr };
 		GfxDescriptor					    backbuffer_rtvs[GFX_BACKBUFFER_COUNT];
-		uint32		 width;
-		uint32		 height;
-		uint32		 backbuffer_index;
+		Uint32		 width;
+		Uint32		 height;
+		Uint32		 backbuffer_index;
 
 	private:
 		void CreateBackbuffers();

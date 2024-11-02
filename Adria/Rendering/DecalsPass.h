@@ -12,17 +12,17 @@ namespace adria
 	class DecalsPass
 	{
 	public:
-		DecalsPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		DecalsPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 		~DecalsPass();
 
 		void AddPass(RenderGraph& rendergraph);
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
 
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxBuffer>	cube_vb = nullptr;
 		std::unique_ptr<GfxBuffer>	cube_ib = nullptr;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> decal_psos;

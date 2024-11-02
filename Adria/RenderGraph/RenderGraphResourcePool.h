@@ -9,13 +9,13 @@ namespace adria
 		struct PooledTexture
 		{
 			std::unique_ptr<GfxTexture> texture;
-			uint64 last_used_frame;
+			Uint64 last_used_frame;
 		};
 
 		struct PooledBuffer
 		{
 			std::unique_ptr<GfxBuffer> buffer;
-			uint64 last_used_frame;
+			Uint64 last_used_frame;
 		};
 
 	public:
@@ -23,7 +23,7 @@ namespace adria
 
 		void Tick()
 		{
-			for (uint64 i = 0; i < texture_pool.size();)
+			for (Uint64 i = 0; i < texture_pool.size();)
 			{
 				PooledTexture& resource = texture_pool[i].first;
 				bool active = texture_pool[i].second;
@@ -93,7 +93,7 @@ namespace adria
 
 	private:
 		GfxDevice* device = nullptr;
-		uint64 frame_index = 0;
+		Uint64 frame_index = 0;
 		std::vector<std::pair<PooledTexture, bool>> texture_pool;
 		std::vector<std::pair<PooledBuffer, bool>>  buffer_pool;
 	};

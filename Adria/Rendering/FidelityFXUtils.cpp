@@ -61,7 +61,7 @@ namespace adria
 		GfxBufferDesc const& buffer_desc = buffer.GetDesc();
 		resource_description.flags = FFX_RESOURCE_FLAGS_NONE;
 		resource_description.usage = FFX_RESOURCE_USAGE_UAV;
-		resource_description.width = (uint32)buffer_desc.size;
+		resource_description.width = (Uint32)buffer_desc.size;
 		resource_description.height = buffer_desc.stride;
 		resource_description.format = FFX_SURFACE_FORMAT_UNKNOWN;
 		resource_description.depth = 0;
@@ -110,10 +110,10 @@ namespace adria
 		return resource_description;
 	}
 
-	FfxInterface* CreateFfxInterface(GfxDevice* gfx, uint32 context_count)
+	FfxInterface* CreateFfxInterface(GfxDevice* gfx, Uint32 context_count)
 	{
 		FfxInterface* ffx_interface = new FfxInterface{};
-		uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(context_count);
+		Uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(context_count);
 		void* scratch_buffer = malloc(scratch_buffer_size);
 		ADRIA_ASSERT(scratch_buffer);
 		memset(scratch_buffer, 0, scratch_buffer_size);

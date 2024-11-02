@@ -13,18 +13,18 @@ namespace adria
 	class GodRaysPass : public PostEffect
 	{
 	public:
-		GodRaysPass(GfxDevice* gfx, uint32 w, uint32 h);
+		GodRaysPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 
 		virtual bool IsEnabled(PostProcessor const*) const override
 		{
 			return true;
 		}
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual void OnResize(uint32 w, uint32 h) override;
+		virtual void OnResize(Uint32 w, Uint32 h) override;
 
 	private:
 		GfxDevice* gfx;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxComputePipelineState> god_rays_pso;
 		CopyToTexturePass copy_to_texture_pass;
 

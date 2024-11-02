@@ -17,7 +17,7 @@ namespace adria
 		ADRIA_DEFAULT_MOVABLE(GPUDebugPrinter)
 		~GPUDebugPrinter();
 
-		int32 GetPrintfBufferIndex();
+		Sint32 GetPrintfBufferIndex();
 		void AddClearPass(RenderGraph& rg);
 		void AddPrintPass(RenderGraph& rg);
 

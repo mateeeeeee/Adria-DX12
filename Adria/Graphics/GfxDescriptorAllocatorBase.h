@@ -6,7 +6,7 @@ namespace adria
 {
 	class GfxDevice;
 
-	enum class GfxDescriptorHeapType : uint8
+	enum class GfxDescriptorHeapType : Uint8
 	{
 		CBV_SRV_UAV = 0,
 		Sampler,
@@ -36,21 +36,21 @@ namespace adria
 	{
 	public:
 
-		GfxDescriptor GetHandle(uint32 index = 0) const;
+		GfxDescriptor GetHandle(Uint32 index = 0) const;
 		ID3D12DescriptorHeap* GetHeap() const { return heap.Get(); }
 		
 	protected:
 		GfxDevice* gfx;
 		Ref<ID3D12DescriptorHeap> heap = nullptr;
 		GfxDescriptor head_descriptor;
-		uint32 descriptor_handle_size = 0;
+		Uint32 descriptor_handle_size = 0;
 		GfxDescriptorHeapType type = GfxDescriptorHeapType::Invalid;
-		uint32 descriptor_count = 0;
+		Uint32 descriptor_count = 0;
 		bool shader_visible = false;
 
 	protected:
 
-		GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, uint32 descriptor_count, bool shader_visible);
+		GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, bool shader_visible);
 		void CreateHeap();
 	};
 }

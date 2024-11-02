@@ -142,7 +142,7 @@ namespace adria
 		pool.Tick();
 
 		GfxCommandList* cmd_list = gfx->GetCommandList();
-		for (uint64 i = 0; i < dependency_levels.size(); ++i)
+		for (Uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
 			for (auto tex_id : dependency_level.texture_creates)
@@ -172,7 +172,7 @@ namespace adria
 					continue;
 				}
 				bool found = false;
-				for (int32 j = (int32)i - 1; j >= 0; --j)
+				for (Sint32 j = (Sint32)i - 1; j >= 0; --j)
 				{
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.texture_state_map.contains(tex_id))
@@ -202,7 +202,7 @@ namespace adria
 					continue;
 				}
 				bool found = false;
-				for (int32 j = (int32)i - 1; j >= 0; --j)
+				for (Sint32 j = (Sint32)i - 1; j >= 0; --j)
 				{
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.buffer_state_map.contains(buf_id))
@@ -292,11 +292,11 @@ namespace adria
 	void RenderGraph::BuildAdjacencyLists()
 	{
 		adjacency_lists.resize(passes.size());
-		for (uint64 i = 0; i < passes.size(); ++i)
+		for (Uint64 i = 0; i < passes.size(); ++i)
 		{
 			auto& pass = passes[i];
-			std::vector<uint64>& pass_adjacency_list = adjacency_lists[i];
-			for (uint64 j = i + 1; j < passes.size(); ++j)
+			std::vector<Uint64>& pass_adjacency_list = adjacency_lists[i];
+			for (Uint64 j = i + 1; j < passes.size(); ++j)
 			{
 				auto& other_pass = passes[j];
 				bool depends = false;
@@ -325,9 +325,9 @@ namespace adria
 
 	void RenderGraph::TopologicalSort()
 	{
-		std::vector<uint64> sort{};
+		std::vector<Uint64> sort{};
 		std::vector<bool>  visited(passes.size(), false);
-		for (uint64 i = 0; i < passes.size(); i++)
+		for (Uint64 i = 0; i < passes.size(); i++)
 		{
 			if (visited[i] == false) DepthFirstSearch(i, visited, topologically_sorted_passes);
 		}
@@ -336,10 +336,10 @@ namespace adria
 
 	void RenderGraph::BuildDependencyLevels()
 	{
-		std::vector<uint64> distances(topologically_sorted_passes.size(), 0);
-		for (uint64 u = 0; u < topologically_sorted_passes.size(); ++u)
+		std::vector<Uint64> distances(topologically_sorted_passes.size(), 0);
+		for (Uint64 u = 0; u < topologically_sorted_passes.size(); ++u)
 		{
-			uint64 i = topologically_sorted_passes[u];
+			Uint64 i = topologically_sorted_passes[u];
 			for (auto v : adjacency_lists[i])
 			{
 				if (distances[v] < distances[i] + 1) distances[v] = distances[i] + 1;
@@ -347,9 +347,9 @@ namespace adria
 		}
 
 		dependency_levels.resize(*std::max_element(std::begin(distances), std::end(distances)) + 1, DependencyLevel(*this));
-		for (uint64 i = 0; i < passes.size(); ++i)
+		for (Uint64 i = 0; i < passes.size(); ++i)
 		{
-			uint64 level = distances[i];
+			Uint64 level = distances[i];
 			dependency_levels[level].AddPass(passes[i].get());
 		}
 	}
@@ -444,19 +444,19 @@ namespace adria
 			}
 		}
 
-		for (uint64 i = 0; i < textures.size(); ++i)
+		for (Uint64 i = 0; i < textures.size(); ++i)
 		{
 			if (textures[i]->last_used_by != nullptr) textures[i]->last_used_by->texture_destroys.insert(RGTextureId(i));
 			if (textures[i]->imported) CreateTextureViews(RGTextureId(i));
 		}
-		for (uint64 i = 0; i < buffers.size(); ++i)
+		for (Uint64 i = 0; i < buffers.size(); ++i)
 		{
 			if (buffers[i]->last_used_by != nullptr) buffers[i]->last_used_by->buffer_destroys.insert(RGBufferId(i));
 			if (buffers[i]->imported) CreateBufferViews(RGBufferId(i));
 		}
 	}
 
-	void RenderGraph::DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::vector<uint64>& topologically_sorted_passes)
+	void RenderGraph::DepthFirstSearch(Uint64 i, std::vector<bool>& visited, std::vector<Uint64>& topologically_sorted_passes)
 	{
 		visited[i] = true;
 		for (auto j : adjacency_lists[i])
@@ -517,7 +517,7 @@ namespace adria
 	void RenderGraph::CreateBufferViews(RGBufferId res_id)
 	{
 		auto const& view_descs = buffer_view_desc_map[res_id];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [view_desc, type] = view_descs[i];
 			GfxBuffer* buffer = GetBuffer(res_id);
@@ -672,12 +672,12 @@ namespace adria
 			rg_texture->desc.initial_state = GfxResourceState::RTV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::RenderTarget) return RGRenderTargetId(i, handle);
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::RenderTarget);
 		return RGRenderTargetId(view_id, handle);
 	}
@@ -693,12 +693,12 @@ namespace adria
 			rg_texture->desc.initial_state = GfxResourceState::DSV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::DepthStencil) return RGDepthStencilId(i, handle);
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::DepthStencil);
 		return RGDepthStencilId(view_id, handle);
 	}
@@ -714,12 +714,12 @@ namespace adria
 			rg_texture->desc.initial_state = GfxResourceState::PixelSRV | GfxResourceState::ComputeSRV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadOnly) return RGTextureReadOnlyId(i, handle);
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadOnly);
 		return RGTextureReadOnlyId(view_id, handle);
 	}
@@ -735,12 +735,12 @@ namespace adria
 			rg_texture->desc.initial_state = GfxResourceState::AllUAV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadWrite) return RGTextureReadWriteId(i, handle);
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		return RGTextureReadWriteId(view_id, handle);
 	}
@@ -752,12 +752,12 @@ namespace adria
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= GfxBindFlag::ShaderResource;
 		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadOnly) return RGBufferReadOnlyId(i, handle);
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadOnly);
 		return RGBufferReadOnlyId(view_id, handle);
 	}
@@ -769,12 +769,12 @@ namespace adria
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadWrite) return RGBufferReadWriteId(i, handle);
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		return RGBufferReadWriteId(view_id, handle);
 	}
@@ -793,7 +793,7 @@ namespace adria
 		rg_counter_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 
 		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
-		for (uint64 i = 0; i < view_descs.size(); ++i)
+		for (Uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadWrite)
@@ -805,7 +805,7 @@ namespace adria
 				}
 			}
 		}
-		uint64 view_id = view_descs.size();
+		Uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		RGBufferReadWriteId rw_id = RGBufferReadWriteId(view_id, handle);
 		buffer_uav_counter_map.insert(std::make_pair(rw_id, counter_handle));
@@ -1108,7 +1108,7 @@ namespace adria
 			struct
 			{
 				char const* name{ "helvetica" };
-				int32       size{ 10 };
+				Sint32       size{ 10 };
 			} font;
 			struct
 			{
@@ -1140,12 +1140,12 @@ namespace adria
 		graphviz.defaults += std::format("graph [style=invis, rankdir=\"{}\", ordering=out, splines=spline]\n", style.rank_dir);
 		graphviz.defaults += std::format("node [shape=record, fontname=\"{}\", fontsize={}, margin=\"0.2,0.03\"]\n", style.font.name, style.font.size);
 
-		auto PairHash = [](std::pair<uint64, uint64> const& p)
+		auto PairHash = [](std::pair<Uint64, Uint64> const& p)
 		{
-			return std::hash<uint64>{}(p.first) + std::hash<uint64>{}(p.second);
+			return std::hash<Uint64>{}(p.first) + std::hash<Uint64>{}(p.second);
 		};
-		std::unordered_set<std::pair<uint64, uint64>, decltype(PairHash)> declared_buffers;
-		std::unordered_set<std::pair<uint64, uint64>, decltype(PairHash)> declared_textures;
+		std::unordered_set<std::pair<Uint64, Uint64>, decltype(PairHash)> declared_buffers;
+		std::unordered_set<std::pair<Uint64, Uint64>, decltype(PairHash)> declared_textures;
 		auto DeclareBuffer  = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
 		{
 			auto decl_pair = std::make_pair(buffer->id, buffer->version);
@@ -1252,7 +1252,7 @@ namespace adria
 	{
 		std::string render_graph_data = "";
 		render_graph_data += "Passes: \n";
-		for (uint64 i = 0; i < passes.size(); ++i)
+		for (Uint64 i = 0; i < passes.size(); ++i)
 		{
 			auto& pass = passes[i];
 			render_graph_data += std::format("Pass {}: {}\n", i, pass->name);
@@ -1270,7 +1270,7 @@ namespace adria
 		}
 
 		render_graph_data += "\nAdjacency lists: \n";
-		for (uint64 i = 0; i < adjacency_lists.size(); ++i)
+		for (Uint64 i = 0; i < adjacency_lists.size(); ++i)
 		{
 			auto& list = adjacency_lists[i];
 			render_graph_data += std::format("{}. {}'s adjacency list: ", i, passes[i]->name);
@@ -1279,14 +1279,14 @@ namespace adria
 		}
 
 		render_graph_data += "\nTopologically sorted passes: \n";
-		for (uint64 i = 0; i < topologically_sorted_passes.size(); ++i)
+		for (Uint64 i = 0; i < topologically_sorted_passes.size(); ++i)
 		{
 			auto& topologically_sorted_pass = topologically_sorted_passes[i];
 			render_graph_data += std::format("{}. : {}\n", i, passes[topologically_sorted_pass]->name);
 		}
 
 		render_graph_data += "\nDependency levels: \n";
-		for (uint64 i = 0; i < dependency_levels.size(); ++i)
+		for (Uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& level = dependency_levels[i];
 			render_graph_data += std::format("Dependency level {}: \n", i);
@@ -1304,13 +1304,13 @@ namespace adria
 			render_graph_data += "\n";
 		}
 		render_graph_data += "\nTextures: \n";
-		for (uint64 i = 0; i < textures.size(); ++i)
+		for (Uint64 i = 0; i < textures.size(); ++i)
 		{
 			auto& texture = textures[i];
 			render_graph_data += std::format("Texture: id = {}, name = {}, last used by: {} \n", texture->id, texture->name, texture->last_used_by->name);
 		}
 		render_graph_data += "\nBuffers: \n";
-		for (uint64 i = 0; i < buffers.size(); ++i)
+		for (Uint64 i = 0; i < buffers.size(); ++i)
 		{
 			auto& buffer = buffers[i];
 			render_graph_data += std::format("Buffer: id = {}, name = {}, last used by: {} \n", buffer->id, buffer->name, buffer->last_used_by->name);

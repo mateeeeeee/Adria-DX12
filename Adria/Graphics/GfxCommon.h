@@ -6,7 +6,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 
-	enum class GfxCommonTextureType : uint8
+	enum class GfxCommonTextureType : Uint8
 	{
 		WhiteTexture2D,
 		BlackTexture2D,
@@ -15,7 +15,7 @@ namespace adria
 		Count
 	};
 
-	enum class GfxCommonViewType : uint8
+	enum class GfxCommonViewType : Uint8
 	{
 		NullTexture2D_SRV,
 		NullTexture2D_UAV,

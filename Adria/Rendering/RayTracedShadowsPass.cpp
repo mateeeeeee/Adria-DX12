@@ -7,7 +7,7 @@
 #include "RenderGraph/RenderGraph.h"
 namespace adria
 {
-	RayTracedShadowsPass::RayTracedShadowsPass(GfxDevice* gfx, uint32 width, uint32 height)
+	RayTracedShadowsPass::RayTracedShadowsPass(GfxDevice* gfx, Uint32 width, Uint32 height)
 		: gfx(gfx), width(width), height(height)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
@@ -19,7 +19,7 @@ namespace adria
 	}
 	RayTracedShadowsPass::~RayTracedShadowsPass() = default;
 
-	void RayTracedShadowsPass::AddPass(RenderGraph& rg, uint32 light_index)
+	void RayTracedShadowsPass::AddPass(RenderGraph& rg, Uint32 light_index)
 	{
 		if (!IsSupported()) return;
 
@@ -38,13 +38,13 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				Uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadOnlyTexture(data.depth));
 
 				struct RayTracedShadowsConstants
 				{
-					uint32  depth_idx;
-					uint32  light_idx;
+					Uint32  depth_idx;
+					Uint32  light_idx;
 				} constants =
 				{
 					.depth_idx = i,
@@ -62,7 +62,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
-	void RayTracedShadowsPass::OnResize(uint32 w, uint32 h)
+	void RayTracedShadowsPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 	}

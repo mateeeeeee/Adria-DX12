@@ -9,7 +9,7 @@
 namespace adria
 {
 
-	RendererOutputPass::RendererOutputPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
+	RendererOutputPass::RendererOutputPass(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		CreatePSOs();
 	}
@@ -55,7 +55,7 @@ namespace adria
 												context.GetReadWriteTexture(data.output) };
 
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -64,18 +64,18 @@ namespace adria
 
 				struct RendererOutputConstants
 				{
-					uint32 normal_metallic_idx;
-					uint32 diffuse_idx;
-					uint32 depth_idx;
-					uint32 emissive_idx;
-					uint32 ao_idx;
-					uint32 output_idx;
+					Uint32 normal_metallic_idx;
+					Uint32 diffuse_idx;
+					Uint32 depth_idx;
+					Uint32 emissive_idx;
+					Uint32 ao_idx;
+					Uint32 output_idx;
 				} constants =
 				{
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4, .output_idx = i + 5
 				};
 
-				cmd_list->SetPipelineState(renderer_output_psos->Get((uint32)type));
+				cmd_list->SetPipelineState(renderer_output_psos->Get((Uint32)type));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -88,13 +88,13 @@ namespace adria
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_RendererOutput;
 		renderer_output_psos = std::make_unique<GfxComputePipelineStatePermutations>(PERMUTATION_COUNT, compute_pso_desc);
-		renderer_output_psos->AddDefine<(uint32)Diffuse>("OUTPUT_DIFFUSE", "1");
-		renderer_output_psos->AddDefine<(uint32)WorldNormal>("OUTPUT_NORMALS", "1");
-		renderer_output_psos->AddDefine<(uint32)Roughness>("OUTPUT_ROUGHNESS", "1");
-		renderer_output_psos->AddDefine<(uint32)Metallic>("OUTPUT_METALLIC", "1");
-		renderer_output_psos->AddDefine<(uint32)Emissive>("OUTPUT_EMISSIVE", "1");
-		renderer_output_psos->AddDefine<(uint32)AmbientOcclusion>("OUTPUT_AO", "1");
-		renderer_output_psos->AddDefine<(uint32)IndirectLighting>("OUTPUT_INDIRECT", "1");
+		renderer_output_psos->AddDefine<(Uint32)Diffuse>("OUTPUT_DIFFUSE", "1");
+		renderer_output_psos->AddDefine<(Uint32)WorldNormal>("OUTPUT_NORMALS", "1");
+		renderer_output_psos->AddDefine<(Uint32)Roughness>("OUTPUT_ROUGHNESS", "1");
+		renderer_output_psos->AddDefine<(Uint32)Metallic>("OUTPUT_METALLIC", "1");
+		renderer_output_psos->AddDefine<(Uint32)Emissive>("OUTPUT_EMISSIVE", "1");
+		renderer_output_psos->AddDefine<(Uint32)AmbientOcclusion>("OUTPUT_AO", "1");
+		renderer_output_psos->AddDefine<(Uint32)IndirectLighting>("OUTPUT_INDIRECT", "1");
 		renderer_output_psos->Finalize(gfx);
 	}
 

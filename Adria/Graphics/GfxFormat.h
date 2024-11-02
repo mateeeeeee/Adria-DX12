@@ -2,7 +2,7 @@
 
 namespace adria
 {
-	constexpr inline uint32 DivideAndRoundUp(uint32 nominator, uint32 denominator)
+	constexpr inline Uint32 DivideAndRoundUp(Uint32 nominator, Uint32 denominator)
 	{
 		return (nominator + denominator - 1) / denominator;
 	}
@@ -491,7 +491,7 @@ namespace adria
 		}
 		return GfxFormat::UNKNOWN;
 	}
-	inline constexpr uint32 GetGfxFormatStride(GfxFormat _format)
+	inline constexpr Uint32 GetGfxFormatStride(GfxFormat _format)
 	{
 		DXGI_FORMAT format = ConvertGfxFormat(_format);
 		switch (format)
@@ -577,7 +577,7 @@ namespace adria
 		}
 		return 16u;
 	}
-	inline constexpr uint32 GetGfxFormatBlockSize(GfxFormat _format)
+	inline constexpr Uint32 GetGfxFormatBlockSize(GfxFormat _format)
 	{
 		switch (_format)
 		{
@@ -607,25 +607,25 @@ namespace adria
 		return false;
 	}
 
-	inline uint64 GetRowPitch(GfxFormat format, uint32 width, uint32 mip_index = 0)
+	inline Uint64 GetRowPitch(GfxFormat format, Uint32 width, Uint32 mip_index = 0)
 	{
-		uint64 num_blocks = std::max(1u, DivideAndRoundUp(width >> mip_index, GetGfxFormatBlockSize(format)));
+		Uint64 num_blocks = std::max(1u, DivideAndRoundUp(width >> mip_index, GetGfxFormatBlockSize(format)));
 		return num_blocks * GetGfxFormatStride(format);
 	}
-	inline uint64 GetSlicePitch(GfxFormat format, uint32 width, uint32 height, uint32 mip_index = 0)
+	inline Uint64 GetSlicePitch(GfxFormat format, Uint32 width, Uint32 height, Uint32 mip_index = 0)
 	{
-		uint64 num_blocks_x = std::max(1u, DivideAndRoundUp(width >> mip_index, GetGfxFormatBlockSize(format)));
-		uint64 num_blocks_y = std::max(1u, DivideAndRoundUp(height >> mip_index, GetGfxFormatBlockSize(format)));
+		Uint64 num_blocks_x = std::max(1u, DivideAndRoundUp(width >> mip_index, GetGfxFormatBlockSize(format)));
+		Uint64 num_blocks_y = std::max(1u, DivideAndRoundUp(height >> mip_index, GetGfxFormatBlockSize(format)));
 		return num_blocks_x * num_blocks_y * GetGfxFormatStride(format);
 	}
-	inline uint64 GetTextureMipByteSize(GfxFormat format, uint32 width, uint32 height, uint32 depth, uint32 mip_index)
+	inline Uint64 GetTextureMipByteSize(GfxFormat format, Uint32 width, Uint32 height, Uint32 depth, Uint32 mip_index)
 	{
 		return GetSlicePitch(format, width, height, mip_index) * std::max(1u, depth >> mip_index);
 	}
-	inline uint64 GetTextureByteSize(GfxFormat format, uint32 width, uint32 height, uint32 depth = 1, uint32 mip_count = 1)
+	inline Uint64 GetTextureByteSize(GfxFormat format, Uint32 width, Uint32 height, Uint32 depth = 1, Uint32 mip_count = 1)
 	{
-		uint64 size = 0;
-		for (uint32 mip_level = 0; mip_level < mip_count; ++mip_level)
+		Uint64 size = 0;
+		for (Uint32 mip_level = 0; mip_level < mip_count; ++mip_level)
 		{
 			size += GetTextureMipByteSize(format, width, height, depth, mip_level);
 		}

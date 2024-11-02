@@ -57,7 +57,7 @@ namespace adria
 		static constexpr GfxPipelineStateType PSOType = PSOTraits<PSO>::PipelineStateType;
 
 	public:
-		GfxPipelineStatePermutations(uint32 size, PSODesc const& desc)
+		GfxPipelineStatePermutations(Uint32 size, PSODesc const& desc)
 		{
 			pso_permutations.resize(size);
 			pso_descs.resize(size);
@@ -65,7 +65,7 @@ namespace adria
 		}
 		~GfxPipelineStatePermutations() = default;
 
-		template<uint32 P>
+		template<Uint32 P>
 		void AddDefine(char const* name, char const* value)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -89,13 +89,13 @@ namespace adria
 				desc.PS.AddDefine(name, value);
 			}
 		}
-		template<uint32 P>
+		template<Uint32 P>
 		void AddDefine(char const* name)
 		{
 			AddDefine<P>(name, "");
 		}
 
-		template<GfxShaderStage stage, uint32 P>
+		template<GfxShaderStage stage, Uint32 P>
 		void AddDefine(char const* name, char const* value)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -119,13 +119,13 @@ namespace adria
 				if (stage == GfxShaderStage::PS) desc.PS.AddDefine(name, value);
 			}
 		}
-		template<GfxShaderStage stage, uint32 P>
+		template<GfxShaderStage stage, Uint32 P>
 		void AddDefine(char const* name)
 		{
 			AddDefine<stage, P>(name, "");
 		}
 
-		template<uint32 P> requires !IsComputePipelineStateV<PSO>
+		template<Uint32 P> requires !IsComputePipelineStateV<PSO>
 		void SetCullMode(GfxCullMode cull_mode)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -133,7 +133,7 @@ namespace adria
 			desc.rasterizer_state.cull_mode = cull_mode;
 		}
 
-		template<uint32 P> requires !IsComputePipelineStateV<PSO>
+		template<Uint32 P> requires !IsComputePipelineStateV<PSO>
 		void SetFillMode(GfxFillMode fill_mode)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -141,7 +141,7 @@ namespace adria
 			desc.rasterizer_state.fill_mode = fill_mode;
 		}
 
-		template<uint32 P> requires !IsComputePipelineStateV<PSO>
+		template<Uint32 P> requires !IsComputePipelineStateV<PSO>
 		void SetTopologyType(GfxPrimitiveTopologyType topology_type)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -149,7 +149,7 @@ namespace adria
 			desc.topology_type = topology_type;
 		}
 
-		template<uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>
+		template<Uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>
 		void ModifyDesc(F&& f)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -159,20 +159,20 @@ namespace adria
 
 		void Finalize(GfxDevice* gfx)
 		{
-			for (uint32 i = 0; i < pso_permutations.size(); ++i)
+			for (Uint32 i = 0; i < pso_permutations.size(); ++i)
 			{
 				pso_permutations[i] = std::make_unique<PSO>(gfx, pso_descs[i]);
 			}
 			pso_descs.clear();
 		}
 
-		template<uint32 P>
+		template<Uint32 P>
 		PSO* Get() const
 		{
 			ADRIA_ASSERT(P < pso_permutations.size());
 			return pso_permutations[P].get();
 		}
-		PSO* Get(uint32 p) const
+		PSO* Get(Uint32 p) const
 		{
 			ADRIA_ASSERT(p < pso_permutations.size());
 			return pso_permutations[p].get();

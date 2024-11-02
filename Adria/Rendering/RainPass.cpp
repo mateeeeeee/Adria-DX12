@@ -21,7 +21,7 @@ namespace adria
 		float   state;
 	};
 	
-	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
+	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
 	{
 		CreatePSOs();
 		Rain->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { OnRainEnabled(cvar->GetBool()); }));
@@ -64,11 +64,11 @@ namespace adria
 					GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_handle, src_handle);
 
-					uint32 i = dst_handle.GetIndex();
+					Uint32 i = dst_handle.GetIndex();
 					struct RainSimulationConstants
 					{
-						uint32   rain_data_idx;
-						uint32   depth_idx;
+						Uint32   rain_data_idx;
+						Uint32   depth_idx;
 						float    simulation_speed;
 						float    range_radius;
 					} constants =
@@ -107,18 +107,18 @@ namespace adria
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 
 				struct Constants
 				{
-					uint32   rain_data_idx;
-					uint32   rain_streak_idx;
+					Uint32   rain_data_idx;
+					Uint32   rain_streak_idx;
 					float	 rain_streak_scale;
 
 				} constants =
 				{
 					.rain_data_idx = i,
-					.rain_streak_idx = (uint32)rain_streak_handle,
+					.rain_streak_idx = (Uint32)rain_streak_handle,
 					.rain_streak_scale = streak_scale
 				};
 
@@ -126,7 +126,7 @@ namespace adria
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Draw(uint32(rain_density * MAX_RAIN_DATA_BUFFER_SIZE) * 6);
+				cmd_list->Draw(Uint32(rain_density * MAX_RAIN_DATA_BUFFER_SIZE) * 6);
 			},
 			RGPassType::Graphics, RGPassFlags::None);
 	}
@@ -171,7 +171,7 @@ namespace adria
 		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);
 
 		RealRandomGenerator<float> rng(-1.0f, 1.0f);
-		for (uint64 i = 0; i < MAX_RAIN_DATA_BUFFER_SIZE; ++i)
+		for (Uint64 i = 0; i < MAX_RAIN_DATA_BUFFER_SIZE; ++i)
 		{
 			rain_data_buffer_init[i].position = Vector3(0.0f, -1000.0f, 0.0f);
 			rain_data_buffer_init[i].velocity = Vector3(0.0f, -10.0f + rng(), 0.0f);

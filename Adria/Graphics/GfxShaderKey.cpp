@@ -72,7 +72,7 @@ namespace adria
 		return impl->id;
 	}
 
-	uint64 GfxShaderKey::GetHash() const
+	Uint64 GfxShaderKey::GetHash() const
 	{
 		std::string define_key;
 		for (GfxShaderDefine const& define : impl->defines)
@@ -81,7 +81,7 @@ namespace adria
 			define_key += define.value;
 		}
 		define_key += std::to_string(impl->id);
-		uint64 define_hash = crc64(define_key.c_str(), define_key.size());
+		Uint64 define_hash = crc64(define_key.c_str(), define_key.size());
 		return define_hash;
 	}
 

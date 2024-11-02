@@ -40,11 +40,11 @@ namespace adria
 		};
 		struct GfxClearDepthStencil
 		{
-			GfxClearDepthStencil(float depth = 0.0f, uint8 stencil = 1)
+			GfxClearDepthStencil(float depth = 0.0f, Uint8 stencil = 1)
 				: depth(depth), stencil(stencil)
 			{}
 			float depth;
-			uint8 stencil;
+			Uint8 stencil;
 		};
 
 		GfxClearValue() : active_member(GfxActiveMember::None), depth_stencil{} {}
@@ -63,7 +63,7 @@ namespace adria
 			: active_member(GfxActiveMember::Color), color(color)
 		{}
 
-		GfxClearValue(float depth, uint8 stencil)
+		GfxClearValue(float depth, Uint8 stencil)
 			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth, stencil)
 		{}
 		GfxClearValue(GfxClearDepthStencil const& depth_stencil)
@@ -107,7 +107,7 @@ namespace adria
 		};
 	};
 
-	enum class GfxSubresourceType : uint8
+	enum class GfxSubresourceType : Uint8
 	{
 		SRV,
 		UAV,
@@ -116,7 +116,7 @@ namespace adria
 		Invalid
 	};
 
-	enum class GfxBindFlag : uint32
+	enum class GfxBindFlag : Uint32
 	{
 		None = 0,
 		ShaderResource = 1 << 0,
@@ -126,21 +126,21 @@ namespace adria
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxBindFlag);
 
-	enum class GfxResourceUsage : uint8
+	enum class GfxResourceUsage : Uint8
 	{
 		Default,
 		Upload,
 		Readback
 	};
 
-	enum class GfxTextureMiscFlag : uint32
+	enum class GfxTextureMiscFlag : Uint32
 	{
 		None = 0,
 		TextureCube = 1 << 0
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
 
-	enum class GfxBufferMiscFlag : uint32
+	enum class GfxBufferMiscFlag : Uint32
 	{
 		None,
 		IndirectArgs = 1 << 0,
@@ -153,7 +153,7 @@ namespace adria
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxBufferMiscFlag);
 
-	enum class GfxResourceState : uint64
+	enum class GfxResourceState : Uint64
 	{
 		None = 0,
 		Common = 1 << 0,

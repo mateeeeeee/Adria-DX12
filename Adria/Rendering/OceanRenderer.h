@@ -15,15 +15,15 @@ namespace adria
 
 	class OceanRenderer
 	{
-		static constexpr uint32 FFT_RESOLUTION = 512;
+		static constexpr Uint32 FFT_RESOLUTION = 512;
 
 	public:
-		OceanRenderer(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
+		OceanRenderer(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 		~OceanRenderer();
 
 		void AddPasses(RenderGraph& rendergraph);
 		void GUI();
-		void OnResize(uint32 w, uint32 h);
+		void OnResize(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
 
 	private:
@@ -31,7 +31,7 @@ namespace adria
 		GfxDevice* gfx;
 		TextureHandle foam_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle perlin_handle = INVALID_TEXTURE_HANDLE;
-		uint32 width, height;
+		Uint32 width, height;
 		std::unique_ptr<GfxTexture> initial_spectrum;
 		std::unique_ptr<GfxTexture> ping_pong_phase_textures[2];
 		bool pong_phase = false;

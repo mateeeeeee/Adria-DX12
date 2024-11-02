@@ -17,7 +17,7 @@ namespace adria
 		auto BuildDescription = [this](D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc)
 		{
 			desc.Type = type;
-			desc.NumSubobjects = static_cast<uint32>(num_subobjects);
+			desc.NumSubobjects = static_cast<Uint32>(num_subobjects);
 			desc.pSubobjects = num_subobjects ? subobjects.data() : nullptr;
 		};
 		D3D12_STATE_OBJECT_DESC desc{};

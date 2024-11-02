@@ -22,15 +22,15 @@ namespace adria
 
 	struct LightGrid
 	{
-		uint32 offset;
-		uint32 light_count;
+		Uint32 offset;
+		Uint32 light_count;
 	};
 
-	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) 
+	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h) 
 		: reg(reg), gfx(gfx), width(w), height(h),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
-		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
-		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
+		light_counter(gfx, StructuredBufferDesc<Uint32>(1)),
+		light_list(gfx, StructuredBufferDesc<Uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
 		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT))
 	{
 		CreatePSOs();
@@ -97,13 +97,13 @@ namespace adria
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 				struct ClusterCullingConstants
 				{
-					uint32 clusters_idx;
-					uint32 light_index_counter_idx;
-					uint32 light_index_list_idx;
-					uint32 light_grid_idx;
+					Uint32 clusters_idx;
+					Uint32 light_index_counter_idx;
+					Uint32 light_index_list_idx;
+					Uint32 light_grid_idx;
 				} constants =
 				{
 					.clusters_idx = i, .light_index_counter_idx = i + 1,
@@ -161,7 +161,7 @@ namespace adria
 												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
 												context.GetReadWriteTexture(data.output) };
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
-				uint32 i = dst_handle.GetIndex();
+				Uint32 i = dst_handle.GetIndex();
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -170,14 +170,14 @@ namespace adria
 				
 				struct ClusteredDeferredLightingConstants
 				{
-					uint32 light_index_list_idx;
-					uint32 light_grid_idx;
-					uint32 normal_idx;
-					uint32 diffuse_idx;
-					uint32 depth_idx;
-					uint32 emissive_idx;
-					uint32 ao_idx;
-					uint32 output_idx;
+					Uint32 light_index_list_idx;
+					Uint32 light_grid_idx;
+					Uint32 normal_idx;
+					Uint32 diffuse_idx;
+					Uint32 depth_idx;
+					Uint32 emissive_idx;
+					Uint32 ao_idx;
+					Uint32 output_idx;
 				} constants = 
 				{
 					.light_index_list_idx = i, .light_grid_idx = i + 1, .normal_idx = i + 2, .diffuse_idx = i + 3,

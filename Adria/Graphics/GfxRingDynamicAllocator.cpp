@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	GfxRingDynamicAllocator::GfxRingDynamicAllocator(GfxDevice* gfx, uint64 max_size_in_bytes)
+	GfxRingDynamicAllocator::GfxRingDynamicAllocator(GfxDevice* gfx, Uint64 max_size_in_bytes)
 		: ring_allocator(max_size_in_bytes)
 	{
 		GfxBufferDesc desc{};
@@ -19,7 +19,7 @@ namespace adria
 
 	GfxRingDynamicAllocator::~GfxRingDynamicAllocator() = default;
 
-	GfxDynamicAllocation GfxRingDynamicAllocator::Allocate(uint64 size_in_bytes, uint64 alignment)
+	GfxDynamicAllocation GfxRingDynamicAllocator::Allocate(Uint64 size_in_bytes, Uint64 alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		{
@@ -31,7 +31,7 @@ namespace adria
 		{
 			GfxDynamicAllocation allocation{};
 			allocation.buffer = buffer.get();
-			allocation.cpu_address = reinterpret_cast<uint8*>(cpu_address) + offset;
+			allocation.cpu_address = reinterpret_cast<Uint8*>(cpu_address) + offset;
 			allocation.gpu_address = buffer->GetGpuAddress() + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
@@ -43,12 +43,12 @@ namespace adria
 			return GfxDynamicAllocation{};
 		}
 	}
-	void GfxRingDynamicAllocator::FinishCurrentFrame(uint64 frame)
+	void GfxRingDynamicAllocator::FinishCurrentFrame(Uint64 frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.FinishCurrentFrame(frame);
 	}
-	void GfxRingDynamicAllocator::ReleaseCompletedFrames(uint64 completed_frame)
+	void GfxRingDynamicAllocator::ReleaseCompletedFrames(Uint64 completed_frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.ReleaseCompletedFrames(completed_frame);

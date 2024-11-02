@@ -30,7 +30,7 @@ namespace adria
 		GfxShadingRate_4X4,
 	};
 
-	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
+	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
 		ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
 	{
 		is_supported = gfx->GetCapabilities().SupportsVSR();
@@ -183,7 +183,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_None);
 	}
 
-	void FFXVRSPass::OnResize(uint32 w, uint32 h)
+	void FFXVRSPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 		CreateVRSImage();
@@ -196,7 +196,7 @@ namespace adria
 
 	void FFXVRSPass::CreateVRSImage()
 	{
-		uint32 vrs_image_width, vrs_image_height;
+		Uint32 vrs_image_width, vrs_image_height;
 		ffxVrsGetImageSizeFromeRenderResolution(&vrs_image_width, &vrs_image_height, width, height, shading_rate_image_tile_size);
 		GfxTextureDesc vrs_image_desc{};
 		vrs_image_desc.format = GfxFormat::R8_UINT;

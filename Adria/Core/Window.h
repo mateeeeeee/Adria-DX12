@@ -7,9 +7,9 @@ namespace adria
 	struct WindowEventData
 	{
 		void*  handle	= nullptr;
-		uint32 msg		= 0;
-        uint64 wparam	= 0;
-        int64  lparam	= 0;
+		Uint32 msg		= 0;
+        Uint64 wparam	= 0;
+        Sint64  lparam	= 0;
 		float  width	= 0.0f;
 		float  height	= 0.0f;
 	};
@@ -17,7 +17,7 @@ namespace adria
     struct WindowInit
     {
         char const* title;
-        uint32 width, height;
+        Uint32 width, height;
         bool maximize;
     };
 
@@ -29,14 +29,14 @@ namespace adria
 		Window(WindowInit const& init);
 		~Window();
 
-		uint32 Width() const;
-		uint32 Height() const;
+		Uint32 Width() const;
+		Uint32 Height() const;
 
-		uint32 PositionX() const;
-		uint32 PositionY() const;
+		Uint32 PositionX() const;
+		Uint32 PositionY() const;
 
 		bool Loop();
-		void Quit(int32 exit_code);
+		void Quit(Sint32 exit_code);
 
 		void* Handle() const;
 		bool  IsActive() const;
