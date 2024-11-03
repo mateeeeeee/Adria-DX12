@@ -738,6 +738,14 @@ namespace adria
 		return CreateTextureView(texture, GfxSubresourceType::DSV, _desc);
 	}
 
+	Uint64 GfxDevice::GetLinearBufferSize(GfxTexture const* texture) const
+	{
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT texture_footprint{};
+		D3D12_RESOURCE_DESC d3d12_texture_desc = texture->GetNative()->GetDesc();
+		device->GetCopyableFootprints(&d3d12_texture_desc, 0, 1, 0, &texture_footprint, nullptr, nullptr, nullptr);
+		return texture_footprint.Footprint.RowPitch * texture_footprint.Footprint.Height;
+	}
+
 	void GfxDevice::GetTimestampFrequency(Uint64& frequency) const
 	{
 		frequency = graphics_queue.GetTimestampFrequency();

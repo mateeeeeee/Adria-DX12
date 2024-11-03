@@ -617,15 +617,10 @@ namespace adria
 
 		std::string absolute_screenshot_path = paths::ScreenshotsDir + screenshot_name + ".png";
 		ADRIA_LOG(INFO, "Taking screenshot: %s.png...", screenshot_name.c_str());
-
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT final_texture_footprint{};
-		D3D12_RESOURCE_DESC d3d12_final_texture_desc = final_texture->GetNative()->GetDesc();
-		gfx->GetDevice()->GetCopyableFootprints(&d3d12_final_texture_desc, 0, 1, 0, &final_texture_footprint, nullptr, nullptr, nullptr);
-
 		if (!screenshot_buffer)
 		{	
 			GfxBufferDesc screenshot_desc{};
-			screenshot_desc.size = final_texture_footprint.Footprint.RowPitch * final_texture_footprint.Footprint.Height;
+			screenshot_desc.size = gfx->GetLinearBufferSize(final_texture.get()); 
 			screenshot_desc.resource_usage = GfxResourceUsage::Readback;
 			screenshot_buffer = gfx->CreateBuffer(screenshot_desc);
 		}
