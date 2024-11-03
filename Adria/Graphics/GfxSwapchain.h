@@ -15,7 +15,7 @@ namespace adria
 		Uint32 width = 0;
 		Uint32 height = 0;
 		GfxFormat backbuffer_format = GfxFormat::R8G8B8A8_UNORM_SRGB;
-		bool fullscreen_windowed = false;
+		Bool fullscreen_windowed = false;
 	};
 
 	class GfxSwapchain
@@ -26,7 +26,7 @@ namespace adria
 
 		void SetAsRenderTarget(GfxCommandList* cmd_list);
 		void ClearBackbuffer(GfxCommandList* cmd_list);
-		bool Present(bool vsync);
+		Bool Present(Bool vsync);
 		void OnResize(Uint32 w, Uint32 h);
 
 		Uint32 GetBackbufferIndex() const { return backbuffer_index; }

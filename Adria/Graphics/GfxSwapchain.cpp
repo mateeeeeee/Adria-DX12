@@ -59,12 +59,12 @@ namespace adria
 
 	void GfxSwapchain::ClearBackbuffer(GfxCommandList* cmd_list)
 	{
-		constexpr float clear_color[] = { 0,0,0,0 };
+		constexpr Float clear_color[] = { 0,0,0,0 };
 		GfxDescriptor rtv = GetBackbufferDescriptor();
 		cmd_list->ClearRenderTarget(rtv, clear_color);
 	}
 
-	bool GfxSwapchain::Present(bool vsync)
+	Bool GfxSwapchain::Present(Bool vsync)
 	{
 		HRESULT hr = swapchain->Present(vsync, 0);
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();

@@ -21,5 +21,5 @@ namespace adria
 
 	using SkyParameters = std::array<Vector3, SkyParam_Count>;
 
-	SkyParameters CalculateSkyParameters(float turbidity, float albedo, Vector3 const& sun_direction);
+	SkyParameters CalculateSkyParameters(Float turbidity, Float albedo, Vector3 const& sun_direction);
 }

@@ -86,7 +86,7 @@ namespace adria
 	{
 		visible = !visible;
 	}
-	bool ImGuiManager::IsVisible() const
+	Bool ImGuiManager::IsVisible() const
 	{
 		return visible;
 	}

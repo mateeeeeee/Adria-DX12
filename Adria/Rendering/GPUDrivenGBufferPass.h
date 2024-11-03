@@ -35,8 +35,8 @@ namespace adria
 		void AddPasses(RenderGraph& rg);
 		void GUI();
 
-		bool IsSupported() const;
-		bool IsEnabled() const;
+		Bool IsSupported() const;
+		Bool IsEnabled() const;
 
 		void OnResize(Uint32 w, Uint32 h)
 		{
@@ -44,7 +44,7 @@ namespace adria
 			InitializeHZB();
 		}
 
-		void OnRainEvent(bool enabled)
+		void OnRainEvent(Bool enabled)
 		{
 			rain_active = enabled;
 		}
@@ -59,13 +59,13 @@ namespace adria
 		Uint32 hzb_width = 0;
 		Uint32 hzb_height = 0;
 
-		bool occlusion_culling = true;
+		Bool occlusion_culling = true;
 
 		std::unique_ptr<GfxBuffer> debug_buffer;
-		bool display_debug_stats = false;
+		Bool display_debug_stats = false;
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT] = {};
 
-		bool rain_active = false;
+		Bool rain_active = false;
 		std::unique_ptr<GfxMeshShaderPipelineStatePermutations> draw_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	  cull_meshlets_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	  cull_instances_psos;
@@ -84,7 +84,7 @@ namespace adria
 		void Add1stPhasePasses(RenderGraph& rg);
 		void Add2ndPhasePasses(RenderGraph& rg);
 
-		void AddHZBPasses(RenderGraph& rg, bool second_phase = false);
+		void AddHZBPasses(RenderGraph& rg, Bool second_phase = false);
 		void AddDebugPass(RenderGraph& rg);
 
 		void CalculateHZBParameters();

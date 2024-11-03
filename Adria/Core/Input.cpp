@@ -6,7 +6,7 @@
 namespace adria
 {
 	
-	inline bool IsPressed(Sint32 key_code)
+	inline Bool IsPressed(Sint32 key_code)
 	{
 		return (::GetKeyState(key_code) & 0x8000) != 0;
 	}
@@ -17,8 +17,8 @@ namespace adria
 		POINT mouse_screen_pos;
 		if (GetCursorPos(&mouse_screen_pos))
 		{
-			mouse_position_x = static_cast<float>(mouse_screen_pos.x);
-			mouse_position_y = static_cast<float>(mouse_screen_pos.y);
+			mouse_position_x = static_cast<Float>(mouse_screen_pos.x);
+			mouse_position_y = static_cast<Float>(mouse_screen_pos.y);
 		}
 	}
 
@@ -34,8 +34,8 @@ namespace adria
 			POINT mouse_screen_pos;
 			if (GetCursorPos(&mouse_screen_pos))
 			{
-				mouse_position_x = static_cast<float>(mouse_screen_pos.x);
-				mouse_position_y = static_cast<float>(mouse_screen_pos.y);
+				mouse_position_x = static_cast<Float>(mouse_screen_pos.x);
+				mouse_position_y = static_cast<Float>(mouse_screen_pos.y);
 			}
 
 			using enum KeyCode;
@@ -168,14 +168,14 @@ namespace adria
 				break;
 			}
 		}
-		mmouse_wheel_delta = (float)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float)WHEEL_DELTA;
+		mmouse_wheel_delta = (Float)GET_WHEEL_DELTA_WPARAM(data.wparam) / (Float)WHEEL_DELTA;
 
 	}
-	void Input::SetMouseVisibility(bool visible)
+	void Input::SetMouseVisibility(Bool visible)
 	{
 		::ShowCursor(visible);
 	}
-	void Input::SetMousePosition(float xpos, float ypos)
+	void Input::SetMousePosition(Float xpos, Float ypos)
 	{
 		HWND handle = static_cast<HWND>(window->Handle());
 		if (handle == ::GetActiveWindow())

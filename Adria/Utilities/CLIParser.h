@@ -10,11 +10,11 @@ namespace adria
 	{
 		friend class CLIParser;
 	public:
-		CLIArg(std::vector<std::string>&& prefixes, bool has_value)
+		CLIArg(std::vector<std::string>&& prefixes, Bool has_value)
 			: prefixes(std::move(prefixes)), has_value(has_value)
 		{}
 
-		bool AsBool(bool default_value = false) const
+		Bool AsBool(Bool default_value = false) const
 		{
 			ADRIA_ASSERT(has_value);
 			if (value == "true" || value == "1") return true;
@@ -22,7 +22,7 @@ namespace adria
 			ADRIA_ASSERT_MSG(false, "Invalid bool argument!");
 			ADRIA_UNREACHABLE();
 		}
-		bool AsBoolOr(bool def) const
+		Bool AsBoolOr(Bool def) const
 		{
 			if (IsPresent()) return AsBool();
 			else return def;
@@ -39,12 +39,12 @@ namespace adria
 			else return def;
 		}
 
-		float AsFloat() const
+		Float AsFloat() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (float)std::strtod(value.c_str(), nullptr);
+			return (Float)std::strtod(value.c_str(), nullptr);
 		}
-		float AsFloatOr(float def) const
+		Float AsFloatOr(Float def) const
 		{
 			if (IsPresent()) return AsFloat();
 			else return def;
@@ -61,20 +61,20 @@ namespace adria
 			else return def;
 		}
 
-		bool IsPresent() const
+		Bool IsPresent() const
 		{
 			return is_present;
 		}
-		operator bool() const
+		operator Bool() const
 		{
 			return IsPresent();
 		}
 
 	private:
 		std::vector<std::string> prefixes;
-		bool has_value;
+		Bool has_value;
 		std::string value;
-		bool is_present = false;
+		Bool is_present = false;
 
 		void SetValue(std::string const& _value)
 		{
@@ -95,7 +95,7 @@ namespace adria
 			args.reserve(128);
 		}
 
-		ADRIA_NODISCARD CLIArg& AddArg(bool has_value, std::convertible_to<std::string> auto... prefixes)
+		ADRIA_NODISCARD CLIArg& AddArg(Bool has_value, std::convertible_to<std::string> auto... prefixes)
 		{
 			args.emplace_back(std::vector<std::string>{prefixes...}, has_value);
 			return args.back();
@@ -106,12 +106,12 @@ namespace adria
 			std::vector<std::wstring> cmdline(argv, argv + argc);
 			for (Uint64 i = 0; i < cmdline.size(); ++i)
 			{
-				bool found = false;
+				Bool found = false;
 				for (CLIArg& arg : args)
 				{
 					for (auto const& prefix : arg.prefixes) 
 					{
-						bool prefix_found = cmdline[i] == ToWideString(prefix);
+						Bool prefix_found = cmdline[i] == ToWideString(prefix);
 						if (prefix_found)
 						{
 							found = true;

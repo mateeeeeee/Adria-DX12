@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	Uint32 PackToUint(float(&arr)[3])
+	Uint32 PackToUint(Float(&arr)[3])
 	{
 		Uint32 output = 0;
 		output |= (Uint8)(Clamp(arr[0]) * 255.0f) << 24;
@@ -12,7 +12,7 @@ namespace adria
 		output |= (Uint8)(255.0f) << 0;
 		return output;
 	}
-	Uint32 PackToUint(float r, float g, float b, float a /*= 1.0f*/)
+	Uint32 PackToUint(Float r, Float g, Float b, Float a /*= 1.0f*/)
 	{
 		Uint32 output = 0;
 		output |= (Uint8)(Clamp(r) * 255.0f) << 24;
@@ -22,12 +22,12 @@ namespace adria
 		return output;
 	}
 
-	Uint32 PackTwoFloatsToUint32(float x, float y)
+	Uint32 PackTwoFloatsToUint32(Float x, Float y)
 	{
 		DirectX::PackedVector::XMHALF2 packed(x, y);
 		return packed.v;
 	}
-	Uint64 PackFourFloatsToUint64(float x, float y, float z, float w)
+	Uint64 PackFourFloatsToUint64(Float x, Float y, Float z, Float w)
 	{
 		DirectX::PackedVector::XMHALF4 packed(x, y, z, w);
 		return packed.v;

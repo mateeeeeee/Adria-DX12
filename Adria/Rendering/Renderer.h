@@ -56,14 +56,14 @@ namespace adria
 		~Renderer();
 
 		void NewFrame(Camera const* camera);
-		void Update(float dt);
+		void Update(Float dt);
 		void Render();
 
 		void OnResize(Uint32 w, Uint32 h);
 		void OnRenderResolutionChanged(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
 		void OnRightMouseClicked(Sint32 x, Sint32 y);
-		void OnTakeScreenshot(char const*);
+		void OnTakeScreenshot(Char const*);
 		void OnLightChanged();
 
 		PickingData const& GetPickingData() const { return picking_data; }
@@ -138,25 +138,25 @@ namespace adria
 		GPUDebugPrinter gpu_debug_printer;
 
 		//ray tracing
-		bool ray_tracing_supported = false;
+		Bool ray_tracing_supported = false;
 		AccelerationStructure accel_structure;
 		GfxDescriptor tlas_srv;
 
 		//picking
-		bool update_picking_data = false;
+		Bool update_picking_data = false;
 		PickingData picking_data;
 
 		LightingPathType	 lighting_path = LightingPathType::Deferred;
 		RendererOutput		 renderer_output = RendererOutput::Final;
 
 		//weather
-		float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
-		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
-		float					 wind_speed = 10.0f;
+		Float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
+		Float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
+		Float					 wind_speed = 10.0f;
 		Vector3					 sun_direction;
 
 		//screenshot
-		bool						take_screenshot = false;
+		Bool						take_screenshot = false;
 		std::string					screenshot_name = "";
 		GfxFence					screenshot_fence;
 		Uint64						screenshot_fence_value = 1;
@@ -174,7 +174,7 @@ namespace adria
 
 		void GUI();
 		void UpdateSceneBuffers();
-		void UpdateFrameConstants(float dt);
+		void UpdateFrameConstants(Float dt);
 		void CameraFrustumCulling();
 
 		void Render_Deferred(RenderGraph& rg);

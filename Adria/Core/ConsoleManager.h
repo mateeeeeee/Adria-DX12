@@ -12,19 +12,19 @@ namespace adria
 		ConsoleManager() {}
 		~ConsoleManager();
 
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, bool default_value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, int default_value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, float default_value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, char const* default_value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, std::string const& default_value, char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Bool default_value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, int default_value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Float default_value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Char const* default_value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, std::string const& default_value, Char const* help) override;
 
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, bool& value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, int& value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, float& value, char const* help) override;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, std::string& value, char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Bool& value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, int& value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Float& value, Char const* help) override;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, std::string& value, Char const* help) override;
 
-		virtual IConsoleCommand* RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandDelegate const& command) override;
-		virtual IConsoleCommand* RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandWithArgsDelegate const& command) override;
+		virtual IConsoleCommand* RegisterConsoleCommand(Char const* name, Char const* help, ConsoleCommandDelegate const& command) override;
+		virtual IConsoleCommand* RegisterConsoleCommand(Char const* name, Char const* help, ConsoleCommandWithArgsDelegate const& command) override;
 
 		virtual void UnregisterConsoleObject(IConsoleObject* obj) override;
 		virtual void UnregisterConsoleObject(std::string const& name) override;
@@ -34,13 +34,13 @@ namespace adria
 		virtual IConsoleObject* FindConsoleObject(std::string const& name) const override;
 		virtual void ForAllObjects(ConsoleObjectDelegate const&) const override;
 
-		virtual bool ProcessInput(std::string const& cmd) override;
+		virtual Bool ProcessInput(std::string const& cmd) override;
 
 	private:
 		std::unordered_map<std::string, IConsoleObject*> console_objects;
 
 	private:
-		IConsoleObject* AddObject(char const* name, IConsoleObject* obj);
+		IConsoleObject* AddObject(Char const* name, IConsoleObject* obj);
 	};
 	#define g_ConsoleManager ConsoleManager::Get()
 
@@ -76,39 +76,39 @@ namespace adria
 	class AutoConsoleVariable : public AutoConsoleObject
 	{
 	public:
-		AutoConsoleVariable(char const* name, bool default_value, char const* help)
+		AutoConsoleVariable(Char const* name, Bool default_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 		}
-		AutoConsoleVariable(char const* name, Sint32 default_value, char const* help)
+		AutoConsoleVariable(Char const* name, Sint32 default_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 		}
-		AutoConsoleVariable(char const* name, float default_value, char const* help)
+		AutoConsoleVariable(Char const* name, Float default_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 		}
-		AutoConsoleVariable(char const* name, std::string const& default_value, char const* help)
+		AutoConsoleVariable(Char const* name, std::string const& default_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 		}
 
-		AutoConsoleVariable(char const* name, bool default_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariable(Char const* name, Bool default_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariable(char const* name, Sint32 default_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariable(Char const* name, Sint32 default_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariable(char const* name, float default_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariable(Char const* name, Float default_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariable(char const* name, std::string const& default_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariable(Char const* name, std::string const& default_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariable(name, default_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
@@ -136,22 +136,22 @@ namespace adria
 	class TAutoConsoleVariable final : public AutoConsoleVariable
 	{
 	public:
-		TAutoConsoleVariable(char const* name, std::type_identity_t<T> default_value, char const* help) : AutoConsoleVariable(name, default_value, help) {}
-		TAutoConsoleVariable(char const* name, std::type_identity_t<T> default_value, char const* help, ConsoleVariableDelegate const& callback)
+		TAutoConsoleVariable(Char const* name, std::type_identity_t<T> default_value, Char const* help) : AutoConsoleVariable(name, default_value, help) {}
+		TAutoConsoleVariable(Char const* name, std::type_identity_t<T> default_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleVariable(name, default_value, help, callback) {}
 
 		T Get() const
 		{
-			if constexpr (std::is_same_v<T, bool>) return AsVariable()->GetBool();
+			if constexpr (std::is_same_v<T, Bool>) return AsVariable()->GetBool();
 			if constexpr (std::is_same_v<T, int>) return  AsVariable()->GetInt();
-			if constexpr (std::is_same_v<T, float>) return AsVariable()->GetFloat();
+			if constexpr (std::is_same_v<T, Float>) return AsVariable()->GetFloat();
 			if constexpr (std::is_same_v<T, std::string>) return AsVariable()->GetString();
 		}
 		T* GetPtr()
 		{
-			if constexpr (std::is_same_v<T, bool>) return AsVariable()->GetBoolPtr();
+			if constexpr (std::is_same_v<T, Bool>) return AsVariable()->GetBoolPtr();
 			if constexpr (std::is_same_v<T, int>) return  AsVariable()->GetIntPtr();
-			if constexpr (std::is_same_v<T, float>) return AsVariable()->GetFloatPtr();
+			if constexpr (std::is_same_v<T, Float>) return AsVariable()->GetFloatPtr();
 			if constexpr (std::is_same_v<T, std::string>) return AsVariable()->GetStringPtr();
 		}
 
@@ -159,46 +159,46 @@ namespace adria
 	};
 
 	template <Uint32 N>
-	TAutoConsoleVariable(char const* name, const char(&)[N], char const* help) -> TAutoConsoleVariable<std::string>;
+	TAutoConsoleVariable(Char const* name, const Char(&)[N], Char const* help) -> TAutoConsoleVariable<std::string>;
 	template <Uint32 N>
-	TAutoConsoleVariable(char const* name, const char(&)[N], char const* help, ConsoleVariableDelegate const& callback) -> TAutoConsoleVariable<std::string>;
+	TAutoConsoleVariable(Char const* name, const Char(&)[N], Char const* help, ConsoleVariableDelegate const& callback) -> TAutoConsoleVariable<std::string>;
 
 	class AutoConsoleVariableRef : private AutoConsoleObject
 	{
 	public:
-		AutoConsoleVariableRef(char const* name, Sint32& ref_value, char const* help)
+		AutoConsoleVariableRef(Char const* name, Sint32& ref_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 		}
-		AutoConsoleVariableRef(char const* name, float& ref_value, char const* help)
+		AutoConsoleVariableRef(Char const* name, Float& ref_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 		}
-		AutoConsoleVariableRef(char const* name, bool& ref_value, char const* help)
+		AutoConsoleVariableRef(Char const* name, Bool& ref_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 		}
-		AutoConsoleVariableRef(char const* name, std::string& ref_value, char const* help)
+		AutoConsoleVariableRef(Char const* name, std::string& ref_value, Char const* help)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 		}
 
-		AutoConsoleVariableRef(char const* name, Sint32& ref_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariableRef(Char const* name, Sint32& ref_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariableRef(char const* name, float& ref_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariableRef(Char const* name, Float& ref_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariableRef(char const* name, bool& ref_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariableRef(Char const* name, Bool& ref_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
 		}
-		AutoConsoleVariableRef(char const* name, std::string& ref_value, char const* help, ConsoleVariableDelegate const& callback)
+		AutoConsoleVariableRef(Char const* name, std::string& ref_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleVariableRef(name, ref_value, help))
 		{
 			AsVariable()->AddOnChanged(callback);
@@ -226,22 +226,22 @@ namespace adria
 	class TAutoConsoleVariableRef final : public AutoConsoleVariableRef
 	{
 	public:
-		TAutoConsoleVariableRef(char const* name, std::type_identity_t<T>& default_value, char const* help) : AutoConsoleVariableRef(name, default_value, help) {}
-		TAutoConsoleVariableRef(char const* name, std::type_identity_t<T>& default_value, char const* help, ConsoleVariableDelegate const& callback)
+		TAutoConsoleVariableRef(Char const* name, std::type_identity_t<T>& default_value, Char const* help) : AutoConsoleVariableRef(name, default_value, help) {}
+		TAutoConsoleVariableRef(Char const* name, std::type_identity_t<T>& default_value, Char const* help, ConsoleVariableDelegate const& callback)
 			: AutoConsoleVariableRef(name, default_value, help, callback) {}
 
 		T Get() const
 		{
-			if constexpr (std::is_same_v<T, bool>) return AsVariable()->GetBool();
+			if constexpr (std::is_same_v<T, Bool>) return AsVariable()->GetBool();
 			if constexpr (std::is_same_v<T, int>) return  AsVariable()->GetInt();
-			if constexpr (std::is_same_v<T, float>) return AsVariable()->GetFloat();
+			if constexpr (std::is_same_v<T, Float>) return AsVariable()->GetFloat();
 			if constexpr (std::is_same_v<T, std::string>) return AsVariable()->GetString();
 		}
 		T* GetPtr() const
 		{
-			if constexpr (std::is_same_v<T, bool>) return AsVariable()->GetBoolPtr();
+			if constexpr (std::is_same_v<T, Bool>) return AsVariable()->GetBoolPtr();
 			if constexpr (std::is_same_v<T, int>) return  AsVariable()->GetIntPtr();
-			if constexpr (std::is_same_v<T, float>) return AsVariable()->GetFloatPtr();
+			if constexpr (std::is_same_v<T, Float>) return AsVariable()->GetFloatPtr();
 			if constexpr (std::is_same_v<T, std::string>) return AsVariable()->GetStringPtr();
 		}
 
@@ -252,11 +252,11 @@ namespace adria
 	class AutoConsoleCommand : private AutoConsoleObject
 	{
 	public:
-		AutoConsoleCommand(char const* name, char const* help, ConsoleCommandDelegate const& command)
+		AutoConsoleCommand(Char const* name, Char const* help, ConsoleCommandDelegate const& command)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleCommand(name, help, command))
 		{
 		}
-		AutoConsoleCommand(char const* name, char const* help, ConsoleCommandWithArgsDelegate const& command)
+		AutoConsoleCommand(Char const* name, Char const* help, ConsoleCommandWithArgsDelegate const& command)
 			: AutoConsoleObject(g_ConsoleManager.RegisterConsoleCommand(name, help, command))
 		{
 		}

@@ -44,7 +44,7 @@ namespace adria
 	DECLARE_EVENT(RightMouseClickedEvent, Input, Sint32, Sint32)
 	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, Sint32)
 	DECLARE_EVENT(F5PressedEvent, Input)
-	DECLARE_EVENT(PrintScreenPressedEvent, Input, char const*)
+	DECLARE_EVENT(PrintScreenPressedEvent, Input, Char const*)
 	struct InputEvents
 	{
 		MiddleMouseScrolledEvent scroll_mouse_event;
@@ -68,34 +68,34 @@ namespace adria
 		void Tick();
 		void OnWindowEvent(WindowEventData const&);
 
-		bool GetKey(KeyCode key)    const { return keys[(Uint64)key]; }
-		bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(Uint64)key]; }
-		bool IsKeyUp(KeyCode key)   const { return !GetKey(key) && prev_keys[(Uint64)key]; }
+		Bool GetKey(KeyCode key)    const { return keys[(Uint64)key]; }
+		Bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(Uint64)key]; }
+		Bool IsKeyUp(KeyCode key)   const { return !GetKey(key) && prev_keys[(Uint64)key]; }
 
-		void SetMouseVisibility(bool visible);
-		void SetMousePosition(float xpos, float ypos);
+		void SetMouseVisibility(Bool visible);
+		void SetMousePosition(Float xpos, Float ypos);
 
-		float GetMousePositionX()  const { return mouse_position_x; }
-		float GetMousePositionY()  const { return mouse_position_y; }
+		Float GetMousePositionX()  const { return mouse_position_x; }
+		Float GetMousePositionY()  const { return mouse_position_y; }
 
-		float GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x; }
-		float GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y; }
-		float GetMouseWheelDelta() const { return mmouse_wheel_delta; }
+		Float GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x; }
+		Float GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y; }
+		Float GetMouseWheelDelta() const { return mmouse_wheel_delta; }
 
 	private:
 		InputEvents input_events;
-		std::array<bool, (Uint64)KeyCode::Count> keys;
-		std::array<bool, (Uint64)KeyCode::Count> prev_keys;
+		std::array<Bool, (Uint64)KeyCode::Count> keys;
+		std::array<Bool, (Uint64)KeyCode::Count> prev_keys;
 
-		float mouse_position_x = 0.0f;
-		float mouse_position_y = 0.0f;
+		Float mouse_position_x = 0.0f;
+		Float mouse_position_y = 0.0f;
 
-		float prev_mouse_position_x = 0.0f;
-		float prev_mouse_position_y = 0.0f;
-		float mmouse_wheel_delta = 0.0f;
+		Float prev_mouse_position_x = 0.0f;
+		Float prev_mouse_position_y = 0.0f;
+		Float mmouse_wheel_delta = 0.0f;
 
-		bool new_frame = false;
-		bool resizing = false;
+		Bool new_frame = false;
+		Bool resizing = false;
 
 		Window* window = nullptr;
 

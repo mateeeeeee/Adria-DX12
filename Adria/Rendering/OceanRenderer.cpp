@@ -69,8 +69,8 @@ namespace adria
 
 					struct InitialSpectrumConstants
 					{
-						float   fft_resolution;
-						float   ocean_size;
+						Float   fft_resolution;
+						Float   ocean_size;
 						Uint32  output_idx;
 					} constants =
 					{
@@ -104,9 +104,9 @@ namespace adria
 
 				struct PhaseConstants
 				{
-					float   fft_resolution;
-					float   ocean_size;
-					float   ocean_choppiness;
+					Float   fft_resolution;
+					Float   ocean_size;
+					Float   ocean_choppiness;
 					Uint32  phases_idx;
 					Uint32  output_idx;
 				} constants =
@@ -145,9 +145,9 @@ namespace adria
 
 				struct SpectrumConstants
 				{
-					float   fft_resolution;
-					float   ocean_size;
-					float   ocean_choppiness;
+					Float   fft_resolution;
+					Float   ocean_size;
+					Float   ocean_choppiness;
 					Uint32  initial_spectrum_idx;
 					Uint32  phases_idx;
 					Uint32  output_idx;
@@ -280,9 +280,9 @@ namespace adria
 
 				struct OceanNormalsConstants
 				{
-					float   fft_resolution;
-					float   ocean_size;
-					float   ocean_choppiness;
+					Float   fft_resolution;
+					Float   ocean_size;
+					Float   ocean_choppiness;
 					Uint32  displacement_idx;
 					Uint32  output_idx;
 				} constants =
@@ -405,13 +405,13 @@ namespace adria
 		ocean_texture_desc.initial_state = GfxResourceState::ComputeUAV;
 		initial_spectrum = gfx->CreateTexture(ocean_texture_desc);
 
-		std::vector<float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
-		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float> };
+		std::vector<Float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
+		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<Float> };
 		for (Uint64 i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
 
 		GfxTextureSubData data{};
 		data.data = ping_array.data();
-		data.row_pitch = sizeof(float) * FFT_RESOLUTION;
+		data.row_pitch = sizeof(Float) * FFT_RESOLUTION;
 		data.slice_pitch = 0;
 
 		GfxTextureData init_data{};

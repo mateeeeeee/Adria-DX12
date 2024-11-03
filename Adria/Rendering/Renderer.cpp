@@ -96,7 +96,7 @@ namespace adria
 		g_GfxProfiler.NewFrame();
 		GfxTracyProfiler::NewFrame();
 	}
-	void Renderer::Update(float dt)
+	void Renderer::Update(Float dt)
 	{
 		shadow_renderer.SetupShadows(camera);
 		UpdateSceneBuffers();
@@ -201,7 +201,7 @@ namespace adria
 	{
 		update_picking_data = true;
 	}
-	void Renderer::OnTakeScreenshot(char const* filename)
+	void Renderer::OnTakeScreenshot(Char const* filename)
 	{
 		screenshot_name = filename;
 		if (screenshot_name.empty())
@@ -366,9 +366,9 @@ namespace adria
 		Uint64 count = reg.size();
 	}
 
-	void Renderer::UpdateFrameConstants(float dt)
+	void Renderer::UpdateFrameConstants(Float dt)
 	{
-		static float total_time = 0.0f;
+		static Float total_time = 0.0f;
 		total_time += dt;
 		rain_pass.Update(dt);
 
@@ -389,10 +389,10 @@ namespace adria
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
 		frame_cbuf_data.camera_jitter_x = (camera_jitter.x * 2.0f) / render_width;
 		frame_cbuf_data.camera_jitter_y = (camera_jitter.y * 2.0f) / render_height;
-		frame_cbuf_data.display_resolution_x = (float)display_width;
-		frame_cbuf_data.display_resolution_y = (float)display_height;
-		frame_cbuf_data.render_resolution_x = (float)render_width;
-		frame_cbuf_data.render_resolution_y = (float)render_height;
+		frame_cbuf_data.display_resolution_x = (Float)display_width;
+		frame_cbuf_data.display_resolution_y = (Float)display_height;
+		frame_cbuf_data.render_resolution_x = (Float)render_width;
+		frame_cbuf_data.render_resolution_y = (Float)render_height;
 		frame_cbuf_data.delta_time = dt;
 		frame_cbuf_data.total_time = total_time;
 		frame_cbuf_data.frame_count = gfx->GetFrameIndex();
@@ -541,12 +541,12 @@ namespace adria
 						}
 						if (sun_light)
 						{
-							static float sun_elevation = 75.0f;
-							static float sun_azimuth = 260.0f;
-							static float sun_temperature = 5900.0f;
+							static Float sun_elevation = 75.0f;
+							static Float sun_azimuth = 260.0f;
+							static Float sun_temperature = 5900.0f;
 							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
 
-							bool changed = false;
+							Bool changed = false;
 							changed |= ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
 							changed |= ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
 							changed |= ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);

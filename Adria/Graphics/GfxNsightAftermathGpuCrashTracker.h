@@ -9,7 +9,7 @@ namespace adria
 {
 	struct GFSDK_Aftermath_ShaderDebugInfoIdentifierComparator
 	{
-		bool operator()(const GFSDK_Aftermath_ShaderDebugInfoIdentifier& lhs, const GFSDK_Aftermath_ShaderDebugInfoIdentifier& rhs) const
+		Bool operator()(const GFSDK_Aftermath_ShaderDebugInfoIdentifier& lhs, const GFSDK_Aftermath_ShaderDebugInfoIdentifier& rhs) const
 		{
 			if (lhs.id[0] == rhs.id[0])
 			{
@@ -29,12 +29,12 @@ namespace adria
 		~GfxNsightAftermathGpuCrashTracker();
 
 		void Initialize();
-		bool IsInitialized() const { return initialized; }
+		Bool IsInitialized() const { return initialized; }
 		void HandleGpuCrash();
 
 	private:
 		GfxDevice* gfx;
-		bool initialized = false;
+		Bool initialized = false;
 		mutable std::mutex m_mutex;
 		std::map<GFSDK_Aftermath_ShaderDebugInfoIdentifier, std::vector<Uint8>, GFSDK_Aftermath_ShaderDebugInfoIdentifierComparator> shader_debug_info_map;
 		mutable std::unordered_map<Uint64, GfxShaderKey> shader_hash_map;

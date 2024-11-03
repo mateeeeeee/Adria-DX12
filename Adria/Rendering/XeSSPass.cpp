@@ -10,11 +10,11 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> XeSS("r.XeSS", true, "Enable or Disable XeSS");
+	static TAutoConsoleVariable<Bool> XeSS("r.XeSS", true, "Enable or Disable XeSS");
 
 	namespace
 	{
-		void XeSSLog(char const* message, xess_logging_level_t logging_level)
+		void XeSSLog(Char const* message, xess_logging_level_t logging_level)
 		{
 			switch (logging_level)
 			{
@@ -114,7 +114,7 @@ namespace adria
 				execute_params.inputHeight = render_height;
 
 				xessSetJitterScale(context, 1.0f, 1.0f);
-				xessSetVelocityScale(context, (float)render_width, (float)render_height);
+				xessSetVelocityScale(context, (Float)render_width, (Float)render_height);
 
 				xess_result_t result = xessD3D12Execute(context, cmd_list->GetNative(), &execute_params);
 				ADRIA_ASSERT(result == XESS_RESULT_SUCCESS);
@@ -125,7 +125,7 @@ namespace adria
 		postprocessor->SetFinalResource(RG_NAME(XeSSOutput));
 	}
 
-	bool XeSSPass::IsEnabled(PostProcessor const*) const
+	Bool XeSSPass::IsEnabled(PostProcessor const*) const
 	{
 		return XeSS.Get();
 	}

@@ -6,9 +6,9 @@ namespace adria
 
 	struct CameraParameters
 	{
-		float near_plane;
-		float far_plane;
-		float fov;
+		Float near_plane;
+		Float far_plane;
+		Float fov;
 		Vector3 position;
 		Vector3 look_at;
 	};
@@ -31,21 +31,21 @@ namespace adria
 		Vector3 Forward() const;
 
 		Vector2 Jitter(Uint32 frame_index) const;
-		float Near() const;
-		float Far() const;
-		float Fov() const;
-		float AspectRatio() const;
+		Float Near() const;
+		Float Far() const;
+		Float Fov() const;
+		Float AspectRatio() const;
 
 		void SetPosition(Vector3 const& pos);
-		void SetNearAndFar(float n, float f);
-		void SetAspectRatio(float ar);
-		void SetFov(float fov);
+		void SetNearAndFar(Float n, Float f);
+		void SetAspectRatio(Float ar);
+		void SetFov(Float fov);
 
 		void Zoom(Sint32 increment);
 		void OnResize(Uint32 w, Uint32 h);
-		void Update(float dt);
-		void Enable(bool _enabled) { enabled = _enabled; }
-		bool IsChanged() const { return changed; }
+		void Update(Float dt);
+		void Enable(Bool _enabled) { enabled = _enabled; }
+		Bool IsChanged() const { return changed; }
 	private:
 		Matrix view_matrix;
 		Matrix projection_matrix;
@@ -55,14 +55,14 @@ namespace adria
 		Quaternion orientation;
 		Vector3 look_vector;
 
-		float fov;
-		float aspect_ratio;
-		float near_plane, far_plane;
-		bool  enabled;
-		bool  changed;
+		Float fov;
+		Float aspect_ratio;
+		Float near_plane, far_plane;
+		Bool  enabled;
+		Bool  changed;
 
 	private:
-		void SetProjectionMatrix(float fov, float aspect, float zn, float zf);
+		void SetProjectionMatrix(Float fov, Float aspect, Float zn, Float zf);
 	};
 
 }

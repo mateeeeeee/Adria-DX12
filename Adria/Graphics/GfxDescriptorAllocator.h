@@ -8,7 +8,7 @@ namespace adria
 	{
 		GfxDescriptorHeapType type = GfxDescriptorHeapType::Invalid;
 		Uint32 descriptor_count = 0;
-		bool shader_visible = false;
+		Bool shader_visible = false;
 	};
 
 	class GfxDescriptorAllocator : public GfxDescriptorAllocatorBase

@@ -37,7 +37,7 @@ namespace adria
 
 		static constexpr Uint64 CRC_TABLE[] = { CRC64_TABLE_0(0) };
 
-		constexpr Uint64 crc64_impl(const char* str, Uint64 N)
+		constexpr Uint64 crc64_impl(const Char* str, Uint64 N)
 		{
 			Uint64 val = 0xFFFFFFFFFFFFFFFFL;
 			for (Uint64 idx = 0; idx < N; ++idx)
@@ -51,12 +51,12 @@ namespace adria
 
 	//guaranteed compile time using consteval
 	template<Uint64 N>
-	consteval Uint64 crc64(char const (&_str)[N])
+	consteval Uint64 crc64(Char const (&_str)[N])
 	{
 		return crc::crc64_impl(_str, N - 1);
 	}
 
-	inline Uint64 crc64(char const* _str, Uint64 N)
+	inline Uint64 crc64(Char const* _str, Uint64 N)
 	{
 		return crc::crc64_impl(_str, N);
 	}

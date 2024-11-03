@@ -33,12 +33,12 @@ namespace adria
 			{
 				frustum_center = frustum_center + corners[i];
 			}
-			frustum_center /= static_cast<float>(corners.size());
+			frustum_center /= static_cast<Float>(corners.size());
 
-			float radius = 0.0f;
+			Float radius = 0.0f;
 			for (Vector3 const& corner : corners)
 			{
-				float distance = Vector3::Distance(corner, frustum_center);
+				Float distance = Vector3::Distance(corner, frustum_center);
 				radius = std::max(radius, distance);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -49,12 +49,12 @@ namespace adria
 			Vector3 light_dir = XMVector3Normalize(light.direction);
 			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, Vector3::Up);
 
-			float l = min_extents.x;
-			float b = min_extents.y;
-			float n = min_extents.z;
-			float r = max_extents.x;
-			float t = max_extents.y;
-			float f = max_extents.z * 1.5f;
+			Float l = min_extents.x;
+			Float b = min_extents.y;
+			Float n = min_extents.z;
+			Float r = max_extents.x;
+			Float t = max_extents.y;
+			Float f = max_extents.z * 1.5f;
 
 			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 			Matrix VP = V * P;
@@ -79,14 +79,14 @@ namespace adria
 			Vector3 target_pos = light_pos + light_dir * light.range;
 
 			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
-			static const float shadow_near = 0.5f;
-			float fov_angle = 2.0f * acos(light.outer_cosine);
+			static const Float shadow_near = 0.5f;
+			Float fov_angle = 2.0f * acos(light.outer_cosine);
 			Matrix P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
 			return { V,P };
 		}
 		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, Uint32 face_index)
 		{
-			static float const shadow_near = 0.5f;
+			static Float const shadow_near = 0.5f;
 			Matrix P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
 
 			Vector3 light_pos = Vector3(light.position);
@@ -132,8 +132,8 @@ namespace adria
 		}
 		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, Uint32 shadow_cascade_size)
 		{
-			static float const far_factor = 1.5f;
-			static float const light_distance_factor = 1.0f;
+			static Float const far_factor = 1.5f;
+			static Float const light_distance_factor = 1.0f;
 
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, camera.View().Invert());
@@ -145,12 +145,12 @@ namespace adria
 			{
 				frustum_center = frustum_center + corner;
 			}
-			frustum_center /= static_cast<float>(corners.size());
+			frustum_center /= static_cast<Float>(corners.size());
 
-			float radius = 0.0f;
+			Float radius = 0.0f;
 			for (Vector3 const& corner : corners)
 			{
-				float distance = Vector3::Distance(corner, frustum_center);
+				Float distance = Vector3::Distance(corner, frustum_center);
 				radius = std::max(radius, distance);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -162,12 +162,12 @@ namespace adria
 			Vector3 light_dir = XMVector3Normalize(light.direction);
 			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + light_distance_factor * light_dir * radius, Vector3::Up);
 
-			float l = min_extents.x;
-			float b = min_extents.y;
-			float n = min_extents.z - far_factor * radius;
-			float r = max_extents.x;
-			float t = max_extents.y;
-			float f = max_extents.z * far_factor;
+			Float l = min_extents.x;
+			Float b = min_extents.y;
+			Float n = min_extents.z - far_factor * radius;
+			Float r = max_extents.x;
+			Float t = max_extents.y;
+			Float f = max_extents.z * far_factor;
 
 			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 			Matrix VP = V * P;
@@ -541,7 +541,7 @@ namespace adria
 			else masked_batches.push_back(&batch);
 		}
 
-		auto DrawBatch = [&](GfxCommandList* cmd_list, bool masked_batch)
+		auto DrawBatch = [&](GfxCommandList* cmd_list, Bool masked_batch)
 		{
 			std::vector<Batch*>& batches = masked_batch ? masked_batches : opaque_batches;
 			GfxPipelineState* pso = masked_batch ? shadow_psos->Get<1>() : shadow_psos->Get<0>();
@@ -564,22 +564,22 @@ namespace adria
 		DrawBatch(cmd_list, false);
 		DrawBatch(cmd_list, true);
 	}
-	std::array<Matrix, ShadowRenderer::SHADOW_CASCADE_COUNT> ShadowRenderer::RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances)
+	std::array<Matrix, ShadowRenderer::SHADOW_CASCADE_COUNT> ShadowRenderer::RecalculateProjectionMatrices(Camera const& camera, Float split_lambda, std::array<Float, SHADOW_CASCADE_COUNT>& split_distances)
 	{
-		float camera_near = camera.Near();
-		float camera_far = camera.Far();
-		float near_plane = std::min(camera_near, camera_far);
-		float far_plane  = std::max(camera_near, camera_far);
+		Float camera_near = camera.Near();
+		Float camera_far = camera.Far();
+		Float near_plane = std::min(camera_near, camera_far);
+		Float far_plane  = std::max(camera_near, camera_far);
 
-		float fov = camera.Fov();
-		float ar = camera.AspectRatio();
+		Float fov = camera.Fov();
+		Float ar = camera.AspectRatio();
 
-		float f = 1.0f / SHADOW_CASCADE_COUNT;
+		Float f = 1.0f / SHADOW_CASCADE_COUNT;
 		for (Uint32 i = 0; i < split_distances.size(); i++)
 		{
-			float fi = (i + 1) * f;
-			float l = near_plane * pow(far_plane / near_plane, fi);
-			float u = near_plane + (far_plane - near_plane) * fi;
+			Float fi = (i + 1) * f;
+			Float l = near_plane * pow(far_plane / near_plane, fi);
+			Float u = near_plane + (far_plane - near_plane) * fi;
 			split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 		}
 

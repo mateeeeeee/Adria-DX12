@@ -109,7 +109,7 @@ namespace adria
 		accumulation_texture = gfx->CreateTexture(accum_desc);
 	}
 
-	bool PathTracingPass::IsSupported() const
+	Bool PathTracingPass::IsSupported() const
 	{
 		return is_supported;
 	}
@@ -133,7 +133,7 @@ namespace adria
 			pt_state_object_builder.AddSubObject(dxil_lib_desc);
 
 			D3D12_RAYTRACING_SHADER_CONFIG pt_shader_config{};
-			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float);
+			pt_shader_config.MaxPayloadSizeInBytes = sizeof(Float);
 			pt_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			pt_state_object_builder.AddSubObject(pt_shader_config);
 

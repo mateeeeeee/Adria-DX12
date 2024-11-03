@@ -12,8 +12,8 @@ namespace adria
 		window_data.msg  = static_cast<Uint32>(msg);
 		window_data.wparam = static_cast<Uint64>(w_param);
 		window_data.lparam = static_cast<Sint64>(l_param);
-		window_data.width = this_window ? static_cast<float>(this_window->Width()) : 0.0f;
-		window_data.height = this_window ? static_cast<float>(this_window->Height()) : 0.0f;
+		window_data.width = this_window ? static_cast<Float>(this_window->Width()) : 0.0f;
+		window_data.height = this_window ? static_cast<Float>(this_window->Height()) : 0.0f;
 
 		LRESULT result = 0ll;
 		if (msg == WM_CLOSE || msg == WM_DESTROY)
@@ -23,8 +23,8 @@ namespace adria
 		}
 		else if (msg == WM_DISPLAYCHANGE || msg == WM_SIZE)
 		{
-			window_data.width = static_cast<float>(l_param & 0xffff);
-			window_data.height = static_cast<float>((l_param >> 16) & 0xffff);
+			window_data.width = static_cast<Float>(l_param & 0xffff);
+			window_data.height = static_cast<Float>((l_param >> 16) & 0xffff);
 		}
 		else result = DefWindowProc(hwnd, msg, w_param, l_param);
         if (this_window) this_window->BroadcastEvent(window_data);
@@ -114,7 +114,7 @@ namespace adria
 		return rect.top;
 	}
     
-	bool Window::Loop()
+	Bool Window::Loop()
     {
         MSG msg{};
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -135,7 +135,7 @@ namespace adria
     {
         return static_cast<void*>(hwnd);
     }
-    bool Window::IsActive() const
+    Bool Window::IsActive() const
     {
         return GetForegroundWindow() == hwnd;
     }

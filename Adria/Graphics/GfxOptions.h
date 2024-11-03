@@ -5,11 +5,11 @@ namespace adria
 {
 	struct GfxOptions
 	{
-		bool debug_device = false;
-		bool dred = false;
-		bool gpu_validation = false;
-		bool pix = false;
-		bool aftermath = false;
-		bool vsync = false;
+		Bool debug_device = false;
+		Bool dred = false;
+		Bool gpu_validation = false;
+		Bool pix = false;
+		Bool aftermath = false;
+		Bool vsync = false;
 	};
 }

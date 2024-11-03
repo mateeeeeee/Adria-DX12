@@ -9,7 +9,7 @@ namespace adria
 		GfxTextureType_2D,
 		GfxTextureType_3D
 	};
-	inline char const* GfxTextureTypeToString(GfxTextureType type)
+	inline Char const* GfxTextureTypeToString(GfxTextureType type)
 	{
 		switch (type)
 		{
@@ -37,7 +37,7 @@ namespace adria
 		GfxFormat format = GfxFormat::UNKNOWN;
 
 		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;
-		bool IsCompatible(GfxTextureDesc const& desc) const
+		Bool IsCompatible(GfxTextureDesc const& desc) const
 		{
 			return type == desc.type && width == desc.width && height == desc.height && array_size == desc.array_size
 				&& format == desc.format && sample_count == desc.sample_count && heap_type == desc.heap_type
@@ -126,14 +126,14 @@ namespace adria
 		GfxFormat GetFormat() const { return desc.format; }
 		Uint64 GetGpuAddress() const;
 
-		bool IsMapped() const;
+		Bool IsMapped() const;
 		void* GetMappedData() const;
 		template<typename T>
 		T* GetMappedData() const;
 		void* Map();
 		void Unmap();
 
-		void SetName(char const* name);
+		void SetName(Char const* name);
 
 	private:
 		GfxDevice* gfx;
@@ -141,7 +141,7 @@ namespace adria
 		GfxTextureDesc desc;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		void* mapped_data = nullptr;
-		bool is_backbuffer = false;
+		Bool is_backbuffer = false;
 	};
 
 	template<typename T>

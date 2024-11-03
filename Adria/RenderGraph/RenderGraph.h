@@ -68,7 +68,7 @@ namespace adria
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
-		void Dump(char const* graph_file_name);
+		void Dump(Char const* graph_file_name);
 		void DumpDebugData();
 
 	private:
@@ -101,16 +101,16 @@ namespace adria
 		void BuildDependencyLevels();
 		void CullPasses();
 		void CalculateResourcesLifetime();
-		void DepthFirstSearch(Uint64 i, std::vector<bool>& visited, std::vector<Uint64>& sort);
+		void DepthFirstSearch(Uint64 i, std::vector<Bool>& visited, std::vector<Uint64>& sort);
 		
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
 
-		bool IsTextureDeclared(RGResourceName);
-		bool IsBufferDeclared(RGResourceName);
+		Bool IsTextureDeclared(RGResourceName);
+		Bool IsBufferDeclared(RGResourceName);
 
-		bool IsValidTextureHandle(RGTextureId) const;
-		bool IsValidBufferHandle(RGBufferId) const;
+		Bool IsValidTextureHandle(RGTextureId) const;
+		Bool IsValidBufferHandle(RGBufferId) const;
 
 		RGTexture* GetRGTexture(RGTextureId) const;
 		RGBuffer* GetRGBuffer(RGBufferId) const;

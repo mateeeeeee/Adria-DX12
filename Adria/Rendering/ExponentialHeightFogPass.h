@@ -12,13 +12,13 @@ namespace adria
 	{
 		struct FogParameters
 		{
-			float  fog_falloff		= 0.125f;
-			float  fog_density		= 3.0f;
-			float  fog_height		= 100.0f;
-			float  fog_min_opacity  = 0.7f;
-			float  fog_start		= 0.0f;
-			float  fog_cutoff_distance = 0.0f;
-			float  fog_color[3]		= { 0.5f, 0.6f, 1.0f };
+			Float  fog_falloff		= 0.125f;
+			Float  fog_density		= 3.0f;
+			Float  fog_height		= 100.0f;
+			Float  fog_min_opacity  = 0.7f;
+			Float  fog_start		= 0.0f;
+			Float  fog_cutoff_distance = 0.0f;
+			Float  fog_color[3]		= { 0.5f, 0.6f, 1.0f };
 		};
 
 	public:
@@ -26,7 +26,7 @@ namespace adria
 
 		virtual void OnResize(Uint32 w, Uint32 h) override;
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual Bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
 
 	private:

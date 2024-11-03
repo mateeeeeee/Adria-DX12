@@ -8,7 +8,7 @@ namespace adria
 {
 	struct GfxTimestamp
 	{
-		float time_in_ms;
+		Float time_in_ms;
 		std::string name;
 	};
 
@@ -28,8 +28,8 @@ namespace adria
 		void Destroy();
 
 		void NewFrame();
-		void BeginProfileScope(GfxCommandList* cmd_list, char const* name);
-		void EndProfileScope(char const* name);
+		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name);
+		void EndProfileScope(Char const* name);
 		std::vector<GfxTimestamp> GetResults();
 
 	private:
@@ -45,12 +45,12 @@ namespace adria
 #if GFX_PROFILING
 	struct GfxProfileScope
 	{
-		GfxProfileScope(GfxCommandList* _cmd_list, char const* _name, bool active = true)
+		GfxProfileScope(GfxCommandList* _cmd_list, Char const* _name, Bool active = true)
 			: name{ _name }, cmd_list{ _cmd_list }, active{ active }, color{ 0xffffffff }
 		{
 			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, name.c_str());
 		}
-		GfxProfileScope(GfxCommandList* _cmd_list, char const* _name, Uint32 color, bool active)
+		GfxProfileScope(GfxCommandList* _cmd_list, Char const* _name, Uint32 color, Bool active)
 			: name{ _name }, cmd_list{ _cmd_list }, color{ color }, active{ active }
 		{
 			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, name.c_str());
@@ -63,7 +63,7 @@ namespace adria
 
 		GfxCommandList* cmd_list;
 		std::string name;
-		bool const active;
+		Bool const active;
 		Uint32 color;
 	};
 	#define AdriaGfxProfileScope(cmd_list, name) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name)

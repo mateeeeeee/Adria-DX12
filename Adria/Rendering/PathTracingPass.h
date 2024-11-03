@@ -18,14 +18,14 @@ namespace adria
 		~PathTracingPass();
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h);
-		bool IsSupported() const;
+		Bool IsSupported() const;
 		void Reset();
 
 	private:
 		GfxDevice* gfx;
 		std::unique_ptr<GfxStateObject> path_tracing_so;
 		Uint32 width, height;
-		bool is_supported;
+		Bool is_supported;
 		std::unique_ptr<GfxTexture> accumulation_texture = nullptr;
 		Sint32 accumulated_frames = 1;
 		Sint32 max_bounces = 3;

@@ -54,7 +54,7 @@ namespace adria
 	private:
 		std::vector<std::thread> threads;
 		ConcurrentQueue<std::function<void()>> task_queue;
-		bool done = false;
+		Bool done = false;
 		std::condition_variable cond_var;
 		std::mutex cond_mutex;
 
@@ -64,7 +64,7 @@ namespace adria
 		void ThreadWork()
 		{
 			std::function <void()> task;
-			bool pop_success;
+			Bool pop_success;
 
 			while (true)
 			{

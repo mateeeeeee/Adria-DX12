@@ -32,8 +32,8 @@ namespace adria
 		}
 
 		OffsetType MaxSize()  const { return max_size; }
-		bool Full()			  const { return top == max_size; };
-		bool Empty()		  const { return top == reserve; };
+		Bool Full()			  const { return top == max_size; };
+		Bool Empty()		  const { return top == reserve; };
 		OffsetType UsedSize() const { return top; }
 
 	private:

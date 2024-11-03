@@ -57,10 +57,10 @@ namespace adria
 
 				struct HBAOConstants
 				{
-					float  r2;
-					float  radius_to_screen;
-					float  power;
-					float  noise_scale;
+					Float  r2;
+					Float  radius_to_screen;
+					Float  power;
+					Float  noise_scale;
 
 					Uint32   depth_idx;
 					Uint32   normal_idx;
@@ -68,7 +68,7 @@ namespace adria
 					Uint32   output_idx;
 				} constants =
 				{
-					.r2 = params.hbao_radius * params.hbao_radius, .radius_to_screen = params.hbao_radius * 0.5f * float(height) / (tanf(frame_data.camera_fov * 0.5f) * 2.0f),
+					.r2 = params.hbao_radius * params.hbao_radius, .radius_to_screen = params.hbao_radius * 0.5f * Float(height) / (tanf(frame_data.camera_fov * 0.5f) * 2.0f),
 					.power = params.hbao_power,
 					.noise_scale = std::max(width * 1.0f / NOISE_DIM,height * 1.0f / NOISE_DIM),
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
@@ -106,10 +106,10 @@ namespace adria
 	void HBAOPass::OnSceneInitialized()
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		std::vector<float> random_texture_data;
+		std::vector<Float> random_texture_data;
 		for (Sint32 i = 0; i < 8 * 8; i++)
 		{
-			float rand = rand_float();
+			Float rand = rand_float();
 			random_texture_data.push_back(sin(rand));
 			random_texture_data.push_back(cos(rand));
 			random_texture_data.push_back(rand_float());
@@ -118,7 +118,7 @@ namespace adria
 
 		GfxTextureSubData data{};
 		data.data = random_texture_data.data();
-		data.row_pitch = 8 * 4 * sizeof(float);
+		data.row_pitch = 8 * 4 * sizeof(Float);
 		data.slice_pitch = 0;
 
 		GfxTextureData init_data{};

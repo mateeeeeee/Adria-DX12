@@ -29,7 +29,7 @@ namespace adria
 		std::unique_ptr<GfxComputePipelineState> tiled_deferred_lighting_pso;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
-		bool visualize_tiled = false;
+		Bool visualize_tiled = false;
 		Sint32 visualize_max_lights = 16;
 
 	private:

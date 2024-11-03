@@ -26,7 +26,7 @@ namespace adria
 			for (Uint64 i = 0; i < texture_pool.size();)
 			{
 				PooledTexture& resource = texture_pool[i].first;
-				bool active = texture_pool[i].second;
+				Bool active = texture_pool[i].second;
 				if (!active && resource.last_used_frame + 4 < frame_index)
 				{
 					std::swap(texture_pool[i], texture_pool.back());
@@ -94,8 +94,8 @@ namespace adria
 	private:
 		GfxDevice* device = nullptr;
 		Uint64 frame_index = 0;
-		std::vector<std::pair<PooledTexture, bool>> texture_pool;
-		std::vector<std::pair<PooledBuffer, bool>>  buffer_pool;
+		std::vector<std::pair<PooledTexture, Bool>> texture_pool;
+		std::vector<std::pair<PooledBuffer, Bool>>  buffer_pool;
 	};
 	using RGResourcePool = RenderGraphResourcePool;
 

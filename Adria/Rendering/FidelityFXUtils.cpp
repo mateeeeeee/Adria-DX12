@@ -76,7 +76,7 @@ namespace adria
 
 		resource_description.flags = FFX_RESOURCE_FLAGS_NONE;
 		resource_description.usage = IsGfxFormatDepth(texture_desc.format) ? FFX_RESOURCE_USAGE_DEPTHTARGET : FFX_RESOURCE_USAGE_READ_ONLY;
-		if (static_cast<bool>(texture_desc.bind_flags & GfxBindFlag::UnorderedAccess)) resource_description.usage = (FfxResourceUsage)(resource_description.usage | FFX_RESOURCE_USAGE_UAV);
+		if (static_cast<Bool>(texture_desc.bind_flags & GfxBindFlag::UnorderedAccess)) resource_description.usage = (FfxResourceUsage)(resource_description.usage | FFX_RESOURCE_USAGE_UAV);
 
 		resource_description.width = texture_desc.width;
 		resource_description.height = texture_desc.height;

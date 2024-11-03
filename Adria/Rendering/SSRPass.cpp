@@ -12,14 +12,14 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> SSR("r.SSR", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<Bool> SSR("r.SSR", true, "0 - Disabled, 1 - Enabled");
 
 	SSRPass::SSRPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();
 	}
 
-	bool SSRPass::IsEnabled(PostProcessor const*) const
+	Bool SSRPass::IsEnabled(PostProcessor const*) const
 	{
 		return SSR.Get();
 	}
@@ -70,8 +70,8 @@ namespace adria
 
 				struct SSRConstants
 				{
-					float ssr_ray_step;
-					float ssr_ray_hit_threshold;
+					Float ssr_ray_step;
+					Float ssr_ray_hit_threshold;
 
 					Uint32 depth_idx;
 					Uint32 normal_idx;

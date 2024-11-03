@@ -23,7 +23,7 @@ namespace adria
 		ADRIA_NODISCARD TextureHandle LoadCubemap(std::array<std::string, 6> const& cubemap_textures);
 		ADRIA_NODISCARD GfxDescriptor GetSRV(TextureHandle handle);
 		ADRIA_NODISCARD GfxTexture* GetTexture(TextureHandle handle) const;
-		void EnableMipMaps(bool);
+		void EnableMipMaps(Bool);
 		void OnSceneInitialized();
 
 	private:
@@ -33,14 +33,14 @@ namespace adria
 		std::unordered_map<TextureHandle, std::unique_ptr<GfxTexture>> texture_map;
 		std::unordered_map<TextureHandle, GfxDescriptor> texture_srv_map;
 		TextureHandle handle = TEXTURE_MANAGER_START_HANDLE;
-		bool mipmaps = true;
-		bool is_scene_initialized = false;
+		Bool mipmaps = true;
+		Bool is_scene_initialized = false;
 
 	private:
 		TextureManager();
 		~TextureManager();
 
-		void CreateViewForTexture(TextureHandle handle, bool flag = false);
+		void CreateViewForTexture(TextureHandle handle, Bool flag = false);
 	};
 	#define g_TextureManager TextureManager::Get()
 

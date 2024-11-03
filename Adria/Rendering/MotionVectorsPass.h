@@ -12,7 +12,7 @@ namespace adria
 	public:
 		MotionVectorsPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 
-		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual Bool IsEnabled(PostProcessor const*) const override;
 		virtual void AddPass(RenderGraph& rg, PostProcessor*) override;
 		virtual void OnResize(Uint32 w, Uint32 h) override;
 

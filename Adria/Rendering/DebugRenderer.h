@@ -9,7 +9,7 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 
-	enum class DebugRendererMode : bool
+	enum class DebugRendererMode : Bool
 	{
 		Transient,
 		Persistent
@@ -62,13 +62,13 @@ namespace adria
 
 		void AddLine(Vector3 const& start, Vector3 const& end, Color color);
 		void AddRay(Vector3 const& origin, Vector3 const& direction, Color color);
-		void AddTriangle(Vector3 const& a, Vector3 const& b, Vector3 const& c, Color color, bool wireframe = false);
-		void AddQuad(Vector3 const& a, Vector3 const& b, Vector3 const& c, Vector3 const& d, Color color, bool wireframe = false);
-		void AddBox(Vector3 const& center, Vector3 const& extents, Color color, bool wireframe = true);
-		void AddBoundingBox(BoundingBox const& bounding_box, Color color, bool wireframe = true);
-		void AddBoundingBox(BoundingBox const& bounding_box, Matrix const& transform, Color color, bool wireframe = true);
-		void AddSphere(Vector3 const& center, float radius, Color color, bool wireframe = true);
-		void AddSphere(BoundingSphere const& sphere, Color color, bool wireframe = true);
+		void AddTriangle(Vector3 const& a, Vector3 const& b, Vector3 const& c, Color color, Bool wireframe = false);
+		void AddQuad(Vector3 const& a, Vector3 const& b, Vector3 const& c, Vector3 const& d, Color color, Bool wireframe = false);
+		void AddBox(Vector3 const& center, Vector3 const& extents, Color color, Bool wireframe = true);
+		void AddBoundingBox(BoundingBox const& bounding_box, Color color, Bool wireframe = true);
+		void AddBoundingBox(BoundingBox const& bounding_box, Matrix const& transform, Color color, Bool wireframe = true);
+		void AddSphere(Vector3 const& center, Float radius, Color color, Bool wireframe = true);
+		void AddSphere(BoundingSphere const& sphere, Color color, Bool wireframe = true);
 		void AddFrustum(BoundingFrustum const& frustum, Color color);
 
 		void SetMode(DebugRendererMode _mode) { mode = _mode; }

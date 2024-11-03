@@ -7,26 +7,26 @@ namespace adria
 		DirectX::XMMATRIX			camera_view;
 		DirectX::XMMATRIX			camera_proj;
 		DirectX::XMMATRIX			camera_viewproj;
-		float						camera_fov;
-		float						camera_aspect_ratio;
-		float						camera_near;
-		float						camera_far;
-		float						camera_jitter_x;
-		float						camera_jitter_y;
-		float						camera_position[4];
-		float						delta_time;
+		Float						camera_fov;
+		Float						camera_aspect_ratio;
+		Float						camera_near;
+		Float						camera_far;
+		Float						camera_jitter_x;
+		Float						camera_jitter_y;
+		Float						camera_position[4];
+		Float						delta_time;
 		Uint64						frame_cbuffer_address;
 	};
 
 	struct DoFBlackboardData
 	{
-		float dof_focus_distance;
-		float dof_focus_radius;
+		Float dof_focus_distance;
+		Float dof_focus_radius;
 	};
 
 	struct BloomBlackboardData
 	{
-		float bloom_intensity;
-		float bloom_blend_factor;
+		Float bloom_intensity;
+		Float bloom_blend_factor;
 	};
 }

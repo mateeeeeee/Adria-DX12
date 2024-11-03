@@ -67,7 +67,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool RayTracedShadowsPass::IsSupported() const
+	Bool RayTracedShadowsPass::IsSupported() const
 	{
 		return is_supported;
 	}

@@ -11,13 +11,13 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool>  VariableRateShading("r.VariableRateShading", false, "");
-	static TAutoConsoleVariable<bool>  VariableRateShadingImage("r.VariableRateShading.Image", false, "");
-	static TAutoConsoleVariable<bool>  VariableRateShadingOverlay("r.VariableRateShading.Overlay", false, "");
+	static TAutoConsoleVariable<Bool>  VariableRateShading("r.VariableRateShading", false, "");
+	static TAutoConsoleVariable<Bool>  VariableRateShadingImage("r.VariableRateShading.Image", false, "");
+	static TAutoConsoleVariable<Bool>  VariableRateShadingOverlay("r.VariableRateShading.Overlay", false, "");
 	static TAutoConsoleVariable<int>   VariableRateShadingMode("r.VariableRateShading.Mode", 0, "");
 	static TAutoConsoleVariable<int>   VariableRateShadingCombiner("r.VariableRateShading.Combiner", 0, "");
-	static TAutoConsoleVariable<float> VariableRateShadingThreshold("r.VariableRateShading.Threshold", 0.015f, "");
-	static TAutoConsoleVariable<float> VariableRateShadingMotionFactor("r.VariableRateShading.MotionFactor", 0.01f, "");
+	static TAutoConsoleVariable<Float> VariableRateShadingThreshold("r.VariableRateShading.Threshold", 0.015f, "");
+	static TAutoConsoleVariable<Float> VariableRateShadingMotionFactor("r.VariableRateShading.MotionFactor", 0.01f, "");
 
 	static GfxShadingRate shading_rates[] =
 	{
@@ -189,7 +189,7 @@ namespace adria
 		CreateVRSImage();
 	}
 
-	bool FFXVRSPass::IsEnabled(PostProcessor const*) const
+	Bool FFXVRSPass::IsEnabled(PostProcessor const*) const
 	{
 		return true;
 	}

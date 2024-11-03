@@ -28,8 +28,8 @@ namespace adria
 			return mip_levels;
 		}
 		GfxFormat Format() const { return format; }
-		bool IsHDR() const { return is_hdr; }
-		bool IsCubemap() const { return is_cubemap; }
+		Bool IsHDR() const { return is_hdr; }
+		Bool IsCubemap() const { return is_cubemap; }
 
 		template<typename T = Uint8>
 		T const* Data() const;
@@ -44,17 +44,17 @@ namespace adria
 		Uint32 depth = 0;
 		Uint32 mip_levels = 0;
 		std::vector<Uint8> pixels;
-		bool is_hdr = false;
-		bool is_cubemap = false;
-		bool is_srgb = false;
+		Bool is_hdr = false;
+		Bool is_cubemap = false;
+		Bool is_srgb = false;
 		GfxFormat format = GfxFormat::UNKNOWN;
 		std::unique_ptr<Image> next_image = nullptr;
 
 	private:
 		Uint64 SetData(Uint32 width, Uint32 height, Uint32 depth, Uint32 mip_levels, void const* data);
 
-		bool LoadDDS(std::string_view texture_path);
-		bool LoadSTB(std::string_view texture_path);
+		Bool LoadDDS(std::string_view texture_path);
+		Bool LoadSTB(std::string_view texture_path);
 	};
 
 	template<typename T>

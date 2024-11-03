@@ -18,7 +18,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> Clouds("r.Clouds", true, "Enable or Disable Clouds");
+	static TAutoConsoleVariable<Bool> Clouds("r.Clouds", true, "Enable or Disable Clouds");
 
 		
 	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, Uint32 w, Uint32 h)
@@ -29,7 +29,7 @@ namespace adria
 
 	VolumetricCloudsPass::~VolumetricCloudsPass() = default;
 
-	bool VolumetricCloudsPass::IsEnabled(PostProcessor const*) const
+	Bool VolumetricCloudsPass::IsEnabled(PostProcessor const*) const
 	{
 		return Clouds.Get();
 	}
@@ -39,7 +39,7 @@ namespace adria
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_NAME(PreviousCloudsOutput), prev_clouds.get());
 
-		static bool first_frame = true;
+		static Bool first_frame = true;
 		if (first_frame || should_generate_textures)
 		{
 			first_frame = false;
@@ -54,7 +54,7 @@ namespace adria
 
 			struct CloudNoiseConstants
 			{
-				float resolution_inv;
+				Float resolution_inv;
 				Uint32 frequency;
 				Uint32 output_idx;
 			};
@@ -205,7 +205,7 @@ namespace adria
 
 				Uint32 i = dst_handle.GetIndex();
 
-				float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
+				Float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
 				struct CloudsConstants
 				{
 					Uint32      type_idx;
@@ -214,31 +214,31 @@ namespace adria
 					Uint32      output_idx;
 
 					Uint32      prev_output_idx;
-					float		cloud_type;
-					float 	    cloud_min_height;
-					float 	    cloud_max_height;
+					Float		cloud_type;
+					Float 	    cloud_min_height;
+					Float 	    cloud_max_height;
 
-					float 	    shape_noise_scale;
-					float 	    detail_noise_scale;
-					float 	    detail_noise_modifier;
-					float       global_density;
+					Float 	    shape_noise_scale;
+					Float 	    detail_noise_scale;
+					Float 	    detail_noise_modifier;
+					Float       global_density;
 
-					float 	    cloud_coverage;
+					Float 	    cloud_coverage;
 					Vector3     cloud_base_color;
 					Vector3     cloud_top_color;
 					int	        max_num_steps;
 
 					Vector3     planet_center;
-					float 	    planet_radius;
+					Float 	    planet_radius;
 
-					float 	    light_step_length;
-					float 	    light_cone_radius;
-					float 	    precipitation;
-					float 	    ambient_light_factor;
+					Float 	    light_step_length;
+					Float 	    light_cone_radius;
+					Float 	    precipitation;
+					Float 	    ambient_light_factor;
 
-					float 	    sun_light_factor;
-					float 	    henyey_greenstein_g_forward;
-					float 	    henyey_greenstein_g_backward;
+					Float 	    sun_light_factor;
+					Float 	    henyey_greenstein_g_forward;
+					Float 	    henyey_greenstein_g_backward;
 					Uint32      resolution_factor;
 				} constants =
 				{
@@ -413,7 +413,7 @@ namespace adria
 		);
 	}
 
-	void VolumetricCloudsPass::OnRainEvent(bool enabled)
+	void VolumetricCloudsPass::OnRainEvent(Bool enabled)
 	{
 		if (enabled)
 		{

@@ -40,7 +40,7 @@ namespace adria
 		};
 
 	public:
-		explicit GfxCommandList(GfxDevice* gfx, GfxCommandListType type = GfxCommandListType::Graphics, char const* name = "");
+		explicit GfxCommandList(GfxDevice* gfx, GfxCommandListType type = GfxCommandListType::Graphics, Char const* name = "");
 		~GfxCommandList();
 
 		GfxDevice* GetDevice() const { return gfx; }
@@ -82,8 +82,8 @@ namespace adria
 		void CopyTexture(GfxTexture& dst, Uint32 dst_mip, Uint32 dst_array, GfxTexture const& src, Uint32 src_mip, Uint32 src_array);
 		void CopyTextureToBuffer(GfxBuffer& dst, Uint64 dst_offset, GfxTexture const& src, Uint32 src_mip, Uint32 src_array);
 
-		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
-		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
+		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Float* clear_value);
+		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Float* clear_value);
 		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Uint32* clear_value);
 		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Uint32* clear_value);
 		void WriteBufferImmediate(GfxBuffer& buffer, Uint32 offset, Uint32 data);
@@ -95,7 +95,7 @@ namespace adria
 		GfxRayTracingShaderTable& SetStateObject(GfxStateObject* state_object);
 
 		void SetStencilReference(Uint8 stencil);
-		void SetBlendFactor(float const* blend_factor);
+		void SetBlendFactor(Float const* blend_factor);
 		void SetTopology(GfxPrimitiveTopology topology);
 		void SetIndexBuffer(GfxIndexBufferView* index_buffer_view);
 		void SetVertexBuffer(GfxVertexBufferView const& vertex_buffer_view, Uint32 start_slot = 0);
@@ -129,9 +129,9 @@ namespace adria
 
 		GfxDynamicAllocation AllocateTransient(Uint32 size, Uint32 align = 0);
 
-		void ClearRenderTarget(GfxDescriptor rtv, float const* clear_color);
-		void ClearDepth(GfxDescriptor dsv, float depth = 1.0f, Uint8 stencil = 0, bool clear_stencil = false);
-		void SetRenderTargets(std::span<GfxDescriptor const> rtvs, GfxDescriptor const* dsv = nullptr, bool single_rt = false);
+		void ClearRenderTarget(GfxDescriptor rtv, Float const* clear_color);
+		void ClearDepth(GfxDescriptor dsv, Float depth = 1.0f, Uint8 stencil = 0, Bool clear_stencil = false);
+		void SetRenderTargets(std::span<GfxDescriptor const> rtvs, GfxDescriptor const* dsv = nullptr, Bool single_rt = false);
 
 		void SetContext(Context ctx);
 
@@ -154,7 +154,7 @@ namespace adria
 		std::vector<std::pair<GfxFence&, Uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, Uint64>> pending_signals;
 
-		bool use_legacy_barriers = false;
+		Bool use_legacy_barriers = false;
 		std::vector<D3D12_TEXTURE_BARRIER>		  texture_barriers;
 		std::vector<D3D12_BUFFER_BARRIER>		  buffer_barriers;
 		std::vector<D3D12_GLOBAL_BARRIER>		  global_barriers;

@@ -66,52 +66,52 @@ namespace adria
 		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
 		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
-		float base_color[3]		= { 1.0f, 1.0f, 1.0f };
-		float metallic_factor	= 1.0f;
-		float roughness_factor	= 1.0f;
-		float emissive_factor	= 1.0f;
+		Float base_color[3]		= { 1.0f, 1.0f, 1.0f };
+		Float metallic_factor	= 1.0f;
+		Float roughness_factor	= 1.0f;
+		Float emissive_factor	= 1.0f;
 
 		MaterialAlphaMode alpha_mode = MaterialAlphaMode::Opaque;
-		float alpha_cutoff	= 0.5f;
-		bool  double_sided	= false;
+		Float alpha_cutoff	= 0.5f;
+		Bool  double_sided	= false;
 	};
 	struct COMPONENT Light
 	{
 		Vector4 position = Vector4(0, 0, 0, 1);
 		Vector4 direction = Vector4(0, -1, 0, 0);
 		Vector4 color = Vector4(1, 1, 1, 1);
-		float range = 100.0f;
-		float intensity = 1.0f;
+		Float range = 100.0f;
+		Float intensity = 1.0f;
 		LightType type = LightType::Directional;
-		float outer_cosine = 0.0f;
-		float inner_cosine = 0.707f;
-		bool active = true;
+		Float outer_cosine = 0.0f;
+		Float inner_cosine = 0.707f;
+		Bool active = true;
 
-		bool casts_shadows = false;
-		bool use_cascades = false;
-		bool ray_traced_shadows = false;
+		Bool casts_shadows = false;
+		Bool use_cascades = false;
+		Bool ray_traced_shadows = false;
 		Sint32 shadow_texture_index = -1;
 		Sint32 shadow_matrix_index = -1;
 		Sint32 shadow_mask_index = -1;
 		Uint32 light_index = 0;
 
-		float volumetric_strength = 0.004f;
-		bool volumetric = false;
-		bool lens_flare = false;
-		bool god_rays = false;
-		float godrays_decay = 0.9f;
-		float godrays_weight = 0.65f;
-		float godrays_density = 1.45f;
-		float godrays_exposure = 3.25f;
-		bool  sscs = false;
-		float sscs_thickness = 0.5f;
-		float sscs_max_ray_distance = 0.05f;
-		float sscs_max_depth_distance = 200.0f;
+		Float volumetric_strength = 0.004f;
+		Bool volumetric = false;
+		Bool lens_flare = false;
+		Bool god_rays = false;
+		Float godrays_decay = 0.9f;
+		Float godrays_weight = 0.65f;
+		Float godrays_density = 1.45f;
+		Float godrays_exposure = 3.25f;
+		Bool  sscs = false;
+		Float sscs_thickness = 0.5f;
+		Float sscs_max_ray_distance = 0.05f;
+		Float sscs_max_depth_distance = 200.0f;
 	};
 	struct COMPONENT Skybox
 	{
 		TextureHandle cubemap_texture;
-		bool active;
+		Bool active;
 	};
 	struct COMPONENT Decal
 	{
@@ -119,7 +119,7 @@ namespace adria
 		TextureHandle normal_decal_texture = INVALID_TEXTURE_HANDLE;
 		Matrix decal_model_matrix = Matrix::Identity;
 		DecalType decal_type = DecalType::Project_XY;
-		bool modify_gbuffer_normals = false;
+		Bool modify_gbuffer_normals = false;
 	};
 	struct COMPONENT Tag
 	{
@@ -174,8 +174,8 @@ namespace adria
 		Matrix world_transform;
 		BoundingBox bounding_box;
 
-		bool camera_visibility = true;
+		Bool camera_visibility = true;
 	};
 
-	void Draw(SubMesh const& submesh, GfxCommandList* cmd_list, bool override_topology = false, GfxPrimitiveTopology new_topology = GfxPrimitiveTopology::Undefined);
+	void Draw(SubMesh const& submesh, GfxCommandList* cmd_list, Bool override_topology = false, GfxPrimitiveTopology new_topology = GfxPrimitiveTopology::Undefined);
 }

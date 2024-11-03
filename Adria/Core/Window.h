@@ -10,15 +10,15 @@ namespace adria
 		Uint32 msg		= 0;
         Uint64 wparam	= 0;
         Sint64  lparam	= 0;
-		float  width	= 0.0f;
-		float  height	= 0.0f;
+		Float  width	= 0.0f;
+		Float  height	= 0.0f;
 	};
 
     struct WindowInit
     {
-        char const* title;
+        Char const* title;
         Uint32 width, height;
-        bool maximize;
+        Bool maximize;
     };
 
 	DECLARE_EVENT(WindowEvent, Window, WindowEventData const&)
@@ -35,11 +35,11 @@ namespace adria
 		Uint32 PositionX() const;
 		Uint32 PositionY() const;
 
-		bool Loop();
+		Bool Loop();
 		void Quit(Sint32 exit_code);
 
 		void* Handle() const;
-		bool  IsActive() const;
+		Bool  IsActive() const;
 
 		WindowEvent& GetWindowEvent() { return window_event; }
 		void BroadcastEvent(WindowEventData const&);

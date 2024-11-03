@@ -155,7 +155,7 @@ namespace adria
 		return desc.format;
 	}
 
-	bool GfxBuffer::IsMapped() const
+	Bool GfxBuffer::IsMapped() const
 	{
 		return mapped_data != nullptr;
 	}
@@ -200,7 +200,7 @@ namespace adria
 		}
 	}
 
-	void GfxBuffer::SetName(char const* name)
+	void GfxBuffer::SetName(Char const* name)
 	{
 		resource->SetName(ToWideString(name).c_str());
 	}

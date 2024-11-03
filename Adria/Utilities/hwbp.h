@@ -55,7 +55,7 @@ namespace adria::hwbp
                 return failure(Result::CantGetThreadContext);
             }
 
-            std::array<bool, 4> busyDebugRegister{{false, false, false, false}};
+            std::array<Bool, 4> busyDebugRegister{{false, false, false, false}};
             auto checkBusyRegister = [&](Uint64 index, DWORD64 mask)
             {
                 if (ctx.Dr7 & mask)
@@ -81,7 +81,7 @@ namespace adria::hwbp
     static Breakpoint Set(const void* onPointer, std::uint8_t size, When when)
     {
         return Detail::UpdateThreadContext(
-            [&](CONTEXT& ctx, const std::array<bool, 4>& busyDebugRegister) -> Breakpoint
+            [&](CONTEXT& ctx, const std::array<Bool, 4>& busyDebugRegister) -> Breakpoint
             {
                 const auto found = std::find(begin(busyDebugRegister), end(busyDebugRegister), false);
                 if (found == end(busyDebugRegister))
@@ -174,7 +174,7 @@ namespace adria::hwbp
         }
 
         Detail::UpdateThreadContext(
-            [&](CONTEXT& ctx, std::array<bool, 4> const&) -> Breakpoint
+            [&](CONTEXT& ctx, std::array<Bool, 4> const&) -> Breakpoint
             {
                 std::bitset<sizeof(ctx.Dr7) * 8> dr7;
                 memcpy(&dr7, &ctx.Dr7, sizeof(ctx.Dr7));

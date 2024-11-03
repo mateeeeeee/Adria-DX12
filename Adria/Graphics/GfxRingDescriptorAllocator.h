@@ -5,7 +5,7 @@
 
 namespace adria
 {
-	template<bool UseMutex>
+	template<Bool UseMutex>
 	class GfxRingDescriptorAllocator : public GfxDescriptorAllocatorBase
 	{
 		using Mutex = std::conditional_t<UseMutex, std::mutex, DummyMutex>;

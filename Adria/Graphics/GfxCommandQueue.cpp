@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	bool GfxCommandQueue::Create(GfxDevice* gfx, GfxCommandListType type, char const* name)
+	Bool GfxCommandQueue::Create(GfxDevice* gfx, GfxCommandListType type, Char const* name)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_COMMAND_QUEUE_DESC queue_desc{};

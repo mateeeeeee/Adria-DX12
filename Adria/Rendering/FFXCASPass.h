@@ -15,18 +15,18 @@ namespace adria
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void OnResize(Uint32, Uint32) override;
-		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual Bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
-		virtual bool IsGUIVisible(PostProcessor const*) const override;
+		virtual Bool IsGUIVisible(PostProcessor const*) const override;
 
 	private:
-		char name_version[16] = {};
+		Char name_version[16] = {};
 		GfxDevice* gfx;
 		Uint32 width, height;
 		FfxInterface* ffx_interface;
 		FfxCasContextDescription cas_context_desc{};
 		FfxCasContext            cas_context{};
-		float sharpness = 0.5f;
+		Float sharpness = 0.5f;
 
 	private:
 		void CreateContext();

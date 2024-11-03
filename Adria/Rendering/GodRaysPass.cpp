@@ -107,12 +107,12 @@ namespace adria
 
 				struct GodRaysConstants
 				{
-					float  light_screen_space_position_x;
-					float  light_screen_space_position_y;
-					float  density;
-					float  weight;
-					float  decay;
-					float  exposure;
+					Float  light_screen_space_position_x;
+					Float  light_screen_space_position_y;
+					Float  density;
+					Float  weight;
+					Float  decay;
+					Float  exposure;
 
 					Uint32   sun_idx;
 					Uint32   output_idx;

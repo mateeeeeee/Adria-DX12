@@ -47,12 +47,12 @@ namespace adria
 		Init(shader_id);
 	}
 
-	void GfxShaderKey::AddDefine(char const* name, char const* value)
+	void GfxShaderKey::AddDefine(Char const* name, Char const* value)
 	{
 		impl->defines.emplace_back(name, value);
 	}
 
-	bool GfxShaderKey::IsValid() const
+	Bool GfxShaderKey::IsValid() const
 	{
 		return impl->id != ShaderID_Invalid;
 	}
@@ -85,7 +85,7 @@ namespace adria
 		return define_hash;
 	}
 
-	bool GfxShaderKey::operator==(GfxShaderKey const& key) const
+	Bool GfxShaderKey::operator==(GfxShaderKey const& key) const
 	{
 		return GetHash() == key.GetHash();
 	}

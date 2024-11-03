@@ -68,8 +68,8 @@ namespace adria
 					Uint32  depth_idx;
 					Uint32  gbuf_normals_idx;
 					Uint32  output_idx;
-					float   ao_radius;
-					float   ao_power;
+					Float   ao_radius;
+					Float   ao_power;
 				} constants =
 				{
 					.depth_idx = i + 0, .gbuf_normals_idx = i + 1, .output_idx = i + 2,
@@ -131,27 +131,27 @@ namespace adria
 					.depth_idx = i + 0, .input_idx = i + 1, .output_idx = i + 2
 				};
 
-				float distance_kernel[6];
+				Float distance_kernel[6];
 				for (Uint64 i = 0; i < 6; ++i)
 				{
-					distance_kernel[i] = (float)exp(-float(i * i) / (2.f * params.filter_distance_sigma * params.filter_distance_sigma));
+					distance_kernel[i] = (Float)exp(-Float(i * i) / (2.f * params.filter_distance_sigma * params.filter_distance_sigma));
 				}
 
 				struct RTAOFilterConstants
 				{
-					float filter_width;
-					float filter_height;
-					float filter_distance_sigma;
-					float filter_depth_sigma;
-					float filter_dist_kernel0;
-					float filter_dist_kernel1;
-					float filter_dist_kernel2;
-					float filter_dist_kernel3;
-					float filter_dist_kernel4;
-					float filter_dist_kernel5;
+					Float filter_width;
+					Float filter_height;
+					Float filter_distance_sigma;
+					Float filter_depth_sigma;
+					Float filter_dist_kernel0;
+					Float filter_dist_kernel1;
+					Float filter_dist_kernel2;
+					Float filter_dist_kernel3;
+					Float filter_dist_kernel4;
+					Float filter_dist_kernel5;
 				} constants =
 				{
-					.filter_width = (float)width, .filter_height = (float)height, .filter_distance_sigma = params.filter_distance_sigma, .filter_depth_sigma = params.filter_depth_sigma,
+					.filter_width = (Float)width, .filter_height = (Float)height, .filter_distance_sigma = params.filter_distance_sigma, .filter_depth_sigma = params.filter_depth_sigma,
 					.filter_dist_kernel0 = distance_kernel[0], .filter_dist_kernel1 = distance_kernel[1],
 					.filter_dist_kernel2 = distance_kernel[2], .filter_dist_kernel3 = distance_kernel[3],
 					.filter_dist_kernel4 = distance_kernel[4], .filter_dist_kernel5 = distance_kernel[5],
@@ -190,7 +190,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool RayTracedAmbientOcclusionPass::IsSupported() const
+	Bool RayTracedAmbientOcclusionPass::IsSupported() const
 	{
 		return is_supported;
 	}

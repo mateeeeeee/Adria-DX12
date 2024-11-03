@@ -45,7 +45,7 @@ namespace adria
 	{
 		DebugPrintReader(Uint8* data, Uint32 size) : data(data), size(size), current_offset(0) {}
 
-		bool HasMoreData(Uint32 count) const
+		Bool HasMoreData(Uint32 count) const
 		{
 			return current_offset + count <= size;
 		}
@@ -58,7 +58,7 @@ namespace adria
 		}
 		std::string ConsumeString(Uint32 char_count)
 		{
-			char* char_data = (char*)data;
+			Char* char_data = (Char*)data;
 			std::string consumed_string(char_data + current_offset, char_count);
 			current_offset += char_count;
 			return consumed_string;
@@ -151,15 +151,15 @@ namespace adria
 		}
 		case DebugPrint_Float:
 		{
-			float value = *reader.Consume<float>();
+			Float value = *reader.Consume<Float>();
 			return std::to_string(value);
 		}
 		case DebugPrint_Float2:
 		{
 			struct Float2
 			{
-				float value1;
-				float value2;
+				Float value1;
+				Float value2;
 			};
 			Float2  float2 = *reader.Consume<Float2>();
 			return "(" + std::to_string(float2.value1) + "," + std::to_string(float2.value2) + ")";
@@ -168,9 +168,9 @@ namespace adria
 		{
 			struct Float3
 			{
-				float value1;
-				float value2;
-				float value3;
+				Float value1;
+				Float value2;
+				Float value3;
 			};
 			Float3 float3 = *reader.Consume<Float3>();
 			return "(" + std::to_string(float3.value1) + "," + std::to_string(float3.value2) + "," + std::to_string(float3.value3) + ")";
@@ -179,10 +179,10 @@ namespace adria
 		{
 			struct Float4
 			{
-				float value1;
-				float value2;
-				float value3;
-				float value4;
+				Float value1;
+				Float value2;
+				Float value3;
+				Float value4;
 			};
 			Float4 float4 = *reader.Consume<Float4>();
 			return "(" + std::to_string(float4.value1) + "," + std::to_string(float4.value2) + "," + std::to_string(float4.value3) + "," + std::to_string(float4.value4) + ")";

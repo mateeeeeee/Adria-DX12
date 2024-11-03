@@ -123,8 +123,8 @@ namespace adria
 					Sint32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
 					if (lastCompletedOp != (int)pNode->BreadcrumbCount && lastCompletedOp != 0)
 					{
-						char const* cmd_list_name = "cmd_list";
-						char const* queue_name = "graphics queue";
+						Char const* cmd_list_name = "cmd_list";
+						Char const* queue_name = "graphics queue";
 						ADRIA_LOG(DEBUG, "[DRED] Commandlist \"%s\" on CommandQueue \"%s\", %d completed of %d", cmd_list_name, queue_name, lastCompletedOp, pNode->BreadcrumbCount);
 
 						Sint32 firstOp = std::max<Sint32>(lastCompletedOp - 100, 0);
@@ -225,7 +225,7 @@ namespace adria
 			}
 			return GfxVendor::Unknown;
 		}
-		inline char const* GetGfxVendorName(GfxVendor gfx_vendor)
+		inline Char const* GetGfxVendorName(GfxVendor gfx_vendor)
 		{
 			switch (gfx_vendor)
 			{
@@ -238,7 +238,7 @@ namespace adria
 		}
 	}
 
-	static TAutoConsoleVariable<bool> VSync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
+	static TAutoConsoleVariable<Bool> VSync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
 
 	GfxDevice::DRED::DRED(GfxDevice* gfx)
 	{
@@ -278,7 +278,7 @@ namespace adria
 			adapter->GetDesc3(&desc);
 			std::wstring adapter_wide_description(desc.Description);
 			std::string adapter_description = ToString(adapter_wide_description);
-			ADRIA_LOG(INFO, "\t%s - %f GB", adapter_description.c_str(), (float)desc.DedicatedVideoMemory / (1 << 30) );
+			ADRIA_LOG(INFO, "\t%s - %f GB", adapter_description.c_str(), (Float)desc.DedicatedVideoMemory / (1 << 30) );
 		}
 		dxgi_factory->EnumAdapterByGpuPreference(0, gpu_preference, IID_PPV_ARGS(adapter.GetAddressOf()));
 		DXGI_ADAPTER_DESC3 desc{};
@@ -286,7 +286,7 @@ namespace adria
 
 		vendor = GetGfxVendor(desc.VendorId);
 		ADRIA_ASSERT(vendor != GfxVendor::Unknown);
-		char const* vendor_name = GetGfxVendorName(vendor);
+		Char const* vendor_name = GetGfxVendorName(vendor);
 		ADRIA_LOG(INFO, "Vendor: %s", vendor_name);
 
 		std::wstring adapter_wide_description(desc.Description);
@@ -431,7 +431,7 @@ namespace adria
 		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
 
-		bool present_successful = swapchain->Present(VSync.Get());
+		Bool present_successful = swapchain->Present(VSync.Get());
 		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
 		{
 			nsight_aftermath->HandleGpuCrash();
@@ -451,7 +451,7 @@ namespace adria
 		gpu_descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
 
-	void GfxDevice::TakePixCapture(char const* capture_name, Uint32 num_frames)
+	void GfxDevice::TakePixCapture(Char const* capture_name, Uint32 num_frames)
 	{
 		ADRIA_ASSERT(num_frames != 0);
 		if (!pix_dll_loaded)
@@ -933,7 +933,7 @@ namespace adria
 			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-			bool is_accel_struct = false;
+			Bool is_accel_struct = false;
 			if (format == GfxFormat::UNKNOWN)
 			{
 				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))

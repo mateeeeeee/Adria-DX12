@@ -22,8 +22,8 @@ namespace adria
 		SSAOResolution_Quarter = 2
 	};
 
-	static TAutoConsoleVariable<float> SSAOPower("r.SSAO.Power", 1.5f, "Controls the power of SSAO");
-	static TAutoConsoleVariable<float> SSAORadius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
+	static TAutoConsoleVariable<Float> SSAOPower("r.SSAO.Power", 1.5f, "Controls the power of SSAO");
+	static TAutoConsoleVariable<Float> SSAORadius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
 	static TAutoConsoleVariable<int>   SSAOResolution("r.SSAO.Resolution", SSAOResolution_Half, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
 
 	SSAOPass::SSAOPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr), blur_pass(gfx)
@@ -83,8 +83,8 @@ namespace adria
 				{
 					Uint32 ssao_params_packed;
 					Uint32 resolution_factor;
-					float  noise_scale_x;
-					float  noise_scale_y;
+					Float  noise_scale_x;
+					Float  noise_scale_y;
 		
 					Uint32   depth_idx;
 					Uint32   normal_idx;
@@ -135,7 +135,7 @@ namespace adria
 	void SSAOPass::OnSceneInitialized()
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		std::vector<float> random_texture_data;
+		std::vector<Float> random_texture_data;
 		for (Sint32 i = 0; i < 8 * 8; i++)
 		{
 			random_texture_data.push_back(rand_float()); 
@@ -146,7 +146,7 @@ namespace adria
 
 		GfxTextureSubData data{};
 		data.data = random_texture_data.data();
-		data.row_pitch = 8 * 4 * sizeof(float);
+		data.row_pitch = 8 * 4 * sizeof(Float);
 		data.slice_pitch = 0;
 
 		GfxTextureData init_data{};

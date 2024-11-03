@@ -30,7 +30,7 @@ namespace adria
 		{
 			loggers.emplace_back(logger);
 		}
-		void Log(LogLevel level, char const* str, char const* filename, Uint32 line)
+		void Log(LogLevel level, Char const* str, Char const* filename, Uint32 line)
 		{
 			log_queue.Push(QueueEntry{ level, str, filename, line });
 		}
@@ -46,7 +46,7 @@ namespace adria
 			QueueEntry entry{};
 			while (true)
 			{
-				bool success = log_queue.TryPop(entry);
+				Bool success = log_queue.TryPop(entry);
 				if (success)
 				{
 					for (auto&& logger : loggers) if (logger) logger->Log(entry.level, entry.str.c_str(), entry.filename.c_str(), entry.line);
@@ -79,7 +79,7 @@ namespace adria
 		time_str.pop_back();
 		return "[" + time_str + "]";
 	}
-	std::string LineInfoToString(char const* file, Uint32 line)
+	std::string LineInfoToString(Char const* file, Uint32 line)
 	{
 		return "[File: " + std::string(file) + "  Line: " + std::to_string(line) + "]";
 	}
@@ -92,11 +92,11 @@ namespace adria
 		pimpl->RegisterLogger(logger);
 	}
 
-	void LogManager::Log(LogLevel level, char const* str, char const* filename, Uint32 line)
+	void LogManager::Log(LogLevel level, Char const* str, Char const* filename, Uint32 line)
 	{
 		pimpl->Log(level, str, filename, line);
 	}
-	void LogManager::Log(LogLevel level, char const* str, std::source_location location /*= std::source_location::current()*/)
+	void LogManager::Log(LogLevel level, Char const* str, std::source_location location /*= std::source_location::current()*/)
 	{
 		Log(level, str, location.file_name(), location.line());
 	}

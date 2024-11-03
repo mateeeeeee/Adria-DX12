@@ -10,7 +10,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> FilmEffects("r.FilmEffects", false, "Enable or Disable Film Effects");
+	static TAutoConsoleVariable<Bool> FilmEffects("r.FilmEffects", false, "Enable or Disable Film Effects");
 
 	FilmEffectsPass::FilmEffectsPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -55,14 +55,14 @@ namespace adria
 				struct FilmEffectsConstants
 				{
 					Bool32  lens_distortion_enabled;
-					float	lens_distortion_intensity;
+					Float	lens_distortion_intensity;
 					Bool32  chromatic_aberration_enabled;
-					float   chromatic_aberration_intensity;
+					Float   chromatic_aberration_intensity;
 					Bool32  vignette_enabled;
-					float   vignette_intensity;
+					Float   vignette_intensity;
 					Bool32  film_grain_enabled;
-					float   film_grain_scale;
-					float   film_grain_amount;
+					Float   film_grain_scale;
+					Float   film_grain_amount;
 					Uint32  film_grain_seed;
 					Uint32  input_idx;
 					Uint32  output_idx;
@@ -95,7 +95,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool FilmEffectsPass::IsEnabled(PostProcessor const*) const
+	Bool FilmEffectsPass::IsEnabled(PostProcessor const*) const
 	{
 		return FilmEffects.Get();
 	}
@@ -145,10 +145,10 @@ namespace adria
 		film_effects_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
-	Uint32 FilmEffectsPass::GetFilmGrainSeed(float dt, float seed_update_rate)
+	Uint32 FilmEffectsPass::GetFilmGrainSeed(Float dt, Float seed_update_rate)
 	{
 		static Uint32 seed_counter = 0;
-		static float time_counter = 0.0;
+		static Float time_counter = 0.0;
 		time_counter += dt;
 		if (time_counter >= seed_update_rate)
 		{

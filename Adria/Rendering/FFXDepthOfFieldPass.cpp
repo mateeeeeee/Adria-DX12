@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> FFXDepthOfField("r.FFXDepthOfField", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<Bool> FFXDepthOfField("r.FFXDepthOfField", true, "0 - Disabled, 1 - Enabled");
 
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
@@ -56,9 +56,9 @@ namespace adria
 				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);
 
-				float fovx = std::min<float>(frame_data.camera_fov * frame_data.camera_aspect_ratio, pi_div_2<float>);
-				float conversion = 0.5f * (float)dof_context_desc.resolution.width / sensor_size;
-				float focal_length = sensor_size / (2.0f * std::tanf(fovx * 0.5f));
+				Float fovx = std::min<Float>(frame_data.camera_fov * frame_data.camera_aspect_ratio, pi_div_2<Float>);
+				Float conversion = 0.5f * (Float)dof_context_desc.resolution.width / sensor_size;
+				Float focal_length = sensor_size / (2.0f * std::tanf(fovx * 0.5f));
 
 				FfxDofDispatchDescription ffx_dof_dispatch_desc{};
 				ffx_dof_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
@@ -86,7 +86,7 @@ namespace adria
 		CreateContext();
 	}
 
-	bool FFXDepthOfFieldPass::IsEnabled(PostProcessor const*) const
+	Bool FFXDepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
 		return FFXDepthOfField.Get();
 	}
@@ -104,7 +104,7 @@ namespace adria
 						ImGui::SliderFloat("Sensor Size", &sensor_size, 0.0f, 0.1f, "%.2f");
 						ImGui::SliderFloat("Focus Distance", &focus_dist, 0.1f, 1000.0f, "%.2f");
 
-						bool recreate_context = false;
+						Bool recreate_context = false;
 
 						recreate_context |= ImGui::SliderInt("Quality", &quality, 1, 50);
 						recreate_context |= ImGui::SliderFloat("Blur Size Limit", &coc_limit, 0.0f, 1.0f);

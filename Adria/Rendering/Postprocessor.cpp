@@ -54,7 +54,7 @@ namespace adria
 
 	PostProcessor::~PostProcessor() = default;
 
-	void PostProcessor::OnRainEvent(bool enabled)
+	void PostProcessor::OnRainEvent(Bool enabled)
 	{
 		GetPostEffect<VolumetricCloudsPass>()->OnRainEvent(enabled);
 	}
@@ -166,32 +166,32 @@ namespace adria
 		return final_resource;
 	}
 
-	bool PostProcessor::HasTAA() const
+	Bool PostProcessor::HasTAA() const
 	{
 		return post_effects[PostEffectType_TAA]->IsEnabled(this);
 	}
 
-	bool PostProcessor::HasFXAA() const
+	Bool PostProcessor::HasFXAA() const
 	{
 		return post_effects[PostEffectType_FXAA]->IsEnabled(this);
 	}
 
-	bool PostProcessor::IsPathTracing() const
+	Bool PostProcessor::IsPathTracing() const
 	{
 		return is_path_tracing_path;
 	}
 
-	bool PostProcessor::NeedsVelocityBuffer() const
+	Bool PostProcessor::NeedsVelocityBuffer() const
 	{
 		return HasTAA() || HasUpscaler() || post_effects[PostEffectType_Clouds]->IsEnabled(this) || post_effects[PostEffectType_MotionBlur]->IsEnabled(this);
 	}
 
-	bool PostProcessor::NeedsHistoryBuffer() const
+	Bool PostProcessor::NeedsHistoryBuffer() const
 	{
 		return true;
 	}
 
-	bool PostProcessor::HasUpscaler() const
+	Bool PostProcessor::HasUpscaler() const
 	{
 		return post_effects[PostEffectType_Upscaler]->IsEnabled(this);
 	}

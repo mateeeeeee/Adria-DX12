@@ -16,11 +16,11 @@ namespace adria
 		IConsoleObject() = default;
 		virtual ~IConsoleObject() = default;
 
-		virtual char const* GetHelp() const = 0;
-		virtual void SetHelp(char const*) = 0;
+		virtual Char const* GetHelp() const = 0;
+		virtual void SetHelp(Char const*) = 0;
 
-		virtual char const* GetName() const = 0;
-		virtual void SetName(char const*) = 0;
+		virtual Char const* GetName() const = 0;
+		virtual void SetName(Char const*) = 0;
 
 		virtual IConsoleVariable* AsVariable()
 		{
@@ -37,24 +37,24 @@ namespace adria
 	class IConsoleVariable : public IConsoleObject
 	{
 	public:
-		virtual bool Set(char const* value) = 0;
-		virtual bool Set(bool value) = 0;
-		virtual bool Set(int value) = 0;
-		virtual bool Set(float value) = 0;
+		virtual Bool Set(Char const* value) = 0;
+		virtual Bool Set(Bool value) = 0;
+		virtual Bool Set(int value) = 0;
+		virtual Bool Set(Float value) = 0;
 
-		virtual bool IsBool() const { return false; }
-		virtual bool IsInt() const { return false; }
-		virtual bool IsFloat() const { return false; }
-		virtual bool IsString() const { return false; }
+		virtual Bool IsBool() const { return false; }
+		virtual Bool IsInt() const { return false; }
+		virtual Bool IsFloat() const { return false; }
+		virtual Bool IsString() const { return false; }
 
 		virtual int* GetIntPtr() { return nullptr; }
-		virtual float* GetFloatPtr() { return nullptr; }
-		virtual bool* GetBoolPtr() { return nullptr; }
+		virtual Float* GetFloatPtr() { return nullptr; }
+		virtual Bool* GetBoolPtr() { return nullptr; }
 		virtual std::string* GetStringPtr() { return nullptr; }
 
 		virtual int GetInt() const = 0;
-		virtual float GetFloat() const = 0;
-		virtual bool GetBool() const = 0;
+		virtual Float GetFloat() const = 0;
+		virtual Bool GetBool() const = 0;
 		virtual std::string GetString() const = 0;
 
 		virtual void AddOnChanged(ConsoleVariableDelegate const&) = 0;
@@ -62,30 +62,30 @@ namespace adria
 	};
 
 	DECLARE_DELEGATE(ConsoleCommandDelegate)
-	DECLARE_DELEGATE(ConsoleCommandWithArgsDelegate, std::span<char const*>)
+	DECLARE_DELEGATE(ConsoleCommandWithArgsDelegate, std::span<Char const*>)
 	class IConsoleCommand : public IConsoleObject
 	{
 	public:
-		virtual bool Execute(std::span<char const*> args) = 0;
+		virtual Bool Execute(std::span<Char const*> args) = 0;
 	};
 
 	class IConsoleManager
 	{
 	public:
 
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, bool default_value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, int default_value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, float default_value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, char const* default_value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariable(char const* name, std::string const& default_value, char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Bool default_value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, int default_value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Float default_value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Char const* default_value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, std::string const& default_value, Char const* help) = 0;
 
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, bool& value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, int& value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, float& value, char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(char const* name, std::string& value, char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Bool& value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, int& value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Float& value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, std::string& value, Char const* help) = 0;
 
-		virtual IConsoleCommand* RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandDelegate const& command) = 0;
-		virtual IConsoleCommand* RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandWithArgsDelegate const& command) = 0;
+		virtual IConsoleCommand* RegisterConsoleCommand(Char const* name, Char const* help, ConsoleCommandDelegate const& command) = 0;
+		virtual IConsoleCommand* RegisterConsoleCommand(Char const* name, Char const* help, ConsoleCommandWithArgsDelegate const& command) = 0;
 
 		virtual void UnregisterConsoleObject(IConsoleObject* obj) = 0;
 		virtual void UnregisterConsoleObject(std::string const& name) = 0;
@@ -95,7 +95,7 @@ namespace adria
 		virtual IConsoleObject* FindConsoleObject(std::string const& name) const = 0;
 		virtual void ForAllObjects(ConsoleObjectDelegate const&) const = 0;
 
-		virtual bool ProcessInput(std::string const& cmd) = 0;
+		virtual Bool ProcessInput(std::string const& cmd) = 0;
 
 
 	protected:

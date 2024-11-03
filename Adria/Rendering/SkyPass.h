@@ -55,8 +55,8 @@ namespace adria
 		std::unique_ptr<GfxGraphicsPipelineState> sky_pso;
 		
 		SkyType sky_type = SkyType::HosekWilkie;
-		float turbidity = 2.0f;
-		float ground_albedo = 0.1f;
+		Float turbidity = 2.0f;
+		Float ground_albedo = 0.1f;
 
 	private:
 		void CreatePSOs();

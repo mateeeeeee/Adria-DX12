@@ -35,7 +35,7 @@ namespace adria
 		GfxDevice* gfx;
 		Uint32 width, height;
 
-		bool enable = false;
+		Bool enable = false;
 		ResamplingMode resampling_mode = ResamplingMode::TemporalAndSpatial;
 
 		struct TemporalReservoirBuffers

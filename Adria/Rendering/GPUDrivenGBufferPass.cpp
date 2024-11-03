@@ -18,7 +18,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> GpuDrivenRendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
+	static TAutoConsoleVariable<Bool> GpuDrivenRendering("r.GpuDrivenRendering", true, "Enable GPU Driven Rendering if supported");
 
 	static constexpr Uint32 MAX_NUM_MESHLETS = 1 << 20u;
 	static constexpr Uint32 MAX_NUM_INSTANCES = 1 << 14u;
@@ -41,12 +41,12 @@ namespace adria
 
 	GPUDrivenGBufferPass::~GPUDrivenGBufferPass() = default;
 
-	bool GPUDrivenGBufferPass::IsSupported() const
+	Bool GPUDrivenGBufferPass::IsSupported() const
     {
         return gfx->GetCapabilities().SupportsMeshShaders();
     }
 
-	bool GPUDrivenGBufferPass::IsEnabled() const
+	Bool GPUDrivenGBufferPass::IsEnabled() const
 	{
 		return GpuDrivenRendering.Get();
 	}
@@ -866,7 +866,7 @@ namespace adria
 		AddHZBPasses(rg, true);
 	}
 
-	void GPUDrivenGBufferPass::AddHZBPasses(RenderGraph& rg, bool second_phase)
+	void GPUDrivenGBufferPass::AddHZBPasses(RenderGraph& rg, Bool second_phase)
 	{
 		if (!occlusion_culling) return;
 
@@ -900,8 +900,8 @@ namespace adria
 				{
 					Uint32 depth_idx;
 					Uint32 hzb_idx;
-					float inv_hzb_width;
-					float inv_hzb_height;
+					Float inv_hzb_width;
+					Float inv_hzb_height;
 				} constants =
 				{
 					.depth_idx = i,
@@ -1056,8 +1056,8 @@ namespace adria
 
 	void GPUDrivenGBufferPass::CalculateHZBParameters()
 	{
-		Uint32 mips_x = (Uint32)std::max(ceilf(log2f((float)width)), 1.0f);
-		Uint32 mips_y = (Uint32)std::max(ceilf(log2f((float)height)), 1.0f);
+		Uint32 mips_x = (Uint32)std::max(ceilf(log2f((Float)width)), 1.0f);
+		Uint32 mips_y = (Uint32)std::max(ceilf(log2f((Float)height)), 1.0f);
 
 		hzb_mip_count = std::max(mips_x, mips_y);
 		ADRIA_ASSERT(hzb_mip_count <= MAX_HZB_MIP_COUNT);

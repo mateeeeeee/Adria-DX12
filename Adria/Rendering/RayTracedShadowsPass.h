@@ -17,13 +17,13 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph, Uint32 light_index);
 		void OnResize(Uint32 w, Uint32 h);
 
-		bool IsSupported() const;
+		Bool IsSupported() const;
 
 	private:
 		GfxDevice* gfx;
 		std::unique_ptr<GfxStateObject> ray_traced_shadows_so;
 		Uint32 width, height;
-		bool is_supported;
+		Bool is_supported;
 
 	private:
 		void CreateStateObject();

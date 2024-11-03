@@ -27,10 +27,10 @@ namespace adria
 		PAD;
 		Vector3 camera_forward;
 		PAD;
-		float  camera_jitter_x;
-		float  camera_jitter_y;
-		float  camera_near;
-		float  camera_far;
+		Float  camera_jitter_x;
+		Float  camera_jitter_y;
+		Float  camera_near;
+		Float  camera_far;
 
 		Vector4 ambient_color;
 		Vector4 wind_params;
@@ -38,15 +38,15 @@ namespace adria
 		Vector4 sun_color;
 		Vector4 cascade_splits;
 
-		float  display_resolution_x;
-		float  display_resolution_y;
-		float  render_resolution_x;
-		float  render_resolution_y;
+		Float  display_resolution_x;
+		Float  display_resolution_y;
+		Float  render_resolution_x;
+		Float  render_resolution_y;
 
-		float  mouse_normalized_coords_x;
-		float  mouse_normalized_coords_y;
-		float  delta_time;
-		float  total_time;
+		Float  mouse_normalized_coords_x;
+		Float  mouse_normalized_coords_y;
+		Float  delta_time;
+		Float  total_time;
 
 		Uint32 frame_count;
 		Sint32  lights_idx;
@@ -62,7 +62,7 @@ namespace adria
 		Sint32  rain_splash_diffuse_idx;
 		Sint32  rain_splash_bump_idx;
 		Sint32  rain_blocker_map_idx;
-		float  rain_total_time;
+		Float  rain_total_time;
 	};
 
 	struct LightGPU
@@ -71,13 +71,13 @@ namespace adria
 		Vector4 direction;
 		Vector4 color;
 		Sint32 active;
-		float range;
+		Float range;
 		Sint32 type;
-		float outer_cosine;
+		Float outer_cosine;
 
-		float inner_cosine;
+		Float inner_cosine;
 		Bool32 volumetric;
-		float volumetric_strength;
+		Float volumetric_strength;
 		Bool32 use_cascades;
 
 		Sint32 shadow_texture_index;
@@ -107,10 +107,10 @@ namespace adria
 		Uint32 roughness_metallic_idx;
 		Uint32 emissive_idx;
 		Vector3 base_color_factor;
-		float emissive_factor;
-		float metallic_factor;
-		float roughness_factor;
-		float alpha_cutoff;
+		Float emissive_factor;
+		Float metallic_factor;
+		Float roughness_factor;
+		Float alpha_cutoff;
 	};
 
 	struct InstanceGPU

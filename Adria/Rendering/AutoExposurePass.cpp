@@ -12,8 +12,8 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool>  AutoExposure("r.AutoExposure", true, "Enable or Disable Auto Exposure");
-	static TAutoConsoleVariable<float> ExposureBias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
+	static TAutoConsoleVariable<Bool>  AutoExposure("r.AutoExposure", true, "Enable or Disable Auto Exposure");
+	static TAutoConsoleVariable<Float> ExposureBias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
 
 	AutoExposurePass::AutoExposurePass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -63,10 +63,10 @@ namespace adria
 				{
 					Uint32  width;
 					Uint32  height;
-					float rcp_width;
-					float rcp_height;
-					float min_luminance;
-					float max_luminance;
+					Float rcp_width;
+					Float rcp_height;
+					Float min_luminance;
+					Float max_luminance;
 					Uint32  scene_idx;
 					Uint32  histogram_idx;
 				} constants = { .width = width, .height = height,
@@ -112,10 +112,10 @@ namespace adria
 
 				struct HistogramReductionConstants
 				{
-					float min_luminance;
-					float max_luminance;
-					float low_percentile;
-					float high_percentile;
+					Float min_luminance;
+					Float max_luminance;
+					Float low_percentile;
+					Float high_percentile;
 					Uint32  histogram_idx;
 					Uint32  luminance_idx;
 				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
@@ -151,7 +151,7 @@ namespace adria
 					GfxDescriptor cpu_descriptor = previous_ev100_uav;
 					GfxDescriptor gpu_descriptor = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, gpu_descriptor, cpu_descriptor);
-					float clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					Float clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 					cmd_list->ClearUAV(*previous_ev100, gpu_descriptor, cpu_descriptor, clear_value);
 					invalid_history = false;
 				}
@@ -168,9 +168,9 @@ namespace adria
 
 				struct ExposureConstants
 				{
-					float adaption_speed;
-					float exposure_bias;
-					float frame_time;
+					Float adaption_speed;
+					Float exposure_bias;
+					Float frame_time;
 					Uint32  previous_ev_idx;
 					Uint32  exposure_idx;
 					Uint32  luminance_idx;
@@ -228,11 +228,11 @@ namespace adria
 							Uint64 histogram_size = histogram_copy->GetSize() / sizeof(Sint32);
 							Sint32* hist_data = histogram_copy->GetMappedData<Sint32>();
 							Sint32 max_value = *std::max_element(hist_data, hist_data + histogram_size);
-							auto converter = [](void* data, Sint32 idx)-> float
+							auto converter = [](void* data, Sint32 idx)-> Float
 								{
-									return static_cast<float>(*(((Sint32*)data) + idx));
+									return static_cast<Float>(*(((Sint32*)data) + idx));
 								};
-							ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (Sint32)histogram_size, 0, NULL, 0.0f, (float)max_value, ImVec2(0, 80));
+							ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (Sint32)histogram_size, 0, NULL, 0.0f, (Float)max_value, ImVec2(0, 80));
 						}
 					}
 					ImGui::TreePop();
@@ -246,7 +246,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool AutoExposurePass::IsEnabled(PostProcessor const*) const
+	Bool AutoExposurePass::IsEnabled(PostProcessor const*) const
 	{
 		return AutoExposure.Get();
 	}

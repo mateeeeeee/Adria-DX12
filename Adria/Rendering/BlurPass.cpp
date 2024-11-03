@@ -19,7 +19,7 @@ namespace adria
 	BlurPass::~BlurPass() = default;
 
 	void BlurPass::AddPass(RenderGraph& rendergraph, RGResourceName src_texture, RGResourceName blurred_texture,
-		char const* pass_name)
+		Char const* pass_name)
 	{
 
 		static Uint64 counter = 0;

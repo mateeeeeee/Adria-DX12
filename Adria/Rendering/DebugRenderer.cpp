@@ -13,9 +13,9 @@ namespace adria
 	struct SpherePointHelper
 	{
 		Vector3 center;
-		float radius;
+		Float radius;
 
-		Vector3 operator()(float theta, float phi) const
+		Vector3 operator()(Float theta, Float phi) const
 		{
 			return center + Vector3(
 				radius * sin(theta) * sin(phi),
@@ -131,7 +131,7 @@ namespace adria
 		lines.emplace_back(origin, origin + direction, color);
 	}
 
-	void DebugRenderer::AddTriangle(Vector3 const& a, Vector3 const& b, Vector3 const& c, Color color, bool wireframe /*= false*/)
+	void DebugRenderer::AddTriangle(Vector3 const& a, Vector3 const& b, Vector3 const& c, Color color, Bool wireframe /*= false*/)
 	{
 		if (wireframe)
 		{
@@ -146,7 +146,7 @@ namespace adria
 		}
 	}
 
-	void DebugRenderer::AddQuad(Vector3 const& a, Vector3 const& b, Vector3 const& c, Vector3 const& d, Color color, bool wireframe /*= false*/)
+	void DebugRenderer::AddQuad(Vector3 const& a, Vector3 const& b, Vector3 const& c, Vector3 const& d, Color color, Bool wireframe /*= false*/)
 	{
 		if (wireframe)
 		{
@@ -162,7 +162,7 @@ namespace adria
 		}
 	}
 
-	void DebugRenderer::AddBox(Vector3 const& center, Vector3 const& extents, Color color, bool wireframe)
+	void DebugRenderer::AddBox(Vector3 const& center, Vector3 const& extents, Color color, Bool wireframe)
 	{
 		Vector3 min(center.x - extents.x, center.y - extents.y, center.z - extents.z);
 		Vector3 max(center.x + extents.x, center.y + extents.y, center.z + extents.z);
@@ -201,12 +201,12 @@ namespace adria
 		
 	}
 
-	void DebugRenderer::AddBoundingBox(BoundingBox const& bounding_box, Color color, bool wireframe)
+	void DebugRenderer::AddBoundingBox(BoundingBox const& bounding_box, Color color, Bool wireframe)
 	{
 		AddBox(bounding_box.Center, bounding_box.Extents, color, wireframe);
 	}
 
-	void DebugRenderer::AddBoundingBox(BoundingBox const& bounding_box, Matrix const& transform, Color color, bool wireframe)
+	void DebugRenderer::AddBoundingBox(BoundingBox const& bounding_box, Matrix const& transform, Color color, Bool wireframe)
 	{
 		Vector3 min(bounding_box.Center.x - bounding_box.Extents.x, bounding_box.Center.y - bounding_box.Extents.y, bounding_box.Center.z - bounding_box.Extents.z);
 		Vector3 max(bounding_box.Center.x + bounding_box.Extents.x, bounding_box.Center.y + bounding_box.Extents.y, bounding_box.Center.z + bounding_box.Extents.z);
@@ -246,26 +246,26 @@ namespace adria
 		}
 	}
 
-	void DebugRenderer::AddSphere(BoundingSphere const& sphere, Color color, bool wireframe)
+	void DebugRenderer::AddSphere(BoundingSphere const& sphere, Color color, Bool wireframe)
 	{
 		AddSphere(sphere.Center, sphere.Radius, color, wireframe);
 	}
 
-	void DebugRenderer::AddSphere(Vector3 const& center, float radius, Color color, bool wireframe /*= true*/)
+	void DebugRenderer::AddSphere(Vector3 const& center, Float radius, Color color, Bool wireframe /*= true*/)
 	{
 		static constexpr Uint32 SLICES = 16;
 		static constexpr Uint32 STACKS = 16;
 
 		SpherePointHelper sphere_point_helper{ .center = center, .radius = radius };
 
-		float j_step = pi<float> / SLICES;
-		float i_step = pi<float> / STACKS;
+		Float j_step = pi<Float> / SLICES;
+		Float i_step = pi<Float> / STACKS;
 
 		if (wireframe)
 		{
-			for (float j = 0; j < pi<float>; j += j_step)
+			for (Float j = 0; j < pi<Float>; j += j_step)
 			{
-				for (float i = 0; i < pi<float> *2; i += i_step)
+				for (Float i = 0; i < pi<Float> *2; i += i_step)
 				{
 					Vector3 p1 = sphere_point_helper(i, j);
 					Vector3 p2 = sphere_point_helper(i + i_step, j);
@@ -281,9 +281,9 @@ namespace adria
 		}
 		else
 		{
-			for (float j = 0; j < pi<float>; j += j_step)
+			for (Float j = 0; j < pi<Float>; j += j_step)
 			{
-				for (float i = 0; i < pi<float> *2; i += i_step)
+				for (Float i = 0; i < pi<Float> *2; i += i_step)
 				{
 					Vector3 p1 = sphere_point_helper(i, j);
 					Vector3 p2 = sphere_point_helper(i + i_step, j);

@@ -32,52 +32,52 @@ namespace adria
 	class GfxCapabilities
 	{
 	public:
-		bool Initialize(GfxDevice* gfx);
+		Bool Initialize(GfxDevice* gfx);
 
-		bool SupportsRayTracing() const
+		Bool SupportsRayTracing() const
 		{
 			return CheckRayTracingSupport(RayTracingSupport::Tier1_0);
 		}
-		bool SupportsMeshShaders() const
+		Bool SupportsMeshShaders() const
 		{
 			return CheckMeshShaderSupport(MeshShaderSupport::Tier1);
 		}
-		bool SupportsVSR() const
+		Bool SupportsVSR() const
 		{
 			return CheckVSRSupport(VSRSupport::Tier1);
 		}
-		bool SupportsWorkGraphs() const
+		Bool SupportsWorkGraphs() const
 		{
 			return CheckWorkGraphSupport(WorkGraphSupport::Tier1_0);
 		}
 
-		bool CheckRayTracingSupport(RayTracingSupport rts) const
+		Bool CheckRayTracingSupport(RayTracingSupport rts) const
 		{
 			return ray_tracing_support >= rts;
 		}
-		bool CheckVSRSupport(VSRSupport vsrs) const
+		Bool CheckVSRSupport(VSRSupport vsrs) const
 		{
 			return vsr_support >= vsrs;
 		}
-		bool CheckMeshShaderSupport(MeshShaderSupport mss) const
+		Bool CheckMeshShaderSupport(MeshShaderSupport mss) const
 		{
 			return mesh_shader_support >= mss;
 		}
-		bool CheckWorkGraphSupport(WorkGraphSupport wgs) const
+		Bool CheckWorkGraphSupport(WorkGraphSupport wgs) const
 		{
 			return work_graph_support >= wgs;
 		}
 
-		bool SupportsShaderModel(GfxShaderModel sm) const
+		Bool SupportsShaderModel(GfxShaderModel sm) const
 		{
 			return shader_model >= sm;
 		}
-		bool SupportsEnhancedBarriers() const 
+		Bool SupportsEnhancedBarriers() const 
 		{
 			return enhanced_barriers_supported;
 		}
 
-		bool SupportsAdditionalShadingRates() const { return additional_shading_rates_supported; }
+		Bool SupportsAdditionalShadingRates() const { return additional_shading_rates_supported; }
 		Uint32 GetShadingRateImageTileSize() const { return shading_rate_image_tile_size; }
 
 	private:
@@ -87,9 +87,9 @@ namespace adria
 		MeshShaderSupport mesh_shader_support = MeshShaderSupport::TierNotSupported;
 		WorkGraphSupport work_graph_support = WorkGraphSupport::TierNotSupported;
 		GfxShaderModel shader_model = SM_Unknown;
-		bool enhanced_barriers_supported = false;
+		Bool enhanced_barriers_supported = false;
 
-		bool additional_shading_rates_supported = false;
+		Bool additional_shading_rates_supported = false;
 		Uint32 shading_rate_image_tile_size = 0;
 	};
 }

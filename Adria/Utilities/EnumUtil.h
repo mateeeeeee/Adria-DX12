@@ -9,10 +9,10 @@ namespace adria
 	template <typename E> requires std::is_enum_v<E>
 	struct EnumBitmaskOperators
 	{
-		static constexpr bool enable = false;
+		static constexpr Bool enable = false;
 	};
 	template <typename E>
-	constexpr bool EnableEnumBitmaskOperators = EnumBitmaskOperators<E>::enable;
+	constexpr Bool EnableEnumBitmaskOperators = EnumBitmaskOperators<E>::enable;
 
 	template <typename E>
 	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E> operator|(E lhs, E rhs) 
@@ -59,21 +59,21 @@ namespace adria
 	}
 
 	template<typename Enum> requires std::is_enum_v<Enum> 
-	inline constexpr bool HasAllFlags(Enum value, Enum flags)
+	inline constexpr Bool HasAllFlags(Enum value, Enum flags)
 	{
 		using T = std::underlying_type_t<Enum>;
 		return (((T)value) & (T)flags) == ((T)flags);
 	}
 
 	template<typename Enum> requires std::is_enum_v<Enum>
-	inline constexpr bool HasAnyFlag(Enum value, Enum flags)
+	inline constexpr Bool HasAnyFlag(Enum value, Enum flags)
 	{
 		using T = std::underlying_type_t<Enum>;
 		return (((T)value) & (T)flags) != 0;
 	}
 
 	template<typename Enum> requires std::is_enum_v<Enum>
-	inline constexpr bool HasFlag(Enum value, Enum flag)
+	inline constexpr Bool HasFlag(Enum value, Enum flag)
 	{
 		using T = std::underlying_type_t<Enum>;
 		ADRIA_ASSERT(std::has_single_bit((T)flag));

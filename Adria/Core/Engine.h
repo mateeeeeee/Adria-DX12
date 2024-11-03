@@ -49,7 +49,7 @@ namespace adria
 		void InitializeScene(SceneConfig const& config);
 		void ProcessCVarIniFile();
 
-		void Update(float dt);
+		void Update(Float dt);
 		void Render();
 
 		void SetViewportData(ViewportData* viewport_data);

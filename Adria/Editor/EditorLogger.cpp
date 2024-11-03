@@ -7,7 +7,7 @@ namespace adria
 		ImGuiTextBuffer     Buf;
 		ImGuiTextFilter     Filter;
 		ImVector<int>       LineOffsets;
-		bool                AutoScroll;
+		Bool                AutoScroll;
 
 		ImGuiLogger()
 		{
@@ -21,7 +21,7 @@ namespace adria
 			LineOffsets.clear();
 			LineOffsets.push_back(0);
 		}
-		void AddLog(const char* fmt, ...) IM_FMTARGS(2)
+		void AddLog(const Char* fmt, ...) IM_FMTARGS(2)
 		{
 			int old_size = Buf.size();
 			va_list args;
@@ -32,7 +32,7 @@ namespace adria
 				if (Buf[old_size] == '\n')
 					LineOffsets.push_back(old_size + 1);
 		}
-		void Draw(const char* title, bool* p_open = NULL)
+		void Draw(const Char* title, Bool* p_open = NULL)
 		{
 			if (!ImGui::Begin(title, p_open))
 			{
@@ -51,9 +51,9 @@ namespace adria
 			if (ImGui::Button("Options"))
 				ImGui::OpenPopup("Options");
 			ImGui::SameLine();
-			bool clear = ImGui::Button("Clear");
+			Bool clear = ImGui::Button("Clear");
 			ImGui::SameLine();
-			bool copy = ImGui::Button("Copy");
+			Bool copy = ImGui::Button("Copy");
 			ImGui::SameLine();
 			Filter.Draw("Filter", -100.0f);
 
@@ -66,14 +66,14 @@ namespace adria
 				ImGui::LogToClipboard();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-			const char* buf = Buf.begin();
-			const char* buf_end = Buf.end();
+			const Char* buf = Buf.begin();
+			const Char* buf_end = Buf.end();
 			if (Filter.IsActive())
 			{
 				for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
 				{
-					const char* line_start = buf + LineOffsets[line_no];
-					const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+					const Char* line_start = buf + LineOffsets[line_no];
+					const Char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
 					if (Filter.PassFilter(line_start, line_end))
 						ImGui::TextUnformatted(line_start, line_end);
 				}
@@ -86,8 +86,8 @@ namespace adria
 				{
 					for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
 					{
-						const char* line_start = buf + LineOffsets[line_no];
-						const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+						const Char* line_start = buf + LineOffsets[line_no];
+						const Char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
 						ImGui::TextUnformatted(line_start, line_end);
 					}
 				}
@@ -106,13 +106,13 @@ namespace adria
 	EditorLogger::EditorLogger(LogLevel logger_level) : logger_level{ logger_level }, imgui_log(new ImGuiLogger{})
 	{
 	}
-	void EditorLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
+	void EditorLogger::Log(LogLevel level, Char const* entry, Char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
 		std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";
 		imgui_log->AddLog(log_entry.c_str());
 	}
-	void EditorLogger::Draw(const char* title, bool* p_open)
+	void EditorLogger::Draw(const Char* title, Bool* p_open)
 	{
 		imgui_log->Draw(title, p_open);
 	}

@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> FSR2("r.FSR2", true, "Enable or Disable FSR2");
+	static TAutoConsoleVariable<Bool> FSR2("r.FSR2", true, "Enable or Disable FSR2");
 
 	namespace
 	{
@@ -98,8 +98,8 @@ namespace adria
 				dispatch_desc.output = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				dispatch_desc.jitterOffset.x = frame_data.camera_jitter_x;
 				dispatch_desc.jitterOffset.y = frame_data.camera_jitter_y;
-				dispatch_desc.motionVectorScale.x = (float)render_width;
-				dispatch_desc.motionVectorScale.y = (float)render_height;
+				dispatch_desc.motionVectorScale.x = (Float)render_width;
+				dispatch_desc.motionVectorScale.y = (Float)render_height;
 				dispatch_desc.reset = false;
 				dispatch_desc.enableSharpening = true;
 				dispatch_desc.sharpness = sharpness;
@@ -120,7 +120,7 @@ namespace adria
 		postprocessor->SetFinalResource(RG_NAME(FSR2Output));
 	}
 
-	bool FSR2Pass::IsEnabled(PostProcessor const*) const
+	Bool FSR2Pass::IsEnabled(PostProcessor const*) const
 	{
 		return FSR2.Get();
 	}
@@ -177,9 +177,9 @@ namespace adria
 
 	void FSR2Pass::RecreateRenderResolution()
 	{
-		float upscale_ratio = (fsr2_quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(fsr2_quality_mode));
-		render_width = (Uint32)((float)display_width / upscale_ratio);
-		render_height = (Uint32)((float)display_height / upscale_ratio);
+		Float upscale_ratio = (fsr2_quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(fsr2_quality_mode));
+		render_width = (Uint32)((Float)display_width / upscale_ratio);
+		render_height = (Uint32)((Float)display_height / upscale_ratio);
 		BroadcastRenderResolutionChanged(render_width, render_height);
 	}
 }

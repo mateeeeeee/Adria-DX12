@@ -62,7 +62,7 @@ namespace adria
 
 	class GfxLinearDynamicAllocator;
 	class GfxDescriptorAllocator;
-	template<bool>
+	template<Bool>
 	class GfxRingDescriptorAllocator;
 
 	class GfxNsightAftermathGpuCrashTracker;
@@ -104,7 +104,7 @@ namespace adria
 
 		void BeginFrame();
 		void EndFrame();
-		void TakePixCapture(char const* capture_name, Uint32 num_frames);
+		void TakePixCapture(Char const* capture_name, Uint32 num_frames);
 
 		void* GetHwnd() const { return hwnd; }
 		IDXGIFactory4* GetFactory() const;
@@ -259,8 +259,8 @@ namespace adria
 			HANDLE   dred_wait_handle;
 		};
 		std::unique_ptr<DRED> dred;
-		bool rendering_not_started = true;
-		bool pix_dll_loaded = false;
+		Bool rendering_not_started = true;
+		Bool pix_dll_loaded = false;
 
 		std::unique_ptr<GfxNsightAftermathGpuCrashTracker> nsight_aftermath;
 

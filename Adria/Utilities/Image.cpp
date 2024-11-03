@@ -25,7 +25,7 @@ namespace adria
 		ImageFormat GetImageFormat(std::string_view path)
 		{
 			std::string extension = GetExtension(path);
-			std::transform(std::begin(extension), std::end(extension), std::begin(extension), [](char c) {return std::tolower(c); });
+			std::transform(std::begin(extension), std::end(extension), std::begin(extension), [](Char c) {return std::tolower(c); });
 
 			if (extension == ".dds")
 				return ImageFormat::DDS;
@@ -55,7 +55,7 @@ namespace adria
 	Image::Image(std::string_view file_path)
 	{
 		ImageFormat format = GetImageFormat(file_path);
-		bool result;
+		Bool result;
 		switch (format)
 		{
 		case ImageFormat::DDS:
@@ -89,7 +89,7 @@ namespace adria
 		return texture_byte_size;
 	}
 
-	bool Image::LoadDDS(std::string_view texture_path)
+	Bool Image::LoadDDS(std::string_view texture_path)
 	{
 		//https://github.com/simco50/D3D12_Research/blob/master/D3D12/Content/Image.cpp - LoadDDS
 
@@ -99,11 +99,11 @@ namespace adria
 			return false;
 
 		fseek(file, 0, SEEK_END);
-		std::vector<char> data((Uint64)ftell(file));
+		std::vector<Char> data((Uint64)ftell(file));
 		fseek(file, 0, SEEK_SET);
 		fread(data.data(), data.size(), 1, file);
 
-		char* bytes = data.data();
+		Char* bytes = data.data();
 #pragma pack(push,1)
 		struct PixelFormatHeader
 		{
@@ -162,7 +162,7 @@ namespace adria
 
 		auto MakeFourCC = [](Uint32 a, Uint32 b, Uint32 c, Uint32 d) { return a | (b << 8u) | (c << 16u) | (d << 24u); };
 
-		constexpr const char magic[] = "DDS ";
+		constexpr const Char magic[] = "DDS ";
 		if (memcmp(magic, bytes, 4) != 0) return false;
 		bytes += 4;
 
@@ -176,7 +176,7 @@ namespace adria
 			Uint32 bpp = dds_header->ddpf.dwRGBBitCount;
 
 			Uint32 four_cc = dds_header->ddpf.dwFourCC;
-			bool has_dxgi = four_cc == MakeFourCC('D', 'X', '1', '0');
+			Bool has_dxgi = four_cc == MakeFourCC('D', 'X', '1', '0');
 			const DX10FileHeader* pDx10Header = nullptr;
 
 			if (has_dxgi)
@@ -184,7 +184,7 @@ namespace adria
 				pDx10Header = (DX10FileHeader*)bytes;
 				bytes += sizeof(DX10FileHeader);
 
-				auto ConvertDX10Format = [](DXGI_FORMAT format, GfxFormat& outFormat, bool& outSRGB)
+				auto ConvertDX10Format = [](DXGI_FORMAT format, GfxFormat& outFormat, Bool& outSRGB)
 				{
 					if (format == DXGI_FORMAT_BC1_UNORM) { outFormat = GfxFormat::BC1_UNORM;			 outSRGB = false;	return; }
 					if (format == DXGI_FORMAT_BC1_UNORM_SRGB) { outFormat = GfxFormat::BC1_UNORM;		 outSRGB = true;	return; }
@@ -233,7 +233,7 @@ namespace adria
 				}
 			}
 
-			bool _is_cubemap = (dds_header->dwCaps2 & 0x0000FC00U) != 0 || (has_dxgi && (pDx10Header->miscFlag & 0x4) != 0);
+			Bool _is_cubemap = (dds_header->dwCaps2 & 0x0000FC00U) != 0 || (has_dxgi && (pDx10Header->miscFlag & 0x4) != 0);
 			Uint32 image_chain_count = 1;
 			if (_is_cubemap)
 			{
@@ -261,21 +261,21 @@ namespace adria
 		return true;
 	}
 
-	bool Image::LoadSTB(std::string_view texture_path)
+	Bool Image::LoadSTB(std::string_view texture_path)
 	{
 		Sint32 components = 0;
 		is_hdr = stbi_is_hdr(texture_path.data());
 		if (is_hdr)
 		{
 			Sint32 _width, _height;
-			float* _pixels = stbi_loadf(texture_path.data(), &_width, &_height, &components, 4);
+			Float* _pixels = stbi_loadf(texture_path.data(), &_width, &_height, &components, 4);
 			if (_pixels == nullptr) return false;
 			width = (Uint32)_width;
 			height = (Uint32)_height;
 			depth = 1;
 			mip_levels = 1;
 			format = GfxFormat::R32G32B32A32_FLOAT;
-			pixels.resize(width * height * 4 * sizeof(float));
+			pixels.resize(width * height * 4 * sizeof(Float));
 			memcpy(pixels.data(), _pixels, pixels.size());
 			stbi_image_free(_pixels);
 			return true;

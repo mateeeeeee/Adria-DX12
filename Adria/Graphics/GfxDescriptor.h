@@ -22,12 +22,12 @@ namespace adria
 			index += multiply;
 		}
 
-		bool operator==(GfxDescriptor const& other) const
+		Bool operator==(GfxDescriptor const& other) const
 		{
 			return cpu.ptr == other.cpu.ptr && index == other.index;
 		}
 
-		bool IsValid() const
+		Bool IsValid() const
 		{
 			return cpu.ptr != NULL;
 		}

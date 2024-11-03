@@ -39,7 +39,7 @@ namespace adria
 			{
 				TexturedNormalVertex vertex{};
 
-				float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+				Float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
 				vertex.position = Vector3(i * params.tile_size_x, height, j * params.tile_size_z);
 				vertex.uv = Vector2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
@@ -429,8 +429,8 @@ namespace adria
 		std::vector<entt::entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
 		Material ocean_material{};
-		static float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
-		memcpy(ocean_material.base_color, default_ocean_color, 3 * sizeof(float));
+		static Float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
+		memcpy(ocean_material.base_color, default_ocean_color, 3 * sizeof(Float));
 		Ocean ocean_component{};
 
 		for (auto ocean_chunk : ocean_chunks)
@@ -510,7 +510,7 @@ namespace adria
 		{
 			cgltf_material const& gltf_material = gltf_data->materials[i];
 			Material& material = mesh.materials.emplace_back();
-			material.alpha_cutoff = (float)gltf_material.alpha_cutoff;
+			material.alpha_cutoff = (Float)gltf_material.alpha_cutoff;
 			material.double_sided = gltf_material.double_sided;
 
 			if (params.force_mask_alpha_usage)
@@ -530,12 +530,12 @@ namespace adria
 				material.alpha_mode = MaterialAlphaMode::Mask;
 			}
 			cgltf_pbr_metallic_roughness pbr_metallic_roughness = gltf_material.pbr_metallic_roughness;
-			material.base_color[0] = (float)pbr_metallic_roughness.base_color_factor[0];
-			material.base_color[1] = (float)pbr_metallic_roughness.base_color_factor[1];
-			material.base_color[2] = (float)pbr_metallic_roughness.base_color_factor[2];
-			material.metallic_factor = (float)pbr_metallic_roughness.metallic_factor;
-			material.roughness_factor = (float)pbr_metallic_roughness.roughness_factor;
-			material.emissive_factor = (float)gltf_material.emissive_factor[0];
+			material.base_color[0] = (Float)pbr_metallic_roughness.base_color_factor[0];
+			material.base_color[1] = (Float)pbr_metallic_roughness.base_color_factor[1];
+			material.base_color[2] = (Float)pbr_metallic_roughness.base_color_factor[2];
+			material.metallic_factor = (Float)pbr_metallic_roughness.metallic_factor;
+			material.roughness_factor = (Float)pbr_metallic_roughness.roughness_factor;
+			material.emissive_factor = (Float)gltf_material.emissive_factor[0];
 
 			if (cgltf_texture* texture = pbr_metallic_roughness.base_color_texture.texture)
 			{
@@ -651,14 +651,14 @@ namespace adria
 					cgltf_attribute const& gltf_attribute = gltf_primitive.attributes[k];
 					std::string const& attr_name = gltf_attribute.name;
 
-					auto ReadAttributeData = [&]<typename T>(std::vector<T>& stream, const char* stream_name)
+					auto ReadAttributeData = [&]<typename T>(std::vector<T>& stream, const Char* stream_name)
 					{
 						if (!attr_name.compare(stream_name))
 						{
 							stream.resize(gltf_attribute.data->count);
 							for (Uint64 i = 0; i < gltf_attribute.data->count; ++i)
 							{
-								cgltf_accessor_read_float(gltf_attribute.data, i, &stream[i].x, sizeof(T) / sizeof(float));
+								cgltf_accessor_read_float(gltf_attribute.data, i, &stream[i].x, sizeof(T) / sizeof(Float));
 							}
 						}
 					};
@@ -677,7 +677,7 @@ namespace adria
 			std::vector<Uint32> const& indices = mesh_data.indices;
 			Uint64 vertex_count = mesh_data.positions_stream.size();
 
-			bool has_tangents = !mesh_data.tangents_stream.empty();
+			Bool has_tangents = !mesh_data.tangents_stream.empty();
 			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
 			if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
 			if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
@@ -722,7 +722,7 @@ namespace adria
 			{
 				meshopt_Meshlet const& m = meshlets[i];
 				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
-					m.triangle_count, reinterpret_cast<float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
+					m.triangle_count, reinterpret_cast<Float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
 
 				unsigned char* src_triangles = meshlet_triangles.data() + m.triangle_offset;
 				for (Uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
@@ -734,7 +734,7 @@ namespace adria
 				}
 
 				Meshlet& meshlet = mesh_data.meshlets[i];
-				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(float) * 3);
+				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(Float) * 3);
 
 				meshlet.radius = meshopt_bounds.radius;
 				meshlet.vertex_count = m.vertex_count;

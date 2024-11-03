@@ -72,7 +72,7 @@ namespace adria
 			return callback(args...);
 		}
 
-		bool IsBound() const { return callback != nullptr; }
+		Bool IsBound() const { return callback != nullptr; }
 
 		template<typename F> requires std::is_constructible_v<DelegateType, F>
 		static Delegate CreateLambda(F&& lambda)
@@ -117,22 +117,22 @@ namespace adria
 		}
 		~DelegateHandle() noexcept = default;
 
-		operator bool() const
+		operator Bool() const
 		{
 			return IsValid();
 		}
 
-		bool operator==(DelegateHandle const& that) const
+		Bool operator==(DelegateHandle const& that) const
 		{
 			return id == that.id;
 		}
 
-		bool operator<(DelegateHandle const& that) const
+		Bool operator<(DelegateHandle const& that) const
 		{
 			return id < that.id;
 		}
 
-		bool IsValid() const
+		Bool IsValid() const
 		{
 			return id != INVALID_ID;
 		}
@@ -195,7 +195,7 @@ namespace adria
 			return Add(DelegateType::CreateMember(mem_pfn, instance));
 		}
 
-		ADRIA_MAYBE_UNUSED bool Remove(DelegateHandle& handle)
+		ADRIA_MAYBE_UNUSED Bool Remove(DelegateHandle& handle)
 		{
 			if (handle.IsValid())
 			{
@@ -226,7 +226,7 @@ namespace adria
 			}
 		}
 
-		bool IsHandleBound(DelegateHandle const& handle) const
+		Bool IsHandleBound(DelegateHandle const& handle) const
 		{
 			if (handle.IsValid())
 			{

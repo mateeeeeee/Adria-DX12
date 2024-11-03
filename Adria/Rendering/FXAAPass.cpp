@@ -10,7 +10,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> FXAA("r.FXAA", true, "Enable or Disable FXAA");
+	static TAutoConsoleVariable<Bool> FXAA("r.FXAA", true, "Enable or Disable FXAA");
 
 	FXAAPass::FXAAPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -62,7 +62,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
-	bool FXAAPass::IsEnabled(PostProcessor const*) const
+	Bool FXAAPass::IsEnabled(PostProcessor const*) const
 	{
 		return FXAA.Get();
 	}

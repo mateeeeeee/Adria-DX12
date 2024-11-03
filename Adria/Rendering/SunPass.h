@@ -13,7 +13,7 @@ namespace adria
 	public:
 		SunPass(GfxDevice* gfx, Uint32 width, Uint32 height);
 
-		virtual bool IsEnabled(PostProcessor const*) const override
+		virtual Bool IsEnabled(PostProcessor const*) const override
 		{
 			return true;
 		}

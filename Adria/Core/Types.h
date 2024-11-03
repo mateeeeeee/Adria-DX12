@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	using Uint8  = std::uint8_t;
+	using Uint8 = std::uint8_t;
 	using Uint16 = std::uint16_t;
 	using Uint32 = std::uint32_t;
 	using Uint64 = std::uint64_t;
@@ -14,4 +14,6 @@ namespace adria
 	using Bool32 = Sint32;
 	using Bool = bool;
 	using Char = char;
+	using Float = float;
+	using Float64 = double;
 }

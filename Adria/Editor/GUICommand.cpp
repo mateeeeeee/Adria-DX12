@@ -8,7 +8,7 @@ namespace adria
 		g_Editor.AddCommand(GUICommand{ .callback = std::move(cb), .group = group, .subgroup = subgroup });
 	}
 
-	void GUI_DebugTexture(char const* name, GfxTexture* gfx_texture)
+	void GUI_DebugTexture(Char const* name, GfxTexture* gfx_texture)
 	{
 		g_Editor.AddDebugTexture(GUITexture{ .name = name, .gfx_texture = gfx_texture });
 	}

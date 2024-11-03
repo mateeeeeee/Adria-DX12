@@ -25,7 +25,7 @@ namespace adria
 	};
 
 	static TAutoConsoleVariable<int>   TonemapOperator("r.Tonemap.Operator", ToneMapOperator_TonyMcMapface, "0 - None, 1 - Reinhard, 2 - Hable, 3 - Linear, 4 - TonyMcMapface, 5 - AgX");
-	static TAutoConsoleVariable<float> TonemapExposure("r.Tonemap.Exposure", 1.0f, "Tonemap exposure applied in addition to exposure from AutoExposure pass");
+	static TAutoConsoleVariable<Float> TonemapExposure("r.Tonemap.Exposure", 1.0f, "Tonemap exposure applied in addition to exposure from AutoExposure pass");
 	
 	ToneMapPass::ToneMapPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -83,12 +83,12 @@ namespace adria
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				Uint32 const i = dst_descriptor.GetIndex();
 
-				bool const bloom_enabled = data.bloom.IsValid();
+				Bool const bloom_enabled = data.bloom.IsValid();
 				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + ARRAYSIZE(src_descriptors)), ctx.GetReadOnlyTexture(data.bloom));
 
 				struct TonemapConstants
 				{
-					float    tonemap_exposure;
+					Float    tonemap_exposure;
 					Uint32   tonemap_operator_lut_packed;
 					Uint32   hdr_idx;
 					Uint32   exposure_idx;
@@ -144,7 +144,7 @@ namespace adria
 				if (ImGui::TreeNode("Tone Mapping"))
 				{
 					ImGui::SliderFloat("Exposure", TonemapExposure.GetPtr(), 0.01f, 10.0f);
-					static char const* const operators[] = { "None", "Reinhard", "Hable", "Linear", "Tony McMapface", "AgX" };
+					static Char const* const operators[] = { "None", "Reinhard", "Hable", "Linear", "Tony McMapface", "AgX" };
 					ImGui::ListBox("Tone Map Operator", TonemapOperator.GetPtr(), operators, IM_ARRAYSIZE(operators));
 					ImGui::TreePop();
 					ImGui::Separator();

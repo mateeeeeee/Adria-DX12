@@ -14,8 +14,8 @@ namespace adria
 		Vector3 look_vector = desc.look_at - position;
 		look_vector.Normalize();
 
-		float yaw = std::atan2(look_vector.x, look_vector.z);
-		float pitch = std::asin(std::clamp(-look_vector.y, -1.0f, 1.0f));
+		Float yaw = std::atan2(look_vector.x, look_vector.z);
+		Float pitch = std::asin(std::clamp(-look_vector.y, -1.0f, 1.0f));
 		Quaternion pitch_quat = Quaternion::CreateFromYawPitchRoll(0, pitch, 0);
 		Quaternion yaw_quat = Quaternion::CreateFromYawPitchRoll(yaw, 0, 0);
 		orientation = pitch_quat * orientation * yaw_quat;
@@ -35,24 +35,24 @@ namespace adria
 		jitter.y = y[frame_index % 16] - 0.5f;
 		return jitter;
 	}
-	float Camera::Near() const
+	Float Camera::Near() const
 	{
 		return near_plane;
 	}
-	float Camera::Far() const
+	Float Camera::Far() const
 	{
 		return far_plane;
 	}
-	float Camera::Fov() const
+	Float Camera::Fov() const
 	{
 		return fov;
 	}
-	float Camera::AspectRatio() const
+	Float Camera::AspectRatio() const
 	{
 		return aspect_ratio;
 	}
 
-	void Camera::Update(float dt)
+	void Camera::Update(Float dt)
 	{
 		changed = false;
 		if (!enabled || g_Input.GetKey(KeyCode::Space))
@@ -62,8 +62,8 @@ namespace adria
 
 		if (g_Input.GetKey(KeyCode::MouseRight))
 		{
-			float dx = g_Input.GetMouseDeltaX();
-			float dy = g_Input.GetMouseDeltaY();
+			Float dx = g_Input.GetMouseDeltaX();
+			Float dy = g_Input.GetMouseDeltaY();
 			Quaternion pitch_quat = Quaternion::CreateFromYawPitchRoll(0, dy * dt * 0.25f, 0);
 			Quaternion yaw_quat = Quaternion::CreateFromYawPitchRoll(dx * dt * 0.25f, 0, 0);
 			orientation = pitch_quat * orientation * yaw_quat;
@@ -82,7 +82,7 @@ namespace adria
 
 		if (velocity.LengthSquared() > 1e-4)
 		{
-			float speed_factor = 1.0f;
+			Float speed_factor = 1.0f;
 			if (g_Input.GetKey(KeyCode::ShiftLeft)) speed_factor *= 5.0f;
 			if (g_Input.GetKey(KeyCode::CtrlLeft))  speed_factor *= 0.2f;
 			position += velocity * dt * speed_factor * 25.0f;
@@ -97,25 +97,25 @@ namespace adria
 	{
 		if (!enabled) return;
 		fov -= XMConvertToRadians(increment * 1.0f);
-		fov = std::clamp(fov, 0.00005f, pi_div_2<float>);
+		fov = std::clamp(fov, 0.00005f, pi_div_2<Float>);
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);
 	}
 	void Camera::OnResize(Uint32 w, Uint32 h)
 	{
-		SetAspectRatio(static_cast<float>(w) / h);
+		SetAspectRatio(static_cast<Float>(w) / h);
 	}
 
-	void Camera::SetAspectRatio(float ar)
+	void Camera::SetAspectRatio(Float ar)
 	{
 		aspect_ratio = ar;
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::SetFov(float _fov)
+	void Camera::SetFov(Float _fov)
 	{
 		fov = _fov;
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::SetNearAndFar(float n, float f)
+	void Camera::SetNearAndFar(Float n, Float f)
 	{
 		near_plane = n;
 		far_plane = f;
@@ -145,7 +145,7 @@ namespace adria
 		frustum.Transform(frustum, view_matrix.Invert());
 		return frustum;
 	}
-	void Camera::SetProjectionMatrix(float fov, float aspect, float zn, float zf)
+	void Camera::SetProjectionMatrix(Float fov, Float aspect, Float zn, Float zf)
 	{
 		projection_matrix = XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
 	}

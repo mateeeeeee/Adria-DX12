@@ -11,7 +11,7 @@ namespace adria
 	{
 		struct CacaoPreset 
 		{
-			bool use_downsampled_ssao;
+			Bool use_downsampled_ssao;
 			FfxCacaoSettings cacao_settings;
 		};
 		std::vector<std::string> FfxCacaoPresetNames = 
@@ -354,7 +354,7 @@ namespace adria
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
 					ImGui::Combo("Preset", &preset_id,
-						[](void* vec, int idx, const char** out_text)
+						[](void* vec, int idx, const Char** out_text)
 						{
 							std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
 							if (idx < 0 || idx >= vector->size()) return false;

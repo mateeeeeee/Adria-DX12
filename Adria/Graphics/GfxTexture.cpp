@@ -248,7 +248,7 @@ namespace adria
 		return resource.Get();
 	}
 
-	bool GfxTexture::IsMapped() const
+	Bool GfxTexture::IsMapped() const
 	{
 		return mapped_data != nullptr;
 	}
@@ -280,7 +280,7 @@ namespace adria
 		resource->Unmap(0, nullptr);
 	}
 
-	void GfxTexture::SetName(char const* name)
+	void GfxTexture::SetName(Char const* name)
 	{
 		resource->SetName(ToWideString(name).c_str());
 	}

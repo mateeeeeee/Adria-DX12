@@ -67,14 +67,14 @@ namespace adria
 		Sint32						   light_matrices_gpu_index = -1;
 
 		std::vector<Matrix>								light_matrices;
-		std::array<float, SHADOW_CASCADE_COUNT>		    split_distances{};
-		float											cascades_split_lambda = 0.5f;
+		std::array<Float, SHADOW_CASCADE_COUNT>		    split_distances{};
+		Float											cascades_split_lambda = 0.5f;
 
 		ShadowTextureRenderedEvent shadow_rendered_event;
 
 	private:
 		void CreatePSOs();
 		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, Uint64 light_index, Uint64 matrix_index, Uint64 matrix_offset);
-		static std::array<Matrix, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances);
+		static std::array<Matrix, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, Float split_lambda, std::array<Float, SHADOW_CASCADE_COUNT>& split_distances);
 	};
 }

@@ -538,7 +538,7 @@ namespace adria
 			return SM_6_7;
 		}
 
-		void CompileShader(GfxShaderKey const& shader, bool bypass_cache = false)
+		void CompileShader(GfxShaderKey const& shader, Bool bypass_cache = false)
 		{
 			if (!shader.IsValid()) return;
 
@@ -555,7 +555,7 @@ namespace adria
 			shader_desc.defines = shader.GetDefines();
 
 			GfxShaderCompileOutput output;
-			bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output, bypass_cache);
+			Bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output, bypass_cache);
 			ADRIA_ASSERT(compile_result);
 			if (!compile_result) return;
 

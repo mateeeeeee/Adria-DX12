@@ -18,11 +18,11 @@ namespace adria
 		};
 		struct GfxClearColor
 		{
-			GfxClearColor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f)
+			GfxClearColor(Float r = 0.0f, Float g = 0.0f, Float b = 0.0f, Float a = 0.0f)
 				: color{ r, g, b, a }
 			{
 			}
-			GfxClearColor(float(&_color)[4])
+			GfxClearColor(Float(&_color)[4])
 				: color{ _color[0], _color[1], _color[2], _color[3] }
 			{
 			}
@@ -31,30 +31,30 @@ namespace adria
 			{
 			}
 
-			bool operator==(GfxClearColor const& other) const
+			Bool operator==(GfxClearColor const& other) const
 			{
 				return memcmp(color, other.color, sizeof(color)) == 0;
 			}
 
-			float color[4];
+			Float color[4];
 		};
 		struct GfxClearDepthStencil
 		{
-			GfxClearDepthStencil(float depth = 0.0f, Uint8 stencil = 1)
+			GfxClearDepthStencil(Float depth = 0.0f, Uint8 stencil = 1)
 				: depth(depth), stencil(stencil)
 			{}
-			float depth;
+			Float depth;
 			Uint8 stencil;
 		};
 
 		GfxClearValue() : active_member(GfxActiveMember::None), depth_stencil{} {}
 
-		GfxClearValue(float r, float g, float b, float a)
+		GfxClearValue(Float r, Float g, Float b, Float a)
 			: active_member(GfxActiveMember::Color), color(r, g, b, a)
 		{
 		}
 
-		GfxClearValue(float(&_color)[4])
+		GfxClearValue(Float(&_color)[4])
 			: active_member(GfxActiveMember::Color), color{ _color }
 		{
 		}
@@ -63,7 +63,7 @@ namespace adria
 			: active_member(GfxActiveMember::Color), color(color)
 		{}
 
-		GfxClearValue(float depth, Uint8 stencil)
+		GfxClearValue(Float depth, Uint8 stencil)
 			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth, stencil)
 		{}
 		GfxClearValue(GfxClearDepthStencil const& depth_stencil)
@@ -87,7 +87,7 @@ namespace adria
 			return *this;
 		}
 
-		bool operator==(GfxClearValue const& other) const
+		Bool operator==(GfxClearValue const& other) const
 		{
 			if (active_member != other.active_member) return false;
 			else if (active_member == GfxActiveMember::Color)
@@ -196,7 +196,7 @@ namespace adria
 		using enum GfxResourceState;
 
 		D3D12_BARRIER_SYNC sync = D3D12_BARRIER_SYNC_NONE;
-		bool const discard = HasFlag(flags, Discard);
+		Bool const discard = HasFlag(flags, Discard);
 		if (!discard && HasFlag(flags, ClearUAV)) sync |= D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW;
 
 		if (HasFlag(flags, Present))		sync |= D3D12_BARRIER_SYNC_ALL;
@@ -275,7 +275,7 @@ namespace adria
 		return api_state;
 	}
 
-	inline bool CompareByLayout(GfxResourceState flags1, GfxResourceState flags2)
+	inline Bool CompareByLayout(GfxResourceState flags1, GfxResourceState flags2)
 	{
 		return ToD3D12BarrierLayout(flags1) == ToD3D12BarrierLayout(flags2);
 	}

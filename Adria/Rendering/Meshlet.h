@@ -15,8 +15,8 @@ namespace adria
 
 	struct Meshlet
 	{
-		float center[3];
-		float radius;
+		Float center[3];
+		Float radius;
 
 		Uint32 vertex_count;
 		Uint32 triangle_count;

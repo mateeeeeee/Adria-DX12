@@ -84,8 +84,8 @@ namespace adria
 		RenderGraphBuilder() = delete;
 		ADRIA_NONCOPYABLE(RenderGraphBuilder)
 
-		bool IsTextureDeclared(RGResourceName name) const;
-		bool IsBufferDeclared(RGResourceName name) const;
+		Bool IsTextureDeclared(RGResourceName name) const;
+		Bool IsBufferDeclared(RGResourceName name) const;
 		void ExportTexture(RGResourceName name, GfxTexture* texture);
 		void ExportBuffer(RGResourceName name, GfxBuffer* buffer);
 		void DeclareTexture(RGResourceName name, RGTextureDesc const& desc);

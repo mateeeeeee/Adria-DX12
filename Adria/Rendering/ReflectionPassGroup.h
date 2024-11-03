@@ -13,7 +13,7 @@ namespace adria
 
 	private:
 		ReflectionType reflection_type;
-		bool is_rtr_supported;
+		Bool is_rtr_supported;
 
 	private:
 		virtual void GroupGUI() override;

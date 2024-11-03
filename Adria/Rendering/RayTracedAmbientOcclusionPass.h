@@ -15,10 +15,10 @@ namespace adria
 	{
 		struct RTAOParams
 		{
-			float radius = 2.0f;
-			float power_log = -1.0f;
-			float filter_distance_sigma = 10.0f;
-			float filter_depth_sigma = 0.25f;
+			Float radius = 2.0f;
+			Float power_log = -1.0f;
+			Float filter_distance_sigma = 10.0f;
+			Float filter_depth_sigma = 0.25f;
 		};
 
 	public:
@@ -28,7 +28,7 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void GUI();
 		void OnResize(Uint32 w, Uint32 h);
-		bool IsSupported() const;
+		Bool IsSupported() const;
 
 	private:
 		GfxDevice* gfx;
@@ -37,7 +37,7 @@ namespace adria
 		Uint32 width, height;
 		BlurPass blur_pass;
 
-		bool is_supported;
+		Bool is_supported;
 		RTAOParams params{};
 
 	private:

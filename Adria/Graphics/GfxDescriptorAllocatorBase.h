@@ -46,11 +46,11 @@ namespace adria
 		Uint32 descriptor_handle_size = 0;
 		GfxDescriptorHeapType type = GfxDescriptorHeapType::Invalid;
 		Uint32 descriptor_count = 0;
-		bool shader_visible = false;
+		Bool shader_visible = false;
 
 	protected:
 
-		GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, bool shader_visible);
+		GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, Bool shader_visible);
 		void CreateHeap();
 	};
 }

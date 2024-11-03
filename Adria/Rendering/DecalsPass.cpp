@@ -62,7 +62,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
-				auto decal_pass_lambda = [&](bool modify_normals)
+				auto decal_pass_lambda = [&](Bool modify_normals)
 				{
 					if (decal_view.empty()) return;
 					GfxPipelineState* pso = modify_normals ? decal_psos->Get<1>() : decal_psos->Get<0>();

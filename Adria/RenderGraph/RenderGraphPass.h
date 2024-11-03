@@ -89,13 +89,13 @@ namespace adria
 			RGDepthStencilId depth_stencil_handle;
 			RGLoadStoreAccessOp depth_access;
 			RGLoadStoreAccessOp stencil_access;
-			bool depth_read_only;
+			Bool depth_read_only;
 		};
 
 		inline static Uint32 unique_pass_id = 0;
 
 	public:
-		explicit RenderGraphPassBase(char const* name, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
+		explicit RenderGraphPassBase(Char const* name, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
 			: name(name), type(type), flags(flags) {}
 		virtual ~RenderGraphPassBase() = default;
 
@@ -104,9 +104,9 @@ namespace adria
 		virtual void Setup(RenderGraphBuilder&) = 0;
 		virtual void Execute(RenderGraphContext&, GfxCommandList*) const = 0;
 
-		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
-		bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
-		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPass); }
+		Bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
+		Bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
+		Bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPass); }
 
 	private:
 		std::string const name;
@@ -141,7 +141,7 @@ namespace adria
 		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GfxCommandList*)>;
 
 	public:
-		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
+		RenderGraphPass(Char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
 			: RenderGraphPassBase(name, type, flags), setup(std::move(setup)), execute(std::move(execute))
 		{}
 
@@ -178,7 +178,7 @@ namespace adria
 		using ExecuteFunc = std::function<void(RenderGraphContext&, GfxCommandList*)>;
 
 	public:
-		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
+		RenderGraphPass(Char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
 			: RenderGraphPassBase(name, type, flags), setup(std::move(setup)), execute(std::move(execute))
 		{}
 

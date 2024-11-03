@@ -13,15 +13,15 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.05f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
-	static TAutoConsoleVariable<float> AlphaInterpolation("r.DepthOfField.AlphaInterpolation", 1.0f, "Interpolation factor");
+	static TAutoConsoleVariable<Float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.05f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
+	static TAutoConsoleVariable<Float> AlphaInterpolation("r.DepthOfField.AlphaInterpolation", 1.0f, "Interpolation factor");
 	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
 	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
-	static TAutoConsoleVariable<bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
+	static TAutoConsoleVariable<Bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
 
-	static TAutoConsoleVariable<float> FocalLength("r.DepthOfField.FocalLength", 200.0f, "Focal Length used in Depth of Field pass");
-	static TAutoConsoleVariable<float> FocusDistance("r.DepthOfField.FocusDistance", 50.0f, "Focus Distance used in Depth of Field pass");
-	static TAutoConsoleVariable<float> FStop("r.DepthOfField.FStop", 1.0f, "F-Stop used in Depth of Field pass");
+	static TAutoConsoleVariable<Float> FocalLength("r.DepthOfField.FocalLength", 200.0f, "Focal Length used in Depth of Field pass");
+	static TAutoConsoleVariable<Float> FocusDistance("r.DepthOfField.FocusDistance", 50.0f, "Focus Distance used in Depth of Field pass");
+	static TAutoConsoleVariable<Float> FStop("r.DepthOfField.FStop", 1.0f, "F-Stop used in Depth of Field pass");
 
 	static constexpr Uint32 SMALL_BOKEH_KERNEL_RING_COUNT   = 3;
 	static constexpr Uint32 SMALL_BOKEH_KERNEL_RING_DENSITY = 5;
@@ -36,18 +36,18 @@ namespace adria
 		std::vector<Vector2> kernel_data{};
 		kernel_data.reserve(sample_count);
 
-		float radius_increment = 1.0f / ((static_cast<float>(ring_count) - 1.0f));
+		Float radius_increment = 1.0f / ((static_cast<Float>(ring_count) - 1.0f));
 		for (Sint32 i = ring_count - 1; i >= 0; --i)
 		{
 			Uint32 point_count = std::max(ring_density * i, 1u);
-			float radius = static_cast<float>(i) * radius_increment;
+			Float radius = static_cast<Float>(i) * radius_increment;
 
-			float theta_increment = 2.0f * pi<float> / static_cast<float>(point_count);
-			float offset = 0.1f * static_cast<float>(i);
+			Float theta_increment = 2.0f * pi<Float> / static_cast<Float>(point_count);
+			Float offset = 0.1f * static_cast<Float>(i);
 
 			for (Uint32 j = 0; j < point_count; ++j)
 			{
-				float  theta = offset + static_cast<float>(j) * theta_increment;
+				Float  theta = offset + static_cast<Float>(j) * theta_increment;
 				kernel_data.push_back(radius * Vector2(cos(theta), sin(theta)));
 			}
 		}
@@ -78,7 +78,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool DepthOfFieldPass::IsEnabled(PostProcessor const*) const
+	Bool DepthOfFieldPass::IsEnabled(PostProcessor const*) const
 	{
 		return true;
 	}
@@ -145,7 +145,7 @@ namespace adria
 
 		GfxTextureSubData data{};
 		data.data = bokeh_kernel_data.data();
-		data.row_pitch = bokeh_kernel_data.size() * sizeof(float) * 2;
+		data.row_pitch = bokeh_kernel_data.size() * sizeof(Float) * 2;
 		data.slice_pitch = 0;
 
 		GfxTextureData init_data{};
@@ -172,7 +172,7 @@ namespace adria
 
 		GfxTextureSubData data{};
 		data.data = bokeh_kernel_data.data();
-		data.row_pitch = bokeh_kernel_data.size() * sizeof(float) * 2;
+		data.row_pitch = bokeh_kernel_data.size() * sizeof(Float) * 2;
 		data.slice_pitch = 0;
 
 		GfxTextureData init_data{};
@@ -231,11 +231,11 @@ namespace adria
 				{
 					Uint32 depth_idx;
 					Uint32 output_idx;
-					float camera_focal_length;
-					float camera_focus_distance;
-					float camera_aperture_ratio;
-					float camera_sensor_width;
-					float max_circle_of_confusion;
+					Float camera_focal_length;
+					Float camera_focus_distance;
+					Float camera_aperture_ratio;
+					Float camera_sensor_width;
+					Float max_circle_of_confusion;
 				} constants =
 				{
 					.depth_idx = i, .output_idx = i + 1,
@@ -495,7 +495,7 @@ namespace adria
 					Uint32 output0_idx;
 					Uint32 output1_idx;
 					Uint32 sample_count;
-					float  max_coc;
+					Float  max_coc;
 				} constants =
 				{
 					.color_idx = i,
@@ -569,7 +569,7 @@ namespace adria
 					Uint32 output0_idx;
 					Uint32 output1_idx;
 					Uint32 sample_count;
-					float  max_coc;
+					Float  max_coc;
 				} constants =
 				{
 					.kernel_idx = i,
@@ -705,7 +705,7 @@ namespace adria
 					Uint32 near_coc_idx;
 					Uint32 far_coc_idx;
 					Uint32 output_idx;
-					float  alpha_interpolation;
+					Float  alpha_interpolation;
 				} constants =
 				{
 					.color_idx = i,

@@ -22,11 +22,11 @@ namespace adria
 			CreateContext();
 		}
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual Bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
 
 	private:
-		char name_version[16] = {};
+		Char name_version[16] = {};
 		GfxDevice* gfx = nullptr;
 		Uint32 display_width, display_height;
 		Uint32 render_width, render_height;
@@ -34,11 +34,11 @@ namespace adria
 		FfxInterface* ffx_interface;
 		FfxFsr2ContextDescription fsr2_context_desc{};
 		FfxFsr2Context fsr2_context{};
-		bool recreate_context = false;
+		Bool recreate_context = false;
 
 		FfxFsr2QualityMode fsr2_quality_mode = FFX_FSR2_QUALITY_MODE_QUALITY;
-		float custom_upscale_ratio = 1.0f;
-		float sharpness = 0.5f;
+		Float custom_upscale_ratio = 1.0f;
+		Float sharpness = 0.5f;
 
 	private:
 		void CreateContext();

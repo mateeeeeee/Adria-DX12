@@ -22,7 +22,7 @@ namespace adria
 			file_modified_event.RemoveAll();
 		}
 
-		void AddPathToWatch(std::string const& path, bool recursive = true)
+		void AddPathToWatch(std::string const& path, Bool recursive = true)
 		{
 			if (recursive)
 			{

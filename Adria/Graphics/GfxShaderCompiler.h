@@ -16,7 +16,7 @@ namespace adria
 	{
 		void Initialize();
 		void Destroy();
-		bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output, bool bypass_cache);
+		Bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output, Bool bypass_cache);
 		void ReadBlobFromFile(std::string const& filename, GfxShaderBlob& blob);
 	}
 }

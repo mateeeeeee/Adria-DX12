@@ -57,18 +57,18 @@ namespace adria
 		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate);
 		void GUI();
 
-		void OnRainEvent(bool enabled);
+		void OnRainEvent(Bool enabled);
 		void OnResize(Uint32 w, Uint32 h);
 		void OnRenderResolutionChanged(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
 
-		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
-		bool NeedsVelocityBuffer() const;
-		bool NeedsHistoryBuffer() const;
-		bool HasUpscaler() const;
-		bool HasTAA() const;
-		bool HasFXAA() const;
-		bool IsPathTracing() const;
+		Bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
+		Bool NeedsVelocityBuffer() const;
+		Bool NeedsHistoryBuffer() const;
+		Bool HasUpscaler() const;
+		Bool HasTAA() const;
+		Bool HasFXAA() const;
+		Bool IsPathTracing() const;
 
 		void SetFinalResource(RGResourceName name)
 		{
@@ -84,8 +84,8 @@ namespace adria
 		Uint32 display_height;
 		Uint32 render_width;
 		Uint32 render_height;
-		bool ray_tracing_supported = false;
-		bool is_path_tracing_path = false;
+		Bool ray_tracing_supported = false;
+		Bool is_path_tracing_path = false;
 
 		RGResourceName final_resource;
 

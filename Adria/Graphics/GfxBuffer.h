@@ -47,7 +47,7 @@ namespace adria
 		Uint32 GetCount() const;
 		GfxFormat GetFormat() const;
 
-		bool IsMapped() const;
+		Bool IsMapped() const;
 		void* GetMappedData() const;
 		template<typename T>
 		T* GetMappedData() const;
@@ -57,7 +57,7 @@ namespace adria
 		template<typename T>
 		void Update(T const& src_data);
 
-		void SetName(char const* name);
+		void SetName(Char const* name);
 
 	private:
 		GfxDevice* gfx;
@@ -108,7 +108,7 @@ namespace adria
 		GfxFormat                   format;
 	};
 
-	inline GfxBufferDesc VertexBufferDesc(Uint64 vertex_count, Uint32 stride, bool ray_tracing = true)
+	inline GfxBufferDesc VertexBufferDesc(Uint64 vertex_count, Uint32 stride, Bool ray_tracing = true)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = ray_tracing ? GfxBindFlag::ShaderResource : GfxBindFlag::None;
@@ -117,7 +117,7 @@ namespace adria
 		desc.stride = stride;
 		return desc;
 	}
-	inline GfxBufferDesc IndexBufferDesc(Uint64 index_count, bool small_indices, bool ray_tracing = true)
+	inline GfxBufferDesc IndexBufferDesc(Uint64 index_count, Bool small_indices, Bool ray_tracing = true)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = ray_tracing ? GfxBindFlag::ShaderResource : GfxBindFlag::None;
@@ -137,7 +137,7 @@ namespace adria
 		return desc;
 	}
 	template<typename T>
-	inline GfxBufferDesc StructuredBufferDesc(Uint64 count, bool uav = true, bool dynamic = false)
+	inline GfxBufferDesc StructuredBufferDesc(Uint64 count, Bool uav = true, Bool dynamic = false)
 	{
 		GfxBufferDesc desc{};
 		desc.resource_usage = (uav || !dynamic) ? GfxResourceUsage::Default : GfxResourceUsage::Upload;

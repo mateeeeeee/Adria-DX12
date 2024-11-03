@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> RTR("r.RTR", true, "0 - Disabled, 1 - Enabled");
+	static TAutoConsoleVariable<Bool> RTR("r.RTR", true, "0 - Disabled, 1 - Enabled");
 	
 	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, Uint32 width, Uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx), copy_to_texture_pass(gfx, width, height)
@@ -68,7 +68,7 @@ namespace adria
 
 				struct RayTracedReflectionsConstants
 				{
-					float   roughness_scale;
+					Float   roughness_scale;
 					Uint32  depth_idx;
 					Uint32  normal_idx;
 					Uint32  albedo_idx;
@@ -99,7 +99,7 @@ namespace adria
 		copy_to_texture_pass.OnResize(w, h);
 	}
 
-	bool RayTracedReflectionsPass::IsEnabled(PostProcessor const*) const
+	Bool RayTracedReflectionsPass::IsEnabled(PostProcessor const*) const
 	{
 		return RTR.Get();
 	}
@@ -121,7 +121,7 @@ namespace adria
 			}, GUICommandGroup_PostProcessing, GUICommandSubGroup_Reflection);
 	}
 
-	bool RayTracedReflectionsPass::IsSupported() const
+	Bool RayTracedReflectionsPass::IsSupported() const
 	{
 		return is_supported;
 	}
@@ -139,7 +139,7 @@ namespace adria
 			rtr_state_object_builder.AddSubObject(dxil_lib_desc);
 
 			D3D12_RAYTRACING_SHADER_CONFIG rtr_shader_config{};
-			rtr_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 4;
+			rtr_shader_config.MaxPayloadSizeInBytes = sizeof(Float) * 4;
 			rtr_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			rtr_state_object_builder.AddSubObject(rtr_shader_config);
 

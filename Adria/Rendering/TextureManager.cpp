@@ -121,7 +121,7 @@ namespace adria
 		else return nullptr;
 	}
 
-	void TextureManager::EnableMipMaps(bool mips)
+	void TextureManager::EnableMipMaps(Bool mips)
     {
         mipmaps = mips;
     }
@@ -144,7 +144,7 @@ namespace adria
         is_scene_initialized = true;
 	}
 
-	void TextureManager::CreateViewForTexture(TextureHandle handle, bool flag)
+	void TextureManager::CreateViewForTexture(TextureHandle handle, Bool flag)
 	{
         if (!is_scene_initialized && !flag) return;
 

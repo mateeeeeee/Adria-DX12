@@ -10,26 +10,26 @@ namespace adria
 		EditorConsole();
 		~EditorConsole();
 
-		void Draw(const char* title, bool* p_open = nullptr);
-		void DrawBasic(const char* title, bool* p_open = nullptr);
+		void Draw(const Char* title, Bool* p_open = nullptr);
+		void DrawBasic(const Char* title, Bool* p_open = nullptr);
 
 	private:
-		char                  InputBuf[256];
-		ImVector<char*>       Items;
-		ImVector<const char*> Commands;
-		ImVector<const char*> CommandDescriptions;
-		ImVector<char*>       History;
+		Char                  InputBuf[256];
+		ImVector<Char*>       Items;
+		ImVector<const Char*> Commands;
+		ImVector<const Char*> CommandDescriptions;
+		ImVector<Char*>       History;
 		int                   HistoryPos;
 		ImGuiTextFilter       Filter;
-		bool                  AutoScroll;
-		bool                  ScrollToBottom;
+		Bool                  AutoScroll;
+		Bool                  ScrollToBottom;
 		int					  CursorPos;
 
 	private:
 		void    ClearLog();
-		void    AddLog(const char* fmt, ...) IM_FMTARGS(2);
+		void    AddLog(const Char* fmt, ...) IM_FMTARGS(2);
 
-		void ExecCommand(const char* cmd);
+		void ExecCommand(const Char* cmd);
 		int	 TextEditCallback(ImGuiInputTextCallbackData* data);
 	};
 }

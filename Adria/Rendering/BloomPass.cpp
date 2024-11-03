@@ -13,10 +13,10 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool>  Bloom("r.Bloom", false, "Enable or Disable Bloom");
-	static TAutoConsoleVariable<float> BloomRadius("r.Bloom.Radius", 0.25f, "Controls the radius of the bloom effect");
-	static TAutoConsoleVariable<float> BloomIntensity("r.Bloom.Intensity", 1.33f, "Controls the intensity of the bloom effect");
-	static TAutoConsoleVariable<float> BloomBlendFactor("r.Bloom.BlendFactor", 0.25f, "Controls the blend factor of the bloom effect");
+	static TAutoConsoleVariable<Bool>  Bloom("r.Bloom", false, "Enable or Disable Bloom");
+	static TAutoConsoleVariable<Float> BloomRadius("r.Bloom.Radius", 0.25f, "Controls the radius of the bloom effect");
+	static TAutoConsoleVariable<Float> BloomIntensity("r.Bloom.Intensity", 1.33f, "Controls the intensity of the bloom effect");
+	static TAutoConsoleVariable<Float> BloomBlendFactor("r.Bloom.BlendFactor", 0.25f, "Controls the blend factor of the bloom effect");
 
 	BloomPass::BloomPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -26,7 +26,7 @@ namespace adria
 
 	void BloomPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
-		Uint32 pass_count = (Uint32)std::floor(log2f((float)std::max(width, height))) - 3;
+		Uint32 pass_count = (Uint32)std::floor(log2f((Float)std::max(width, height))) - 3;
 		std::vector<RGResourceName> downsample_mips(pass_count);
 		downsample_mips[0] = DownsamplePass(rg, postprocessor->GetFinalResource(), 1);
 		for (Uint32 i = 1; i < pass_count; ++i)
@@ -51,7 +51,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool BloomPass::IsEnabled(PostProcessor const*) const
+	Bool BloomPass::IsEnabled(PostProcessor const*) const
 	{
 		return Bloom.Get();
 	}
@@ -131,8 +131,8 @@ namespace adria
 
 				struct BloomDownsampleConstants
 				{
-					float    dims_inv_x;
-					float    dims_inv_y;
+					Float    dims_inv_x;
+					Float    dims_inv_y;
 					Uint32   source_idx;
 					Uint32   target_idx;
 				} constants =
@@ -197,12 +197,12 @@ namespace adria
 
 				struct BloomUpsampleConstants
 				{
-					float    dims_inv_x;
-					float    dims_inv_y;
+					Float    dims_inv_x;
+					Float    dims_inv_y;
 					Uint32   low_input_idx;
 					Uint32   high_input_idx;
 					Uint32   output_idx;
-					float    radius;
+					Float    radius;
 				} constants =
 				{
 					.dims_inv_x = 1.0f / (target_dim_x),

@@ -74,7 +74,7 @@ namespace adria
 		}
 	}
 
-	bool GfxCapabilities::Initialize(GfxDevice* gfx)
+	Bool GfxCapabilities::Initialize(GfxDevice* gfx)
 	{
 		CD3DX12FeatureSupport feature_support;
 		feature_support.Init(gfx->GetDevice());

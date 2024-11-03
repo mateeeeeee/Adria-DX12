@@ -19,7 +19,7 @@ namespace adria
 		~GeometryBufferHandle();
 		operator Uint64() const { return handle; }
 		GeometryBufferHandle operator ++() const { return handle + 1; }
-		bool IsValid() const { return handle != INVALID_GEOMETRY_BUFFER_HANDLE; }
+		Bool IsValid() const { return handle != INVALID_GEOMETRY_BUFFER_HANDLE; }
 
 	private:
 		GeometryBufferHandle() = default;
@@ -38,7 +38,7 @@ namespace adria
 		~ArcGeometryBufferHandle() = default;
 
 		operator GeometryBufferHandle&() const { return *handle; }
-		bool IsValid() const { return handle->IsValid(); }
+		Bool IsValid() const { return handle->IsValid(); }
 	private:
 		std::shared_ptr<GeometryBufferHandle> handle;
 	};

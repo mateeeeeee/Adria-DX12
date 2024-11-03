@@ -25,10 +25,10 @@ namespace adria
 #if RG_DEBUG
 		RenderGraphResourceName() : hashed_name(INVALID_HASH), name{"uninitialized"}{}
 		template<Uint64 N>
-		constexpr explicit RenderGraphResourceName(char const (&_name)[N], Uint64 hash) : hashed_name(hash), name(_name)
+		constexpr explicit RenderGraphResourceName(Char const (&_name)[N], Uint64 hash) : hashed_name(hash), name(_name)
 		{}
 
-		operator char const*() const
+		operator Char const*() const
 		{
 			return name;
 		}
@@ -37,23 +37,23 @@ namespace adria
 		constexpr explicit RenderGraphResourceName(Uint64 hash) : hashed_name(hash)
 		{}
 
-		operator char const*() const
+		operator Char const*() const
 		{
 			return "";
 		}
 #endif
-		bool IsValidName() const
+		Bool IsValidName() const
 		{
 			return hashed_name != INVALID_HASH;
 		}
 
 		Uint64 hashed_name;
 #if RG_DEBUG
-		char const* name;
+		Char const* name;
 #endif
 	};
 	using RGResourceName = RenderGraphResourceName;
-	inline bool operator==(RenderGraphResourceName const& name1, RenderGraphResourceName const& name2)
+	inline Bool operator==(RenderGraphResourceName const& name1, RenderGraphResourceName const& name2)
 	{
 		return name1.hashed_name == name2.hashed_name;
 	}

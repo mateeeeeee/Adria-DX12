@@ -20,15 +20,15 @@ namespace adria
 			Vector3 center;
 			Vector3 extents;
 			Vector3 color;
-			float   density_base;
-			float   density_change;
+			Float   density_base;
+			Float   density_change;
 		};
 		struct FogVolume
 		{
 			BoundingBox volume;
 			Color		color;
-			float       density_base;
-			float       density_change;
+			Float       density_base;
+			Float       density_change;
 		};
 		static constexpr Uint32 BLUE_NOISE_TEXTURE_COUNT = 16;
 	public:

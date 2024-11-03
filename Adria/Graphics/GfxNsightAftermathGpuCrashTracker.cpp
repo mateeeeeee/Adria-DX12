@@ -164,7 +164,7 @@ namespace adria
 			std::streamsize file_size = file.tellg();
 			file.seekg(0, std::ios::beg);
 			debug_info.resize(file_size);
-			if (file.read(reinterpret_cast<char*>(debug_info.data()), file_size)) set_shader_binary(debug_info.data(), Uint32(debug_info.size()));
+			if (file.read(reinterpret_cast<Char*>(debug_info.data()), file_size)) set_shader_binary(debug_info.data(), Uint32(debug_info.size()));
 		}
 	}
 
@@ -188,7 +188,7 @@ namespace adria
 			decoder, GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName,
 			&application_name_length);
 
-		std::vector<char> application_name(application_name_length, '\0');
+		std::vector<Char> application_name(application_name_length, '\0');
 
 		GFSDK_Aftermath_GpuCrashDump_GetDescription(
 			decoder, GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName,
@@ -206,7 +206,7 @@ namespace adria
 		std::ofstream dump_file(crash_dump_filename, std::ios::out | std::ios::binary);
 		if (dump_file)
 		{
-			dump_file.write((const char*)gpu_crash_dump_data, gpu_crash_dump_size);
+			dump_file.write((const Char*)gpu_crash_dump_data, gpu_crash_dump_size);
 			dump_file.close();
 		}
 
@@ -221,7 +221,7 @@ namespace adria
 			this,
 			&json_size);
 
-		std::vector<char> json(json_size);
+		std::vector<Char> json(json_size);
 		result = GFSDK_Aftermath_GpuCrashDump_GetJSON(decoder, uint32_t(json.size()), json.data());
 		if (result != GFSDK_Aftermath_Result_Success) return;
 
@@ -239,7 +239,7 @@ namespace adria
 	{
 		std::string file_path = paths::AftermathDir + "shader-" + ToString(identifier) + ".nvdbg";
 		std::ofstream f(file_path, std::ios::out | std::ios::binary);
-		if (f) f.write((const char*)shader_debug_info, shader_debug_info_size);
+		if (f) f.write((const Char*)shader_debug_info, shader_debug_info_size);
 	}
 
 	void GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled(GfxShaderKey const& shader_key)
@@ -247,7 +247,7 @@ namespace adria
 		GfxShader const& shader = GetGfxShader(shader_key);
 		D3D12_SHADER_BYTECODE shader_bytecode{ shader.GetData(), shader.GetSize() };
 		GFSDK_Aftermath_ShaderBinaryHash shader_hash;
-		bool result = GFSDK_Aftermath_GetShaderHash(GFSDK_Aftermath_Version_API, &shader_bytecode, &shader_hash);
+		Bool result = GFSDK_Aftermath_GetShaderHash(GFSDK_Aftermath_Version_API, &shader_bytecode, &shader_hash);
 		ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
 		shader_hash_map[shader_hash.hash] = shader_key;
 	}

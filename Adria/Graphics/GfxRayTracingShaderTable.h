@@ -32,9 +32,9 @@ namespace adria
 	public:
 		explicit GfxRayTracingShaderTable(GfxStateObject* state_object);
 
-		void SetRayGenShader(char const* name, void* local_data = nullptr, Uint32 data_size = 0);
-		void AddMissShader(char const* name, Uint32 i, void* local_data = nullptr, Uint32 data_size = 0);
-		void AddHitGroup(char const* name, Uint32 i, void* local_data = nullptr, Uint32 data_size = 0);
+		void SetRayGenShader(Char const* name, void* local_data = nullptr, Uint32 data_size = 0);
+		void AddMissShader(Char const* name, Uint32 i, void* local_data = nullptr, Uint32 data_size = 0);
+		void AddHitGroup(Char const* name, Uint32 i, void* local_data = nullptr, Uint32 data_size = 0);
 
 		void Commit(GfxLinearDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc);
 		void Commit(GfxRingDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc);

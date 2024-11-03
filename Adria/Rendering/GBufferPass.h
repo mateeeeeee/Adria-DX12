@@ -17,7 +17,7 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h);
 
-		void OnRainEvent(bool enabled)
+		void OnRainEvent(Bool enabled)
 		{
 			use_rain_pso = enabled;
 		}
@@ -26,7 +26,7 @@ namespace adria
 		entt::registry& reg;
 		GfxDevice* gfx;
 		Uint32 width, height;
-		bool use_rain_pso = false;
+		Bool use_rain_pso = false;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> gbuffer_psos;
 
 	private:

@@ -58,6 +58,6 @@ namespace adria
         GfxRenderPassFlags flags = GfxRenderPassFlagBit_None;
         Uint32 width = 0;
         Uint32 height = 0;
-        bool legacy = false;
+        Bool legacy = false;
     };
 }

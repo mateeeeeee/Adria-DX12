@@ -22,8 +22,8 @@ namespace adria
 
 		struct QueryData
 		{
-			bool query_started = false;
-			bool query_finished = false;
+			Bool query_started = false;
+			Bool query_finished = false;
 			GfxCommandList* cmd_list = nullptr;
 		};
 
@@ -67,7 +67,7 @@ namespace adria
 			name_to_index_map.clear();
 			scope_counter = 0;
 		}
-		void BeginProfileScope(GfxCommandList* cmd_list, char const* name)
+		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
 		{
 			Uint32 profile_index = scope_counter++;
 #if GFX_MULTITHREADED
@@ -86,7 +86,7 @@ namespace adria
 			profile_data.query_started = true;
 			profile_data.cmd_list = cmd_list;
 		}
-		void EndProfileScope(char const* name)
+		void EndProfileScope(Char const* name)
 		{
 			Uint32 profile_index = -1;
 #if GFX_MULTITHREADED
@@ -139,8 +139,8 @@ namespace adria
 					Uint64 end_time = frame_query_timestamps[index * 2 + 1];
 
 					Uint64 delta = end_time - start_time;
-					float frequency = float(gpu_frequency);
-					float time_ms = (delta / frequency) * 1000.0f;
+					Float frequency = Float(gpu_frequency);
+					Float time_ms = (delta / frequency) * 1000.0f;
 					results.emplace_back(time_ms, name);
 				}
 			}
@@ -165,12 +165,12 @@ namespace adria
 		pimpl->NewFrame();
 	}
 
-	void GfxProfiler::BeginProfileScope(GfxCommandList* cmd_list, char const* name)
+	void GfxProfiler::BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
 	{
 		pimpl->BeginProfileScope(cmd_list, name);
 	}
 
-	void GfxProfiler::EndProfileScope(char const* name)
+	void GfxProfiler::EndProfileScope(Char const* name)
 	{
 		pimpl->EndProfileScope(name);
 	}

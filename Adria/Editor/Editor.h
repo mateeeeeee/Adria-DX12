@@ -50,7 +50,7 @@ namespace adria
 
 		void OnWindowEvent(WindowEventData const& msg_data);
 		void Run();
-		bool IsActive() const;
+		Bool IsActive() const;
 
 		void AddCommand(GUICommand&& command);
 		void AddDebugTexture(GUITexture&& debug_texture);
@@ -60,25 +60,25 @@ namespace adria
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<ImGuiManager> gui;
 		GfxDevice* gfx;
-		bool ray_tracing_supported = false;
+		Bool ray_tracing_supported = false;
 
 		std::unique_ptr<EditorConsole> console;
 		EditorLogger* logger;
 
-		bool scene_focused = false;
+		Bool scene_focused = false;
 		entt::entity selected_entity;
 		
-		bool gizmo_enabled = false;
+		Bool gizmo_enabled = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 
-		bool reload_shaders = false;
-		bool visibility_flags[Flag_Count] = {false};
+		Bool reload_shaders = false;
+		Bool visibility_flags[Flag_Count] = {false};
 		std::vector<GUICommand> commands;
 		std::vector<GUITexture> debug_textures;
 		
 		EditorEvents editor_events;
 		ViewportData viewport_data;
-		bool show_basic_console = false;
+		Bool show_basic_console = false;
 
 	private:
 		Editor();

@@ -20,7 +20,7 @@ namespace adria
 	public:
 		ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 
-		void AddPass(RenderGraph& rendergraph, bool recreate_clusters);
+		void AddPass(RenderGraph& rendergraph, Bool recreate_clusters);
 
 		void OnResize(Uint32 w, Uint32 h)
 		{

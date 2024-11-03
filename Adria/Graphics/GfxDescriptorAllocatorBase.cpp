@@ -13,7 +13,7 @@ namespace adria
 		return handle;
 	}
 
-	GfxDescriptorAllocatorBase::GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, bool shader_visible) : gfx(gfx),
+	GfxDescriptorAllocatorBase::GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, Bool shader_visible) : gfx(gfx),
 		type(type),
 		descriptor_count(descriptor_count),
 		shader_visible(shader_visible), head_descriptor{}

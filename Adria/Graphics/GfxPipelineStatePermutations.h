@@ -29,26 +29,26 @@ namespace adria
 	template<typename PSO>
 	struct IsGraphicsPipelineState
 	{
-		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Graphics;
+		static constexpr Bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Graphics;
 	};
 	template<typename PSO>
-	constexpr bool IsGraphicsPipelineStateV = IsGraphicsPipelineState<PSO>::value;
+	constexpr Bool IsGraphicsPipelineStateV = IsGraphicsPipelineState<PSO>::value;
 
 	template<typename PSO>
 	struct IsComputePipelineState
 	{
-		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Compute;
+		static constexpr Bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Compute;
 	};
 	template<typename PSO>
-	constexpr bool IsComputePipelineStateV = IsComputePipelineState<PSO>::value;
+	constexpr Bool IsComputePipelineStateV = IsComputePipelineState<PSO>::value;
 
 	template<typename PSO>
 	struct IsMeshShaderPipelineState
 	{
-		static constexpr bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::MeshShader;
+		static constexpr Bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::MeshShader;
 	};
 	template<typename PSO>
-	constexpr bool IsMeshShaderPipelineStateV = IsMeshShaderPipelineState<PSO>::value;
+	constexpr Bool IsMeshShaderPipelineStateV = IsMeshShaderPipelineState<PSO>::value;
 
 	template<typename PSO>
 	class GfxPipelineStatePermutations
@@ -66,7 +66,7 @@ namespace adria
 		~GfxPipelineStatePermutations() = default;
 
 		template<Uint32 P>
-		void AddDefine(char const* name, char const* value)
+		void AddDefine(Char const* name, Char const* value)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
@@ -90,13 +90,13 @@ namespace adria
 			}
 		}
 		template<Uint32 P>
-		void AddDefine(char const* name)
+		void AddDefine(Char const* name)
 		{
 			AddDefine<P>(name, "");
 		}
 
 		template<GfxShaderStage stage, Uint32 P>
-		void AddDefine(char const* name, char const* value)
+		void AddDefine(Char const* name, Char const* value)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
 			PSODesc& desc = pso_descs[P];
@@ -120,7 +120,7 @@ namespace adria
 			}
 		}
 		template<GfxShaderStage stage, Uint32 P>
-		void AddDefine(char const* name)
+		void AddDefine(Char const* name)
 		{
 			AddDefine<stage, P>(name, "");
 		}

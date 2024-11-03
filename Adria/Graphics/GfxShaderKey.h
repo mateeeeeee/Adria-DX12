@@ -21,14 +21,14 @@ namespace adria
 		void Init(ShaderID shader_id);
 		void operator=(ShaderID shader_id);
 
-		void AddDefine(char const* name, char const* value = "");
-		bool IsValid() const;
+		void AddDefine(Char const* name, Char const* value = "");
+		Bool IsValid() const;
 
 		std::vector<GfxShaderDefine> const& GetDefines() const;
 		ShaderID GetShaderID() const;
 
 		operator ShaderID() const;
-		bool operator==(GfxShaderKey const& key) const;
+		Bool operator==(GfxShaderKey const& key) const;
 
 	private:
 		std::unique_ptr<Impl> impl;

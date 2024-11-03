@@ -21,7 +21,7 @@
 
 namespace adria
 {
-	extern bool dump_render_graph = false;
+	extern Bool dump_render_graph = false;
 
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
@@ -41,12 +41,12 @@ namespace adria
 		return RGBufferId(buffers.size() - 1);
 	}
 
-	bool RenderGraph::IsTextureDeclared(RGResourceName name)
+	Bool RenderGraph::IsTextureDeclared(RGResourceName name)
 	{
 		return texture_name_id_map.contains(name);
 	}
 
-	bool RenderGraph::IsBufferDeclared(RGResourceName name)
+	Bool RenderGraph::IsBufferDeclared(RGResourceName name)
 	{
 		return buffer_name_id_map.contains(name);
 	}
@@ -79,12 +79,12 @@ namespace adria
 		AddExportBufferCopyPass(name, buffer);
 	}
 
-	bool RenderGraph::IsValidTextureHandle(RGTextureId handle) const
+	Bool RenderGraph::IsValidTextureHandle(RGTextureId handle) const
 	{
 		return handle.IsValid() && handle.id < textures.size();
 	}
 
-	bool RenderGraph::IsValidBufferHandle(RGBufferId handle) const
+	Bool RenderGraph::IsValidBufferHandle(RGBufferId handle) const
 	{
 		return handle.IsValid() && handle.id < buffers.size();
 	}
@@ -171,7 +171,7 @@ namespace adria
 					}
 					continue;
 				}
-				bool found = false;
+				Bool found = false;
 				for (Sint32 j = (Sint32)i - 1; j >= 0; --j)
 				{
 					auto& prev_dependency_level = dependency_levels[j];
@@ -201,7 +201,7 @@ namespace adria
 					}
 					continue;
 				}
-				bool found = false;
+				Bool found = false;
 				for (Sint32 j = (Sint32)i - 1; j >= 0; --j)
 				{
 					auto& prev_dependency_level = dependency_levels[j];
@@ -299,7 +299,7 @@ namespace adria
 			for (Uint64 j = i + 1; j < passes.size(); ++j)
 			{
 				auto& other_pass = passes[j];
-				bool depends = false;
+				Bool depends = false;
 				for (auto other_node_read : other_pass->texture_reads)
 				{
 					if (pass->texture_writes.find(other_node_read) != pass->texture_writes.end())
@@ -326,7 +326,7 @@ namespace adria
 	void RenderGraph::TopologicalSort()
 	{
 		std::vector<Uint64> sort{};
-		std::vector<bool>  visited(passes.size(), false);
+		std::vector<Bool>  visited(passes.size(), false);
 		for (Uint64 i = 0; i < passes.size(); i++)
 		{
 			if (visited[i] == false) DepthFirstSearch(i, visited, topologically_sorted_passes);
@@ -456,7 +456,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DepthFirstSearch(Uint64 i, std::vector<bool>& visited, std::vector<Uint64>& topologically_sorted_passes)
+	void RenderGraph::DepthFirstSearch(Uint64 i, std::vector<Bool>& visited, std::vector<Uint64>& topologically_sorted_passes)
 	{
 		visited[i] = true;
 		for (auto j : adjacency_lists[i])
@@ -1100,32 +1100,32 @@ namespace adria
 		ADRIA_ASSERT_MSG(false, "Not yet implemented");
 	}
 
-	void RenderGraph::Dump(char const* graph_file_name)
+	void RenderGraph::Dump(Char const* graph_file_name)
 	{
 		static struct GraphVizStyle
 		{
-			char const* rank_dir{ "TB" };
+			Char const* rank_dir{ "TB" };
 			struct
 			{
-				char const* name{ "helvetica" };
+				Char const* name{ "helvetica" };
 				Sint32       size{ 10 };
 			} font;
 			struct
 			{
 				struct
 				{
-					char const* executed{ "orange" };
-					char const* culled{ "lightgray" };
+					Char const* executed{ "orange" };
+					Char const* culled{ "lightgray" };
 				} pass;
 				struct
 				{
-					char const* imported{ "lightsteelblue" };
-					char const* transient{ "skyblue" };
+					Char const* imported{ "lightsteelblue" };
+					Char const* transient{ "skyblue" };
 				} resource;
 				struct
 				{
-					char const* read{ "olivedrab3" };
-					char const* write{ "orangered" };
+					Char const* read{ "olivedrab3" };
+					Char const* write{ "orangered" };
 				} edge;
 			} color;
 		} style;

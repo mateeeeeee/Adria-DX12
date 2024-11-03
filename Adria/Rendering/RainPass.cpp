@@ -12,13 +12,13 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> Rain("r.Rain", false, "Enable Rain");
+	static TAutoConsoleVariable<Bool> Rain("r.Rain", false, "Enable Rain");
 	
 	struct RainData
 	{
 		Vector3 position;
 		Vector3 velocity;
-		float   state;
+		Float   state;
 	};
 	
 	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
@@ -27,7 +27,7 @@ namespace adria
 		Rain->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { OnRainEnabled(cvar->GetBool()); }));
 	}
 
-	void RainPass::Update(float dt)
+	void RainPass::Update(Float dt)
 	{
 		if (!pause_simulation)
 		{
@@ -69,8 +69,8 @@ namespace adria
 					{
 						Uint32   rain_data_idx;
 						Uint32   depth_idx;
-						float    simulation_speed;
-						float    range_radius;
+						Float    simulation_speed;
+						Float    range_radius;
 					} constants =
 					{
 						.rain_data_idx = i,
@@ -113,7 +113,7 @@ namespace adria
 				{
 					Uint32   rain_data_idx;
 					Uint32   rain_streak_idx;
-					float	 rain_streak_scale;
+					Float	 rain_streak_scale;
 
 				} constants =
 				{
@@ -156,7 +156,7 @@ namespace adria
 			}, GUICommandGroup_Renderer);
 	}
 
-	bool RainPass::IsEnabled() const
+	Bool RainPass::IsEnabled() const
 	{
 		return Rain.Get();
 	}
@@ -170,7 +170,7 @@ namespace adria
 		GfxBufferDesc rain_data_buffer_desc = StructuredBufferDesc<RainData>(MAX_RAIN_DATA_BUFFER_SIZE);
 		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);
 
-		RealRandomGenerator<float> rng(-1.0f, 1.0f);
+		RealRandomGenerator<Float> rng(-1.0f, 1.0f);
 		for (Uint64 i = 0; i < MAX_RAIN_DATA_BUFFER_SIZE; ++i)
 		{
 			rain_data_buffer_init[i].position = Vector3(0.0f, -1000.0f, 0.0f);

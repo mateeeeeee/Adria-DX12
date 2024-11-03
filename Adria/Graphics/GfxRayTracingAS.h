@@ -45,7 +45,7 @@ namespace adria
 		Uint32 index_count;
 		GfxFormat index_format;
 
-		bool opaque;
+		Bool opaque;
 	};
 
 	class GfxRayTracingBLAS
@@ -67,7 +67,7 @@ namespace adria
 	struct GfxRayTracingInstance
 	{
 		GfxRayTracingBLAS* blas;
-		float transform[4][4];
+		Float transform[4][4];
 		Uint32 instance_id;
 		Uint8 instance_mask;
 		GfxRayTracingInstanceFlags flags;

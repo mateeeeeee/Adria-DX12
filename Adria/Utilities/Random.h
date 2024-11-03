@@ -7,7 +7,7 @@
 namespace adria
 {
 
-    template<typename FloatType = double,
+    template<typename FloatType = Float64,
         typename Generator = std::mt19937,
         typename = std::enable_if_t<std::is_floating_point_v<FloatType>>
     >

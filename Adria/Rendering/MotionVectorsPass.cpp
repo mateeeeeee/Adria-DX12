@@ -17,7 +17,7 @@ namespace adria
 		CreatePSO();
 	}
 
-	bool MotionVectorsPass::IsEnabled(PostProcessor const* postprocessor) const
+	Bool MotionVectorsPass::IsEnabled(PostProcessor const* postprocessor) const
 	{
 		return postprocessor->NeedsVelocityBuffer();
 	}

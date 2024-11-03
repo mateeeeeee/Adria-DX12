@@ -38,8 +38,8 @@ namespace adria
 			Vector3 probe_size;
 			Sint32 max_rays_per_probe;
 			Vector3i probe_count;
-			float normal_bias;
-			float energy_preservation;
+			Float normal_bias;
+			Float energy_preservation;
 			Sint32 irradiance_history_idx;
 			Sint32 distance_history_idx;
 		};
@@ -61,21 +61,21 @@ namespace adria
 		void AddVisualizePass(RenderGraph& rg);
 		void GUI();
 
-		bool Visualize() const   { return visualize; }
-		bool IsEnabled() const;
-		bool IsSupported() const { return is_supported; }
+		Bool Visualize() const   { return visualize; }
+		Bool IsEnabled() const;
+		Bool IsSupported() const { return is_supported; }
 		Sint32 GetDDGIVolumeIndex();
 
 	private:
 		GfxDevice* gfx;
 		entt::registry& reg;
 		Uint32 width, height;
-		bool is_supported;
+		Bool is_supported;
 		std::unique_ptr<GfxStateObject> ddgi_trace_so;
 		DDGIVolume ddgi_volume;
 		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;
-		bool visualize = false;
+		Bool visualize = false;
 		DDGIVisualizeMode ddgi_visualize_mode = DDGIVisualizeMode_Irradiance;
 		std::unique_ptr<GfxComputePipelineState>  update_irradiance_pso;
 		std::unique_ptr<GfxComputePipelineState>  update_distance_pso;

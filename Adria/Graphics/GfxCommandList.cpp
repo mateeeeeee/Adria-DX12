@@ -109,7 +109,7 @@ namespace adria
 			d3d12_clear_value.Format = ConvertGfxFormat(value.format);
 			if (value.active_member == GfxClearValue::GfxActiveMember::Color)
 			{
-				memcpy(d3d12_clear_value.Color, value.color.color, sizeof(float) * 4);
+				memcpy(d3d12_clear_value.Color, value.color.color, sizeof(Float) * 4);
 			}
 			else if(value.active_member == GfxClearValue::GfxActiveMember::DepthStencil)
 			{
@@ -119,7 +119,7 @@ namespace adria
 		}
 	}
 
-	GfxCommandList::GfxCommandList(GfxDevice* gfx, GfxCommandListType type, char const* name)
+	GfxCommandList::GfxCommandList(GfxDevice* gfx, GfxCommandListType type, Char const* name)
 		: gfx(gfx), type(type), cmd_queue(gfx->GetCommandQueue(type)), use_legacy_barriers(!gfx->GetCapabilities().SupportsEnhancedBarriers()), current_rt_table(nullptr)
 	{
 		D3D12_COMMAND_LIST_TYPE cmd_list_type = ToD3D12CommandListType(type);
@@ -503,7 +503,7 @@ namespace adria
 		++command_count;
 	}
 
-	void GfxCommandList::ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value)
+	void GfxCommandList::ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Float* clear_value)
 	{
 		cmd_list->ClearUnorderedAccessViewFloat(uav, uav_cpu, resource.GetNative(), clear_value, 0, nullptr);
 		++command_count;
@@ -515,7 +515,7 @@ namespace adria
 		++command_count;
 	}
 
-	void GfxCommandList::ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value)
+	void GfxCommandList::ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Float* clear_value)
 	{
 		cmd_list->ClearUnorderedAccessViewFloat(uav, uav_cpu, resource.GetNative(), clear_value, 0, nullptr);
 		++command_count;
@@ -644,7 +644,7 @@ namespace adria
 		cmd_list->OMSetStencilRef(stencil);
 	}
 
-	void GfxCommandList::SetBlendFactor(float const* blend_factor)
+	void GfxCommandList::SetBlendFactor(Float const* blend_factor)
 	{
 		cmd_list->OMSetBlendFactor(blend_factor);
 	}
@@ -699,7 +699,7 @@ namespace adria
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);
 
-		D3D12_VIEWPORT vp = { (float)x, (float)y, (float)width, (float)height, 0.0f, 1.0f };
+		D3D12_VIEWPORT vp = { (Float)x, (Float)y, (Float)width, (Float)height, 0.0f, 1.0f };
 		cmd_list->RSSetViewports(1, &vp);
 		SetScissorRect(x, y, width, height);
 	}
@@ -877,19 +877,19 @@ namespace adria
 		return gfx->GetDynamicAllocator()->Allocate(size, align);
 	}
 
-	void GfxCommandList::ClearRenderTarget(GfxDescriptor rtv, float const* clear_color)
+	void GfxCommandList::ClearRenderTarget(GfxDescriptor rtv, Float const* clear_color)
 	{
 		cmd_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
 	}
 
-	void GfxCommandList::ClearDepth(GfxDescriptor dsv, float depth /*= 1.0f*/, Uint8 stencil /*= 0*/, bool clear_stencil /*= false*/)
+	void GfxCommandList::ClearDepth(GfxDescriptor dsv, Float depth /*= 1.0f*/, Uint8 stencil /*= 0*/, Bool clear_stencil /*= false*/)
 	{
 		D3D12_CLEAR_FLAGS d3d12_clear_flags = D3D12_CLEAR_FLAG_DEPTH;
 		if (clear_stencil) d3d12_clear_flags |= D3D12_CLEAR_FLAG_STENCIL;
 		cmd_list->ClearDepthStencilView(dsv, d3d12_clear_flags, depth, stencil, 0, nullptr);
 	}
 
-	void GfxCommandList::SetRenderTargets(std::span<GfxDescriptor const> rtvs, GfxDescriptor const* dsv /*= nullptr*/, bool single_rt /*= false*/)
+	void GfxCommandList::SetRenderTargets(std::span<GfxDescriptor const> rtvs, GfxDescriptor const* dsv /*= nullptr*/, Bool single_rt /*= false*/)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE* d3d12_dsv = nullptr;
 		if (dsv)

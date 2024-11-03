@@ -28,7 +28,7 @@ namespace adria
 		explicit RenderGraphResourceId(Uint64 _id) : id(static_cast<Uint32>(_id)) {}
 
 		void Invalidate() { id = invalid_id; }
-		bool IsValid() const { return id != invalid_id; }
+		Bool IsValid() const { return id != invalid_id; }
 		auto operator<=>(RenderGraphResourceId const&) const = default;
 
 		Uint32 id;
@@ -102,7 +102,7 @@ namespace adria
 		}
 
 		void Invalidate() { id = invalid_id; }
-		bool IsValid() const { return id != invalid_id; }
+		Bool IsValid() const { return id != invalid_id; }
 		auto operator<=>(RenderGraphResourceDescriptorId const&) const = default;
 
 		Uint64 id;

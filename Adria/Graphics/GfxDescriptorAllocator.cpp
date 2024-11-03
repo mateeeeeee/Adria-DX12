@@ -31,7 +31,7 @@ namespace adria
 			.end = incremented_handle
 		};
 
-		bool found = false;
+		Bool found = false;
 		for (auto range = std::begin(free_descriptor_ranges);
 			range != std::end(free_descriptor_ranges) && found == false; ++range)
 		{

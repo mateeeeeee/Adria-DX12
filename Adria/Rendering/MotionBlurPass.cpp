@@ -12,7 +12,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<bool> MotionBlur("r.MotionBlur", false, "Enable or Disable Motion Blur");
+	static TAutoConsoleVariable<Bool> MotionBlur("r.MotionBlur", false, "Enable or Disable Motion Blur");
 
 	MotionBlurPass::MotionBlurPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h) 
 	{
@@ -80,7 +80,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	bool MotionBlurPass::IsEnabled(PostProcessor const*) const
+	Bool MotionBlurPass::IsEnabled(PostProcessor const*) const
 	{
 		return MotionBlur.Get();
 	}

@@ -16,7 +16,7 @@
 namespace adria
 {
 
-	static TAutoConsoleVariable<bool> Fog("r.Fog", false, "Enable or Disable Fog");
+	static TAutoConsoleVariable<Bool> Fog("r.Fog", false, "Enable or Disable Fog");
 	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, Uint32 w, Uint32 h)
 		: gfx(gfx), width(w), height(h), params()
 	{
@@ -63,19 +63,19 @@ namespace adria
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				Uint32 const i = dst_descriptor.GetIndex();
 
-				float density = params.fog_density / 1000.0f;
-				float falloff = params.fog_falloff / 1000.0f;
+				Float density = params.fog_density / 1000.0f;
+				Float falloff = params.fog_falloff / 1000.0f;
 
 				struct ExponentialHeightFogConstants
 				{
-					float   fog_falloff;
-					float   fog_density;
-					float   fog_height;
-					float   fog_start;
+					Float   fog_falloff;
+					Float   fog_density;
+					Float   fog_height;
+					Float   fog_start;
 
-					float   fog_at_view_position;
-					float   fog_min_opacity;
-					float   fog_cutoff_distance;
+					Float   fog_at_view_position;
+					Float   fog_min_opacity;
+					Float   fog_cutoff_distance;
 					Uint32  fog_color;
 
 					Uint32  depth_idx;
@@ -100,7 +100,7 @@ namespace adria
 		postprocessor->SetFinalResource(RG_NAME(FogOutput));
 	}
 
-	bool ExponentialHeightFogPass::IsEnabled(PostProcessor const*) const
+	Bool ExponentialHeightFogPass::IsEnabled(PostProcessor const*) const
 	{
 		return Fog.Get();
 	}

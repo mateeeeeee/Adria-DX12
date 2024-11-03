@@ -13,11 +13,11 @@ namespace adria
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) = 0;
 		virtual void OnResize(Uint32, Uint32) = 0;
-		virtual bool IsEnabled(PostProcessor const*) const = 0;
+		virtual Bool IsEnabled(PostProcessor const*) const = 0;
 		virtual void OnSceneInitialized() {}
 		virtual void GUI() {}
-		virtual bool IsGUIVisible(PostProcessor const* postprocessor) const { return true; }
-		virtual bool IsSupported() const { return true; }
+		virtual Bool IsGUIVisible(PostProcessor const* postprocessor) const { return true; }
+		virtual Bool IsSupported() const { return true; }
 	};
 
 	class EmptyPostEffect : public PostEffect
@@ -27,7 +27,7 @@ namespace adria
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) {}
 		virtual void OnResize(Uint32, Uint32) {}
-		virtual bool IsEnabled(PostProcessor const*) const { return true; }
+		virtual Bool IsEnabled(PostProcessor const*) const { return true; }
 	};
 
 	template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
@@ -43,7 +43,7 @@ namespace adria
 		{
 			for (auto& post_effect : post_effects) post_effect->OnResize(w, h);
 		}
-		virtual bool IsEnabled(PostProcessor const* postprocessor) const override
+		virtual Bool IsEnabled(PostProcessor const* postprocessor) const override
 		{
 			return post_effects[post_effect_idx]->IsEnabled(postprocessor);
 		}

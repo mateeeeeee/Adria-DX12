@@ -29,7 +29,7 @@ namespace adria
 		CreatePSOs();
 	}
 
-	bool LensFlarePass::IsEnabled(PostProcessor const* postprocessor) const
+	Bool LensFlarePass::IsEnabled(PostProcessor const* postprocessor) const
 	{
 		auto lights = postprocessor->GetRegistry().view<Light>();
 		for (entt::entity light : lights)
@@ -90,7 +90,7 @@ namespace adria
 		);
 	}
 
-	bool LensFlarePass::IsGUIVisible(PostProcessor const* postprocessor) const
+	Bool LensFlarePass::IsGUIVisible(PostProcessor const* postprocessor) const
 	{
 		return IsEnabled(postprocessor);
 	}
@@ -179,9 +179,9 @@ namespace adria
 
 				struct LensFlareConstants2
 				{
-					float light_ss_x;
-					float light_ss_y;
-					float light_ss_z;
+					Float light_ss_x;
+					Float light_ss_y;
+					Float light_ss_z;
 				} constants2 =
 				{
 					.light_ss_x = light_ss.x,
@@ -243,8 +243,8 @@ namespace adria
 
 				struct LensFlareConstants
 				{
-					float light_ss_x;
-					float light_ss_y;
+					Float light_ss_x;
+					Float light_ss_y;
 					Uint32 depth_idx;
 					Uint32 output_idx;
 				} constants =

@@ -58,7 +58,7 @@ namespace adria
 				Uint32 i = dst_handle.GetIndex();
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				Float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 5),
 					context.GetReadWriteTexture(data.output), clear);
 

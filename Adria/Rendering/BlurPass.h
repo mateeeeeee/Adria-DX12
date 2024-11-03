@@ -13,7 +13,7 @@ namespace adria
 		explicit BlurPass(GfxDevice* gfx);
 		~BlurPass();
 
-		void AddPass(RenderGraph& rendergraph, RGResourceName src_texture, RGResourceName blurred_texture, char const* pass_name = "");
+		void AddPass(RenderGraph& rendergraph, RGResourceName src_texture, RGResourceName blurred_texture, Char const* pass_name = "");
 
 	private:
 		GfxDevice* gfx;

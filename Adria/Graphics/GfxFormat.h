@@ -594,7 +594,7 @@ namespace adria
 		}
 		return 1;
 	}
-	inline constexpr bool IsGfxFormatDepth(GfxFormat _format)
+	inline constexpr Bool IsGfxFormatDepth(GfxFormat _format)
 	{
 		switch (_format)
 		{
@@ -631,7 +631,7 @@ namespace adria
 		}
 		return size;
 	}
-	inline char const* GfxFormatToString(GfxFormat format)
+	inline Char const* GfxFormatToString(GfxFormat format)
 	{
 		switch (format)
 		{

@@ -20,7 +20,7 @@ namespace adria
 		friend class GfxRayTracingShaderTable;
 
 	public:
-		bool IsValid() const { return d3d12_so != nullptr; }
+		Bool IsValid() const { return d3d12_so != nullptr; }
 
 	private:
 		Ref<ID3D12StateObject> d3d12_so;

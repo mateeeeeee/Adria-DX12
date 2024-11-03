@@ -19,12 +19,12 @@ namespace adria
 		Vector3 const max_extents(50.0f, 50.0f, 50.0f);
 		Vector3 const min_extents = -max_extents;
 
-		float l = min_extents.x;
-		float b = min_extents.y;
-		float n = 1.0f;
-		float r = max_extents.x;
-		float t = max_extents.y;
-		float f = (1000 - camera_position.y) * 1.5f;
+		Float l = min_extents.x;
+		Float b = min_extents.y;
+		Float n = 1.0f;
+		Float r = max_extents.x;
+		Float t = max_extents.y;
+		Float f = (1000 - camera_position.y) * 1.5f;
 		Matrix V = XMMatrixLookAtLH(Vector4(0, 1000, 0, 1), camera_position, Vector3::Forward);
 		Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 		return { V,P };

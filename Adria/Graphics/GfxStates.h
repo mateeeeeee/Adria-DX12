@@ -132,22 +132,22 @@ namespace adria
 	{
 		GfxFillMode fill_mode = GfxFillMode::Solid;
 		GfxCullMode cull_mode = GfxCullMode::Back;
-		bool front_counter_clockwise = false;
+		Bool front_counter_clockwise = false;
 		Sint32 depth_bias = 0;
-		float depth_bias_clamp = 0.0f;
-		float slope_scaled_depth_bias = 0.0f;
-		bool depth_clip_enable = true;
-		bool multisample_enable = false;
-		bool antialiased_line_enable = false;
-		bool conservative_rasterization_enable = false;
+		Float depth_bias_clamp = 0.0f;
+		Float slope_scaled_depth_bias = 0.0f;
+		Bool depth_clip_enable = true;
+		Bool multisample_enable = false;
+		Bool antialiased_line_enable = false;
+		Bool conservative_rasterization_enable = false;
 		Uint32 forced_sample_count = 0;
 	};
 	struct GfxDepthStencilState
 	{
-		bool depth_enable = true;
+		Bool depth_enable = true;
 		GfxDepthWriteMask depth_write_mask = GfxDepthWriteMask::All;
 		GfxComparisonFunc depth_func = GfxComparisonFunc::Greater;
-		bool stencil_enable = false;
+		Bool stencil_enable = false;
 		Uint8 stencil_read_mask = 0xff;
 		Uint8 stencil_write_mask = 0xff;
 		struct GfxDepthStencilOp
@@ -162,11 +162,11 @@ namespace adria
 	};
 	struct GfxBlendState
 	{
-		bool alpha_to_coverage_enable = false;
-		bool independent_blend_enable = false;
+		Bool alpha_to_coverage_enable = false;
+		Bool independent_blend_enable = false;
 		struct GfxRenderTargetBlendState
 		{
-			bool blend_enable = false;
+			Bool blend_enable = false;
 			GfxBlend src_blend = GfxBlend::One;
 			GfxBlend dest_blend = GfxBlend::Zero;
 			GfxBlendOp blend_op = GfxBlendOp::Add;

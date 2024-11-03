@@ -16,13 +16,13 @@ namespace adria
 
 	std::string LevelToString(LogLevel type);
 	std::string GetLogTime();
-	std::string LineInfoToString(char const* file, Uint32 line);
+	std::string LineInfoToString(Char const* file, Uint32 line);
 
 	class ILogger
 	{
 	public:
 		virtual ~ILogger() = default;
-		virtual void Log(LogLevel level, char const* entry, char const* file, Uint32 line) = 0;
+		virtual void Log(LogLevel level, Char const* entry, Char const* file, Uint32 line) = 0;
 	};
 
 	class LogManager
@@ -33,8 +33,8 @@ namespace adria
 		~LogManager();
 
 		void Register(ILogger* logger);
-		void Log(LogLevel level, char const* str, char const* file, Uint32 line);
-		void Log(LogLevel level, char const* str, std::source_location location = std::source_location::current());
+		void Log(LogLevel level, Char const* str, Char const* file, Uint32 line);
+		void Log(LogLevel level, Char const* str, std::source_location location = std::source_location::current());
 
 	private:
 		std::unique_ptr<class LogManagerImpl> pimpl;

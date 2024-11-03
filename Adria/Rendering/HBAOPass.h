@@ -15,8 +15,8 @@ namespace adria
 	{
 		struct HBAOParams
 		{
-			float   hbao_power = 6.0f;
-			float   hbao_radius = 3.0f;
+			Float   hbao_power = 6.0f;
+			Float   hbao_radius = 3.0f;
 		};
 
 	public:

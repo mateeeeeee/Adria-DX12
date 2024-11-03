@@ -28,27 +28,27 @@ namespace adria
 			needs_create = true;
 		}
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
-		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual Bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
 
-		virtual bool IsSupported() const override { return is_supported; }
+		virtual Bool IsSupported() const override { return is_supported; }
 
 	private:
-		bool is_supported = false;
-		char name_version[16] = {};
+		Bool is_supported = false;
+		Char name_version[16] = {};
 		GfxDevice* gfx = nullptr;
 		Uint32 display_width, display_height;
 		Uint32 render_width, render_height;
 
 		NVSDK_NGX_Parameter* ngx_parameters = nullptr;
 		NVSDK_NGX_Handle* dlss_feature = nullptr;
-		bool needs_create = true;
+		Bool needs_create = true;
 
 		NVSDK_NGX_PerfQuality_Value perf_quality = NVSDK_NGX_PerfQuality_Value_Balanced;
-		float sharpness = 0.5f;
+		Float sharpness = 0.5f;
 
 	private:
-		bool InitializeNVSDK_NGX();
+		Bool InitializeNVSDK_NGX();
 		void RecreateRenderResolution();
 
 		void CreateDLSS(GfxCommandList* cmd_list);

@@ -19,9 +19,9 @@ namespace adria
 
 		virtual void AddPass(RenderGraph&, PostProcessor*) override;
 		virtual void OnResize(Uint32 w, Uint32 h) override;
-		virtual bool IsEnabled(PostProcessor const*) const override;
+		virtual Bool IsEnabled(PostProcessor const*) const override;
 		virtual void GUI() override;
-		virtual bool IsSupported() const override;
+		virtual Bool IsSupported() const override;
 
 	private:
 		GfxDevice* gfx;
@@ -29,8 +29,8 @@ namespace adria
 		Uint32 width, height;
 		BlurPass blur_pass;
 
-		bool is_supported;
-		float reflection_roughness_scale = 0.0f;
+		Bool is_supported;
+		Float reflection_roughness_scale = 0.0f;
 		CopyToTexturePass copy_to_texture_pass;
 
 	private:
