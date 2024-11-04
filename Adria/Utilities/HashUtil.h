@@ -3,12 +3,30 @@
 
 namespace adria
 {
-	template <typename T>
-	constexpr void HashCombine(Uint64& seed, T const& v)
+	class HashState
 	{
-		std::hash<T> hasher{};
-		seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-	}
+	public:
+		HashState() : value(0) {}
+
+		void Combine(Uint64 hash)
+		{
+			value ^= hash + 0x9e3779b9 + (value << 6) + (value >> 2);
+		}
+
+		template<typename T>
+		void Combine(T const& v)
+		{
+			Combine(std::hash<T>{}(v));
+		}
+
+		operator Uint64 () const
+		{
+			return value;
+		}
+
+	private:
+		Uint64 value;
+	};
 
 	namespace crc
 	{
