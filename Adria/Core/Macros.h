@@ -21,28 +21,26 @@
 #define ADRIA_DEBUGZONE_END         __pragma(optimize("", on))
 
 
+#define ADRIA_NONCOPYABLE(Class)                 \
+        Class(Class const&)            = delete; \
+        Class& operator=(Class const&) = delete;
 
+#define ADRIA_NONMOVABLE(Class)                      \
+        Class(Class&&) noexcept            = delete; \
+        Class& operator=(Class&&) noexcept = delete;
 
-#define ADRIA_NONCOPYABLE(ClassName)                 \
-        ClassName(ClassName const&)            = delete; \
-        ClassName& operator=(ClassName const&) = delete;
+#define ADRIA_NONCOPYABLE_NONMOVABLE(Class) \
+        ADRIA_NONCOPYABLE(Class)            \
+        ADRIA_NONMOVABLE(Class)
 
-#define ADRIA_NONMOVABLE(ClassName)                      \
-        ClassName(ClassName&&) noexcept            = delete; \
-        ClassName& operator=(ClassName&&) noexcept = delete;
+#define ADRIA_DEFAULT_COPYABLE(Class)             \
+        Class(Class const&)            = default; \
+        Class& operator=(Class const&) = default;
 
-#define ADRIA_NONCOPYABLE_NONMOVABLE(ClassName) \
-        ADRIA_NONCOPYABLE(ClassName)                \
-        ADRIA_NONMOVABLE(ClassName)
+#define ADRIA_DEFAULT_MOVABLE(Class)                  \
+        Class(Class&&) noexcept            = default; \
+        Class& operator=(Class&&) noexcept = default;
 
-#define ADRIA_DEFAULT_COPYABLE(ClassName)             \
-        ClassName(ClassName const&)            = default; \
-        ClassName& operator=(ClassName const&) = default;
-
-#define ADRIA_DEFAULT_MOVABLE(ClassName)                  \
-        ClassName(ClassName&&) noexcept            = default; \
-        ClassName& operator=(ClassName&&) noexcept = default;
-
-#define ADRIA_DEFAULT_COPYABLE_MOVABLE(ClassName) \
-        ADRIA_DEFAULT_COPYABLE(ClassName)             \
-        ADRIA_DEFAULT_MOVABLE(ClassName)
+#define ADRIA_DEFAULT_COPYABLE_MOVABLE(Class) \
+        ADRIA_DEFAULT_COPYABLE(Class)         \
+        ADRIA_DEFAULT_MOVABLE(Class)

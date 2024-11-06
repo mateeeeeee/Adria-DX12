@@ -101,7 +101,7 @@ namespace adria
 			return args.back();
 		}
 
-		void Parse(int argc, wchar_t** argv)
+		void Parse(int argc, Wchar** argv)
 		{
 			std::vector<std::wstring> cmdline(argv, argv + argc);
 			for (Uint64 i = 0; i < cmdline.size(); ++i)
@@ -129,7 +129,7 @@ namespace adria
 		void Parse(std::wstring const& cmd_line)
 		{
 			int argc;
-			wchar_t** argv = CommandLineToArgvW(cmd_line.c_str(), &argc);
+			Wchar** argv = CommandLineToArgvW(cmd_line.c_str(), &argc);
 			Parse(argc, argv);
 		}
 

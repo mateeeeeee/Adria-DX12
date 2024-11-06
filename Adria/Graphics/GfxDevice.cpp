@@ -27,7 +27,7 @@ namespace adria
 {
 	namespace
 	{
-		inline constexpr wchar_t const* DredBreadcrumbOpName(D3D12_AUTO_BREADCRUMB_OP op)
+		inline constexpr Wchar const* DredBreadcrumbOpName(D3D12_AUTO_BREADCRUMB_OP op)
 		{
 			switch (op)
 			{
@@ -77,7 +77,7 @@ namespace adria
 			default: return L"Unknown";
 			}
 		}
-		inline constexpr wchar_t const* DredAllocationName(D3D12_DRED_ALLOCATION_TYPE type)
+		inline constexpr Wchar const* DredAllocationName(D3D12_DRED_ALLOCATION_TYPE type)
 		{
 			switch (type)
 			{
@@ -116,7 +116,7 @@ namespace adria
 			if (SUCCEEDED(dred->GetAutoBreadcrumbsOutput1(&DredAutoBreadcrumbsOutput)))
 			{
 				ADRIA_LOG(DEBUG, "[DRED] Last tracked GPU operations:");
-				std::map<Sint32, wchar_t const*> contextStrings;
+				std::map<Sint32, Wchar const*> contextStrings;
 				D3D12_AUTO_BREADCRUMB_NODE1 const* pNode = DredAutoBreadcrumbsOutput.pHeadAutoBreadcrumbNode;
 				while (pNode && pNode->pLastBreadcrumbValue)
 				{
@@ -148,7 +148,7 @@ namespace adria
 								context_string = it->second;
 							}
 
-							wchar_t const* opName = DredBreadcrumbOpName(breadcrumbOp);
+							Wchar const* opName = DredBreadcrumbOpName(breadcrumbOp);
 							ADRIA_LOG(DEBUG, "\tOp: %d, %ls%ls%s", op, opName, context_string.c_str(), (op + 1 == lastCompletedOp) ? " - Last completed" : "");
 						}
 					}
@@ -167,7 +167,7 @@ namespace adria
 					ADRIA_LOG(DEBUG, "[DRED] Active objects with VA ranges that match the faulting VA:");
 					while (pNode)
 					{
-						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType);
+						Wchar const* AllocTypeName = DredAllocationName(pNode->AllocationType);
 						ADRIA_LOG(DEBUG, "\tName: %s (Type: %ls)", pNode->ObjectNameA, AllocTypeName);
 						pNode = pNode->pNext;
 					}
@@ -180,7 +180,7 @@ namespace adria
 					while (pNode)
 					{
 						Uint32 allocTypeIndex = pNode->AllocationType - D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE;
-						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType);
+						Wchar const* AllocTypeName = DredAllocationName(pNode->AllocationType);
 						ADRIA_LOG(DEBUG, "\tName: %s (Type: %ls)", pNode->ObjectNameA, AllocTypeName);
 						pNode = pNode->pNext;
 					}
@@ -409,8 +409,8 @@ namespace adria
 	{
 		if (rendering_not_started) [[unlikely]]
 		{
-			rendering_not_started = false;
 			dynamic_allocator_on_init.reset();
+			rendering_not_started = false;
 		}
 
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();

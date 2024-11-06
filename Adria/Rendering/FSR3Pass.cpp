@@ -15,7 +15,7 @@ namespace adria
 
 	namespace
 	{
-		void FSR3Log(FfxMsgType type, wchar_t const* message)
+		void FSR3Log(FfxMsgType type, Wchar const* message)
 		{
 			std::string msg = ToString(message);
 			switch (type)

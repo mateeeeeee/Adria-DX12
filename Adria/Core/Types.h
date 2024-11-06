@@ -14,6 +14,7 @@ namespace adria
 	using Bool32 = Sint32;
 	using Bool = bool;
 	using Char = char;
+	using Wchar = wchar_t;
 	using Float = float;
 	using Float64 = double;
 }

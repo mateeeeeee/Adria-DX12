@@ -206,7 +206,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 
-		static const wchar_t* dll_paths[] = 
+		static const Wchar* dll_paths[] = 
 		{ 
 		SOLUTION_DIR L"\\External\\DLSS\\lib\\dev",
 		SOLUTION_DIR L"\\External\\DLSS\\lib\\rel",

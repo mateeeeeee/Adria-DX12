@@ -242,7 +242,7 @@ namespace adria
 			std::wstring entry_point = ToWideString(input.entry_point);
 			if (entry_point.empty()) entry_point = L"main";
 
-			std::vector<wchar_t const*> compile_args{};
+			std::vector<Wchar const*> compile_args{};
 			compile_args.push_back(name.c_str());
 			if (input.flags & ShaderCompilerFlag_Debug)
 			{
