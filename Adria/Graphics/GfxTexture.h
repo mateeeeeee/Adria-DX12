@@ -51,7 +51,6 @@ namespace adria
 		GfxTextureDescriptorFlag_DepthReadOnly = 0x1
 	};
 
-
 	enum GfxTextureChannelMapping : Uint32
 	{
 		GfxTextureChannelMapping_Red,
@@ -62,7 +61,7 @@ namespace adria
 		GfxTextureChannelMapping_One,
 	};
 
-	static constexpr GfxTextureChannelMapping GfxCustomTextureChannelMapping(GfxTextureChannelMapping R, GfxTextureChannelMapping G,
+	inline constexpr GfxTextureChannelMapping GfxCustomTextureChannelMapping(GfxTextureChannelMapping R, GfxTextureChannelMapping G,
 		GfxTextureChannelMapping B, GfxTextureChannelMapping A)
 	{
 		constexpr Uint32 GfxTextureChannelMappingMask = 0x7;

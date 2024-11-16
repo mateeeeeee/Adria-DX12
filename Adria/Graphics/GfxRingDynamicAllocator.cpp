@@ -39,7 +39,7 @@ namespace adria
 		}
 		else
 		{
-			ADRIA_ASSERT(false && "Not enough memory in Dynamic Allocator. Increase the size to avoid this error!");
+			ADRIA_ASSERT_MSG(false, "Not enough memory in Dynamic Allocator. Increase the size to avoid this error!");
 			return GfxDynamicAllocation{};
 		}
 	}

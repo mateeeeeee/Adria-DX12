@@ -4,12 +4,12 @@
 
 namespace adria
 {
-	template<typename BufferType>
+	template<typename CBufferT>
 	class GfxConstantBuffer
 	{
 		static constexpr Uint32 GetCBufferSize()
 		{
-			return (sizeof(BufferType) + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+			return (sizeof(CBufferT) + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 		}
 
 	public:
@@ -32,7 +32,7 @@ namespace adria
 		GfxConstantBuffer& operator=(GfxConstantBuffer&&) = delete;
 		~GfxConstantBuffer();
 
-		void Update(BufferType const& data, Uint32 cbuffer_index);
+		void Update(CBufferT const& data, Uint32 cbuffer_index);
 		void Update(void* data, Uint32 data_size, Uint32 cbuffer_index);
 
 		Uint64 GetGpuAddress(Uint32 cbuffer_index) const
@@ -47,28 +47,28 @@ namespace adria
 		Uint32 const cbuffer_count;
 	};
 
-	template<typename BufferType>
-	GfxConstantBuffer<BufferType>::GfxConstantBuffer(GfxConstantBuffer&& o) noexcept
+	template<typename CBufferT>
+	GfxConstantBuffer<CBufferT>::GfxConstantBuffer(GfxConstantBuffer&& o) noexcept
 		: cbuffer(std::move(o.cbuffer)), cbuffer_size(o.cbuffer_size), mapped_data(o.mapped_data)
 	{
 		o.mapped_data = nullptr;
 	}
 	
-	template<typename BufferType>
-	GfxConstantBuffer<BufferType>::~GfxConstantBuffer()
+	template<typename CBufferT>
+	GfxConstantBuffer<CBufferT>::~GfxConstantBuffer()
 	{
 		if (cbuffer != nullptr) cbuffer->Unmap();
 		mapped_data = nullptr;
 	}
 
-	template<typename BufferType>
-	void GfxConstantBuffer<BufferType>::Update(BufferType const& data, Uint32 cbuffer_index)
+	template<typename CBufferT>
+	void GfxConstantBuffer<CBufferT>::Update(CBufferT const& data, Uint32 cbuffer_index)
 	{
-		memcpy(&mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
+		memcpy(&mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(CBufferT)); //maybe change to cbuffer_size
 	}
 
-	template<typename BufferType>
-	void GfxConstantBuffer<BufferType>::Update(void* data, Uint32 data_size, Uint32 cbuffer_index)
+	template<typename CBufferT>
+	void GfxConstantBuffer<CBufferT>::Update(void* data, Uint32 data_size, Uint32 cbuffer_index)
 	{
 		memcpy(&mapped_data[cbuffer_index * cbuffer_size], data, data_size);
 	}

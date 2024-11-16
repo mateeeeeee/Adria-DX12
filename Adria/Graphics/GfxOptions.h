@@ -11,5 +11,6 @@ namespace adria
 		Bool pix = false;
 		Bool aftermath = false;
 		Bool vsync = false;
+		Bool shader_debug = false;
 	};
 }

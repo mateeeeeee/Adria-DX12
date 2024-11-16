@@ -62,16 +62,14 @@ namespace adria
 		D3D12_SHADER_DESC shader_desc;
 		GFX_CHECK_HR(vertex_shader_reflection->GetDesc(&shader_desc));
 
-		D3D12_SIGNATURE_PARAMETER_DESC param_desc{};
-		D3D12_INPUT_ELEMENT_DESC d3d12element_desc{};
-
+		D3D12_SIGNATURE_PARAMETER_DESC signature_param_desc{};
 		input_layout.elements.clear();
 		input_layout.elements.resize(shader_desc.InputParameters);
 		for (Uint32 i = 0; i < shader_desc.InputParameters; i++)
 		{
-			vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
-			input_layout.elements[i].semantic_name = std::string(param_desc.SemanticName);
-			input_layout.elements[i].semantic_index = param_desc.SemanticIndex;
+			vertex_shader_reflection->GetInputParameterDesc(i, &signature_param_desc);
+			input_layout.elements[i].semantic_name = std::string(signature_param_desc.SemanticName);
+			input_layout.elements[i].semantic_index = signature_param_desc.SemanticIndex;
 			input_layout.elements[i].aligned_byte_offset = GfxInputLayout::APPEND_ALIGNED_ELEMENT;
 			input_layout.elements[i].input_slot_class = GfxInputClassification::PerVertexData;
 			input_layout.elements[i].input_slot = 0;
@@ -82,29 +80,29 @@ namespace adria
 				input_layout.elements[i].input_slot = 1;
 			}
 
-			if (param_desc.Mask == 1)
+			if (signature_param_desc.Mask == 1)
 			{
-				if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32_UINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32_SINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32_FLOAT;
+				if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)	   input_layout.elements[i].format = GfxFormat::R32_UINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32_SINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32_FLOAT;
 			}
-			else if (param_desc.Mask <= 3)
+			else if (signature_param_desc.Mask <= 3)
 			{
-				if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32G32_UINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32_SINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32_FLOAT;
+				if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)	   input_layout.elements[i].format = GfxFormat::R32G32_UINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32_SINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32_FLOAT;
 			}
-			else if (param_desc.Mask <= 7)
+			else if (signature_param_desc.Mask <= 7)
 			{
-				if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32G32B32_UINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32B32_SINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32_FLOAT;
+				if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)	   input_layout.elements[i].format = GfxFormat::R32G32B32_UINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32B32_SINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32_FLOAT;
 			}
-			else if (param_desc.Mask <= 15)
+			else if (signature_param_desc.Mask <= 15)
 			{
-				if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32G32B32A32_UINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32B32A32_SINT;
-				else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32A32_FLOAT;
+				if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)	   input_layout.elements[i].format = GfxFormat::R32G32B32A32_UINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32B32A32_SINT;
+				else if (signature_param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32A32_FLOAT;
 			}
 		}
 	}

@@ -227,7 +227,7 @@ namespace adria
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
 		gfx = std::make_unique<GfxDevice>(window, init.gfx_options);
-		ShaderManager::Initialize();
+		ShaderManager::Initialize(init.gfx_options.shader_debug);
 		g_TextureManager.Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());

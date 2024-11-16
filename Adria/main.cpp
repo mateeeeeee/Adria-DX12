@@ -26,6 +26,7 @@ int APIENTRY wWinMain(
 	CLIArg& maximize = parser.AddArg(false, "-max", "--maximize");
 	CLIArg& vsync = parser.AddArg(false, "-vsync");
 	CLIArg& debug_device = parser.AddArg(false, "-debugdevice");
+	CLIArg& shader_debug = parser.AddArg(false, "-shaderdebug");
 	CLIArg& dred_debug = parser.AddArg(false, "-dred");
 	CLIArg& gpu_validation = parser.AddArg(false, "-gpuvalidation");
 	CLIArg& pix = parser.AddArg(false, "-pix");
@@ -41,8 +42,8 @@ int APIENTRY wWinMain(
 
 		std::string title_str = title.AsStringOr("Adria").c_str();
         WindowInit window_init{};
-        window_init.width = width.AsIntOr(1080);
-        window_init.height = height.AsIntOr(720);
+        window_init.width = width.AsIntOr(1280);
+        window_init.height = height.AsIntOr(1024);
         window_init.title = title_str.c_str();
         window_init.maximize = maximize;
         Window window(window_init);
@@ -53,6 +54,7 @@ int APIENTRY wWinMain(
 		engine_init.window = &window;
 		engine_init.gfx_options.vsync = vsync;
 		engine_init.gfx_options.debug_device = debug_device;
+		engine_init.gfx_options.shader_debug = shader_debug;
 		engine_init.gfx_options.dred = dred_debug;
 		engine_init.gfx_options.gpu_validation = gpu_validation;
 		engine_init.gfx_options.pix = pix;

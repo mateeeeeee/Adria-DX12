@@ -20,6 +20,7 @@ namespace adria
 		LibraryRecompiledEvent library_recompiled_event;
 		std::unordered_map<GfxShaderKey, GfxShader, GfxShaderKeyHash> shader_map;
 		std::unordered_map<GfxShaderKey, std::vector<fs::path>, GfxShaderKeyHash> dependent_files_map;
+		GfxShaderCompilerFlags shader_compiler_flags = ShaderCompilerFlag_None;
 
 		constexpr GfxShaderStage GetShaderStage(ShaderID shader)
 		{
@@ -547,11 +548,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.model = GetShaderModel(shader);
 			shader_desc.file = paths::ShaderDir + GetShaderSource(shader);
-#if _DEBUG
-			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
-#else
-			shader_desc.flags = ShaderCompilerFlag_None;
-#endif
+			shader_desc.flags = shader_compiler_flags;
 			shader_desc.defines = shader.GetDefines();
 
 			GfxShaderCompileOutput output;
@@ -578,12 +575,16 @@ namespace adria
 		}
 	}
 
-	void ShaderManager::Initialize()
+	void ShaderManager::Initialize(Bool shader_debug)
 	{
 		file_watcher = std::make_unique<FileWatcher>();
 		file_watcher->AddPathToWatch(paths::ShaderDir);
 		std::ignore = file_watcher->GetFileModifiedEvent().AddStatic(OnShaderFileChanged);
 		fs::create_directory(paths::ShaderCacheDir);
+		if (shader_debug)
+		{
+			shader_compiler_flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
+		}
 	}
 	void ShaderManager::Destroy()
 	{

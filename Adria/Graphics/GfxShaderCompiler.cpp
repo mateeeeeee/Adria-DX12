@@ -221,7 +221,7 @@ namespace adria
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			Char cache_path[256];
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir.c_str(), GetFilenameWithoutExtension(input.file).c_str(),
-												    input.entry_point.c_str(), define_hash, build_string.c_str());
+												     input.entry_point.c_str(), define_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
