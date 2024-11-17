@@ -282,7 +282,7 @@ namespace adria
 		}
 		else
 		{
-			int _width, _height;
+			Sint _width, _height;
 			stbi_uc* _pixels = stbi_load(texture_path.data(), &_width, &_height, &components, 4);
 			if (_pixels == nullptr) return false;
 			width = (Uint32)_width;

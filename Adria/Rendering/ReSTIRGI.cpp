@@ -12,23 +12,39 @@ namespace adria
 
 	ReSTIRGI::ReSTIRGI(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
 	{
-		if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
+		if (!gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
 		{
-			GfxComputePipelineStateDesc compute_pso_desc{};
-			compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
-			initial_sampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+			return;
 		}
+		
+		GfxComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
+		initial_sampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_ReSTIRGI_TemporalResampling;
+		temporal_resampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_ReSTIRGI_SpatialResampling;
+		spatial_resampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
 		CreateBuffers();
+
+		supported = true;
 	}
 
 	void ReSTIRGI::AddPasses(RenderGraph& rg)
 	{
+		if (!supported)
+		{
+			return;
+		}
+
 		QueueGUI([&]()
 			{
 				if (ImGui::TreeNode("ReSTIR GI"))
 				{
 					ImGui::Checkbox("Enable ReSTIR", &enable);
-					static int current_resampling_mode = static_cast<int>(resampling_mode);
+					static Sint current_resampling_mode = static_cast<Sint>(resampling_mode);
 					if (ImGui::Combo("Resampling mode", &current_resampling_mode, "None\0Temporal\0Spatial\0TemporalAndSpatial\0", 4))
 					{
 						resampling_mode = static_cast<ResamplingMode>(current_resampling_mode);
@@ -36,9 +52,14 @@ namespace adria
 					ImGui::TreePop();
 				}
 			});
-		if (!enable) return;
+
+		if (!enable)
+		{
+			return;
+		}
 
 		AddInitialSamplingPass(rg);
+
 		if (resampling_mode != ResamplingMode::None)
 		{
 			std::swap(temporal_reservoir_buffers[0], temporal_reservoir_buffers[1]);
@@ -50,8 +71,6 @@ namespace adria
 	void ReSTIRGI::AddInitialSamplingPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		Uint32 half_width = (width + 1) / 2;
-		Uint32 half_height = (height + 1) / 2;
 
 		struct InitialSamplingPassData
 		{
@@ -71,16 +90,16 @@ namespace adria
 				data.prev_depth = builder.ReadTexture(RG_NAME(DepthHistory));
 
 				RGTextureDesc irradiance_desc{};
-				irradiance_desc.width = half_width;
-				irradiance_desc.height = half_height;
+				irradiance_desc.width = width;
+				irradiance_desc.height = height;
 				irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				builder.DeclareTexture(RG_NAME(ReSTIR_Irradiance), irradiance_desc);
 				data.irradiance = builder.WriteTexture(RG_NAME(ReSTIR_Irradiance));
 
 				RGTextureDesc ray_direction_desc{};
-				ray_direction_desc.width = half_width;
-				ray_direction_desc.height = half_height;
-				ray_direction_desc.format = GfxFormat::R32G32_UINT;
+				ray_direction_desc.width = width;
+				ray_direction_desc.height = height;
+				ray_direction_desc.format = GfxFormat::R32_UINT;
 				builder.DeclareTexture(RG_NAME(ReSTIR_RayDirection), irradiance_desc);
 				data.ray_direction = builder.WriteTexture(RG_NAME(ReSTIR_RayDirection));
 			},
@@ -116,7 +135,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->SetPipelineState(initial_sampling_pso.get());
-				cmd_list->Dispatch(DivideAndRoundUp(half_width, 16), DivideAndRoundUp(half_height, 16), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
 	}
 

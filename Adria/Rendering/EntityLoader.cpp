@@ -702,7 +702,7 @@ namespace adria
 			mesh_data.meshlets.resize(max_meshlets);
 			mesh_data.meshlet_vertices.resize(max_meshlets * MESHLET_MAX_VERTICES);
 
-			std::vector<unsigned char> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
+			std::vector<Uchar> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
 			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
 
 			Uint64 meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
@@ -724,7 +724,7 @@ namespace adria
 				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
 					m.triangle_count, reinterpret_cast<Float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
 
-				unsigned char* src_triangles = meshlet_triangles.data() + m.triangle_offset;
+				Uchar* src_triangles = meshlet_triangles.data() + m.triangle_offset;
 				for (Uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
 				{
 					MeshletTriangle& tri = mesh_data.meshlet_triangles[triangle_idx + triangle_offset];

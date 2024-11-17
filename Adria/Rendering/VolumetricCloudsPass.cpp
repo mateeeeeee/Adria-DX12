@@ -393,7 +393,7 @@ namespace adria
 						ImGui::InputFloat("Planet Radius", &params.planet_radius);
 						ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
 
-						static int _resolution = (int)resolution;
+						static Sint _resolution = (Sint)resolution;
 						if (ImGui::Combo("Volumetric Clouds Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 						{
 							resolution = (CloudResolution)_resolution;

@@ -322,11 +322,11 @@ namespace adria
 						if (visualize)
 						{
 							static const Char* visualize_mode[] = { "Irradiance", "Distance" };
-							static int current_visualize_mode = 0;
+							static Sint current_visualize_mode = 0;
 							const Char* visualize_mode_label = visualize_mode[current_visualize_mode];
 							if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
 							{
-								for (int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
+								for (Sint n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
 								{
 									const Bool is_selected = (current_visualize_mode == n);
 									if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;

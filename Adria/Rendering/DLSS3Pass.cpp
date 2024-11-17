@@ -229,9 +229,9 @@ namespace adria
 		result = NVSDK_NGX_D3D12_GetCapabilityParameters(&ngx_parameters);
 		if (NVSDK_NGX_FAILED(result)) return false;
 
-		int needs_updated_driver = 0;
-		unsigned int min_driver_version_major = 0;
-		unsigned int min_driver_version_minor = 0;
+		Sint needs_updated_driver = 0;
+		Uint min_driver_version_major = 0;
+		Uint min_driver_version_minor = 0;
 		NVSDK_NGX_Result result_updated_driver = ngx_parameters->Get(NVSDK_NGX_Parameter_SuperSampling_NeedsUpdatedDriver, &needs_updated_driver);
 		NVSDK_NGX_Result result_min_driver_version_major = ngx_parameters->Get(NVSDK_NGX_Parameter_SuperSampling_MinDriverVersionMajor, &min_driver_version_major);
 		NVSDK_NGX_Result result_min_driver_version_minor = ngx_parameters->Get(NVSDK_NGX_Parameter_SuperSampling_MinDriverVersionMinor, &min_driver_version_minor);
@@ -249,7 +249,7 @@ namespace adria
 			}
 		}
 
-		int dlss_available = 0;
+		Sint dlss_available = 0;
 		result = ngx_parameters->Get(NVSDK_NGX_Parameter_SuperSampling_Available, &dlss_available);
 		if (NVSDK_NGX_FAILED(result) || !dlss_available) return false;
 
@@ -258,12 +258,12 @@ namespace adria
 
 	void DLSS3Pass::RecreateRenderResolution()
 	{
-		unsigned int optimal_width;
-		unsigned int optimal_height;
-		unsigned int max_width;
-		unsigned int max_height;
-		unsigned int min_width;
-		unsigned int min_height;
+		Uint optimal_width;
+		Uint optimal_height;
+		Uint max_width;
+		Uint max_height;
+		Uint min_width;
+		Uint min_height;
 		Float sharpness;
 		NGX_DLSS_GET_OPTIMAL_SETTINGS(ngx_parameters, display_width, display_height, perf_quality, 
 									  &optimal_width, &optimal_height, &max_width, &max_height, &min_width, &min_height, &sharpness);

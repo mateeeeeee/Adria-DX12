@@ -39,7 +39,7 @@ namespace adria
 	public:
 		virtual Bool Set(Char const* value) = 0;
 		virtual Bool Set(Bool value) = 0;
-		virtual Bool Set(int value) = 0;
+		virtual Bool Set(Sint value) = 0;
 		virtual Bool Set(Float value) = 0;
 
 		virtual Bool IsBool() const { return false; }
@@ -47,12 +47,12 @@ namespace adria
 		virtual Bool IsFloat() const { return false; }
 		virtual Bool IsString() const { return false; }
 
-		virtual int* GetIntPtr() { return nullptr; }
+		virtual Sint* GetIntPtr() { return nullptr; }
 		virtual Float* GetFloatPtr() { return nullptr; }
 		virtual Bool* GetBoolPtr() { return nullptr; }
 		virtual std::string* GetStringPtr() { return nullptr; }
 
-		virtual int GetInt() const = 0;
+		virtual Sint GetInt() const = 0;
 		virtual Float GetFloat() const = 0;
 		virtual Bool GetBool() const = 0;
 		virtual std::string GetString() const = 0;
@@ -74,13 +74,13 @@ namespace adria
 	public:
 
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Bool default_value, Char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, int default_value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Sint default_value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Float default_value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Char const* default_value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, std::string const& default_value, Char const* help) = 0;
 
 		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Bool& value, Char const* help) = 0;
-		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, int& value, Char const* help) = 0;
+		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Sint& value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, Float& value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariableRef(Char const* name, std::string& value, Char const* help) = 0;
 

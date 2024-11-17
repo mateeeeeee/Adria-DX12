@@ -8,8 +8,6 @@
 
 namespace adria
 {
-	using Bool32 = Sint32;
-
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
 		Matrix view;

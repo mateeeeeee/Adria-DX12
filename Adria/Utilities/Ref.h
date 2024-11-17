@@ -41,7 +41,7 @@ namespace adria
 
 		RefCountPtr(RefCountPtr&& other) : ptr_(nullptr)
 		{
-			if (this != reinterpret_cast<RefCountPtr*>(&reinterpret_cast<unsigned char&>(other)))
+			if (this != reinterpret_cast<RefCountPtr*>(&reinterpret_cast<Uchar&>(other)))
 			{
 				Swap(other);
 			}

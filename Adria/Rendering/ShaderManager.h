@@ -110,6 +110,8 @@ namespace adria
 		PS_VolumetricFog_CombineFog,
 		PS_VRSOverlay,
 		CS_ReSTIRGI_InitialSampling,
+		CS_ReSTIRGI_TemporalResampling,
+		CS_ReSTIRGI_SpatialResampling,
 		LIB_DDGIRayTracing,
 		LIB_Shadows,
 		LIB_AmbientOcclusion,

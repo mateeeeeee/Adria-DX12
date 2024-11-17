@@ -568,7 +568,7 @@ namespace adria
 				}, GUICommandGroup_Renderer);
 			QueueGUI([&]()
 				{
-					static int current_volumetric_path = (int)volumetric_path;
+					static Sint current_volumetric_path = (Sint)volumetric_path;
 					if (ImGui::TreeNode("Misc"))
 					{
 						if (ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching 2D\0Fog Volume\0", 3))

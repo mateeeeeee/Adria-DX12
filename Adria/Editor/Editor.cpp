@@ -193,7 +193,7 @@ namespace adria
 		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
 		style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
 
-		for (int i = 0; i <= ImGuiCol_COUNT; i++)
+		for (Sint i = 0; i <= ImGuiCol_COUNT; i++)
 		{
 			ImVec4& col = style.Colors[i];
 			Float H, S, V;
@@ -294,7 +294,7 @@ namespace adria
 		{
 			if (ImGui::TreeNodeEx("Point Lights", 0))
 			{
-				static int light_count_to_add = 1;
+				static Sint light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 				if (ImGui::Button("Create Random Point Lights"))
 				{
@@ -321,7 +321,7 @@ namespace adria
 			}
 			if (ImGui::TreeNodeEx("Spot Lights", 0))
 			{
-				static int light_count_to_add = 1;
+				static Sint light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 				if (ImGui::Button("Create Random Spot Lights"))
 				{
@@ -559,7 +559,7 @@ namespace adria
 
 					if (light->type == LightType::Directional)
 					{
-						static int current_shadow_type = light->casts_shadows;
+						static Sint current_shadow_type = light->casts_shadows;
 						ImGui::Combo("Shadow Technique", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
 						if (!ray_tracing_supported && current_shadow_type == 2) current_shadow_type = 1;
 
@@ -1114,7 +1114,7 @@ namespace adria
 					Box,
 					Sphere
 				};
-				static int current_debug_renderer_primitive = 0;
+				static Sint current_debug_renderer_primitive = 0;
 				static Float debug_color[4] = { 0.0f,0.0f, 0.0f, 1.0f };
 				ImGui::Combo("Debug Renderer Primitive", &current_debug_renderer_primitive, "Line\0Ray\0Box\0Sphere\0", 4);
 				ImGui::ColorEdit3("Debug Color", debug_color);
@@ -1191,7 +1191,7 @@ namespace adria
 				static Char capture_name[32] = { 'a', 'd', 'r', 'i', 'a' };
 				ImGui::InputText("Capture name", capture_name, sizeof(capture_name));
 
-				static int frame_count = 1;
+				static Sint frame_count = 1;
 				ImGui::SliderInt("Number of capture frames", &frame_count, 1, 10);
 
 				if (ImGui::Button("Take capture"))

@@ -56,7 +56,7 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				static int current_upscaler = (int)upscaler_type;
+				static Sint current_upscaler = (Sint)upscaler_type;
 				if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0FSR3\0XeSS\0DLSS3\0", 5))
 				{
 					upscaler_type = static_cast<UpscalerType>(current_upscaler);

@@ -13,7 +13,7 @@ namespace adria
 
 	class ReSTIRGI
 	{
-		enum class ResamplingMode
+		enum class ResamplingMode : Uint8
 		{
 			None = 0,
 			Temporal = 1,
@@ -25,16 +25,17 @@ namespace adria
 		ReSTIRGI(GfxDevice* gfx, Uint32 width, Uint32 height);
 
 		void AddPasses(RenderGraph& rg);
-
 		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
 		}
+		Bool IsSupported() const { return supported; }
 
 	private:
 		GfxDevice* gfx;
 		Uint32 width, height;
 
+		Bool supported = false;
 		Bool enable = false;
 		ResamplingMode resampling_mode = ResamplingMode::TemporalAndSpatial;
 
@@ -47,6 +48,8 @@ namespace adria
 		TemporalReservoirBuffers temporal_reservoir_buffers[2];
 
 		std::unique_ptr<GfxComputePipelineState> initial_sampling_pso;
+		std::unique_ptr<GfxComputePipelineState> temporal_resampling_pso;
+		std::unique_ptr<GfxComputePipelineState> spatial_resampling_pso;
 
 	private:
 		void AddInitialSamplingPass(RenderGraph& rg);

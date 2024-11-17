@@ -26,8 +26,8 @@ namespace adria
 			Float64 elevationK = pow(std::max<Float>(0.f, 1.f - sun_theta / (pi<Float> / 2.f)), 1.f / 3.0f);
 
 			// table has values for turbidity 1..10
-			int turbidity0		= std::clamp(static_cast<int>(turbidity), 1, 10);
-			int turbidity1		= std::min(turbidity0 + 1, 10);
+			Sint  turbidity0	= std::clamp(static_cast<int>(turbidity), 1, 10);
+			Sint  turbidity1	= std::min(turbidity0 + 1, 10);
 			Float turbidityK	= std::clamp(turbidity - turbidity0, 0.f, 1.f);
 
 			Float64 const* datasetA0 = dataset;

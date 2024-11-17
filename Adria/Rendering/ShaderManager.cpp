@@ -115,6 +115,8 @@ namespace adria
 			case CS_DDGIUpdateDistance:
 			case CS_RainSimulation:
 			case CS_ReSTIRGI_InitialSampling:
+			case CS_ReSTIRGI_TemporalResampling:
+			case CS_ReSTIRGI_SpatialResampling:
 			case CS_VolumetricFog_LightInjection:
 			case CS_VolumetricFog_ScatteringIntegration:
 			case CS_RendererOutput:
@@ -307,6 +309,10 @@ namespace adria
 				return "RayTracing/PathTracer.hlsl";
 			case CS_ReSTIRGI_InitialSampling:
 				return "ReSTIR/InitialSampling.hlsl";
+			case CS_ReSTIRGI_TemporalResampling:
+				return "ReSTIR/TemporalResampling.hlsl";
+			case CS_ReSTIRGI_SpatialResampling:
+				return "ReSTIR/SpatialResampling.hlsl";
 			case CS_RendererOutput:
 				return "Other/RendererOutput.hlsl";
 			case CS_DepthOfField_ComputeCoC:
@@ -511,6 +517,10 @@ namespace adria
 				return "DDGIVisualizePS";
 			case CS_ReSTIRGI_InitialSampling:
 				return "InitialSamplingCS";
+			case CS_ReSTIRGI_TemporalResampling:
+				return "TemporalResamplingCS";
+			case CS_ReSTIRGI_SpatialResampling:
+				return "SpatialResampling";
 			case CS_RendererOutput:
 				return "RendererOutputCS";
 			case CS_DepthOfField_ComputeCoC:

@@ -4,7 +4,7 @@
 #include "Random.hlsli"
 #include "RayTracing/RayTracingUtil.hlsli"
 
-struct ReSTIRConstants
+struct IntialSamplingConstants
 {
     uint depthIdx;
     uint prevDepthIdx;
@@ -13,17 +13,17 @@ struct ReSTIRConstants
     uint outputIrradianceIdx;
     uint outputRayDirectionIdx;
 };
-ConstantBuffer<ReSTIRConstants> ReSTIRPassCB : register(b1);
+ConstantBuffer<IntialSamplingConstants> IntialSamplingCB : register(b1);
 
 
 float3 GetIndirectDiffuseLighting(float3 position, MaterialProperties materialProperties)
 {
-    if (ReSTIRPassCB.irradianceHistoryIdx < 0) //#todo make int, not uint
+    if (IntialSamplingCB.irradianceHistoryIdx < 0) //#todo make int, not uint
     {
         return 0.0;
     }
-    Texture2D historyIrradianceTexture = ResourceDescriptorHeap[ReSTIRPassCB.irradianceHistoryIdx];
-    Texture2D prevDepthTexture = ResourceDescriptorHeap[ReSTIRPassCB.prevDepthIdx];
+    Texture2D historyIrradianceTexture = ResourceDescriptorHeap[IntialSamplingCB.irradianceHistoryIdx];
+    Texture2D prevDepthTexture = ResourceDescriptorHeap[IntialSamplingCB.prevDepthIdx];
     
     float4 prevClipPos = mul(float4(position, 1.0), FrameCB.prevViewProjection);
     float3 prevNdcPos = prevClipPos.xyz / prevClipPos.w;
@@ -41,10 +41,10 @@ float3 GetIndirectDiffuseLighting(float3 position, MaterialProperties materialPr
 [numthreads(16, 16, 1)]
 void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
 {
-    Texture2D<float> depthTexture = ResourceDescriptorHeap[ReSTIRPassCB.depthIdx];
-    Texture2D<float3> normalTexture = ResourceDescriptorHeap[ReSTIRPassCB.normalIdx];
-    RWTexture2D<float4> outputRadiance = ResourceDescriptorHeap[ReSTIRPassCB.outputIrradianceIdx];
-    RWTexture2D<uint> outputRayDirection = ResourceDescriptorHeap[ReSTIRPassCB.outputRayDirectionIdx];
+    Texture2D<float>    depthTexture = ResourceDescriptorHeap[IntialSamplingCB.depthIdx];
+    Texture2D<float3>   normalTexture = ResourceDescriptorHeap[IntialSamplingCB.normalIdx];
+    RWTexture2D<float4> outputRadiance = ResourceDescriptorHeap[IntialSamplingCB.outputIrradianceIdx];
+    RWTexture2D<uint>   outputRayDirection = ResourceDescriptorHeap[IntialSamplingCB.outputRayDirectionIdx];
     StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
     
     float depth = depthTexture[dispatchThreadID.xy].r;
@@ -88,8 +88,6 @@ void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
         MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
         BrdfData brdfData = GetBrdfData(matProperties);
         
-
-        //#todo use all lights
         Light light = lights[0];
 		float visibility = TraceShadowRay(light, worldPosition.xyz);
         float3 wi = normalize(-light.direction.xyz);

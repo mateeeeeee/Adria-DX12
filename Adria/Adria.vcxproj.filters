@@ -1494,5 +1494,11 @@
     <FxCompile Include="Resources\Shaders\Other\VRSOverlay.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\ReSTIR\TemporalResampling.hlsl">
+      <Filter>Shaders\ReSTIR</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\ReSTIR\SpatialResampling.hlsl">
+      <Filter>Shaders\ReSTIR</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
