@@ -578,6 +578,7 @@
     <None Include="Resources\Shaders\RayTracing\PathTracing.hlsli" />
     <None Include="Resources\Shaders\RayTracing\RayTracingUtil.hlsli" />
     <None Include="Resources\Shaders\Reflections.hlsli" />
+    <None Include="Resources\Shaders\ReSTIR\ReSTIRUtil.hlsli" />
     <None Include="Resources\Shaders\Scene.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />

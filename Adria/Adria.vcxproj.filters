@@ -1285,6 +1285,9 @@
     <None Include="Saved\Scenes\newsponza.json">
       <Filter>Scenes</Filter>
     </None>
+    <None Include="Resources\Shaders\ReSTIR\ReSTIRUtil.hlsli">
+      <Filter>Shaders\ReSTIR</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
