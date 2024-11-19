@@ -1,4 +1,4 @@
-#include <execution>
+#include <set>
 #include "GFSDK_Aftermath_GpuCrashDumpDecoding.h"
 #include "ShaderManager.h"
 #include "Core/Paths.h"
@@ -19,7 +19,7 @@ namespace adria
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
 		std::unordered_map<GfxShaderKey, GfxShader, GfxShaderKeyHash> shader_map;
-		std::unordered_map<GfxShaderKey, std::vector<fs::path>, GfxShaderKeyHash> dependent_files_map;
+		std::unordered_map<fs::path, std::set<GfxShaderKey>> file_shader_map;
 		GfxShaderCompilerFlags shader_compiler_flags = ShaderCompilerFlag_None;
 
 		constexpr GfxShaderStage GetShaderStage(ShaderID shader)
@@ -549,7 +549,7 @@ namespace adria
 			return SM_6_7;
 		}
 
-		void CompileShader(GfxShaderKey const& shader, Bool bypass_cache = false)
+		void CompileShader(GfxShaderKey const& shader)
 		{
 			if (!shader.IsValid()) return;
 
@@ -562,25 +562,24 @@ namespace adria
 			shader_desc.defines = shader.GetDefines();
 
 			GfxShaderCompileOutput output;
-			Bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output, bypass_cache);
+			Bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output);
 			ADRIA_ASSERT(compile_result);
 			if (!compile_result) return;
 
 			shader_map[shader] = std::move(output.shader);
 
-			dependent_files_map[shader].clear();
-			for (auto const& include : output.includes) dependent_files_map[shader].push_back(fs::path(include));
+			file_shader_map[shader_desc.file].insert(shader);
+			for (auto const& include : output.includes)
+			{
+				file_shader_map[fs::path(include)].insert(shader);
+			}
 			shader_desc.stage == GfxShaderStage::LIB ? library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
 		void OnShaderFileChanged(std::string const& filename)
 		{
-			for (auto const& [shader, files] : dependent_files_map)
+			for (GfxShaderKey const& shader_key : file_shader_map[fs::path(filename)])
 			{
-				for (Uint64 i = 0; i < files.size(); ++i)
-				{
-					fs::path const& file = files[i];
-					if (fs::equivalent(file, fs::path(filename))) CompileShader(shader, i != 0);
-				}
+				CompileShader(shader_key);
 			}
 		}
 	}
@@ -600,7 +599,6 @@ namespace adria
 	{
 		file_watcher = nullptr;
 		shader_map.clear();
-		dependent_files_map.clear();
 	}
 	void ShaderManager::CheckIfShadersHaveChanged()
 	{

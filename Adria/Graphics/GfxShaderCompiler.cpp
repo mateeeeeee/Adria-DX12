@@ -167,6 +167,13 @@ namespace adria
 			Uint64 binary_size = 0;
 			metadata_archive(binary_size);
 
+			//check if the one of the includes was modified after the cache binary was generated
+			for (std::string const& include : output.includes)
+			{
+				if (GetFileLastWriteTime(cache_binary) < GetFileLastWriteTime(include)) 
+					return false;
+			}
+
 			std::ifstream is2(cache_binary, std::ios::binary);
 			cereal::BinaryInputArchive binary_archive(is2);
 
@@ -209,7 +216,7 @@ namespace adria
 			library.Reset();
 			utils.Reset();
 		}
-		Bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output, Bool bypass_cache)
+		Bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
 		{
 			std::string define_key;
 			for (GfxShaderDefine const& define : input.defines)
@@ -223,7 +230,7 @@ namespace adria
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir.c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												     input.entry_point.c_str(), define_hash, build_string.c_str());
 
-			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
+			if (CheckCache(cache_path, input, output)) return true;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
 
 			compile:

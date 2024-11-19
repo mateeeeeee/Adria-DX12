@@ -33,10 +33,8 @@ struct Reservoir
     float lightWeight;      
     float totalWeight; 
     float sampleTargetPdf;     
-    uint  M;                // number of lights processed for this reservoir
+    uint  M;                
 };
-
-
 
 void SampleSourceLight(in uint lightCount, inout uint seed, out uint lightIndex, out float sourcePdf)
 {
@@ -56,11 +54,11 @@ bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightInd
     Reservoir reservoir = (Reservoir)0;
     for (int i = 0; i < M; ++i)
     {
-        uint candidate = 0;
+        uint lightIndex = 0;
         float sourcePdf = 1.0f;
-        SampleSourceLight(lightCount, seed, candidate, sourcePdf);
+        SampleSourceLight(lightCount, seed, lightIndex, sourcePdf);
 
-        Light light = lights[candidate];
+        Light light = lights[lightIndex];
         float3 positionDifference = light.position.xyz - position;
         float distance = length(positionDifference);
         float3 L = positionDifference / distance;
@@ -78,7 +76,7 @@ bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightInd
             targetPdf = Luminance(light.color.rgb);
         }
         float risWeight = targetPdf / sourcePdf;
-        reservoir.UpdateReservoir(candidate, risWeight, targetPdf, seed);
+        reservoir.UpdateReservoir(lightIndex, risWeight, targetPdf, seed);
     }
 
     if (reservoir.totalWeight == 0.0f) return false;
@@ -94,6 +92,8 @@ float ProbabilityToSampleDiffuse(float3 diffuse, float3 specular)
     float lumSpecular = Luminance(specular);
     return lumDiffuse / max(lumDiffuse + lumSpecular, 0.0001);
 }
+
+
 float3 SampleGGX(float2 randVal, float roughness, float3 N)
 {
     float a = roughness * roughness;
