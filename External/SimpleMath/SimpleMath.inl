@@ -2303,7 +2303,7 @@ inline Matrix operator* (float S, const Matrix& M) noexcept
 // Matrix operations
 //------------------------------------------------------------------------------
 
-inline bool Matrix::Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) noexcept
+inline bool Matrix::Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) const noexcept
 {
     using namespace DirectX;
 

@@ -548,7 +548,7 @@ namespace DirectX
             void Translation(const Vector3& v) noexcept { _41 = v.x; _42 = v.y; _43 = v.z; }
 
             // Matrix operations
-            bool Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) noexcept;
+            bool Decompose(Vector3& scale, Quaternion& rotation, Vector3& translation) const noexcept;
 
             Matrix Transpose() const noexcept;
             void Transpose(Matrix& result) const noexcept;

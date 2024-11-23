@@ -879,11 +879,10 @@ namespace adria
 				light_params.light_data.outer_cosine = cos(gltf_light.spot_outer_cone_angle);
 				light_params.light_data.range = gltf_light.range > 0 ? gltf_light.range : FLT_MAX;
 				light_params.light_data.position = Vector4(translation.x, translation.y, translation.z, 1.0f);
-			
 				Vector3 forward(0.0f, 0.0f, -1.0f);
 				Vector3 direction = Vector3::Transform(forward, Matrix::CreateFromQuaternion(rotation));
 				light_params.light_data.direction = Vector4(direction.x, direction.y, direction.z, 0.0f);
-			
+
 				switch (gltf_light.type)
 				{
 				case cgltf_light_type_directional: 
@@ -891,12 +890,22 @@ namespace adria
 					light_params.light_data.casts_shadows = true;
 					light_params.light_data.use_cascades = true;
 					break;
-				case cgltf_light_type_point:	   light_params.light_data.type = LightType::Point; break;
-				case cgltf_light_type_spot:		   light_params.light_data.type = LightType::Spot; break;
+				case cgltf_light_type_point:	   
+					light_params.light_data.type = LightType::Point;
+					light_params.light_data.intensity /= 10;
+					break;
+				case cgltf_light_type_spot:		   
+					light_params.light_data.type = LightType::Spot;
+					light_params.light_data.intensity /= 100;
+					break;
 				}
 
-				LoadLight(light_params);
+				//modify some light data using model matrix
+				light_params.light_data.position = Vector4::Transform(light_params.light_data.position, params.model_matrix);
+				params.model_matrix.Decompose(scale, rotation, translation);
+				light_params.light_data.range *= (scale.x + scale.y + scale.z) / 3;
 
+				LoadLight(light_params);
 			}
 		}
 

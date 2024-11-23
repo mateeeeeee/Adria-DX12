@@ -22,7 +22,8 @@
 				"path": "Resources/Models/Hangar/Hangar_1105.gltf",
 				"scale": [ 0.33, 0.33, 0.33 ],
 				"use_ccw": false,
-				"force_alpha_mask": false
+				"force_alpha_mask": false,
+				"load_model_lights" : true
 			}
 	],
 	  "lights" : [

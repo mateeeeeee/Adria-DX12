@@ -137,6 +137,7 @@ void SSR_CS(CSInput input)
 
     float3 hitColor = sceneTexture.SampleLevel(LinearClampSampler, coords.xy, 0).rgb;
     float roughnessMask = saturate(1.0f - (roughness / ROUGHNESS_CUTOFF));
+    roughnessMask *= roughnessMask;
     float4 fresnel = clamp(pow(1 - dot(normalize(viewPosition), viewNormal), 1), 0, 1);
 
     float4 reflectionColor = float4(saturate(hitColor.xyz * screenEdgeFactor * roughnessMask), 1.0f);

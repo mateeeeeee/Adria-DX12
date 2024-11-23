@@ -58,7 +58,9 @@ namespace adria
 			model_params.Find<Bool>("use_ccw", triangle_ccw);
 			Bool force_mask = false;
 			model_params.Find<Bool>("force_alpha_mask", force_mask);
-			config.scene_models.emplace_back(path, tex_path, transform, triangle_ccw, force_mask);
+			Bool load_model_lights = false;
+			model_params.Find<Bool>("load_model_lights", load_model_lights);
+			config.scene_models.emplace_back(path, tex_path, transform, triangle_ccw, force_mask, load_model_lights);
 		}
 
 		for (auto&& light_json : lights)
