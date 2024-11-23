@@ -86,11 +86,6 @@ Graphics engine written in C++ using DirectX12.
 ![](Adria/Saved/Screenshots/pathtracing1.png "Path traced Sponza") 
 ![](Adria/Saved/Screenshots/arcade.png "Path traced Arcade") 
 
-### Variable Rate Shading
-| No VRS | VRS | VRS Overlay |
-| ------ | ----------- | ----------- |
-| ![No VRS](Adria/Saved/Screenshots/novrs.png) | ![VRS Enabled](Adria/Saved/Screenshots/vrs.png) | ![VRS Overlay](Adria/Saved/Screenshots/vrsoverlay.png) |
-
 ### Editor
 ![](Adria/Saved/Screenshots/editor.png "Editor") 
 
@@ -111,7 +106,5 @@ Graphics engine written in C++ using DirectX12.
 ### Render Graph Visualization
 ![](Adria/Saved/RenderGraph/rendergraph.svg "Render graph visualization") 
 
-### Rain
-https://github.com/user-attachments/assets/46eda5ad-040d-450b-9a07-a6aef9de3e92
 
 
