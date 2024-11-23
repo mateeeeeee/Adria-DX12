@@ -11,7 +11,7 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class ReSTIRGI
+	class ReSTIR_DI
 	{
 		enum class ResamplingMode : Uint8
 		{
@@ -22,12 +22,13 @@ namespace adria
 		};
 
 	public:
-		ReSTIRGI(GfxDevice* gfx, Uint32 width, Uint32 height);
+		ReSTIR_DI(GfxDevice* gfx, Uint32 width, Uint32 height);
 
 		void AddPasses(RenderGraph& rg);
 		void OnResize(Uint32 w, Uint32 h)
 		{
 			width = w, height = h;
+			CreateBuffers();
 		}
 		Bool IsSupported() const { return supported; }
 
@@ -39,13 +40,8 @@ namespace adria
 		Bool enable = false;
 		ResamplingMode resampling_mode = ResamplingMode::TemporalAndSpatial;
 
-		struct TemporalReservoirBuffers
-		{
-			std::unique_ptr<GfxTexture> sample_radiance;
-			std::unique_ptr<GfxTexture> ray_direction;
-			std::unique_ptr<GfxTexture> reservoir;
-		};
-		TemporalReservoirBuffers temporal_reservoir_buffers[2];
+		std::unique_ptr<GfxBuffer>  staging_reservoir_buffer;
+		std::unique_ptr<GfxBuffer>	final_reservoir_buffer;
 
 		std::unique_ptr<GfxComputePipelineState> initial_sampling_pso;
 		std::unique_ptr<GfxComputePipelineState> temporal_resampling_pso;

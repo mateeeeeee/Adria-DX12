@@ -136,7 +136,8 @@ namespace adria
 	enum class GfxTextureMiscFlag : Uint32
 	{
 		None = 0,
-		TextureCube = 1 << 0
+		TextureCube = 1 << 0,
+		SRGB = 1 << 1
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
 

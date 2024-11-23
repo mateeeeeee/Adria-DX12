@@ -221,7 +221,7 @@
     <ClCompile Include="Editor\EditorLogger.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\EntityLoader.cpp">
+    <ClCompile Include="Rendering\SceneLoader.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\Image.cpp">
@@ -423,7 +423,7 @@
     <ClCompile Include="Graphics\GfxNsightAftermathGpuCrashTracker.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ReSTIRGI.cpp">
+    <ClCompile Include="Rendering\ReSTIR_DI.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxStateObject.cpp">
@@ -767,7 +767,7 @@
     <ClInclude Include="Rendering\GeometryBufferCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\EntityLoader.h">
+    <ClInclude Include="Rendering\SceneLoader.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxCommon.h">
@@ -1041,7 +1041,7 @@
     <ClInclude Include="Graphics\GfxStateObject.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ReSTIRGI.h">
+    <ClInclude Include="Rendering\ReSTIR_DI.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\VolumetricFogPass.h">
@@ -1465,9 +1465,6 @@
       <Filter>Shaders\Postprocess\DepthOfField</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\BuildHistogram.hlsl">
-      <Filter>Shaders\Postprocess\AutoExposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\Exposure.hlsl">
       <Filter>Shaders\Postprocess\AutoExposure</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\HistogramReduction.hlsl">

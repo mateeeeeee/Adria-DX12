@@ -7,8 +7,8 @@ struct BuildHistogramConstants
 	uint  height;
 	float rcpWidth;
 	float rcpHeight;
-	float minLuminance;
-	float maxLuminance;
+	float minLogLuminance;
+	float logLuminanceRangeRcp;
 	uint  sceneIdx;
 	uint  histogramIdx;
 };
@@ -29,9 +29,7 @@ void BuildHistogramCS(uint GroupIndex : SV_GroupIndex, uint3 DispatchThreadId : 
 		float2 screenPos = (float2) DispatchThreadId.xy + 0.5;
 		float2 uv = screenPos * float2(BuildHistogramPassCB.rcpWidth, BuildHistogramPassCB.rcpHeight);
 		float3 color = sceneTexture.SampleLevel(LinearClampSampler, uv, 0).xyz;
-
-		float luminance = clamp(Luminance(color), BuildHistogramPassCB.minLuminance, BuildHistogramPassCB.maxLuminance);
-		uint bin = GetHistogramBin(luminance, BuildHistogramPassCB.minLuminance, BuildHistogramPassCB.maxLuminance);
+		uint bin = GetHistogramBin(color, BuildHistogramPassCB.minLogLuminance, BuildHistogramPassCB.logLuminanceRangeRcp);
 		InterlockedAdd(SharedHistogramBins[bin], 1);
 	}
 	GroupMemoryBarrierWithGroupSync();

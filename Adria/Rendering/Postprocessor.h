@@ -51,6 +51,8 @@ namespace adria
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, Uint32 width, Uint32 height);
 		~PostProcessor();
 
+		void ImportHistoryResources(RenderGraph& rg);
+
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
@@ -96,10 +98,11 @@ namespace adria
 
 		std::array<std::unique_ptr<PostEffect>, PostEffectType_Count> post_effects;
 		std::unique_ptr<GfxTexture> history_buffer;
+		std::unique_ptr<GfxTexture> depth_history;
 
 	private:
 		void InitializePostEffects();
-		void CreateHistoryBuffer();
+		void CreateHistoryResources();
 
 		template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>
 		PostEffectT* GetPostEffect() const;

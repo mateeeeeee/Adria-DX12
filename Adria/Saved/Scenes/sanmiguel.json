@@ -11,8 +11,8 @@
 			 29.3
 		],
         "fov": 45.0,
-        "near": 1.0,
-        "far": 800.0
+        "near": 2.0,
+        "far": 1300.0
     },
 		"skybox" : {
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
@@ -25,7 +25,7 @@
 				"force_alpha_mask": false
 			}
 	],
-	"lights" : [
+	  "lights" : [
 		{
 			"type": "directional",
 			"temperature" :  3500.0,

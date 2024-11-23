@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <variant>
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxMacros.h"
 #include "Graphics/GfxDescriptor.h"
@@ -15,7 +16,30 @@ namespace adria
 	class RenderGraph;
 	class Camera;
 	struct FrameCBuffer;
+	enum class LightType : Sint32;
 
+	struct BoundingObject
+	{
+		enum Type
+		{
+			Box,
+			Frustum
+		} type = Box;
+
+		BoundingObject(BoundingBox const& box) : data(box) {}
+		BoundingObject(BoundingFrustum const& frustum) : data(frustum) {}
+
+		BoundingBox const& GetBox() const
+		{
+			return std::get<Box>(data);
+		}
+		BoundingFrustum const& GetFrustum() const
+		{
+			return std::get<Frustum>(data);
+		}
+		
+		std::variant<BoundingBox, BoundingFrustum> data;
+	};
 
 	DECLARE_EVENT(ShadowTextureRenderedEvent, ShadowRenderer, RGResourceName)
 
@@ -66,15 +90,14 @@ namespace adria
 		std::unordered_map<Uint64, GfxDescriptor> light_mask_texture_uavs;
 		Sint32						   light_matrices_gpu_index = -1;
 
-		std::vector<Matrix>								light_matrices;
+		std::vector<BoundingObject>						bounding_objects;
 		std::array<Float, SHADOW_CASCADE_COUNT>		    split_distances{};
-		Float											cascades_split_lambda = 0.5f;
 
 		ShadowTextureRenderedEvent shadow_rendered_event;
 
 	private:
 		void CreatePSOs();
-		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, Uint64 light_index, Uint64 matrix_index, Uint64 matrix_offset);
+		void ShadowMapPass_Common(GfxCommandList* cmd_list, LightType light_type, Uint64 light_index, Uint64 matrix_index, Uint64 matrix_offset);
 		static std::array<Matrix, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, Float split_lambda, std::array<Float, SHADOW_CASCADE_COUNT>& split_distances);
 	};
 }

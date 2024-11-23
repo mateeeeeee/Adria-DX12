@@ -8,12 +8,13 @@
 #include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
-#include <algorithm> 
 
 namespace adria
 {
 	static TAutoConsoleVariable<Bool>  AutoExposure("r.AutoExposure", true, "Enable or Disable Auto Exposure");
-	static TAutoConsoleVariable<Float> ExposureBias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
+	static TAutoConsoleVariable<Float> MinLogLuminance("r.AutoExposure.MinLogLuminance", -5.0f, "Min Log Luminance for Auto Exposure");
+	static TAutoConsoleVariable<Float> MaxLogLuminance("r.AutoExposure.MaxLogLuminance", 20.0f, "Max Log Luminance for Auto Exposure");
+	static TAutoConsoleVariable<Float> AdaptionSpeed("r.AutoExposure.AdaptionSpeed", 2.5f, "Adaption Speed for Auto Exposure");
 
 	AutoExposurePass::AutoExposurePass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
@@ -63,120 +64,81 @@ namespace adria
 				{
 					Uint32  width;
 					Uint32  height;
-					Float rcp_width;
-					Float rcp_height;
-					Float min_luminance;
-					Float max_luminance;
+					Float   rcp_width;
+					Float   rcp_height;
+					Float   min_log_luminance;
+					Float   log_luminance_range_rcp;
 					Uint32  scene_idx;
 					Uint32  histogram_idx;
 				} constants = { .width = width, .height = height,
 								.rcp_width = 1.0f / width, .rcp_height = 1.0f / height,
-								.min_luminance = min_luminance, .max_luminance = max_luminance,
+								.min_log_luminance = MinLogLuminance.Get(), .log_luminance_range_rcp = 1.0f/ (MaxLogLuminance.Get() - MinLogLuminance.Get()),
 								.scene_idx = descriptor_index, .histogram_idx = descriptor_index + 1 };
 				cmd_list->SetRootConstants(1, constants);
-
-				auto DivideRoudingUp = [](Uint32 a, Uint32 b)
-					{
-						return (a + b - 1) / b;
-					};
-				cmd_list->Dispatch(DivideRoudingUp(width, 16), DivideRoudingUp(height, 16), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
+
+		rg.ImportTexture(RG_NAME(AverageLuminance), luminance_texture.get());
 
 		struct HistogramReductionData
 		{
-			RGBufferReadOnlyId histogram_buffer;
-			RGTextureReadWriteId avg_luminance;
-		};
+			RGBufferReadOnlyId		histogram_buffer;
+			RGTextureReadWriteId	avg_luminance;
+			RGTextureReadWriteId	exposure;
 
+			Uint32					pixel_count;
+		};
 		rg.AddPass<HistogramReductionData>("Histogram Reduction Pass",
 			[=](HistogramReductionData& data, RenderGraphBuilder& builder)
 			{
 				data.histogram_buffer = builder.ReadBuffer(RG_NAME(HistogramBuffer));
-				RGTextureDesc desc{};
-				desc.width = desc.height = 1;
-				desc.format = GfxFormat::R16_FLOAT;
-				builder.DeclareTexture(RG_NAME(AverageLuminance), desc);
 				data.avg_luminance = builder.WriteTexture(RG_NAME(AverageLuminance));
-			},
-			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxDevice* gfx = cmd_list->GetDevice();
-
-				cmd_list->SetPipelineState(histogram_reduction_pso.get());
-				Uint32 descriptor_index = gfx->AllocateDescriptorsGPU(2).GetIndex();
-
-				GfxDescriptor buffer_srv = gfx->GetDescriptorGPU(descriptor_index);
-				gfx->CopyDescriptors(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer));
-				GfxDescriptor avgluminance_uav = gfx->GetDescriptorGPU(descriptor_index + 1);
-				gfx->CopyDescriptors(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance));
-
-				struct HistogramReductionConstants
-				{
-					Float min_luminance;
-					Float max_luminance;
-					Float low_percentile;
-					Float high_percentile;
-					Uint32  histogram_idx;
-					Uint32  luminance_idx;
-				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
-								.low_percentile = low_percentile, .high_percentile = high_percentile,
-								.histogram_idx = descriptor_index, .luminance_idx = descriptor_index + 1 };
-				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch(1, 1, 1);
-			}, RGPassType::Compute, RGPassFlags::None);
-
-		struct ExposureData
-		{
-			RGTextureReadOnlyId avg_luminance;
-			RGTextureReadWriteId exposure;
-		};
-		rg.AddPass<ExposureData>("Exposure Pass",
-			[&](ExposureData& data, RenderGraphBuilder& builder)
-			{
-				ADRIA_ASSERT(builder.IsTextureDeclared(RG_NAME(AverageLuminance)));
-				data.avg_luminance = builder.ReadTexture(RG_NAME(AverageLuminance));
 
 				RGTextureDesc desc{};
 				desc.width = desc.height = 1;
 				desc.format = GfxFormat::R16_FLOAT;
 				builder.DeclareTexture(RG_NAME(Exposure), desc);
 				data.exposure = builder.WriteTexture(RG_NAME(Exposure));
+
+				RGTextureDesc const& scene_desc = builder.GetTextureDesc(postprocessor->GetFinalResource());
+				data.pixel_count = scene_desc.width * scene_desc.height;
 			},
-			[=](ExposureData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
 				if (invalid_history)
 				{
-					GfxDescriptor cpu_descriptor = previous_ev100_uav;
+					GfxDescriptor cpu_descriptor = context.GetReadWriteTexture(data.avg_luminance);
 					GfxDescriptor gpu_descriptor = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, gpu_descriptor, cpu_descriptor);
 					Float clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-					cmd_list->ClearUAV(*previous_ev100, gpu_descriptor, cpu_descriptor, clear_value);
+					cmd_list->ClearUAV(context.GetTexture(*data.avg_luminance), gpu_descriptor, cpu_descriptor, clear_value);
 					invalid_history = false;
 				}
 
-				cmd_list->SetPipelineState(exposure_pso.get());
-				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(3);
-				GfxDescriptor src_descriptors[] = {
-					previous_ev100_uav,
-					context.GetReadWriteTexture(data.exposure),
-					context.GetReadOnlyTexture(data.avg_luminance)
-				};
-				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				Uint32 descriptor_index = dst_descriptor.GetIndex();
+				cmd_list->SetPipelineState(histogram_reduction_pso.get());
+				Uint32 descriptor_index = gfx->AllocateDescriptorsGPU(3).GetIndex();
 
-				struct ExposureConstants
+				GfxDescriptor buffer_srv = gfx->GetDescriptorGPU(descriptor_index);
+				gfx->CopyDescriptors(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer));
+				GfxDescriptor average_luminance_uav = gfx->GetDescriptorGPU(descriptor_index + 1);
+				gfx->CopyDescriptors(1, average_luminance_uav, context.GetReadWriteTexture(data.avg_luminance));
+				GfxDescriptor exposure_uav = gfx->GetDescriptorGPU(descriptor_index + 2);
+				gfx->CopyDescriptors(1, exposure_uav, context.GetReadWriteTexture(data.exposure));
+
+				struct HistogramReductionConstants
 				{
-					Float adaption_speed;
-					Float exposure_bias;
-					Float frame_time;
-					Uint32  previous_ev_idx;
-					Uint32  exposure_idx;
-					Uint32  luminance_idx;
-				} constants{ .adaption_speed = adaption_speed, .exposure_bias = ExposureBias.Get(), .frame_time = 0.166f,
-						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx = descriptor_index + 2 };
-
+					Float  min_log_luminance;
+					Float  log_luminance_range;
+					Float  delta_time;
+					Float  adaption_speed;
+					Uint32 pixel_count;
+					Uint32 histogram_idx;
+					Uint32 luminance_idx;
+					Uint32 exposure_idx;
+				} constants = { .min_log_luminance = MinLogLuminance.Get(), .log_luminance_range = MaxLogLuminance.Get() - MinLogLuminance.Get(),
+								.delta_time = frame_data.delta_time, .adaption_speed = AdaptionSpeed.Get(), .pixel_count = data.pixel_count,
+								.histogram_idx = descriptor_index, .luminance_idx = descriptor_index + 1, .exposure_idx = descriptor_index + 2 };
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -195,8 +157,7 @@ namespace adria
 		desc.initial_state = GfxResourceState::ComputeUAV;
 		desc.format = GfxFormat::R16_FLOAT;
 
-		previous_ev100 = gfx->CreateTexture(desc);
-		previous_ev100_uav = gfx->CreateTextureUAV(previous_ev100.get());
+		luminance_texture = gfx->CreateTexture(desc);
 
 		GfxBufferDesc hist_desc{};
 		hist_desc.stride = sizeof(Uint32);
@@ -208,6 +169,7 @@ namespace adria
 
 	void AutoExposurePass::GUI()
 	{
+		
 		QueueGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
@@ -215,19 +177,25 @@ namespace adria
 					ImGui::Checkbox("Enable", AutoExposure.GetPtr());
 					if (AutoExposure.Get())
 					{
-						ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
-						ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
-						ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01f, 5.0f);
-						ImGui::SliderFloat("Exposure Bias", ExposureBias.GetPtr(), -5.0f, 5.0f);
-						ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
-						ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);
+						ImGui::DragFloatRange2("Log Luminance", MinLogLuminance.GetPtr(), MaxLogLuminance.GetPtr(), 1.0f, -100, 50);
+						ImGui::SliderFloat("Adaption Speed", AdaptionSpeed.GetPtr(), 0.01f, 5.0f);
 						ImGui::Checkbox("Histogram", &show_histogram);
 						if (show_histogram)
 						{
+							auto MaxElement = [](Sint32* array, Uint64 count)
+								{
+									Sint32 max_element = INT32_MIN;
+									for (Uint64 i = 0; i < count; ++i)
+									{
+										max_element = std::max(array[i], max_element);
+									}
+									return max_element;
+								};
+
 							ADRIA_ASSERT(histogram_copy->IsMapped());
 							Uint64 histogram_size = histogram_copy->GetSize() / sizeof(Sint32);
 							Sint32* hist_data = histogram_copy->GetMappedData<Sint32>();
-							Sint32 max_value = *std::max_element(hist_data, hist_data + histogram_size);
+							Sint32 max_value = MaxElement(hist_data, histogram_size);
 							auto converter = [](void* data, Sint32 idx)-> Float
 								{
 									return static_cast<Float>(*(((Sint32*)data) + idx));
@@ -259,9 +227,6 @@ namespace adria
 
 		compute_pso_desc.CS = CS_HistogramReduction;
 		histogram_reduction_pso = gfx->CreateComputePipelineState(compute_pso_desc);
-
-		compute_pso_desc.CS = CS_Exposure;
-		exposure_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

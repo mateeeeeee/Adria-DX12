@@ -1,7 +1,6 @@
-#include "CommonResources.hlsli"
 #include "Packing.hlsli"
 #include "Constants.hlsli"
-#include "Random.hlsli"
+#include "ReSTIRUtil.hlsli"
 #include "RayTracing/RayTracingUtil.hlsli"
 
 struct IntialSamplingConstants
@@ -9,69 +8,46 @@ struct IntialSamplingConstants
     uint depthIdx;
     uint prevDepthIdx;
     uint normalIdx;
-    uint irradianceHistoryIdx;
-    uint outputIrradianceIdx;
-    uint outputRayDirectionIdx;
+    uint reservoirBufferIdx;
 };
 ConstantBuffer<IntialSamplingConstants> IntialSamplingCB : register(b1);
-
-
-float3 GetIndirectDiffuseLighting(float3 position, MaterialProperties materialProperties)
-{
-    if (IntialSamplingCB.irradianceHistoryIdx < 0) //#todo make int, not uint
-    {
-        return 0.0;
-    }
-    Texture2D historyIrradianceTexture = ResourceDescriptorHeap[IntialSamplingCB.irradianceHistoryIdx];
-    Texture2D prevDepthTexture = ResourceDescriptorHeap[IntialSamplingCB.prevDepthIdx];
-    
-    float4 prevClipPos = mul(float4(position, 1.0), FrameCB.prevViewProjection);
-    float3 prevNdcPos = prevClipPos.xyz / prevClipPos.w;
-    float2 prevUV = prevNdcPos.xy * float2(0.5, -0.5) + 0.5;
-    float prevLinearDepth = LinearizeDepth(prevDepthTexture.SampleLevel(PointClampSampler, prevUV, 0.0).x);
-    
-    if (any(prevUV < 0.0) || any(prevUV > 1.0) || abs(LinearizeDepth(prevNdcPos.z) - prevLinearDepth) > 0.05)
-    {
-        return 0.0;
-    }
-    float3 irradiance = historyIrradianceTexture.SampleLevel(LinearWrapSampler, prevUV, 0).xyz;
-    return irradiance * materialProperties.baseColor;
-}
 
 [numthreads(16, 16, 1)]
 void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
 {
-    Texture2D<float>    depthTexture = ResourceDescriptorHeap[IntialSamplingCB.depthIdx];
-    Texture2D<float3>   normalTexture = ResourceDescriptorHeap[IntialSamplingCB.normalIdx];
-    RWTexture2D<float4> outputRadiance = ResourceDescriptorHeap[IntialSamplingCB.outputIrradianceIdx];
-    RWTexture2D<uint>   outputRayDirection = ResourceDescriptorHeap[IntialSamplingCB.outputRayDirectionIdx];
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+    Texture2D<float>                        depthTexture     = ResourceDescriptorHeap[IntialSamplingCB.depthIdx];
+    Texture2D<float3>                       normalTexture    = ResourceDescriptorHeap[IntialSamplingCB.normalIdx];
+    RWStructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer  = ResourceDescriptorHeap[IntialSamplingCB.reservoirBufferIdx];
     
     float depth = depthTexture[dispatchThreadID.xy].r;
     float3 N = normalTexture[dispatchThreadID.xy].rgb;
-    N = 2.0 * N - 1.0;
+    N = 2.0f * N - 1.0f;
 	N = normalize(mul(N, (float3x3) transpose(FrameCB.view)));
 
-    if (depth == 0.0)
+    if (depth == 0.0f)
     {
         outputRadiance[dispatchThreadID.xy] = 0.xxxx;
         outputRayDirection[dispatchThreadID.xy] = 0;
         return;
     }
-    float3 worldPos = GetWorldPosition(FullScreenPosition(dispatchThreadID.xy), depth);
-    
+
     uint randSeed = InitRand(dispatchThreadID.x + dispatchThreadID.y * 16, 0, 16);
     float2 randFloat2 = float2(NextRand(randSeed), NextRand(randSeed));
     float3 direction = GetCosHemisphereSample(randSeed, N);
+    float3 worldPos = GetWorldPosition(FullScreenPosition(dispatchThreadID.xy), depth);
 
     RayDesc ray;
-    ray.Origin = worldPos + N * 0.01;
+    ray.Origin = worldPos + N * 0.01f;
     ray.Direction = direction;
-    ray.TMin = 0.00001;
-    ray.TMax = 10000.0;
+    ray.TMin = 0.00001f;
+    ray.TMax = 10000.0f;
+
+    ReSTIR_DI_Reservoir reservoir;
+    reservoir.Reset();
 
     float3 radiance = 0.0f;
     float3 hitNormal = 0.0f;
+    float3 hitPosition = 0.0f;
     HitInfo info = (HitInfo)0;
     if (TraceRay(ray, info))
     {
@@ -88,25 +64,24 @@ void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
         MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
         BrdfData brdfData = GetBrdfData(matProperties);
         
-        Light light = lights[0];
-		float visibility = TraceShadowRay(light, worldPosition.xyz);
-        float3 wi = normalize(-light.direction.xyz);
-        float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
-		float NdotL = saturate(dot(worldNormal, wi));
-
-        float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
-        float3 indirectLighting = GetIndirectDiffuseLighting(info.hitPosition, matProperties);
+        //#todo
+        float3 directLighting = 0.0f; 
+        float3 indirectLighting = 0.0f; //GetIndirectDiffuseLighting(info.hitPosition, matProperties);
 
         radiance = (directLighting + indirectLighting + matProperties.emissive);
         hitNormal = worldNormal;
+        hitPosition = worldPosition;
     }
     else
     {
         TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
         radiance = envMap.SampleLevel(LinearWrapSampler, ray.Direction, 0).rgb;
         hitNormal = -direction;
+        hitPosition = 0.0f;
     }
 
-    outputRadiance[dispatchThreadID.xy] = float4(radiance, info.hitT);
-    outputRayDirection[dispatchThreadID.xy] = EncodeNormal16x2(direction);
+    reservoir.sample.samplePosition = hitPosition;
+    reservoir.sample.sampleNormal = hitNormal;
+    reservoir.sample.sampleRadiance = radiance;
+    reservoirBuffer[dispatchThreadID.x] = reservoir;
 }

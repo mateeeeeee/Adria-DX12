@@ -175,6 +175,7 @@ namespace adria
 		BoundingBox bounding_box;
 
 		Bool camera_visibility = true;
+
 	};
 
 	void Draw(SubMesh const& submesh, GfxCommandList* cmd_list, Bool override_topology = false, GfxPrimitiveTopology new_topology = GfxPrimitiveTopology::Undefined);

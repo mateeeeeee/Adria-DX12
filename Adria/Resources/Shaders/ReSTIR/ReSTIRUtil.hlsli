@@ -4,84 +4,60 @@
 
 #define RIS_CANDIDATES_LIGHTS 8
 
-struct Reservoir
+
+struct ReSTIR_DI_ReservoirSample
 {
-    bool UpdateReservoir(uint X, float w, float pdf, inout uint randSeed)
-    {
-        totalWeight += w;
-        M += 1;
- 
-        if (NextRand(randSeed) < w / totalWeight)
-        {
-            lightIndex = X;
-            lightWeight = w;
-            sampleTargetPdf = pdf;
-            return true;
-        }
- 
-        return false;
-    }
+	float3 samplePosition;
+	float3 sampleNormal;
+	float3 sampleRadiance;
 
-    float GetSampleWeight()
-    {
-        return (totalWeight / M) / sampleTargetPdf;
-    }
-
-    uint  lightIndex;       
-    float lightWeight;      
-    float totalWeight; 
-    float sampleTargetPdf;     
-    uint  M;                // number of lights processed for this reservoir
+	void Reset()
+	{
+		samplePosition = 0;
+		sampleNormal = 0;
+		sampleRadiance = 0;
+	}
 };
 
-
-
-void SampleSourceLight(in uint lightCount, inout uint seed, out uint lightIndex, out float sourcePdf)
+struct ReSTIR_DI_Reservoir
 {
-    lightIndex = min(uint(NextRand(seed) * lightCount), lightCount - 1);
-    sourcePdf = 1.0f / lightCount;
-}
-bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightIndex, out float sampleWeight)
-{
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-    uint lightCount, _unused;
-    lights.GetDimensions(lightCount, _unused);
+	ReSTIR_DI_ReservoirSample sample;
+	float targetFunction;
+	float numSamples;
+	float weightSum;
 
-    uint M = min(RIS_CANDIDATES_LIGHTS, lightCount);
-    lightIndex = -1;
-    sampleWeight = 0.0f;
-
-    Reservoir reservoir = (Reservoir)0;
-    for (int i = 0; i < M; ++i)
+    void Reset()
     {
-        uint candidate = 0;
-        float sourcePdf = 1.0f;
-        SampleSourceLight(lightCount, seed, candidate, sourcePdf);
-
-        Light light = lights[candidate];
-        float3 positionDifference = light.position.xyz - position;
-        float distance = length(positionDifference);
-        float3 L = positionDifference / distance;
-        if (light.type == DIRECTIONAL_LIGHT)
-        {
-            L = -normalize(light.direction.xyz);
-        }
-        if (dot(N, L) < 0.0f)
-        {
-            continue;
-        }
-        float targetPdf = Luminance(DoAttenuation(distance, light.range) * light.color.rgb);
-        if (light.type == DIRECTIONAL_LIGHT)
-        {
-            targetPdf = Luminance(light.color.rgb);
-        }
-        float risWeight = targetPdf / sourcePdf;
-        reservoir.UpdateReservoir(candidate, risWeight, targetPdf, seed);
+        weightSum = 0;
+        targetFunction = 0;
+        numSamples = 0;
+        sample.Reset();
     }
 
-    if (reservoir.totalWeight == 0.0f) return false;
+    void InternalResample(ReSTIR_DI_Reservoir r, float newTargetFunction, float risWeight, float rand)
+    {
+        numSamples += r.numSamples;
+        weightSum += risWeight;
 
-    lightIndex = reservoir.lightIndex;
-    sampleWeight = reservoir.GetSampleWeight();
-    return true;
-}
+        if (rand * weightSum < risWeight)
+        {
+            sample = r.sample;
+            targetFunction = newTargetFunction;
+        }
+    }
+
+    void Combine(ReSTIR_DI_Reservoir r, float newTargetFunction, float rand)
+    {
+        float ucw = r.weightSum;
+        float misScalingFactor = r.numSamples;
+        float risWeight = newTargetFunction * ucw * misScalingFactor;
+        InternalResample(r, newTargetFunction, risWeight, rand);
+    }
+
+    void End()
+    {
+        float denom = targetFunction * numSamples;
+        m_WeightSum = denom <= 0.0f ? 0.0f : m_WeightSum / denom;
+    }
+};
+

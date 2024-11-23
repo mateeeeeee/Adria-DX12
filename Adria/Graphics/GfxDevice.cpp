@@ -1,6 +1,5 @@
 #include <map>
 #include <dxgidebug.h>
-#include "pix3.h"
 #include "GfxDevice.h"
 #include "GfxSwapchain.h"
 #include "GfxCommandList.h"
@@ -14,6 +13,7 @@
 #include "GfxPipelineState.h"
 #include "GfxNsightAftermathGpuCrashTracker.h"
 #include "d3dx12.h"
+#include "pix3.h"
 #include "Logging/Logger.h"
 #include "Core/Window.h"
 #include "Core/ConsoleManager.h"
@@ -1129,6 +1129,24 @@ namespace adria
 				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 				srv_desc.Texture3D.MostDetailedMip = view_desc.first_mip;
 				srv_desc.Texture3D.MipLevels = view_desc.mip_count;
+			}
+
+			if (texture->IsSRGB())
+			{
+				auto AdjustFormatSRGB = [](DXGI_FORMAT format)
+				{
+					switch (format)
+					{
+					case DXGI_FORMAT_B8G8R8A8_UNORM:		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+					case DXGI_FORMAT_R8G8B8A8_UNORM:		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+					case DXGI_FORMAT_BC1_UNORM:				return DXGI_FORMAT_BC1_UNORM_SRGB;
+					case DXGI_FORMAT_BC2_UNORM:				return DXGI_FORMAT_BC2_UNORM_SRGB;
+					case DXGI_FORMAT_BC3_UNORM:				return DXGI_FORMAT_BC3_UNORM_SRGB;
+					case DXGI_FORMAT_BC7_UNORM:				return DXGI_FORMAT_BC7_UNORM_SRGB;
+					};
+					return format;
+				};
+				srv_desc.Format = AdjustFormatSRGB(srv_desc.Format);
 			}
 
 			device->CreateShaderResourceView(texture->GetNative(), &srv_desc, descriptor);

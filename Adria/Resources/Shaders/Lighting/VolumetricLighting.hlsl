@@ -30,8 +30,6 @@ void VolumetricLightingCS(CSInput input)
 	Texture2D<float>        depthTexture = ResourceDescriptorHeap[VolumetricLightingPassCB.depthIdx];
 	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[VolumetricLightingPassCB.outputIdx];
 
-	uint lightCount, unused;
-	lightBuffer.GetDimensions(lightCount, unused);
 	uint2 resolution = uint2(FrameCB.renderResolution) >> VolumetricLightingPassCB.resolutionFactor;
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
@@ -48,7 +46,7 @@ void VolumetricLightingCS(CSInput input)
     viewPosition = viewPosition + V * stepSize * Dither(((float2)input.DispatchThreadId.xy + 0.5f));
 
 	float3 totalAccumulation = 0.0f;
-	for (uint i = 0; i < lightCount; ++i)
+	for (int i = 0; i < FrameCB.lightCount; ++i)
 	{
 		Light light = lightBuffer[i];
 		if (!light.active || !light.volumetric) continue;

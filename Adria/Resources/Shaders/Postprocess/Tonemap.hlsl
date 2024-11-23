@@ -46,8 +46,9 @@ void TonemapCS(CSInput input)
         color.xyz = lerp(color.xyz, bloom + bloom * lensDirt, bloomParams.y);
 	}
     color.xyz *= TonemapPassCB.tonemapExposure;
+
     float exposure = exposureTexture[uint2(0, 0)];
-    color.xyz *= exposure;
+    color.xyz *= (1.0f + exposure);
 
     float4 toneMappedColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
     uint2 toneMapOperatorLUTUnpacked = UnpackTwoUint16FromUint32(TonemapPassCB.tonemapOperatorLUTPacked);
@@ -60,20 +61,22 @@ void TonemapCS(CSInput input)
             toneMappedColor = float4(color.xyz, 1.0f);
             break;
         case Tonemap_Reinhard:
-            toneMappedColor = float4(ReinhardToneMapping(color.xyz), 1.0);
+            toneMappedColor = float4(ReinhardToneMapping(color.xyz), 1.0f);
             break;
         case Tonemap_Hable:
-            toneMappedColor = float4(HableToneMapping(color.xyz), 1.0);
+            toneMappedColor = float4(HableToneMapping(color.xyz), 1.0f);
             break;
         case Tonemap_Linear:
-            toneMappedColor = float4(LinearToneMapping(color.xyz), 1.0);
+            toneMappedColor = float4(LinearToneMapping(color.xyz), 1.0f);
             break;
         case Tonemap_TonyMcMapface:
-            toneMappedColor = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz), 1.0);
+            toneMappedColor = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz), 1.0f);
             break;
         case Tonemap_AgX:
-            toneMappedColor = float4(AgXToneMapping(color.xyz), 1.0);
-
+            toneMappedColor = float4(AgXToneMapping(color.xyz), 1.0f);
+            break;
+        case Tonemap_ACES:
+            toneMappedColor = float4(ACESFilmicToneMapping(color.xyz), 1.0f);
             break;
     }
 

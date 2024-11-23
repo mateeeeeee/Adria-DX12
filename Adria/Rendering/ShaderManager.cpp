@@ -76,7 +76,6 @@ namespace adria
 			case CS_GenerateMips:
 			case CS_BuildHistogram:
 			case CS_HistogramReduction:
-			case CS_Exposure:
 			case CS_Ssao:
 			case CS_Hbao:
 			case CS_Ssr:
@@ -231,8 +230,6 @@ namespace adria
 				return "Postprocess/AutoExposure/BuildHistogram.hlsl";
 			case CS_HistogramReduction:
 				return "Postprocess/AutoExposure/HistogramReduction.hlsl";
-			case CS_Exposure:
-				return "Postprocess/AutoExposure/Exposure.hlsl";
 			case CS_Ssao:
 				return "Postprocess/SSAO.hlsl";
 			case CS_Hbao:
@@ -361,8 +358,6 @@ namespace adria
 				return "BuildHistogramCS";
 			case CS_HistogramReduction:
 				return "HistogramReductionCS";
-			case CS_Exposure:
-				return "ExposureCS";
 			case CS_Ssao:
 				return "SSAO_CS";
 			case CS_Hbao:
@@ -568,7 +563,7 @@ namespace adria
 
 			shader_map[shader] = std::move(output.shader);
 
-			file_shader_map[shader_desc.file].insert(shader);
+			file_shader_map[fs::path(shader_desc.file)].insert(shader);
 			for (auto const& include : output.includes)
 			{
 				file_shader_map[fs::path(include)].insert(shader);

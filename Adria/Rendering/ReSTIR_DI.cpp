@@ -1,4 +1,4 @@
-#include "ReSTIRGI.h"
+#include "ReSTIR_DI.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
 #include "RenderGraph/RenderGraph.h"
@@ -9,8 +9,23 @@
 
 namespace adria
 {
+	struct ReSTIR_DI_ReservoirSample
+	{
+		Vector3 sample_position;
+		Vector3 sample_normal;
+		Vector3 sample_radiance;
+	};
 
-	ReSTIRGI::ReSTIRGI(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
+	struct ReSTIR_DI_Reservoir
+	{
+		ReSTIR_DI_ReservoirSample sample;
+		Float target_function;
+		Float num_samples;
+		Float weight_sum;
+	};
+
+
+	ReSTIR_DI::ReSTIR_DI(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		if (!gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
 		{
@@ -28,17 +43,15 @@ namespace adria
 		spatial_resampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		CreateBuffers();
-
 		supported = true;
 	}
 
-	void ReSTIRGI::AddPasses(RenderGraph& rg)
+	void ReSTIR_DI::AddPasses(RenderGraph& rg)
 	{
 		if (!supported)
 		{
 			return;
 		}
-
 		QueueGUI([&]()
 			{
 				if (ImGui::TreeNode("ReSTIR GI"))
@@ -52,7 +65,6 @@ namespace adria
 					ImGui::TreePop();
 				}
 			});
-
 		if (!enable)
 		{
 			return;
@@ -62,13 +74,12 @@ namespace adria
 
 		if (resampling_mode != ResamplingMode::None)
 		{
-			std::swap(temporal_reservoir_buffers[0], temporal_reservoir_buffers[1]);
 			if (resampling_mode == ResamplingMode::Temporal || resampling_mode == ResamplingMode::TemporalAndSpatial) AddTemporalResamplingPass(rg);
 			if (resampling_mode == ResamplingMode::Spatial  || resampling_mode == ResamplingMode::TemporalAndSpatial) AddSpatialResamplingPass(rg);
 		}
 	}
 
-	void ReSTIRGI::AddInitialSamplingPass(RenderGraph& rg)
+	void ReSTIR_DI::AddInitialSamplingPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -88,6 +99,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
 				data.normal = builder.ReadTexture(RG_NAME(GBufferNormal));
 				data.prev_depth = builder.ReadTexture(RG_NAME(DepthHistory));
+				data.irradiance_history = builder.ReadTexture(RG_NAME(ReSTIR_IrradianceHistory));
 
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width = width;
@@ -106,7 +118,6 @@ namespace adria
 			[=](InitialSamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				Uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
 				GfxDescriptor src_descriptors[] =
 				{
 					ctx.GetReadOnlyTexture(data.depth),
@@ -115,6 +126,7 @@ namespace adria
 					ctx.GetReadWriteTexture(data.irradiance),
 					ctx.GetReadWriteTexture(data.ray_direction)
 				};
+				Uint32 i = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors)).GetIndex();
 				gfx->CopyDescriptors(gfx->GetDescriptorGPU(i), src_descriptors);
 
 				struct InitialSamplingPassParameters
@@ -139,7 +151,7 @@ namespace adria
 			}, RGPassType::Compute);
 	}
 
-	void ReSTIRGI::AddTemporalResamplingPass(RenderGraph& rg)
+	void ReSTIR_DI::AddTemporalResamplingPass(RenderGraph& rg)
 	{
 		struct TemporalResamplingPassData
 		{
@@ -157,7 +169,7 @@ namespace adria
 			}, RGPassType::Compute);
 	}
 
-	void ReSTIRGI::AddSpatialResamplingPass(RenderGraph& rg)
+	void ReSTIR_DI::AddSpatialResamplingPass(RenderGraph& rg)
 	{
 		struct SpatialResamplingPassData
 		{
@@ -175,41 +187,13 @@ namespace adria
 			}, RGPassType::Compute);
 	}
 
-	void ReSTIRGI::CreateBuffers()
+	void ReSTIR_DI::CreateBuffers()
 	{
-		if (temporal_reservoir_buffers[0].reservoir == nullptr ||
-			temporal_reservoir_buffers[0].reservoir->GetWidth() != width ||
-			temporal_reservoir_buffers[0].reservoir->GetHeight() != height)
+		if (staging_reservoir_buffer == nullptr || final_reservoir_buffer == nullptr)
 		{
-			for (Uint32 i = 0; i < ARRAYSIZE(temporal_reservoir_buffers); ++i)
-			{
-				GfxTextureDesc sample_radiance_desc{};
-				sample_radiance_desc.width = width;
-				sample_radiance_desc.height = height;
-				sample_radiance_desc.mip_levels = 1;
-				sample_radiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				sample_radiance_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				sample_radiance_desc.initial_state = GfxResourceState::ComputeUAV;
-				temporal_reservoir_buffers[i].sample_radiance = gfx->CreateTexture(sample_radiance_desc);
-
-				GfxTextureDesc ray_direction_desc{};
-				ray_direction_desc.width = width;
-				ray_direction_desc.height = height;
-				ray_direction_desc.mip_levels = 1;
-				ray_direction_desc.format = GfxFormat::R32_UINT;
-				ray_direction_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				ray_direction_desc.initial_state = GfxResourceState::ComputeUAV;
-				temporal_reservoir_buffers[i].ray_direction = gfx->CreateTexture(sample_radiance_desc);
-
-				GfxTextureDesc reservoir_desc{};
-				reservoir_desc.width = width;
-				reservoir_desc.height = height;
-				reservoir_desc.mip_levels = 1;
-				reservoir_desc.format = GfxFormat::R16G16_FLOAT;
-				reservoir_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				reservoir_desc.initial_state = GfxResourceState::ComputeUAV;
-				temporal_reservoir_buffers[i].reservoir = gfx->CreateTexture(reservoir_desc);
-			}
+			GfxBufferDesc reservoir_buffer_desc = StructuredBufferDesc<ReSTIR_DI_ReservoirSample>(width * height, true, false);
+			staging_reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
+			final_reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
 		}
 	}
 

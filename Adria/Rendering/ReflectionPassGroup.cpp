@@ -7,17 +7,17 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<int> Reflection("r.Reflections", 0, "0 - No Reflections, 1 - SSR, 2 - RTR");
-
-	enum class ReflectionType : Uint8
+	enum ReflectionType : Uint8
 	{
-		None,
-		SSR,
-		RTR,
-		Count
+		ReflectionType_None,
+		ReflectionType_SSR,
+		ReflectionType_RTR,
+		ReflectionType_Count
 	};
 
-	ReflectionPassGroup::ReflectionPassGroup(GfxDevice* gfx, Uint32 width, Uint32 height) : reflection_type(ReflectionType::None)
+	static TAutoConsoleVariable<int> Reflection("r.Reflections", ReflectionType_SSR, "0 - No Reflections, 1 - SSR, 2 - RTR");
+
+	ReflectionPassGroup::ReflectionPassGroup(GfxDevice* gfx, Uint32 width, Uint32 height) : reflection_type(ReflectionType_SSR)
 	{
 		post_effect_idx = static_cast<Uint32>(reflection_type);
 		Reflection->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar)
@@ -26,12 +26,11 @@ namespace adria
 				post_effect_idx = static_cast<Uint32>(reflection_type);
 			}));
 
-		using enum ReflectionType;
-		post_effects.resize((Uint32)Count);
-		post_effects[(Uint32)None] = std::make_unique<EmptyPostEffect>();
-		post_effects[(Uint32)SSR]  = std::make_unique<SSRPass>(gfx, width, height);
-		post_effects[(Uint32)RTR]  = std::make_unique<RayTracedReflectionsPass>(gfx, width, height);
-		is_rtr_supported = post_effects[(Uint32)RTR]->IsSupported();
+		post_effects.resize(ReflectionType_Count);
+		post_effects[ReflectionType_None] = std::make_unique<EmptyPostEffect>();
+		post_effects[ReflectionType_SSR]  = std::make_unique<SSRPass>(gfx, width, height);
+		post_effects[ReflectionType_RTR]  = std::make_unique<RayTracedReflectionsPass>(gfx, width, height);
+		is_rtr_supported = post_effects[ReflectionType_RTR]->IsSupported();
 	}
 
 	void ReflectionPassGroup::GroupGUI()

@@ -19,7 +19,7 @@ namespace adria
 		void Initialize(GfxDevice* gfx, Uint32 max_textures);
 		void Destroy();
 
-		ADRIA_NODISCARD TextureHandle LoadTexture(std::string_view path);
+		ADRIA_NODISCARD TextureHandle LoadTexture(std::string_view path, Bool srgb = false);
 		ADRIA_NODISCARD TextureHandle LoadCubemap(std::array<std::string, 6> const& cubemap_textures);
 		ADRIA_NODISCARD GfxDescriptor GetSRV(TextureHandle handle);
 		ADRIA_NODISCARD GfxTexture* GetTexture(TextureHandle handle) const;

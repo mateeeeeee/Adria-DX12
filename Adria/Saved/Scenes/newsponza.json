@@ -1,18 +1,18 @@
 {
   "camera": {
     "position": [
-      108.0,
-      17.0,
-      1.0
+      45.0,
+      37.0,
+      -4.0
     ],
     "look_at": [
-      0.0,
-      17.0,
-      1.1
+      44.0,
+      36.7,
+      -4.0
     ],
     "fov": 45.0,
     "near": 1.0,
-    "far": 475.0
+    "far": 700.0
   },
   "skybox": {
     "texture": [ "Resources/Textures/Skybox/sunsetcube1024.dds" ]

@@ -352,6 +352,24 @@ float3 GetIndirectLighting(float3 viewPosition, float3 viewNormal, float3 diffus
 	return indirectLighting;
 }
 
+float3 GetIndirectLightingWS(float3 worldPosition, float3 worldNormal, float3 diffuseColor, float ambientOcclusion)
+{
+	float3 indirectLighting = 0.0f;
+	int ddgiVolumesIdx = FrameCB.ddgiVolumesIdx;
+	if (ddgiVolumesIdx >= 0)
+	{
+		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
+		DDGIVolume ddgiVolume = ddgiVolumes[0];
+		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
+		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, -Wo);
+	}
+	else
+	{
+		indirectLighting = 0.1f * FrameCB.ambientColor.rgb * diffuseColor * ambientOcclusion;
+	}
+	return indirectLighting;
+}
+
 #endif
 
 

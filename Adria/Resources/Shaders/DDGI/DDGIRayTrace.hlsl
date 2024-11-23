@@ -58,6 +58,7 @@ void DDGI_Miss(inout DDGIPayload payload)
 void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 {
 	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	Instance instanceData = GetInstanceData(InstanceIndex());
@@ -70,20 +71,23 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	float3 worldNormal = mul(vertex.nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
 	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
 
-	MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
+	MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 6);
 	BrdfData brdfData = GetBrdfData(matProperties);
 
 	float3 N = normalize(worldNormal);
+	float3 radiance = 0.0f;
+	for(uint lightIndex = 0; lightIndex < FrameCB.lightCount; ++lightIndex)
+	{
+		Light light = lights[lightIndex];
 
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	Light light = lights[0];
-	bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
-	
-	if (!visibility) return;
-	float3 L = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
-	L = normalize(-L);
-	float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
-	float3 radiance = diffuse * light.color.rgb;
+		bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
+		if(!visibility) continue;
+
+		float3 L = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
+		L = normalize(-L);
+		float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
+		radiance += diffuse * light.color.rgb;
+	}
 
 	radiance += matProperties.emissive;
 	radiance += DiffuseBRDF(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());

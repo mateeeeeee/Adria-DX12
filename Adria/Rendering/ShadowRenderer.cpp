@@ -11,15 +11,18 @@
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleManager.h"
 
 using namespace DirectX;
 
 namespace adria
 {
+	static TAutoConsoleVariable<Float> CascadesSplitLambda("r.Shadows.CascadesSplitLambda", 0.5f, "Lambda used when calculating cascades split");
+	static TAutoConsoleVariable<Float> ShadowFarFactor("r.Shadows.FarFactor", 1.2f, "Far factor used to calculate projection matrices of directional light");
+
 	namespace
 	{
-
-		std::pair<Matrix, Matrix> LightViewProjection_Directional(Light const& light, Camera const& camera, Uint32 shadow_size)
+		std::pair<Matrix, Matrix> LightViewProjection_Directional(Light const& light, Camera const& camera, Uint32 shadow_size, std::vector<BoundingObject>& bounding_objects)
 		{
 			BoundingFrustum frustum = camera.Frustum();
 			std::array<Vector3, BoundingFrustum::CORNER_COUNT> corners = {};
@@ -68,9 +71,15 @@ namespace adria
 			rounded_offset.z = 0.0f;
 			P.m[3][0] += rounded_offset.x;
 			P.m[3][1] += rounded_offset.y;
+
+			BoundingBox box;
+			BoundingBox::CreateFromPoints(box, Vector4(l, b, n, 1.0f), Vector4(r, t, f, 1.0f));
+			box.Transform(box, V.Invert());
+			bounding_objects.emplace_back(box);
+
 			return { V,P };
 		}
-		std::pair<Matrix, Matrix> LightViewProjection_Spot(Light const& light)
+		std::pair<Matrix, Matrix> LightViewProjection_Spot(Light const& light, std::vector<BoundingObject>& bounding_objects)
 		{
 			ADRIA_ASSERT(light.type == LightType::Spot);
 
@@ -82,9 +91,14 @@ namespace adria
 			static const Float shadow_near = 0.5f;
 			Float fov_angle = 2.0f * acos(light.outer_cosine);
 			Matrix P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
+
+			BoundingFrustum frustum(P);
+			frustum.Transform(frustum, V.Invert());
+			bounding_objects.emplace_back(frustum);
+
 			return { V,P };
 		}
-		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, Uint32 face_index)
+		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, Uint32 face_index, std::vector<BoundingObject>& bounding_objects)
 		{
 			static Float const shadow_near = 0.5f;
 			Matrix P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
@@ -128,12 +142,17 @@ namespace adria
 			default:
 				ADRIA_ASSERT_MSG(false, "Invalid face index!");
 			}
+
+			BoundingFrustum frustum(P);
+			frustum.Transform(frustum, V.Invert());
+			bounding_objects.emplace_back(frustum);
+
 			return { V,P };
 		}
-		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, Uint32 shadow_cascade_size)
+		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, Uint32 shadow_cascade_size, std::vector<BoundingObject>& bounding_objects)
 		{
-			static Float const far_factor = 1.5f;
-			static Float const light_distance_factor = 1.0f;
+			Float const far_factor = ShadowFarFactor.Get();
+			Float const light_distance_factor = 1.0f;
 
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, camera.View().Invert());
@@ -181,6 +200,12 @@ namespace adria
 			rounded_offset.z = 0.0f;
 			P.m[3][0] += rounded_offset.x;
 			P.m[3][1] += rounded_offset.y;
+
+			BoundingBox box;
+			BoundingBox::CreateFromPoints(box, Vector4(l, b, n, 1.0f), Vector4(r, t, f, 1.0f));
+			box.Transform(box, V.Invert());
+			bounding_objects.emplace_back(box);
+
 			return { V,P };
 		}
 	}
@@ -325,8 +350,9 @@ namespace adria
 			}
 		}
 
-		std::vector<Matrix> _light_matrices;
-		_light_matrices.reserve(light_matrices_count);
+		bounding_objects.clear();
+		std::vector<Matrix> light_matrices;
+		light_matrices.reserve(light_matrices_count);
 		for (auto e : light_view)
 		{
 			auto& light = light_view.get<Light>(e);
@@ -335,24 +361,24 @@ namespace adria
 			if (light.casts_shadows)
 			{
 				if (light.ray_traced_shadows) continue;
-				light.shadow_matrix_index = (Uint32)_light_matrices.size();
+				light.shadow_matrix_index = (Uint32)light_matrices.size();
 				if (light.type == LightType::Directional)
 				{
 					if (light.use_cascades)
 					{
-						std::array<Matrix, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, cascades_split_lambda, split_distances);
+						std::array<Matrix, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, CascadesSplitLambda.Get(), split_distances);
 						AddShadowMaps(light, entt::to_integral(e));
 						for (Uint32 i = 0; i < SHADOW_CASCADE_COUNT; ++i)
 						{
-							auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], SHADOW_CASCADE_MAP_SIZE);
-							_light_matrices.push_back(XMMatrixTranspose(V * P));
+							auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], SHADOW_CASCADE_MAP_SIZE, bounding_objects);
+							light_matrices.push_back(XMMatrixTranspose(V * P));
 						}
 					}
 					else
 					{
 						AddShadowMaps(light, entt::to_integral(e));
-						auto const& [V, P] = LightViewProjection_Directional(light, *camera, SHADOW_MAP_SIZE);
-						_light_matrices.push_back(XMMatrixTranspose(V * P));
+						auto const& [V, P] = LightViewProjection_Directional(light, *camera, SHADOW_MAP_SIZE, bounding_objects);
+						light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
 
 				}
@@ -361,15 +387,15 @@ namespace adria
 					AddShadowMaps(light, entt::to_integral(e));
 					for (Uint32 i = 0; i < 6; ++i)
 					{
-						auto const& [V, P] = LightViewProjection_Point(light, i);
-						_light_matrices.push_back(XMMatrixTranspose(V * P));
+						auto const& [V, P] = LightViewProjection_Point(light, i, bounding_objects);
+						light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
 				}
 				else if (light.type == LightType::Spot)
 				{
 					AddShadowMaps(light, entt::to_integral(e));
-					auto const& [V, P] = LightViewProjection_Spot(light);
-					_light_matrices.push_back(XMMatrixTranspose(V * P));
+					auto const& [V, P] = LightViewProjection_Spot(light, bounding_objects);
+					light_matrices.push_back(XMMatrixTranspose(V * P));
 				}
 			}
 			else if (light.ray_traced_shadows)
@@ -377,14 +403,15 @@ namespace adria
 				AddShadowMask(light, entt::to_integral(e));
 			}
 		}
+		ADRIA_ASSERT(light_matrices.size() == bounding_objects.size());
+
 		if (light_matrices_buffer)
 		{
-			light_matrices_buffer->Update(_light_matrices.data(), light_matrices_count * sizeof(Matrix), light_matrices_count * sizeof(Matrix) * backbuffer_index);
+			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(Matrix), light_matrices_count * sizeof(Matrix) * backbuffer_index);
 			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index]);
 			light_matrices_gpu_index = (Sint32)dst_descriptor.GetIndex();
 		}
-		light_matrices = std::move(_light_matrices);
 	}
 
 	void ShadowRenderer::AddShadowMapPasses(RenderGraph& rg)
@@ -416,7 +443,7 @@ namespace adria
 							[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 							{
 								cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-								ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
+								ShadowMapPass_Common(cmd_list, light.type, light_index, light_matrix_index, i);
 							}, RGPassType::Graphics);
 
 						shadow_rendered_event.Broadcast(RG_NAME_IDX(ShadowMap, light_matrix_index + i));
@@ -435,7 +462,7 @@ namespace adria
 						[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 						{
 							cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
+							ShadowMapPass_Common(cmd_list, light.type, light_index, light_matrix_index, 0);
 						}, RGPassType::Graphics);
 
 					shadow_rendered_event.Broadcast(RG_NAME_IDX(ShadowMap, light.shadow_matrix_index));
@@ -456,7 +483,7 @@ namespace adria
 						[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 						{
 							cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
+							ShadowMapPass_Common(cmd_list, light.type, light_index, light_matrix_index, i);
 						}, RGPassType::Graphics);
 
 					shadow_rendered_event.Broadcast(RG_NAME_IDX(ShadowMap, light.shadow_matrix_index + i));
@@ -475,7 +502,7 @@ namespace adria
 					[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 					{
 						cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-						ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
+						ShadowMapPass_Common(cmd_list, light.type, light_index, light_matrix_index, 0);
 					}, RGPassType::Graphics);
 
 				shadow_rendered_event.Broadcast(RG_NAME_IDX(ShadowMap, light_matrix_index));
@@ -521,7 +548,7 @@ namespace adria
 		shadow_psos->Finalize(gfx);
 	}
 
-	void ShadowRenderer::ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, Uint64 light_index, Uint64 matrix_index, Uint64 matrix_offset)
+	void ShadowRenderer::ShadowMapPass_Common(GfxCommandList* cmd_list, LightType light_type, Uint64 light_index, Uint64 matrix_index, Uint64 matrix_offset)
 	{
 		struct ShadowConstants
 		{
@@ -549,6 +576,23 @@ namespace adria
 			cmd_list->SetPipelineState(pso);
 			for (Batch* batch : batches)
 			{
+				Bool skip_batch = false;
+				switch (light_type)
+				{
+				case LightType::Directional:
+					ADRIA_ASSERT(bounding_objects[matrix_index].type == BoundingObject::Box);
+					skip_batch = !bounding_objects[matrix_index].GetBox().Intersects(batch->bounding_box);
+					break;
+				case LightType::Spot:
+				case LightType::Point:
+					ADRIA_ASSERT(bounding_objects[matrix_index].type == BoundingObject::Frustum);
+					skip_batch = !bounding_objects[matrix_index].GetFrustum().Intersects(batch->bounding_box);
+					break;
+				default:
+					ADRIA_ASSERT(false);
+				}
+				if (skip_batch) continue;
+
 				struct ModelConstants
 				{
 					Uint32 instance_id;

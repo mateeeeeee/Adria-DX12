@@ -53,8 +53,8 @@ namespace adria
 		}
 
 		FileModifiedEvent& GetFileModifiedEvent() { return file_modified_event; }
+
 	private:
-		std::vector<std::string> paths_to_watch;
 		std::unordered_map<std::string, std::filesystem::file_time_type> files_map;
 		FileModifiedEvent file_modified_event;
 	};

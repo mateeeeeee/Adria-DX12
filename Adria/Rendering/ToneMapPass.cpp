@@ -21,7 +21,8 @@ namespace adria
 		ToneMapOperator_Hable,
 		ToneMapOperator_Linear,
 		ToneMapOperator_TonyMcMapface,
-		ToneMapOperator_AgX
+		ToneMapOperator_AgX,
+		ToneMapOperator_ACES
 	};
 
 	static TAutoConsoleVariable<int>   TonemapOperator("r.Tonemap.Operator", ToneMapOperator_TonyMcMapface, "0 - None, 1 - Reinhard, 2 - Hable, 3 - Linear, 4 - TonyMcMapface, 5 - AgX");
@@ -144,7 +145,7 @@ namespace adria
 				if (ImGui::TreeNode("Tone Mapping"))
 				{
 					ImGui::SliderFloat("Exposure", TonemapExposure.GetPtr(), 0.01f, 10.0f);
-					static Char const* const operators[] = { "None", "Reinhard", "Hable", "Linear", "Tony McMapface", "AgX" };
+					static Char const* const operators[] = { "None", "Reinhard", "Hable", "Linear", "Tony McMapface", "AgX", "ACES" };
 					ImGui::ListBox("Tone Map Operator", TonemapOperator.GetPtr(), operators, IM_ARRAYSIZE(operators));
 					ImGui::TreePop();
 					ImGui::Separator();

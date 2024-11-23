@@ -139,6 +139,7 @@ namespace adria
 	template<typename T>
 	inline GfxBufferDesc StructuredBufferDesc(Uint64 count, Bool uav = true, Bool dynamic = false)
 	{
+		ADRIA_ASSERT_MSG(uav ^ dynamic, "Buffer cannot be dynamic and be accessed as UAV at the same time!");
 		GfxBufferDesc desc{};
 		desc.resource_usage = (uav || !dynamic) ? GfxResourceUsage::Default : GfxResourceUsage::Upload;
 		desc.bind_flags = GfxBindFlag::ShaderResource;

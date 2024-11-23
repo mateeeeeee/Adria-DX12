@@ -130,6 +130,7 @@ namespace adria
 
 		render_graph.ImportTexture(RG_NAME(Backbuffer), gfx->GetBackbuffer());
 		render_graph.ImportTexture(RG_NAME(FinalTexture), final_texture.get());
+		postprocessor.ImportHistoryResources(render_graph);
 
 		gpu_debug_printer.AddClearPass(render_graph);
 		if (lighting_path == LightingPathType::PathTracing) Render_PathTracing(render_graph);
@@ -403,6 +404,7 @@ namespace adria
 		frame_cbuf_data.materials_idx = (Sint32)scene_buffers[SceneBuffer_Material].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.instances_idx = (Sint32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (Sint32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.light_count = (Sint32)scene_buffers[SceneBuffer_Light].buffer->GetCount();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
 		frame_cbuf_data.ddgi_volumes_idx = ddgi.IsEnabled() ? ddgi.GetDDGIVolumeIndex() : -1;
 		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
@@ -522,6 +524,7 @@ namespace adria
 			ocean_renderer.GUI();
 			sky_pass.GUI();
 			rain_pass.GUI();
+
 			QueueGUI([&]()
 				{
 					if (ImGui::TreeNode("Sun Settings"))
@@ -565,9 +568,7 @@ namespace adria
 						}
 						ImGui::TreePop();
 					}
-				}, GUICommandGroup_Renderer);
-			QueueGUI([&]()
-				{
+
 					static Sint current_volumetric_path = (Sint)volumetric_path;
 					if (ImGui::TreeNode("Misc"))
 					{
@@ -575,13 +576,14 @@ namespace adria
 						{
 							VolumetricPath->Set(current_volumetric_path);
 						}
+						volumetric_path = static_cast<VolumetricPathType>(current_volumetric_path);
+
 						if (!ddgi.IsEnabled())
 						{
 							ImGui::ColorEdit3("Ambient Color", ambient_color);
 						}
 						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
-						volumetric_path = static_cast<VolumetricPathType>(current_volumetric_path);
 						ImGui::TreePop();
 					}
 				}, GUICommandGroup_Renderer);

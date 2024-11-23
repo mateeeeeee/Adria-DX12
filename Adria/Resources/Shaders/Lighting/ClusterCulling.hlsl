@@ -69,9 +69,8 @@ void ClusterCullingCS(CSInput input)
 	uint clusterIndex = input.GroupIndex + GROUP_SIZE * input.GroupId.z;
 	ClusterAABB cluster = clusterBuffer[clusterIndex];
 
-	uint lightOffset = 0;
-	uint lightCount, _unused;
-	lightBuffer.GetDimensions(lightCount, _unused);
+	int lightOffset = 0;
+	int lightCount = FrameCB.lightCount;
 
 	while (lightOffset < lightCount)
 	{

@@ -108,9 +108,7 @@ void LightInjectionCS(CSInput input)
 	if(any(inScattering > 0.0f))
 	{
 		StructuredBuffer<Light> lights	= ResourceDescriptorHeap[FrameCB.lightsIdx];
-		uint lightCount, unused;
-		lights.GetDimensions(lightCount, unused);
-		for (uint i = 0; i < lightCount; ++i)
+		for (int i = 0; i < FrameCB.lightCount; ++i)
 		{
 			Light light = lights[i];
 			if (!light.active || !light.volumetric) continue;

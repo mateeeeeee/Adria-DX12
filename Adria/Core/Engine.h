@@ -10,7 +10,7 @@ namespace adria
 	struct SceneConfig;
 	class GfxDevice;
 	class Renderer;
-	class EntityLoader;
+	class SceneLoader;
 	struct EditorEvents;
 	class ImGuiManager;
 	class Camera;
@@ -38,21 +38,19 @@ namespace adria
 		Window* window = nullptr;
 		entt::registry reg;
 		std::unique_ptr<Camera> camera;
-	
 		std::unique_ptr<GfxDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
-		std::unique_ptr<EntityLoader> entity_loader;
-
-		ViewportData viewport_data;
+		std::unique_ptr<SceneLoader> scene_loader;
+		ViewportData viewport_data{};
 
 	private:
-		void InitializeScene(SceneConfig const& config);
-		void ProcessCVarIniFile();
+		void InitializeScene(SceneConfig const&);
+		void ProcessCVarIniFile(std::string const&);
 
 		void Update(Float dt);
 		void Render();
 
-		void SetViewportData(ViewportData* viewport_data);
+		void SetViewportData(ViewportData*);
 		void RegisterEditorEventCallbacks(EditorEvents&);
 	};
 }

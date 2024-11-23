@@ -9,6 +9,7 @@
 
 #if GFX_PROFILING
 #define GFX_PROFILING_USE_TRACY 0
+#define USE_PIX
 #endif
 
 

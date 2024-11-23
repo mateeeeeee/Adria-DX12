@@ -6,27 +6,34 @@
 #define GROUP_SIZE_Y 16
 #define HISTOGRAM_BIN_NUM 256
 
+
 float ComputeEV100(float avgLuminance)
 {
-	const float K = 12.5;
-	return log2(avgLuminance * 100.0 / K);
+	const float K = 12.5f;
+	const float ISO = 100.0f;
+	return log2(avgLuminance * ISO / K);
 }
 float ComputeExposure(float EV100)
 {
-	const float lensAttenuation = 0.65;
-	const float lensImperfectionExposureScale = 78.0 / (100.0 * lensAttenuation); 
-	float maxLuminance = lensImperfectionExposureScale * pow(2.0, EV100);
-	return 1.0 / maxLuminance;
+	return 1.0f / (pow(2.0f, EV100) * 1.2f);
 }
-uint GetHistogramBin(float luminance, float minLuminance, float maxLuminance)
+
+uint GetHistogramBin(float3 color, float minLogLuminance, float logLuminanceRangeRcp)
 {
-	float position = saturate((luminance - minLuminance) / (maxLuminance - minLuminance));
-	return uint(pow(position, 1.0 / 5.0) * (HISTOGRAM_BIN_NUM - 1));
+	float luminance = Luminance(color);
+	if(luminance < 1e-5f)
+	{
+		return 0;
+	}
+
+	float logLuminance = saturate((log2(luminance) - minLogLuminance) * logLuminanceRangeRcp);
+	return (uint)(logLuminance * (HISTOGRAM_BIN_NUM - 1) + 1.0);
 }
-float GetLuminance(uint histogramBin, float minLuminance, float maxLuminance)
+
+float Adaption(float current, float target, float dt, float speed)
 {
-	float position = ((float)histogramBin + 0.5) / float(HISTOGRAM_BIN_NUM - 1);
-	return pow(position, 5.0) * (maxLuminance - minLuminance);
+	float factor = 1.0f - exp2(-dt * speed);
+	return current + (target - current) * factor;
 }
 
 #endif

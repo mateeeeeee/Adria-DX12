@@ -48,6 +48,7 @@ namespace adria
 
 		Uint32 frame_count;
 		Sint32  lights_idx;
+		Sint32  light_count;
 		Sint32  lights_matrices_idx;
 		Sint32  accel_struct_idx;
 		Sint32  env_map_idx;

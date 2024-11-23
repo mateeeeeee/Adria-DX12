@@ -7,6 +7,7 @@
 #define Tonemap_Linear 3
 #define Tonemap_TonyMcMapface 4
 #define Tonemap_AgX 5
+#define Tonemap_ACES 6
 
 static const float gamma = 2.2;
 
@@ -48,6 +49,8 @@ static float3 ACESFilmicToneMapping(float3 color)
 	color = LinearToSRGB(color);
 	return clamp(color, 0.0f, 1.0f);
 }
+
+
 static float3 HableToneMapping(float3 color)
 {
 	float A = 0.15;

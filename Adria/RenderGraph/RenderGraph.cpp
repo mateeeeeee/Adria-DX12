@@ -1,7 +1,6 @@
 #include <stack>
 #include <format>
 #include <fstream>
-#include <pix3.h>
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRenderPass.h"
@@ -11,7 +10,7 @@
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
 #include "Logging/Logger.h"
-
+#include "pix3.h"
 
 #if GFX_MULTITHREADED
 #define RG_MULTITHREADED 1

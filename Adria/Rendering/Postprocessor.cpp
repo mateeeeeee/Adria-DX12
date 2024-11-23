@@ -49,10 +49,16 @@ namespace adria
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		InitializePostEffects();
-		CreateHistoryBuffer();
+		CreateHistoryResources();
 	}
 
 	PostProcessor::~PostProcessor() = default;
+
+	void PostProcessor::ImportHistoryResources(RenderGraph& rg)
+	{
+		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
+		rg.ImportTexture(RG_NAME(DepthHistory), depth_history.get());
+	}
 
 	void PostProcessor::OnRainEvent(Bool enabled)
 	{
@@ -72,8 +78,6 @@ namespace adria
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
 	{
-		rg.ImportTexture(RG_NAME(HistoryBuffer), history_buffer.get());
-
 		final_resource = RG_NAME(HDR_RenderTarget);
 		for (Uint32 i = 0; i < PostEffectType_Count; ++i)
 		{
@@ -81,6 +85,7 @@ namespace adria
 		}
 
 		rg.ExportTexture(GetPostEffect<ToneMapPass>()->GetInput(), history_buffer.get());
+		rg.ExportTexture(RG_NAME(DepthStencil), depth_history.get());
 	}
 
 	void PostProcessor::AddTonemapPass(RenderGraph& rg, RGResourceName input)
@@ -220,7 +225,7 @@ namespace adria
 		GetPostEffect<UpscalerPassGroup>()->AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&PostProcessor::OnRenderResolutionChanged, *this));
 	}
 
-	void PostProcessor::CreateHistoryBuffer()
+	void PostProcessor::CreateHistoryResources()
 	{
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
@@ -229,6 +234,14 @@ namespace adria
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		render_target_desc.initial_state = GfxResourceState::CopyDst;
 		history_buffer = gfx->CreateTexture(render_target_desc);
+
+		GfxTextureDesc depth_target_desc{};
+		depth_target_desc.format = GfxFormat::D32_FLOAT;
+		depth_target_desc.width = display_width;
+		depth_target_desc.height = display_height;
+		depth_target_desc.bind_flags = GfxBindFlag::ShaderResource;
+		depth_target_desc.initial_state = GfxResourceState::CopyDst;
+		depth_history = gfx->CreateTexture(depth_target_desc);
 	}
 
 	template<typename PostEffectT> requires std::is_base_of_v<PostEffect, PostEffectT>

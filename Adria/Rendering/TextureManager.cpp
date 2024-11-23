@@ -27,7 +27,7 @@ namespace adria
         gfx = nullptr;
 	}
 
-    TextureHandle TextureManager::LoadTexture(std::string_view path)
+    TextureHandle TextureManager::LoadTexture(std::string_view path, Bool srgb)
     {
         std::string texture_name(path);
         if (auto it = loaded_textures.find(texture_name); it == loaded_textures.end())
@@ -49,6 +49,10 @@ namespace adria
 			desc.heap_type = GfxResourceUsage::Default;
 			desc.mip_levels = img.MipLevels();
             desc.misc_flags = img.IsCubemap() ? GfxTextureMiscFlag::TextureCube : GfxTextureMiscFlag::None;
+			if (srgb)
+			{
+				desc.misc_flags |= GfxTextureMiscFlag::SRGB;
+			}
 
             std::vector<GfxTextureSubData> tex_data;
 			const Image* curr_img = &img;

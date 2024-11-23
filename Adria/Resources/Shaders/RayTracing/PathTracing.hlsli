@@ -36,18 +36,16 @@ struct Reservoir
     uint  M;                
 };
 
-void SampleSourceLight(in uint lightCount, inout uint seed, out uint lightIndex, out float sourcePdf)
+void SampleSourceLight(in int lightCount, inout uint seed, out int lightIndex, out float sourcePdf)
 {
-    lightIndex = min(uint(NextRand(seed) * lightCount), lightCount - 1);
+    lightIndex = min(int(NextRand(seed) * lightCount), lightCount - 1);
     sourcePdf = 1.0f / lightCount;
 }
 bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightIndex, out float sampleWeight)
 {
     StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-    uint lightCount, _unused;
-    lights.GetDimensions(lightCount, _unused);
 
-    uint M = min(RIS_CANDIDATES_LIGHTS, lightCount);
+    uint M = min(RIS_CANDIDATES_LIGHTS, FrameCB.lightCount);
     lightIndex = -1;
     sampleWeight = 0.0f;
 
@@ -56,7 +54,7 @@ bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightInd
     {
         uint lightIndex = 0;
         float sourcePdf = 1.0f;
-        SampleSourceLight(lightCount, seed, lightIndex, sourcePdf);
+        SampleSourceLight(FrameCB.lightCount, seed, lightIndex, sourcePdf);
 
         Light light = lights[lightIndex];
         float3 positionDifference = light.position.xyz - position;

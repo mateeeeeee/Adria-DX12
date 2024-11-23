@@ -1,18 +1,18 @@
 {
   "camera": {
     "position": [
-      108.0,
-      17.0,
-      1.0
+      -1.7,
+      10.3,
+      6.7
     ],
     "look_at": [
-      0.0,
-      17.0,
-      1.1
+      -1.1,
+      10.3,
+      7.5
     ],
     "fov": 45.0,
     "near": 1.0,
-    "far": 475.0
+    "far": 560.0
   },
   "skybox": {
     "texture": [ "Resources/Textures/Skybox/sunsetcube1024.dds" ]
@@ -29,9 +29,9 @@
     {
       "type": "directional",
       "temperature": 5900.0,
-      "elevation": 75.0,
-      "azimuth": 260.0,
-      "intensity": 5.0,
+      "elevation": 57.0,
+      "azimuth": 105.0,
+      "intensity": 10.0,
       "shadows": true,
       "cascades": true,
       "volumetric": true,

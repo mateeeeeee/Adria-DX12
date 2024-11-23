@@ -80,10 +80,10 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void TAA_CS(CSInput input)
 {
-	Texture2D<float4> sceneTexture = ResourceDescriptorHeap[TAAPassCB.sceneIdx];
-	Texture2D<float4> prevSceneTexture = ResourceDescriptorHeap[TAAPassCB.prevSceneIdx];
-	Texture2D<float2> velocityTexture = ResourceDescriptorHeap[TAAPassCB.velocityIdx];
-	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[TAAPassCB.outputIdx];
+	Texture2D<float4> sceneTexture		= ResourceDescriptorHeap[TAAPassCB.sceneIdx];
+	Texture2D<float4> prevSceneTexture	= ResourceDescriptorHeap[TAAPassCB.prevSceneIdx];
+	Texture2D<float2> velocityTexture	= ResourceDescriptorHeap[TAAPassCB.velocityIdx];
+	RWTexture2D<float4> outputTexture	= ResourceDescriptorHeap[TAAPassCB.outputIdx];
 
 	int2 pos = input.DispatchThreadId.xy;
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);

@@ -30,9 +30,6 @@ void DeferredLightingCS(CSInput input)
 	Texture2D<float>        depthTexture		  = ResourceDescriptorHeap[DeferredLightingPassCB.depthIdx];
 	StructuredBuffer<Light> lightBuffer		      = ResourceDescriptorHeap[FrameCB.lightsIdx];
 
-	uint lightCount, _unused;
-	lightBuffer.GetDimensions(lightCount, _unused);
-
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	float4 normalMetallic = normalMetallicTexture.Sample(LinearWrapSampler, uv);
@@ -48,7 +45,7 @@ void DeferredLightingCS(CSInput input)
 
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	LightingResult lightResult = (LightingResult)0;
-	for (uint i = 0; i < lightCount; ++i)
+	for (uint i = 0; i < FrameCB.lightCount; ++i)
 	{
 		Light light = lightBuffer[i];
 		if (!light.active) continue;

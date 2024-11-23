@@ -86,7 +86,7 @@ struct PSOutput
 PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
 {
 	PSOutput output = (PSOutput)0;
-	output.NormalMetallic = float4(0.5 * NormalVS + 0.5, metallic);
+	output.NormalMetallic = float4(0.5f * NormalVS + 0.5f, metallic);
 	output.DiffuseRoughness = float4(BaseColor, roughness);
 	output.Emissive = float4(emissive.rgb, emissive.a / 256);
 	return output;
@@ -121,7 +121,7 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
 	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
-	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, material.emissiveFactor),
+	return PackGBuffer(albedoColor.xyz * material.baseColorFactor, normalVS, float4(emissiveColor, material.emissiveFactor),
 		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor);
 }
 

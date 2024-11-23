@@ -278,7 +278,7 @@
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp" />
     <ClCompile Include="Rendering\LensFlarePass.cpp" />
-    <ClCompile Include="Rendering\EntityLoader.cpp" />
+    <ClCompile Include="Rendering\SceneLoader.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
@@ -294,7 +294,7 @@
     <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp" />
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
-    <ClCompile Include="Rendering\ReSTIRGI.cpp" />
+    <ClCompile Include="Rendering\ReSTIR_DI.cpp" />
     <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\GPUDebugPrinter.cpp" />
     <ClCompile Include="Rendering\ShadowRenderer.cpp" />
@@ -475,14 +475,14 @@
     <ClInclude Include="Rendering\GPUDebugPrinter.h" />
     <ClInclude Include="Rendering\RainBlockerMapPass.h" />
     <ClInclude Include="Rendering\RainPass.h" />
-    <ClInclude Include="Rendering\ReSTIRGI.h" />
+    <ClInclude Include="Rendering\ReSTIR_DI.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />
     <ClInclude Include="Rendering\ExponentialHeightFogPass.h" />
     <ClInclude Include="Rendering\GodRaysPass.h" />
     <ClInclude Include="Rendering\LensFlarePass.h" />
-    <ClInclude Include="Rendering\EntityLoader.h" />
+    <ClInclude Include="Rendering\SceneLoader.h" />
     <ClInclude Include="Rendering\FXAAPass.h" />
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\BlackboardData.h" />
@@ -582,7 +582,8 @@
     <None Include="Resources\Shaders\Scene.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />
-    <None Include="Saved\Ini\cvars.ini" />
+    <None Include="Saved\Ini\default_cvars.ini" />
+    <None Include="Saved\Scenes\arcade.json" />
     <None Include="Saved\Scenes\bistro.json" />
     <None Include="Saved\Scenes\hangar.json" />
     <None Include="Saved\Scenes\brutalism.json" />
@@ -745,10 +746,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\BuildHistogram.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\AutoExposure\Exposure.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

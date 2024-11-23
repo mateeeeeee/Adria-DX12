@@ -124,6 +124,7 @@ namespace adria
 		Uint32 GetDepth() const { return desc.depth; }
 		GfxFormat GetFormat() const { return desc.format; }
 		Uint64 GetGpuAddress() const;
+		Bool IsSRGB() const { return (desc.misc_flags & GfxTextureMiscFlag::SRGB) != GfxTextureMiscFlag::None; }
 
 		Bool IsMapped() const;
 		void* GetMappedData() const;

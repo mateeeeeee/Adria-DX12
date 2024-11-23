@@ -51,6 +51,7 @@ Graphics engine written in C++ using DirectX12.
 * D3D12 Enhanced Barriers support
 
 ## TODO
+* ReSTIR DI
 * ReSTIR GI
 
 ## Screenshots
@@ -72,15 +73,18 @@ Graphics engine written in C++ using DirectX12.
 ![](Adria/Saved/Screenshots/sanmiguel.png "San Miguel") 
 ![](Adria/Saved/Screenshots/sanmiguel2.png "San Miguel") 
 
-### Toyshop
-![](Adria/Saved/Screenshots/toyshop.png "Toy shop") 
+### Bistro
+![](Adria/Saved/Screenshots/bistro.png "Rainy Bistro") 
+
+### Brutalism Hall
+![](Adria/Saved/Screenshots/brutalism.png "Brutalism Hall") 
 
 ### Ocean
 ![](Adria/Saved/Screenshots/ocean.png "Ocean") 
 
 ### Path Tracer
-![](Adria/Saved/Screenshots/pathtracing1.png "Path tracing") 
-![](Adria/Saved/Screenshots/sanmiguel-pt.png "Path tracing") 
+![](Adria/Saved/Screenshots/pathtracing1.png "Path traced Sponza") 
+![](Adria/Saved/Screenshots/arcade.png "Path traced Arcade") 
 
 ### Variable Rate Shading
 | No VRS | VRS | VRS Overlay |

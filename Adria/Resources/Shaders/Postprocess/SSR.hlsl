@@ -2,10 +2,11 @@
 #include "Random.hlsli"
 #include "Reflections.hlsli"
 
-#define USE_GGX 1
+#define USE_GGX 0
 #define BLOCK_SIZE 16
 #define MAX_STEPS 16
 #define BINARY_SEARCH_STEPS 16
+
 
 bool NeedReflection(float roughness, float roughness_cutoff)
 {
@@ -100,13 +101,18 @@ void SSR_CS(CSInput input)
     RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[SSRPassCB.outputIdx];
 
     float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
+    float depth = depthTexture.SampleLevel(LinearClampSampler, uv, 0);
+	float4 sceneColor = sceneTexture.SampleLevel(LinearClampSampler, uv, 0);
+    if (depth <= 0.00001f)
+    {
+        outputTexture[input.DispatchThreadId.xy] = sceneColor;
+        return;
+    }
     float4 viewNormalMetallic = normalTexture.Sample(LinearBorderSampler, uv);
     float3 viewNormal = viewNormalMetallic.rgb;
     viewNormal = 2.0f * viewNormal - 1.0f;
     viewNormal = normalize(viewNormal);
-
     float roughness = diffuseTexture.Sample(LinearBorderSampler, uv).a;
-	float4 sceneColor = sceneTexture.SampleLevel(LinearClampSampler, uv, 0);
 
     if (roughness >= ROUGHNESS_CUTOFF)
     {
@@ -117,7 +123,6 @@ void SSR_CS(CSInput input)
     uint randSeed = InitRand(input.DispatchThreadId.x + input.DispatchThreadId.y * BLOCK_SIZE, 0, 16);
     float2 rand = float2(NextRand(randSeed), NextRand(randSeed));
 
-    float depth = depthTexture.Sample(LinearClampSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
 #if USE_GGX
     float3 reflectDir = normalize(ReflectionDir_GGX(viewPosition, viewNormal, roughness, rand).xyz);
@@ -129,14 +134,11 @@ void SSR_CS(CSInput input)
     float4 coords = SSRRayMarch(depthTexture, reflectDir, viewPosition);
     float2 coordsEdgeFactors = float2(1, 1) - pow(saturate(abs(coords.xy - float2(0.5f, 0.5f)) * 2), 8);
     float  screenEdgeFactor = saturate(min(coordsEdgeFactors.x, coordsEdgeFactors.y));
+
+    float3 hitColor = sceneTexture.SampleLevel(LinearClampSampler, coords.xy, 0).rgb;
+    float roughnessMask = saturate(1.0f - (roughness / ROUGHNESS_CUTOFF));
     float4 fresnel = clamp(pow(1 - dot(normalize(viewPosition), viewNormal), 1), 0, 1);
 
-    float reflectionIntensity =
-		saturate(
-			screenEdgeFactor *
-			saturate(reflectDir.z)
-			* (coords.w)
-			);
-    float4 reflectionColor = fresnel * reflectionIntensity * float4(sceneTexture.SampleLevel(LinearClampSampler, coords.xy, 0).rgb, 1.0f);
-    outputTexture[input.DispatchThreadId.xy] = sceneColor + max(0, reflectionColor);
+    float4 reflectionColor = float4(saturate(hitColor.xyz * screenEdgeFactor * roughnessMask), 1.0f);
+    outputTexture[input.DispatchThreadId.xy] = sceneColor + fresnel * max(0, reflectionColor);
 }

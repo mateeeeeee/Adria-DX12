@@ -56,7 +56,6 @@ namespace adria
 		CS_Picking,
 		CS_BuildHistogram,
 		CS_HistogramReduction,
-		CS_Exposure,
 		CS_Ssao,
 		CS_Hbao,
 		CS_Ssr,

@@ -4,7 +4,7 @@
 #include "tiny_obj_loader.h"
 #include "cgltf.h"
 #include "meshoptimizer.h"
-#include "EntityLoader.h"
+#include "SceneLoader.h"
 #include "Components.h"
 #include "Meshlet.h"
 #include "Graphics/GfxDevice.h"
@@ -23,7 +23,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	std::vector<entt::entity> EntityLoader::LoadGrid(GridParameters const& params)
+	std::vector<entt::entity> SceneLoader::LoadGrid(GridParameters const& params)
 	{
 		if (params.heightmap)
 		{
@@ -185,7 +185,7 @@ namespace adria
 		return chunks;
 	}
 
-	std::vector<entt::entity> EntityLoader::LoadObjMesh(std::string const& model_path)
+	std::vector<entt::entity> SceneLoader::LoadObjMesh(std::string const& model_path)
 	{
 		tinyobj::ObjReaderConfig reader_config{};
 		tinyobj::ObjReader reader;
@@ -302,18 +302,18 @@ namespace adria
 		return entities;
 	}
 
-	EntityLoader::EntityLoader(entt::registry& reg, GfxDevice* gfx)
+	SceneLoader::SceneLoader(entt::registry& reg, GfxDevice* gfx)
         : reg(reg), gfx(gfx)
     {
 		g_GeometryBufferCache.Initialize(gfx);
     }
 
-	EntityLoader::~EntityLoader()
+	SceneLoader::~SceneLoader()
 	{
 		g_GeometryBufferCache.Destroy();
 	}
 
-	entt::entity EntityLoader::LoadSkybox(SkyboxParameters const& params)
+	entt::entity SceneLoader::LoadSkybox(SkyboxParameters const& params)
     {
         entt::entity skybox = reg.create();
 
@@ -329,7 +329,7 @@ namespace adria
 
     }
 
-	entt::entity EntityLoader::LoadLight(LightParameters const& params)
+	entt::entity SceneLoader::LoadLight(LightParameters const& params)
     {
         entt::entity light = reg.create();
 
@@ -424,9 +424,9 @@ namespace adria
         return light;
     }
 
-	std::vector<entt::entity> EntityLoader::LoadOcean(OceanParameters const& params)
+	std::vector<entt::entity> SceneLoader::LoadOcean(OceanParameters const& params)
 	{
-		std::vector<entt::entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
+		std::vector<entt::entity> ocean_chunks = SceneLoader::LoadGrid(params.ocean_grid);
 
 		Material ocean_material{};
 		static Float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
@@ -443,7 +443,7 @@ namespace adria
 		return ocean_chunks;
 	}
 
-	entt::entity EntityLoader::LoadDecal(DecalParameters const& params)
+	entt::entity SceneLoader::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
 		g_TextureManager.EnableMipMaps(false);
@@ -484,7 +484,7 @@ namespace adria
 		return decal_entity;
 	}
 
-	entt::entity EntityLoader::ImportModel_GLTF(ModelParameters const& params)
+	entt::entity SceneLoader::LoadModel_GLTF(ModelParameters const& params)
 	{
 		cgltf_options options{};
 		cgltf_data* gltf_data = nullptr;
@@ -512,6 +512,7 @@ namespace adria
 			Material& material = mesh.materials.emplace_back();
 			material.alpha_cutoff = (Float)gltf_material.alpha_cutoff;
 			material.double_sided = gltf_material.double_sided;
+			material.emissive_factor = (Float)gltf_material.emissive_factor[0];
 
 			if (params.force_mask_alpha_usage)
 			{
@@ -529,41 +530,74 @@ namespace adria
 			{
 				material.alpha_mode = MaterialAlphaMode::Mask;
 			}
-			cgltf_pbr_metallic_roughness pbr_metallic_roughness = gltf_material.pbr_metallic_roughness;
-			material.base_color[0] = (Float)pbr_metallic_roughness.base_color_factor[0];
-			material.base_color[1] = (Float)pbr_metallic_roughness.base_color_factor[1];
-			material.base_color[2] = (Float)pbr_metallic_roughness.base_color_factor[2];
-			material.metallic_factor = (Float)pbr_metallic_roughness.metallic_factor;
-			material.roughness_factor = (Float)pbr_metallic_roughness.roughness_factor;
-			material.emissive_factor = (Float)gltf_material.emissive_factor[0];
 
-			if (cgltf_texture* texture = pbr_metallic_roughness.base_color_texture.texture)
+			auto GetImageURI = [&gltf_data](cgltf_texture* texture)
+				{
+					if (texture->extensions_count > 0)
+					{
+						if (strcmp(texture->extensions[0].name, "MSFT_texture_dds") == 0)
+						{
+							std::string extension_data(texture->extensions[0].data); 
+							std::vector<std::string> tokens = SplitString(extension_data, ':');
+							Sint image_index = std::stoi(tokens[1]);
+							return gltf_data->images[image_index].uri;
+						}
+						return texture->image->uri;
+					}
+					return texture->image->uri;
+				};
+			if (gltf_material.has_pbr_metallic_roughness)
 			{
-				cgltf_image* image = texture->image;
-				std::string texbase = params.textures_path + image->uri;
-				material.albedo_texture = g_TextureManager.LoadTexture(texbase);
-			}
-			else
-			{
-				material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
-			}
+				cgltf_pbr_metallic_roughness pbr_metallic_roughness = gltf_material.pbr_metallic_roughness;
+				material.base_color[0] = (Float)pbr_metallic_roughness.base_color_factor[0];
+				material.base_color[1] = (Float)pbr_metallic_roughness.base_color_factor[1];
+				material.base_color[2] = (Float)pbr_metallic_roughness.base_color_factor[2];
+				material.metallic_factor = (Float)pbr_metallic_roughness.metallic_factor;
+				material.roughness_factor = (Float)pbr_metallic_roughness.roughness_factor;
 
-			if (cgltf_texture* texture = pbr_metallic_roughness.metallic_roughness_texture.texture)
-			{
-				cgltf_image* image = texture->image;
-				std::string texmetallicroughness = params.textures_path + image->uri;
-				material.metallic_roughness_texture = g_TextureManager.LoadTexture(texmetallicroughness);
+				if (cgltf_texture* texture = pbr_metallic_roughness.base_color_texture.texture)
+				{
+					std::string texbase = params.textures_path + GetImageURI(texture);
+					material.albedo_texture = g_TextureManager.LoadTexture(texbase, true);
+				}
+				else
+				{
+					material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
+				}
+
+				if (cgltf_texture* texture = pbr_metallic_roughness.metallic_roughness_texture.texture)
+				{
+					std::string texmetallicroughness = params.textures_path + GetImageURI(texture);
+					material.metallic_roughness_texture = g_TextureManager.LoadTexture(texmetallicroughness, false);
+				}
+				else
+				{
+					material.metallic_roughness_texture = DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE;
+				}
 			}
-			else
+			else if (gltf_material.has_pbr_specular_glossiness)
 			{
-				material.metallic_roughness_texture = DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE;
+				cgltf_pbr_specular_glossiness pbr_specular_glossiness = gltf_material.pbr_specular_glossiness;
+
+				if (cgltf_texture* texture = pbr_specular_glossiness.diffuse_texture.texture)
+				{
+					std::string texbase = params.textures_path + GetImageURI(texture);
+					material.albedo_texture = g_TextureManager.LoadTexture(texbase, true);
+				}
+				else
+				{
+					material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
+				}
+				material.roughness_factor = 1.0f - gltf_material.pbr_specular_glossiness.glossiness_factor;
+				material.base_color[0]= gltf_material.pbr_specular_glossiness.diffuse_factor[0];
+				material.base_color[1] = gltf_material.pbr_specular_glossiness.diffuse_factor[1];
+				material.base_color[2] = gltf_material.pbr_specular_glossiness.diffuse_factor[2];
 			}
 
 			if (cgltf_texture* texture = gltf_material.normal_texture.texture)
 			{
-				cgltf_image* image = texture->image;
-				std::string texnormal = params.textures_path + image->uri;
-				material.normal_texture = g_TextureManager.LoadTexture(texnormal);
+				std::string texnormal = params.textures_path + GetImageURI(texture);
+				material.normal_texture = g_TextureManager.LoadTexture(texnormal, false);
 			}
 			else
 			{
@@ -572,9 +606,8 @@ namespace adria
 
 			if (cgltf_texture* texture = gltf_material.emissive_texture.texture)
 			{
-				cgltf_image* image = texture->image;
-				std::string texemissive = params.textures_path + image->uri;
-				material.emissive_texture = g_TextureManager.LoadTexture(texemissive);
+				std::string texemissive = params.textures_path + GetImageURI(texture);
+				material.emissive_texture = g_TextureManager.LoadTexture(texemissive, true);
 			}
 			else
 			{

@@ -10,7 +10,7 @@
 #include "IconsFontAwesome6.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/Camera.h"
-#include "Rendering/EntityLoader.h"
+#include "Rendering/SceneLoader.h"
 #include "Rendering/ShaderManager.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/HelperPasses.h"
@@ -249,7 +249,7 @@ namespace adria
 						if (!texture_path.empty()) texture_path.append("/");
 
 						params.textures_path = texture_path;
-						engine->entity_loader->ImportModel_GLTF(params);
+						engine->scene_loader->LoadModel_GLTF(params);
 						free(file_path);
 					}
 				}
@@ -313,7 +313,7 @@ namespace adria
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
 						light_params.light_data.volumetric_strength = 0.004f;
-						engine->entity_loader->LoadLight(light_params);
+						engine->scene_loader->LoadLight(light_params);
 					}
 				}
 				ImGui::TreePop();
@@ -344,7 +344,7 @@ namespace adria
 						light_params.light_data.volumetric_strength = 0.004f;
 						if (light_params.light_data.inner_cosine > light_params.light_data.outer_cosine)
 							std::swap(light_params.light_data.inner_cosine, light_params.light_data.outer_cosine);
-						engine->entity_loader->LoadLight(light_params);
+						engine->scene_loader->LoadLight(light_params);
 					}
 				}
 				ImGui::TreePop();
@@ -373,7 +373,7 @@ namespace adria
 					OceanParameters params{};
 					params.ocean_grid = std::move(ocean_params);
 					gfx->WaitForGPU();
-					engine->entity_loader->LoadOcean(params);
+					engine->scene_loader->LoadOcean(params);
 				}
 
 				if (ImGui::Button(ICON_FA_ERASER" Clear"))
@@ -435,7 +435,7 @@ namespace adria
 					params.normal = Vector3(picking_data.normal);
 					params.rotation = XMConvertToRadians(params.rotation);
 
-					engine->entity_loader->LoadDecal(params);
+					engine->scene_loader->LoadDecal(params);
 				}
 				if (ImGui::Button(ICON_FA_ERASER" Clear Decals"))
 				{

@@ -12,6 +12,8 @@ namespace adria
 {
 	class RenderGraphPassBase;
 	class RenderGraph;
+	struct RGTextureDesc;
+	struct RGBufferDesc;
 
 	template<RGResourceType ResourceType>
 	struct RGResourceTraits;

@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	enum class ReflectionType : Uint8;
+	enum  ReflectionType : Uint8;
 	class GfxDevice;
 
 	class ReflectionPassGroup final : public PostEffectGroup

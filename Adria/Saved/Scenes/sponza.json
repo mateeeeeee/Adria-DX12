@@ -25,12 +25,12 @@
 				"force_alpha_mask": false
 			}
 	],
-	"lights" : [
+	  "lights" : [
 		{
 			"type": "directional",
 			"temperature" :  5900.0,
-			"elevation": 75.0,
-			"azimuth" :  260.0,
+			"elevation": 73.0,
+			"azimuth" :  180.0,
 			"intensity": 5.0,
 			"shadows": true,
 			"cascades": true,

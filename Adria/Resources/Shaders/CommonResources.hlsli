@@ -35,6 +35,7 @@ struct FrameCBuffer
 
 	uint   frameCount;
 	int    lightsIdx;
+	int    lightCount;
 	int    lightsMatricesIdx;
     int	   accelStructIdx;
     int	   envMapIdx;

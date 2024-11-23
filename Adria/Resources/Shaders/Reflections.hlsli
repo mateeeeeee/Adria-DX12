@@ -1,7 +1,7 @@
 #ifndef _REFLECTIONS_
 #define _REFLECTIONS_
 
-#define ROUGHNESS_CUTOFF 0.6
+#define ROUGHNESS_CUTOFF 0.7
 
 #define GGX_SAMPLE_VISIBLE
 #define PI 3.1415
