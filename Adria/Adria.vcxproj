@@ -592,6 +592,7 @@
     <None Include="Saved\Scenes\newsponza.json" />
     <None Include="Saved\Scenes\sanmiguel.json" />
     <None Include="Saved\Scenes\sponza.json" />
+    <None Include="Saved\Scenes\suntemple.json" />
     <None Include="Saved\Scenes\toyshop.json" />
   </ItemGroup>
   <ItemGroup>

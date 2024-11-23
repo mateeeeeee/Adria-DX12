@@ -154,6 +154,14 @@ namespace adria
 		{
 			post_effects[i]->OnResize(w, h);
 		}
+
+		if (depth_history)
+		{
+			GfxTextureDesc depth_history_desc = depth_history->GetDesc();
+			depth_history_desc.width = w;
+			depth_history_desc.height = h;
+			depth_history = gfx->CreateTexture(depth_history_desc);
+		}
 	}
 
 	void PostProcessor::OnSceneInitialized()
@@ -237,8 +245,8 @@ namespace adria
 
 		GfxTextureDesc depth_target_desc{};
 		depth_target_desc.format = GfxFormat::D32_FLOAT;
-		depth_target_desc.width = display_width;
-		depth_target_desc.height = display_height;
+		depth_target_desc.width = render_width;
+		depth_target_desc.height = render_height;
 		depth_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		depth_target_desc.initial_state = GfxResourceState::CopyDst;
 		depth_history = gfx->CreateTexture(depth_target_desc);

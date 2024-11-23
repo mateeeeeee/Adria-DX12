@@ -475,6 +475,8 @@ namespace adria
 
 	void GfxCommandList::CopyTexture(GfxTexture& dst, GfxTexture const& src)
 	{
+		ADRIA_ASSERT(dst.GetWidth() == src.GetWidth());
+		ADRIA_ASSERT(dst.GetHeight() == src.GetHeight());
 		cmd_list->CopyResource(dst.GetNative(), src.GetNative());
 		++command_count;
 	}

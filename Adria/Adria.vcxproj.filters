@@ -113,10 +113,13 @@
     <Filter Include="External\cgltf">
       <UniqueIdentifier>{f6fe0bd5-a23e-4986-aaa9-6cc500a30e6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes">
+    <Filter Include="Saved">
+      <UniqueIdentifier>{999d981c-ff2d-4500-91ca-3554982db00b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Saved\Scenes">
       <UniqueIdentifier>{ce27b75e-26b1-4295-ac23-d51265bf3c76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes\Ini Files">
+    <Filter Include="Saved\Ini Files">
       <UniqueIdentifier>{a2744df4-3628-4877-bb08-d631f8021b2b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -1273,32 +1276,37 @@
       <Filter>External\cgltf</Filter>
     </None>
     <None Include="Saved\Scenes\brutalism.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Saved\Scenes\sponza.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Saved\Scenes\sanmiguel.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Saved\Scenes\toyshop.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Saved\Scenes\hangar.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Saved\Scenes\bistro.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Saved\Scenes\newsponza.json">
-      <Filter>Scenes</Filter>
+      <Filter>Saved\Scenes</Filter>
     </None>
     <None Include="Resources\Shaders\ReSTIR\ReSTIRUtil.hlsli">
       <Filter>Shaders\ReSTIR</Filter>
     </None>
-    <None Include="Saved\Scenes\arcade.json" />
     <None Include="Saved\Ini\default_cvars.ini">
-      <Filter>Scenes\Ini Files</Filter>
+      <Filter>Saved\Ini Files</Filter>
+    </None>
+    <None Include="Saved\Scenes\suntemple.json">
+      <Filter>Saved\Scenes</Filter>
+    </None>
+    <None Include="Saved\Scenes\arcade.json">
+      <Filter>Saved\Scenes</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

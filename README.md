@@ -10,8 +10,6 @@ Graphics engine written in C++ using DirectX12.
     - Automatic resource barriers
     - Resource reuse using resource pool
     - Automatic resource bind flags and initial state deduction
-    - Pass culling
-    - Graph visualization
 * DDGI
 * GPU-Driven Rendering : GPU frustum culling + 2 phase GPU occlusion culling
 * Reference path tracer 
@@ -45,7 +43,7 @@ Graphics engine written in C++ using DirectX12.
 * Debug tools
     - Debug renderer
     - Shader hot reloading
-    - Render graph dump and visualization
+    - Render graph graphviz visualization
     - Shader debug printf
     - Nsight Aftermath SDK
 * D3D12 Enhanced Barriers support
@@ -75,6 +73,9 @@ Graphics engine written in C++ using DirectX12.
 
 ### Bistro
 ![](Adria/Saved/Screenshots/bistro.png "Rainy Bistro") 
+
+### Sun Temple
+![](Adria/Saved/Screenshots/suntemple.png "Sun Temple") 
 
 ### Brutalism Hall
 ![](Adria/Saved/Screenshots/brutalism.png "Brutalism Hall") 
