@@ -278,6 +278,7 @@
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp" />
     <ClCompile Include="Rendering\LensFlarePass.cpp" />
+    <ClCompile Include="Rendering\SceneConfig.cpp" />
     <ClCompile Include="Rendering\SceneLoader.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
@@ -449,6 +450,7 @@
     </ClInclude>
     <ClInclude Include="Rendering\DepthOfFieldPass.h" />
     <ClInclude Include="Rendering\FFXVRSPass.h" />
+    <ClInclude Include="Rendering\SceneConfig.h" />
     <ClInclude Include="Rendering\UpscalerPass.h" />
     <ClInclude Include="Rendering\DepthOfFieldPassGroup.h" />
     <ClInclude Include="Rendering\PostEffect.h" />

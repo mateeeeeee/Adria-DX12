@@ -303,7 +303,10 @@ namespace adria
 			D3D_FEATURE_LEVEL_11_0
 		};
 
-		if (options.aftermath) nsight_aftermath = std::make_unique<GfxNsightAftermathGpuCrashTracker>(this);
+		if (options.aftermath)
+		{
+			nsight_aftermath = std::make_unique<GfxNsightAftermathGpuCrashTracker>(this);
+		}
 
 		GFX_CHECK_HR(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
 		D3D12_FEATURE_DATA_FEATURE_LEVELS caps{};
@@ -317,7 +320,10 @@ namespace adria
 			ADRIA_DEBUGBREAK();
 			std::exit(EXIT_FAILURE);
 		}
-		if(nsight_aftermath) nsight_aftermath->Initialize();
+		if (nsight_aftermath)
+		{
+			nsight_aftermath->Initialize();
+		}
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
 		allocator_desc.pDevice = device.Get();
@@ -364,13 +370,18 @@ namespace adria
 		draw_indirect_signature = std::make_unique<DrawIndirectSignature>(device.Get());
 		draw_indexed_indirect_signature = std::make_unique<DrawIndexedIndirectSignature>(device.Get());
 		dispatch_indirect_signature = std::make_unique<DispatchIndirectSignature>(device.Get());
-		if(device_capabilities.SupportsMeshShaders()) dispatch_mesh_indirect_signature = std::make_unique<DispatchMeshIndirectSignature>(device.Get());
-
+		if (device_capabilities.SupportsMeshShaders())
+		{
+			dispatch_mesh_indirect_signature = std::make_unique<DispatchMeshIndirectSignature>(device.Get());
+		}
 		SetInfoQueue();
 		CreateCommonRootSignature();
 
 		std::atexit(ReportLiveObjects);
-		if (options.dred) dred = std::make_unique<DRED>(this);
+		if (options.dred)
+		{
+			dred = std::make_unique<DRED>(this);
+		}
 	}
 	GfxDevice::~GfxDevice()
 	{

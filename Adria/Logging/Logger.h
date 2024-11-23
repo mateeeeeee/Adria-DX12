@@ -44,9 +44,12 @@ namespace adria
 	#define ADRIA_LOG(level, ... ) [&]()  \
 	{ \
 		Uint64 const size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
-		std::unique_ptr<char[]> buf = std::make_unique<char[]>(size); \
+		std::unique_ptr<Char[]> buf = std::make_unique<Char[]>(size); \
 		snprintf(buf.get(), size, __VA_ARGS__); \
 		g_Log.Log(LogLevel::LOG_##level, buf.get(), __FILE__, __LINE__);  \
 	}()
-
+	#define ADRIA_DEBUG(...)	ADRIA_LOG(DEBUG, __VA_ARGS__)
+	#define ADRIA_INFO(...)		ADRIA_LOG(INFO, __VA_ARGS__)
+	#define ADRIA_WARNING(...)  ADRIA_LOG(WARNING, __VA_ARGS__)
+	#define ADRIA_ERROR(...)	ADRIA_LOG(ERROR, __VA_ARGS__)
 }

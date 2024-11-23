@@ -846,11 +846,11 @@ namespace adria
 		{
 			cgltf_node const& gltf_node = gltf_data->nodes[i];
 
+			Matrix local_to_world;
+			cgltf_node_transform_world(&gltf_node, &local_to_world.m[0][0]);
+
 			if (gltf_node.mesh)
 			{
-				Matrix local_to_world;
-				cgltf_node_transform_world(&gltf_node, &local_to_world.m[0][0]);
-
 				for (Sint32 primitive : mesh_primitives_map[gltf_node.mesh])
 				{
 					SubMeshInstance& instance = mesh.instances.emplace_back();
@@ -858,6 +858,45 @@ namespace adria
 					instance.world_transform = local_to_world * params.model_matrix;
 					instance.parent = mesh_entity;
 				}
+			}
+
+			if (params.load_model_lights && gltf_node.light)
+			{
+				cgltf_light const& gltf_light = *gltf_node.light;
+			
+				Vector3 translation, scale;
+				Quaternion rotation;
+				local_to_world.Decompose(scale, rotation,translation);
+
+				LightParameters light_params{};
+				light_params.mesh_size = 150;
+				light_params.mesh_type = LightMesh::NoMesh;
+				light_params.light_data.color.x = gltf_light.color[0];
+				light_params.light_data.color.y = gltf_light.color[1];
+				light_params.light_data.color.z = gltf_light.color[2];
+				light_params.light_data.intensity = gltf_light.intensity;
+				light_params.light_data.inner_cosine = cos(gltf_light.spot_inner_cone_angle);
+				light_params.light_data.outer_cosine = cos(gltf_light.spot_outer_cone_angle);
+				light_params.light_data.range = gltf_light.range > 0 ? gltf_light.range : FLT_MAX;
+				light_params.light_data.position = Vector4(translation.x, translation.y, translation.z, 1.0f);
+			
+				Vector3 forward(0.0f, 0.0f, -1.0f);
+				Vector3 direction = Vector3::Transform(forward, Matrix::CreateFromQuaternion(rotation));
+				light_params.light_data.direction = Vector4(direction.x, direction.y, direction.z, 0.0f);
+			
+				switch (gltf_light.type)
+				{
+				case cgltf_light_type_directional: 
+					light_params.light_data.type = LightType::Directional;
+					light_params.light_data.casts_shadows = true;
+					light_params.light_data.use_cascades = true;
+					break;
+				case cgltf_light_type_point:	   light_params.light_data.type = LightType::Point; break;
+				case cgltf_light_type_spot:		   light_params.light_data.type = LightType::Spot; break;
+				}
+
+				LoadLight(light_params);
+
 			}
 		}
 

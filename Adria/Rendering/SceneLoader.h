@@ -24,6 +24,7 @@ namespace adria
 		Matrix model_matrix;
 		Bool triangle_ccw = true;
 		Bool force_mask_alpha_usage = false;
+		Bool load_model_lights = false;
     };
     struct SkyboxParameters
     {

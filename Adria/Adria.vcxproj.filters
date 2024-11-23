@@ -116,6 +116,9 @@
     <Filter Include="Scenes">
       <UniqueIdentifier>{ce27b75e-26b1-4295-ac23-d51265bf3c76}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes\Ini Files">
+      <UniqueIdentifier>{a2744df4-3628-4877-bb08-d631f8021b2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -533,6 +536,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\FFXVRSPass.cpp">
       <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\SceneConfig.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1179,6 +1185,9 @@
     <ClInclude Include="Graphics\GfxShadingRate.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\SceneConfig.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1253,7 +1262,6 @@
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli">
       <Filter>Shaders\Weather</Filter>
     </None>
-    <None Include="Saved\Ini\cvars.ini" />
     <None Include="..\README.md" />
     <None Include="Resources\Shaders\Postprocess\AutoExposure\ExposureUtil.hlsli">
       <Filter>Shaders\Postprocess\AutoExposure</Filter>
@@ -1287,6 +1295,10 @@
     </None>
     <None Include="Resources\Shaders\ReSTIR\ReSTIRUtil.hlsli">
       <Filter>Shaders\ReSTIR</Filter>
+    </None>
+    <None Include="Saved\Scenes\arcade.json" />
+    <None Include="Saved\Ini\default_cvars.ini">
+      <Filter>Scenes\Ini Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

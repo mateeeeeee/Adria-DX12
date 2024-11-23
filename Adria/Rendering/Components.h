@@ -103,10 +103,6 @@ namespace adria
 		Float godrays_weight = 0.65f;
 		Float godrays_density = 1.45f;
 		Float godrays_exposure = 3.25f;
-		Bool  sscs = false;
-		Float sscs_thickness = 0.5f;
-		Float sscs_max_ray_distance = 0.05f;
-		Float sscs_max_depth_distance = 200.0f;
 	};
 	struct COMPONENT Skybox
 	{
