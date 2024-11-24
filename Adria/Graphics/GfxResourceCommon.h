@@ -218,7 +218,7 @@ namespace adria
 	{
 		using enum GfxResourceState;
 
-		if(HasFlag(flags, CopySrc) && HasAnyFlag(flags, AllSRV)) return D3D12_BARRIER_LAYOUT_GENERIC_READ;
+		if(HasFlag(flags, CopySrc) && HasAnyFlag(flags, AllSRV) && !HasFlag(flags, DSV_ReadOnly)) return D3D12_BARRIER_LAYOUT_GENERIC_READ;
 		if(HasFlag(flags, CopyDst) && HasAnyFlag(flags, AllUAV)) return D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COMMON;
 		if (HasFlag(flags, DSV_ReadOnly) && (HasAnyFlag(flags, AllSRV) || HasFlag(flags, CopySrc))) return D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ;
 		if (HasFlag(flags, Discard))		return D3D12_BARRIER_LAYOUT_UNDEFINED;

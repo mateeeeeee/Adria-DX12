@@ -74,8 +74,7 @@ namespace adria
 		}
 		Bool SupportsEnhancedBarriers() const 
 		{
-			return false;
-			//return enhanced_barriers_supported;
+			return enhanced_barriers_supported;
 		}
 
 		Bool SupportsAdditionalShadingRates() const { return additional_shading_rates_supported; }
