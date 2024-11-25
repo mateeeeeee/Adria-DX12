@@ -28,12 +28,12 @@ namespace adria
 			else return def;
 		}
 
-		Sint32 AsInt() const
+		Int32 AsInt() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (Sint32)strtol(value.c_str(), nullptr, 10);
+			return (Int32)strtol(value.c_str(), nullptr, 10);
 		}
-		Sint32 AsIntOr(Sint32 def) const
+		Int32 AsIntOr(Int32 def) const
 		{
 			if (IsPresent()) return AsInt();
 			else return def;
@@ -101,7 +101,7 @@ namespace adria
 			return args.back();
 		}
 
-		void Parse(Sint argc, Wchar** argv)
+		void Parse(Int argc, Wchar** argv)
 		{
 			std::vector<std::wstring> cmdline(argv, argv + argc);
 			for (Uint64 i = 0; i < cmdline.size(); ++i)
@@ -128,7 +128,7 @@ namespace adria
 
 		void Parse(std::wstring const& cmd_line)
 		{
-			Sint argc;
+			Int argc;
 			Wchar** argv = CommandLineToArgvW(cmd_line.c_str(), &argc);
 			Parse(argc, argv);
 		}

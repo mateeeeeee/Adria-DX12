@@ -35,7 +35,7 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				static Sint current_depth_of_field_type = (Sint)depth_of_field_type;
+				static Int current_depth_of_field_type = (Int)depth_of_field_type;
 				if (ImGui::Combo("Depth of Field Type", &current_depth_of_field_type, "None\0Custom\0FFX\0", 3))
 				{
 					depth_of_field_type = static_cast<DepthOfFieldType>(current_depth_of_field_type);

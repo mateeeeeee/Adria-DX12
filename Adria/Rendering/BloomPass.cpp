@@ -37,7 +37,7 @@ namespace adria
 		std::vector<RGResourceName> upsample_mips(pass_count);
 		upsample_mips[pass_count - 1] = downsample_mips[pass_count - 1];
 
-		for (Sint32 i = pass_count - 2; i >= 0; --i)
+		for (Int32 i = pass_count - 2; i >= 0; --i)
 		{
 			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i + 1);
 		}

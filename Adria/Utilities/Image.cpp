@@ -263,11 +263,11 @@ namespace adria
 
 	Bool Image::LoadSTB(std::string_view texture_path)
 	{
-		Sint32 components = 0;
+		Int32 components = 0;
 		is_hdr = stbi_is_hdr(texture_path.data());
 		if (is_hdr)
 		{
-			Sint32 _width, _height;
+			Int32 _width, _height;
 			Float* _pixels = stbi_loadf(texture_path.data(), &_width, &_height, &components, 4);
 			if (_pixels == nullptr) return false;
 			width = (Uint32)_width;
@@ -282,7 +282,7 @@ namespace adria
 		}
 		else
 		{
-			Sint _width, _height;
+			Int _width, _height;
 			stbi_uc* _pixels = stbi_load(texture_path.data(), &_width, &_height, &components, 4);
 			if (_pixels == nullptr) return false;
 			width = (Uint32)_width;

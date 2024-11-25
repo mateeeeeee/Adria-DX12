@@ -322,11 +322,11 @@ namespace adria
 						if (visualize)
 						{
 							static const Char* visualize_mode[] = { "Irradiance", "Distance" };
-							static Sint current_visualize_mode = 0;
+							static Int current_visualize_mode = 0;
 							const Char* visualize_mode_label = visualize_mode[current_visualize_mode];
 							if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
 							{
-								for (Sint n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
+								for (Int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
 								{
 									const Bool is_selected = (current_visualize_mode == n);
 									if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;
@@ -347,7 +347,7 @@ namespace adria
 		return DDGI.Get();
 	}
 
-	Sint32 DDGIPass::GetDDGIVolumeIndex()
+	Int32 DDGIPass::GetDDGIVolumeIndex()
 	{
 		if (!IsSupported())  return -1;
 
@@ -366,8 +366,8 @@ namespace adria
 		gfx->CopyDescriptors(1, irradiance_gpu, ddgi_volume.irradiance_history_srv);
 		gfx->CopyDescriptors(1, distance_gpu, ddgi_volume.distance_history_srv);
 
-		ddgi_gpu.irradiance_history_idx = (Sint32)irradiance_gpu.GetIndex();
-		ddgi_gpu.distance_history_idx = (Sint32)distance_gpu.GetIndex();
+		ddgi_gpu.irradiance_history_idx = (Int32)irradiance_gpu.GetIndex();
+		ddgi_gpu.distance_history_idx = (Int32)distance_gpu.GetIndex();
 		if (!ddgi_volume_buffer || ddgi_volume_buffer->GetCount() < ddgi_data.size())
 		{
 			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeGPU>(ddgi_data.size(), false, true));
@@ -377,7 +377,7 @@ namespace adria
 		ddgi_volume_buffer->Update(ddgi_data.data(), ddgi_data.size() * sizeof(DDGIVolumeGPU));
 		GfxDescriptor ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
-		return (Sint32)ddgi_volume_buffer_srv_gpu.GetIndex();
+		return (Int32)ddgi_volume_buffer_srv_gpu.GetIndex();
 	}
 
 	void DDGIPass::CreatePSOs()

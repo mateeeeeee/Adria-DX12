@@ -37,7 +37,7 @@ namespace adria
 		kernel_data.reserve(sample_count);
 
 		Float radius_increment = 1.0f / ((static_cast<Float>(ring_count) - 1.0f));
-		for (Sint32 i = ring_count - 1; i >= 0; --i)
+		for (Int32 i = ring_count - 1; i >= 0; --i)
 		{
 			Uint32 point_count = std::max(ring_density * i, 1u);
 			Float radius = static_cast<Float>(i) * radius_increment;

@@ -41,9 +41,9 @@ namespace adria
 		}
 
 		Float GetRainTotalTime()		  const { return rain_total_time; }
-		Sint32 GetRainSplashDiffuseIndex() const { return (Sint32)rain_splash_diffuse_handle; }
-		Sint32 GetRainSplashBumpIndex()    const { return (Sint32)rain_splash_bump_handle;    }
-		Sint32 GetRainBlockerMapIndex()    const { return rain_blocker_map_pass.GetRainBlockerMapIdx(); }
+		Int32 GetRainSplashDiffuseIndex() const { return (Int32)rain_splash_diffuse_handle; }
+		Int32 GetRainSplashBumpIndex()    const { return (Int32)rain_splash_bump_handle;    }
+		Int32 GetRainBlockerMapIndex()    const { return rain_blocker_map_pass.GetRainBlockerMapIdx(); }
 		Matrix GetRainViewProjection()    const { return rain_blocker_map_pass.GetViewProjection(); }
 	private:
 		GfxDevice* gfx;

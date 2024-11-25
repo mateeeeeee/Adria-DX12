@@ -8,23 +8,23 @@ namespace adria
 
 	std::wstring ToWideString(std::string const& str)
 	{
-		Sint num_chars = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (Sint)str.length(), NULL, 0);
+		Int num_chars = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (Int)str.length(), NULL, 0);
 		std::wstring wstr;
 		if (num_chars)
 		{
 			wstr.resize(num_chars);
-			MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (Sint)str.length(), &wstr[0], num_chars);
+			MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (Int)str.length(), &wstr[0], num_chars);
 		}
 		return wstr;
 	}
 	std::string ToString(std::wstring const& wstr)
 	{
-		Sint num_chars = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (Sint)wstr.length(), NULL, 0, NULL, NULL);
+		Int num_chars = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (Int)wstr.length(), NULL, 0, NULL, NULL);
 		std::string str;
 		if (num_chars > 0)
 		{
 			str.resize(num_chars);
-			WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (Sint)wstr.length(), &str[0], num_chars, NULL, NULL);
+			WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (Int)wstr.length(), &str[0], num_chars, NULL, NULL);
 		}
 		return str;
 	}
@@ -96,7 +96,7 @@ namespace adria
 		return false;
 	}
 
-	std::string IntToString(Sint val)
+	std::string IntToString(Int val)
 	{
 		return std::to_string(val);
 	}

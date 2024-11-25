@@ -107,7 +107,7 @@ namespace adria
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<Float> random_texture_data;
-		for (Sint32 i = 0; i < 8 * 8; i++)
+		for (Int32 i = 0; i < 8 * 8; i++)
 		{
 			Float rand = rand_float();
 			random_texture_data.push_back(sin(rand));

@@ -34,7 +34,7 @@ namespace adria
 		void OnSceneInitialized();
 		void GUI();
 
-		Sint32 GetSkyIndex() const;
+		Int32 GetSkyIndex() const;
 		void SetSkyType(SkyType type)
 		{
 			sky_type = type;

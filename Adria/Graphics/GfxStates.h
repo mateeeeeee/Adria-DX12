@@ -133,7 +133,7 @@ namespace adria
 		GfxFillMode fill_mode = GfxFillMode::Solid;
 		GfxCullMode cull_mode = GfxCullMode::Back;
 		Bool front_counter_clockwise = false;
-		Sint32 depth_bias = 0;
+		Int32 depth_bias = 0;
 		Float depth_bias_clamp = 0.0f;
 		Float slope_scaled_depth_bias = 0.0f;
 		Bool depth_clip_enable = true;

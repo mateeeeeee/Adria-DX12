@@ -229,7 +229,7 @@ namespace adria
 		result = NVSDK_NGX_D3D12_GetCapabilityParameters(&ngx_parameters);
 		if (NVSDK_NGX_FAILED(result)) return false;
 
-		Sint needs_updated_driver = 0;
+		Int needs_updated_driver = 0;
 		Uint min_driver_version_major = 0;
 		Uint min_driver_version_minor = 0;
 		NVSDK_NGX_Result result_updated_driver = ngx_parameters->Get(NVSDK_NGX_Parameter_SuperSampling_NeedsUpdatedDriver, &needs_updated_driver);
@@ -249,7 +249,7 @@ namespace adria
 			}
 		}
 
-		Sint dlss_available = 0;
+		Int dlss_available = 0;
 		result = ngx_parameters->Get(NVSDK_NGX_Parameter_SuperSampling_Available, &dlss_available);
 		if (NVSDK_NGX_FAILED(result) || !dlss_available) return false;
 

@@ -56,11 +56,11 @@ namespace adria
 		tlas_srv = gfx->CreateBufferSRV(&tlas->GetBuffer());
 	}
 
-	Sint32 AccelerationStructure::GetTLASIndex() const
+	Int32 AccelerationStructure::GetTLASIndex() const
 	{
 		GfxDescriptor tlas_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, tlas_srv_gpu, tlas_srv);
-		return (Sint32)tlas_srv_gpu.GetIndex();
+		return (Int32)tlas_srv_gpu.GetIndex();
 	}
 
 	void AccelerationStructure::BuildBottomLevels()

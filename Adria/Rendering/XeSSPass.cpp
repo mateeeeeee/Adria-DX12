@@ -139,7 +139,7 @@ namespace adria
 					ImGui::Checkbox("Enable", XeSS.GetPtr());
 					if (XeSS.Get())
 					{
-						Sint _quality = quality_setting - XESS_QUALITY_SETTING_PERFORMANCE;
+						Int _quality = quality_setting - XESS_QUALITY_SETTING_PERFORMANCE;
 						if (ImGui::Combo("Quality Mode", &_quality, "Performance (2.0x)\0Balanced (1.7x)\0Quality (1.5x)\0Ultra Quality (1.3x)\0\0", 4))
 						{
 							quality_setting = (xess_quality_settings_t)(_quality + XESS_QUALITY_SETTING_PERFORMANCE);

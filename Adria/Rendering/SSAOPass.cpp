@@ -77,7 +77,7 @@ namespace adria
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				Uint32 const i = dst_descriptor.GetIndex();
 
-				Sint32 resolution = SSAOResolution.Get();
+				Int32 resolution = SSAOResolution.Get();
 
 				struct SSAOConstants
 				{
@@ -136,7 +136,7 @@ namespace adria
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<Float> random_texture_data;
-		for (Sint32 i = 0; i < 8 * 8; i++)
+		for (Int32 i = 0; i < 8 * 8; i++)
 		{
 			random_texture_data.push_back(rand_float()); 
 			random_texture_data.push_back(rand_float());

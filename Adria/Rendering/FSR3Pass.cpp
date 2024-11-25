@@ -136,7 +136,7 @@ namespace adria
 					ImGui::Checkbox("Enable", FSR3.GetPtr());
 					if (FSR3.Get())
 					{
-						if (ImGui::Combo("Quality Mode", (Sint32*)&fsr3_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
+						if (ImGui::Combo("Quality Mode", (Int32*)&fsr3_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 						{
 							RecreateRenderResolution();
 							recreate_context = true;

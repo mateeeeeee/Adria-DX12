@@ -182,9 +182,9 @@ namespace adria
 						ImGui::Checkbox("Histogram", &show_histogram);
 						if (show_histogram)
 						{
-							auto MaxElement = [](Sint32* array, Uint64 count)
+							auto MaxElement = [](Int32* array, Uint64 count)
 								{
-									Sint32 max_element = INT32_MIN;
+									Int32 max_element = INT32_MIN;
 									for (Uint64 i = 0; i < count; ++i)
 									{
 										max_element = std::max(array[i], max_element);
@@ -193,14 +193,14 @@ namespace adria
 								};
 
 							ADRIA_ASSERT(histogram_copy->IsMapped());
-							Uint64 histogram_size = histogram_copy->GetSize() / sizeof(Sint32);
-							Sint32* hist_data = histogram_copy->GetMappedData<Sint32>();
-							Sint32 max_value = MaxElement(hist_data, histogram_size);
-							auto converter = [](void* data, Sint32 idx)-> Float
+							Uint64 histogram_size = histogram_copy->GetSize() / sizeof(Int32);
+							Int32* hist_data = histogram_copy->GetMappedData<Int32>();
+							Int32 max_value = MaxElement(hist_data, histogram_size);
+							auto converter = [](void* data, Int32 idx)-> Float
 								{
-									return static_cast<Float>(*(((Sint32*)data) + idx));
+									return static_cast<Float>(*(((Int32*)data) + idx));
 								};
-							ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (Sint32)histogram_size, 0, NULL, 0.0f, (Float)max_value, ImVec2(0, 80));
+							ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (Int32)histogram_size, 0, NULL, 0.0f, (Float)max_value, ImVec2(0, 80));
 						}
 					}
 					ImGui::TreePop();

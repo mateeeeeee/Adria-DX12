@@ -3,13 +3,14 @@
 
 namespace adria
 {
-	enum class RGResourceType : Uint8
+	enum class RenderGraphResourceType : Uint8
 	{
 		Buffer,
 		Texture
 	};
+	using RGResourceType = RenderGraphResourceType;
 
-	enum class RGResourceMode : Uint8
+	enum class RenderGraphResourceMode : Uint8
 	{
 		CopySrc,
 		CopyDst,
@@ -18,6 +19,7 @@ namespace adria
 		Index,
 		Constant
 	};
+	using RGResourceMode = RenderGraphResourceMode;
 
 	struct RenderGraphResourceId
 	{
@@ -45,26 +47,31 @@ namespace adria
 	using RGTextureId = TypedRenderGraphResourceId<RGResourceType::Texture>;
 
 	template<RGResourceMode Mode>
-	struct RGTextureModeId : RGTextureId
+	struct RenderGraphTextureModeId : RGTextureId
 	{
 		using RGTextureId::RGTextureId;
 	private:
 		friend class RenderGraphBuilder;
 		friend class RenderGraph;
 
-		RGTextureModeId(RGTextureId const& id) : RGTextureId(id) {}
+		RenderGraphTextureModeId(RGTextureId const& id) : RGTextureId(id) {}
 	};
+	template<RGResourceMode Mode>
+	using RGTextureModeId = RenderGraphTextureModeId<Mode>;
 
 	template<RGResourceMode Mode>
-	struct RGBufferModeId : RGBufferId
+	struct RenderGraphBufferModeId : RGBufferId
 	{
 		using RGBufferId::RGBufferId;
 	private:
 		friend class RenderGraphBuilder;
 		friend class RenderGraph;
 
-		RGBufferModeId(RGBufferId const& id) : RGBufferId(id) {}
+		RenderGraphBufferModeId(RGBufferId const& id) : RGBufferId(id) {}
 	};
+	template<RGResourceMode Mode>
+	using RGBufferModeId = RenderGraphBufferModeId<Mode>;
+
 
 	using RGTextureCopySrcId = RGTextureModeId<RGResourceMode::CopySrc>;
 	using RGTextureCopyDstId = RGTextureModeId<RGResourceMode::CopyDst>;
@@ -76,7 +83,6 @@ namespace adria
 	using RGBufferIndexId = RGBufferModeId<RGResourceMode::Index>;
 	using RGBufferConstantId = RGBufferModeId<RGResourceMode::Constant>;
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	struct RenderGraphResourceDescriptorId
 	{
@@ -108,15 +114,16 @@ namespace adria
 		Uint64 id;
 	};
 
-	enum class RGDescriptorType : Uint8
+	enum class RenderGraphDescriptorType : Uint8
 	{
 		ReadOnly,
 		ReadWrite,
 		RenderTarget,
 		DepthStencil
 	};
+	using RGDescriptorType = RenderGraphDescriptorType;
 
-	template<RGResourceType ResourceType, RGDescriptorType ResourceViewType>
+	template<RGResourceType ResourceType, RGDescriptorType DescriptorType>
 	struct TypedRenderGraphResourceDescriptorId : RenderGraphResourceDescriptorId
 	{
 		using RenderGraphResourceDescriptorId::RenderGraphResourceDescriptorId;
@@ -142,13 +149,6 @@ namespace adria
 
 	using RGBufferReadOnlyId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Buffer,  RGDescriptorType::ReadOnly>;
 	using RGBufferReadWriteId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Buffer,  RGDescriptorType::ReadWrite>;
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	struct RGAllocationId : RGResourceId
-	{
-		using RGResourceId::RGResourceId;
-	};
 }
 
 namespace std

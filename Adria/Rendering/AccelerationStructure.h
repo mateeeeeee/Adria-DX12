@@ -22,7 +22,7 @@ namespace adria
 		void AddInstance(Mesh const& mesh);
 		void Build();
 
-		Sint32 GetTLASIndex() const;
+		Int32 GetTLASIndex() const;
 
 	private:
 		GfxDevice* gfx;

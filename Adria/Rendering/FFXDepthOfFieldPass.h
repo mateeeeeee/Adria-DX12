@@ -32,7 +32,7 @@ namespace adria
 		Float focus_dist = 400.0f;
 		Float sensor_size = 0.02f;
 		Float coc_limit = 0.01f; 
-		Sint32 quality = 10;
+		Int32 quality = 10;
 		Bool  enable_ring_merge = false;
 
 	private:

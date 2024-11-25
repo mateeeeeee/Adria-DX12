@@ -11,7 +11,7 @@ namespace adria
 		window_data.handle = hwnd;
 		window_data.msg  = static_cast<Uint32>(msg);
 		window_data.wparam = static_cast<Uint64>(w_param);
-		window_data.lparam = static_cast<Sint64>(l_param);
+		window_data.lparam = static_cast<Int64>(l_param);
 		window_data.width = this_window ? static_cast<Float>(this_window->Width()) : 0.0f;
 		window_data.height = this_window ? static_cast<Float>(this_window->Height()) : 0.0f;
 
@@ -126,7 +126,7 @@ namespace adria
         return true;
     }
 
-	void Window::Quit(Sint32 exit_code)
+	void Window::Quit(Int32 exit_code)
 	{
         PostQuitMessage(exit_code);
 	}

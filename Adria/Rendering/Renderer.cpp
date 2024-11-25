@@ -198,7 +198,7 @@ namespace adria
 		gfxcommon::Initialize(gfx);
 		g_TextureManager.OnSceneInitialized();
 	}
-	void Renderer::OnRightMouseClicked(Sint32 x, Sint32 y)
+	void Renderer::OnRightMouseClicked(Int32 x, Int32 y)
 	{
 		update_picking_data = true;
 	}
@@ -263,7 +263,7 @@ namespace adria
 			hlsl_light.position = Vector4::Transform(light.position, light_transform);
 			hlsl_light.direction = Vector4::Transform(light.direction, light_transform);
 			hlsl_light.range = light.range;
-			hlsl_light.type = static_cast<Sint32>(light.type);
+			hlsl_light.type = static_cast<Int32>(light.type);
 			hlsl_light.inner_cosine = light.inner_cosine;
 			hlsl_light.outer_cosine = light.outer_cosine;
 			hlsl_light.volumetric = light.volumetric;
@@ -400,11 +400,11 @@ namespace adria
 		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 		frame_cbuf_data.env_map_idx = sky_pass.GetSkyIndex();
-		frame_cbuf_data.meshes_idx = (Sint32)scene_buffers[SceneBuffer_Mesh].buffer_srv_gpu.GetIndex();
-		frame_cbuf_data.materials_idx = (Sint32)scene_buffers[SceneBuffer_Material].buffer_srv_gpu.GetIndex();
-		frame_cbuf_data.instances_idx = (Sint32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
-		frame_cbuf_data.lights_idx = (Sint32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
-		frame_cbuf_data.light_count = (Sint32)scene_buffers[SceneBuffer_Light].buffer->GetCount();
+		frame_cbuf_data.meshes_idx = (Int32)scene_buffers[SceneBuffer_Mesh].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.materials_idx = (Int32)scene_buffers[SceneBuffer_Material].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.instances_idx = (Int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.lights_idx = (Int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.light_count = (Int32)scene_buffers[SceneBuffer_Light].buffer->GetCount();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
 		frame_cbuf_data.ddgi_volumes_idx = ddgi.IsEnabled() ? ddgi.GetDDGIVolumeIndex() : -1;
 		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
@@ -569,7 +569,7 @@ namespace adria
 						ImGui::TreePop();
 					}
 
-					static Sint current_volumetric_path = (Sint)volumetric_path;
+					static Int current_volumetric_path = (Int)volumetric_path;
 					if (ImGui::TreeNode("Misc"))
 					{
 						if (ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching 2D\0Fog Volume\0", 3))

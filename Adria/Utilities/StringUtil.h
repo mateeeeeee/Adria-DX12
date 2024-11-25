@@ -16,7 +16,7 @@ namespace adria
 	Bool FromCString(Char const* in, Bool& out);
 	Bool FromCString(Char const* in, Vector3& out);
 
-	std::string IntToString(Sint val);
+	std::string IntToString(Int val);
 	std::string FloatToString(Float val);
 	std::string CStrToString(Char const* val);
 	std::string BoolToString(Bool val);

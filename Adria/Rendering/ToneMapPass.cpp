@@ -94,7 +94,7 @@ namespace adria
 					Uint32   hdr_idx;
 					Uint32   exposure_idx;
 					Uint32   output_idx;
-					Sint32    bloom_idx;
+					Int32    bloom_idx;
 					Uint32   lens_dirt_idx;
 					Uint32   bloom_params_packed;
 				} constants =

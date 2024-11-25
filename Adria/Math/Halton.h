@@ -4,13 +4,13 @@ namespace adria
 {
 	struct Halton
 	{
-		static constexpr Sint FloorConstExpr(Float val)
+		static constexpr Int FloorConstExpr(Float val)
 		{
-			const auto val_int = (Sint64)val;
+			const auto val_int = (Int64)val;
 			const Float fval_int = (Float)val_int;
-			return (Sint)(val >= (Float)0 ? fval_int : (val == fval_int ? val : fval_int - (Float)1));
+			return (Int)(val >= (Float)0 ? fval_int : (val == fval_int ? val : fval_int - (Float)1));
 		}
-		constexpr Float operator()(Sint index, Sint base) const
+		constexpr Float operator()(Int index, Int base) const
 		{
 			Float f = 1;
 			Float r = 0;

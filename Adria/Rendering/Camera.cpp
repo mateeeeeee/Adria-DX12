@@ -93,7 +93,7 @@ namespace adria
 		view_inverse.Invert(view_matrix);
 		SetProjectionMatrix(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::Zoom(Sint32 increment)
+	void Camera::Zoom(Int32 increment)
 	{
 		if (!enabled) return;
 		fov -= XMConvertToRadians(increment * 1.0f);

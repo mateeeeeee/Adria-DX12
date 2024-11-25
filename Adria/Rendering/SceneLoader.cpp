@@ -539,7 +539,7 @@ namespace adria
 						{
 							std::string extension_data(texture->extensions[0].data); 
 							std::vector<std::string> tokens = SplitString(extension_data, ':');
-							Sint image_index = std::stoi(tokens[1]);
+							Int image_index = std::stoi(tokens[1]);
 							return gltf_data->images[image_index].uri;
 						}
 						return texture->image->uri;
@@ -615,13 +615,13 @@ namespace adria
 			}
 		}
 
-		std::unordered_map<cgltf_mesh const*, std::vector<Sint32>> mesh_primitives_map; //mesh -> vector of primitive indices
-		Sint32 primitive_count = 0;
+		std::unordered_map<cgltf_mesh const*, std::vector<Int32>> mesh_primitives_map; //mesh -> vector of primitive indices
+		Int32 primitive_count = 0;
 
 		struct MeshData
 		{
 			DirectX::BoundingBox bounding_box;
-			Sint32 material_index = -1;
+			Int32 material_index = -1;
 			GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
 
 			std::vector<Vector3> positions_stream;
@@ -638,14 +638,14 @@ namespace adria
 		for (Uint32 i = 0; i < gltf_data->meshes_count; ++i)
 		{
 			cgltf_mesh const& gltf_mesh = gltf_data->meshes[i];
-			std::vector<Sint32>& primitives = mesh_primitives_map[&gltf_mesh];
+			std::vector<Int32>& primitives = mesh_primitives_map[&gltf_mesh];
 			for (Uint32 j = 0; j < gltf_mesh.primitives_count; ++j)
 			{
 				auto const& gltf_primitive = gltf_mesh.primitives[j];
 				ADRIA_ASSERT(gltf_primitive.indices->count >= 0);
 
 				MeshData& mesh_data = mesh_datas.emplace_back();
-				mesh_data.material_index = (Sint32)(gltf_primitive.material - gltf_data->materials);
+				mesh_data.material_index = (Int32)(gltf_primitive.material - gltf_data->materials);
 				mesh_data.indices.reserve(gltf_primitive.indices->count);
 				
 				Uint32 triangle_cw[] = { 0, 1, 2 };
@@ -851,7 +851,7 @@ namespace adria
 
 			if (gltf_node.mesh)
 			{
-				for (Sint32 primitive : mesh_primitives_map[gltf_node.mesh])
+				for (Int32 primitive : mesh_primitives_map[gltf_node.mesh])
 				{
 					SubMeshInstance& instance = mesh.instances.emplace_back();
 					instance.submesh_index = primitive;

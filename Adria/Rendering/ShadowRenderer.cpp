@@ -247,7 +247,7 @@ namespace adria
 			GfxDescriptor srv = light_mask_texture_srvs[light_id];
 			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, srv);
-			light.shadow_mask_index = (Sint32)dst_descriptor.GetIndex();
+			light.shadow_mask_index = (Int32)dst_descriptor.GetIndex();
 		};
 		auto AddShadowMap  = [&](Uint64 light_id, Uint32 shadow_map_size)
 		{
@@ -314,7 +314,7 @@ namespace adria
 				GfxDescriptor srv = light_shadow_map_srvs[light_id][j];
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 				gfx->CopyDescriptors(1, dst_descriptor, srv);
-				if (j == 0) light.shadow_texture_index = (Sint32)dst_descriptor.GetIndex();
+				if (j == 0) light.shadow_texture_index = (Int32)dst_descriptor.GetIndex();
 			}
 		};
 
@@ -410,7 +410,7 @@ namespace adria
 			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(Matrix), light_matrices_count * sizeof(Matrix) * backbuffer_index);
 			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index]);
-			light_matrices_gpu_index = (Sint32)dst_descriptor.GetIndex();
+			light_matrices_gpu_index = (Int32)dst_descriptor.GetIndex();
 		}
 	}
 
@@ -422,8 +422,8 @@ namespace adria
 		{
 			auto& light = light_view.get<Light>(e);
 			if (!light.casts_shadows) continue;
-			Sint32 light_index = light.light_index;
-			Sint32 light_matrix_index = light.shadow_matrix_index;
+			Int32 light_index = light.light_index;
+			Int32 light_matrix_index = light.shadow_matrix_index;
 			Uint64 light_id = entt::to_integral(e);
 
 			if (light.type == LightType::Directional)
@@ -516,7 +516,7 @@ namespace adria
 		{
 			auto& light = light_view.get<Light>(e);
 			if (!light.ray_traced_shadows) continue;
-			Sint32 light_index = light.light_index;
+			Int32 light_index = light.light_index;
 			Uint64 light_id = entt::to_integral(e);
 
 			rg.ImportTexture(RG_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());

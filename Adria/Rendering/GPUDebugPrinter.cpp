@@ -113,15 +113,15 @@ namespace adria
 		}
 		case DebugPrint_Int:
 		{
-			Sint32 value = *reader.Consume<Sint32>();
+			Int32 value = *reader.Consume<Int32>();
 			return std::to_string(value);
 		}
 		case DebugPrint_Int2:
 		{
 			struct Int2
 			{
-				Sint32 value1;
-				Sint32 value2;
+				Int32 value1;
+				Int32 value2;
 			};
 			Int2 int2 = *reader.Consume<Int2>();
 			return "(" + std::to_string(int2.value1) + "," + std::to_string(int2.value2) + ")";
@@ -130,9 +130,9 @@ namespace adria
 		{
 			struct Int3
 			{
-				Sint32 value1;
-				Sint32 value2;
-				Sint32 value3;
+				Int32 value1;
+				Int32 value2;
+				Int32 value3;
 			};
 			Int3 int3 = *reader.Consume<Int3>();
 			return "(" + std::to_string(int3.value1) + "," + std::to_string(int3.value2) + "," + std::to_string(int3.value3) + ")";
@@ -141,10 +141,10 @@ namespace adria
 		{
 			struct Int4
 			{
-				Sint32 value1;
-				Sint32 value2;
-				Sint32 value3;
-				Sint32 value4;
+				Int32 value1;
+				Int32 value2;
+				Int32 value3;
+				Int32 value4;
 			};
 			Int4 int4 = *reader.Consume<Int4>();
 			return "(" + std::to_string(int4.value1) + "," + std::to_string(int4.value2) + "," + std::to_string(int4.value3) + "," + std::to_string(int4.value4) + ")";
@@ -214,11 +214,11 @@ namespace adria
 		for (auto& readback_buffer : readback_buffers)
 			readback_buffer = gfx->CreateBuffer(ReadBackBufferDesc(printf_buffer_desc.size));
 }
-	Sint32 GPUDebugPrinter::GetPrintfBufferIndex()
+	Int32 GPUDebugPrinter::GetPrintfBufferIndex()
 	{
 		gpu_uav_descriptor = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, gpu_uav_descriptor, uav_descriptor);
-		return (Sint32)gpu_uav_descriptor.GetIndex();
+		return (Int32)gpu_uav_descriptor.GetIndex();
 	}
 
 	void GPUDebugPrinter::AddClearPass(RenderGraph& rg)
@@ -309,7 +309,7 @@ namespace adria
 	}
 #else
 	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) : gfx(gfx) {}
-	Sint32 GPUDebugPrinter::GetPrintfBufferIndex() { return -1; }
+	Int32 GPUDebugPrinter::GetPrintfBufferIndex() { return -1; }
 	void GPUDebugPrinter::AddClearPass(RenderGraph& rg) {}
 	void GPUDebugPrinter::AddPrintPass(RenderGraph& rg) {}
 #endif

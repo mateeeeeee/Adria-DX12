@@ -41,7 +41,7 @@ namespace adria
 		void SetAspectRatio(Float ar);
 		void SetFov(Float fov);
 
-		void Zoom(Sint32 increment);
+		void Zoom(Int32 increment);
 		void OnResize(Uint32 w, Uint32 h);
 		void Update(Float dt);
 		void Enable(Bool _enabled) { enabled = _enabled; }

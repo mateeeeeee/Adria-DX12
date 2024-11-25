@@ -34,14 +34,14 @@ namespace adria
 		struct DDGIVolumeGPU
 		{
 			Vector3 start_position;
-			Sint32 rays_per_probe;
+			Int32 rays_per_probe;
 			Vector3 probe_size;
-			Sint32 max_rays_per_probe;
+			Int32 max_rays_per_probe;
 			Vector3i probe_count;
 			Float normal_bias;
 			Float energy_preservation;
-			Sint32 irradiance_history_idx;
-			Sint32 distance_history_idx;
+			Int32 irradiance_history_idx;
+			Int32 distance_history_idx;
 		};
 
 		enum DDGIVisualizeMode : Uint32
@@ -64,7 +64,7 @@ namespace adria
 		Bool Visualize() const   { return visualize; }
 		Bool IsEnabled() const;
 		Bool IsSupported() const { return is_supported; }
-		Sint32 GetDDGIVolumeIndex();
+		Int32 GetDDGIVolumeIndex();
 
 	private:
 		GfxDevice* gfx;

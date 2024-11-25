@@ -6,7 +6,7 @@
 namespace adria
 {
 	
-	inline Bool IsPressed(Sint32 key_code)
+	inline Bool IsPressed(Int32 key_code)
 	{
 		return (::GetKeyState(key_code) & 0x8000) != 0;
 	}
@@ -147,12 +147,12 @@ namespace adria
 				if (!resizing) input_events.window_resized_event.Broadcast((Uint32)data.width, (Uint32)data.height);
 				break;
 			case WM_MOUSEWHEEL:
-				input_events.scroll_mouse_event.Broadcast((Sint32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
+				input_events.scroll_mouse_event.Broadcast((Int32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
 				break;
 			case WM_RBUTTONDOWN:
 			{
-				Sint32 mx = GET_X_LPARAM(data.lparam);
-				Sint32 my = GET_Y_LPARAM(data.lparam);
+				Int32 mx = GET_X_LPARAM(data.lparam);
+				Int32 my = GET_Y_LPARAM(data.lparam);
 				input_events.right_mouse_clicked.Broadcast(mx, my);
 			}
 			break;

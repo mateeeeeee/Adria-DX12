@@ -62,8 +62,8 @@ namespace adria
 
 				struct PathTracingConstants
 				{
-					Sint32   bounce_count;
-					Sint32   accumulated_frames;
+					Int32   bounce_count;
+					Int32   accumulated_frames;
 					Uint32  accum_idx;
 					Uint32  output_idx;
 				} constants =

@@ -62,7 +62,7 @@ namespace adria
 		void OnResize(Uint32 w, Uint32 h);
 		void OnRenderResolutionChanged(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
-		void OnRightMouseClicked(Sint32 x, Sint32 y);
+		void OnRightMouseClicked(Int32 x, Int32 y);
 		void OnTakeScreenshot(Char const*);
 		void OnLightChanged();
 

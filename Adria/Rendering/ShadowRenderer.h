@@ -16,7 +16,7 @@ namespace adria
 	class RenderGraph;
 	class Camera;
 	struct FrameCBuffer;
-	enum class LightType : Sint32;
+	enum class LightType : Int32;
 
 	struct BoundingObject
 	{
@@ -88,7 +88,7 @@ namespace adria
 		std::unordered_map<Uint64, std::unique_ptr<GfxTexture>> light_mask_textures;
 		std::unordered_map<Uint64, GfxDescriptor> light_mask_texture_srvs;
 		std::unordered_map<Uint64, GfxDescriptor> light_mask_texture_uavs;
-		Sint32						   light_matrices_gpu_index = -1;
+		Int32						   light_matrices_gpu_index = -1;
 
 		std::vector<BoundingObject>						bounding_objects;
 		std::array<Float, SHADOW_CASCADE_COUNT>		    split_distances{};

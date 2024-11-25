@@ -41,8 +41,8 @@ namespace adria
 	struct WindowEventData;
 
 	DECLARE_EVENT(WindowResizedEvent, Input, Uint32, Uint32)
-	DECLARE_EVENT(RightMouseClickedEvent, Input, Sint32, Sint32)
-	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, Sint32)
+	DECLARE_EVENT(RightMouseClickedEvent, Input, Int32, Int32)
+	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, Int32)
 	DECLARE_EVENT(F5PressedEvent, Input)
 	DECLARE_EVENT(PrintScreenPressedEvent, Input, Char const*)
 	struct InputEvents

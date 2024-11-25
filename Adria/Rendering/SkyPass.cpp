@@ -144,7 +144,7 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Sky Settings", ImGuiTreeNodeFlags_None))
 				{
-					static Sint current_sky_type = 2;
+					static Int current_sky_type = 2;
 					if (ImGui::Combo("Sky Type", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))
 					{
 						sky_type = static_cast<SkyType>(current_sky_type);
@@ -168,7 +168,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	Sint32 SkyPass::GetSkyIndex() const
+	Int32 SkyPass::GetSkyIndex() const
 	{
 		if (sky_type == SkyType::Skybox)
 		{
@@ -179,13 +179,13 @@ namespace adria
 				if (!skybox.active) continue;
 
 				ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-				return (Sint32)skybox.cubemap_texture;
+				return (Int32)skybox.cubemap_texture;
 			}
 		}
 
 		GfxDescriptor sky_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, sky_srv_gpu, sky_texture_srv);
-		return (Sint32)sky_srv_gpu.GetIndex();
+		return (Int32)sky_srv_gpu.GetIndex();
 	}
 
 	void SkyPass::CreatePSOs()

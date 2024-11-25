@@ -14,7 +14,7 @@ namespace adria
 {
 	class GfxCommandList;
 
-	enum class LightType : Sint32
+	enum class LightType : Int32
 	{
 		Directional,
 		Point,
@@ -51,7 +51,7 @@ namespace adria
 		//vb/ib
 		Uint32 indices_count = 0;
 		Uint32 start_index_location = 0; //The location of the first index read by the GPU from the index buffer
-		Sint32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
+		Int32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
 
 		//instancing
 		Uint32 instance_count = 1;
@@ -90,9 +90,9 @@ namespace adria
 		Bool casts_shadows = false;
 		Bool use_cascades = false;
 		Bool ray_traced_shadows = false;
-		Sint32 shadow_texture_index = -1;
-		Sint32 shadow_matrix_index = -1;
-		Sint32 shadow_mask_index = -1;
+		Int32 shadow_texture_index = -1;
+		Int32 shadow_matrix_index = -1;
+		Int32 shadow_mask_index = -1;
 		Uint32 light_index = 0;
 
 		Float volumetric_strength = 0.004f;

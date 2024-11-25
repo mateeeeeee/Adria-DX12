@@ -24,7 +24,7 @@ namespace adria
 		GfxDevice* gfx;
 		Uint32 width, height;
 		FfxInterface*			   ffx_interface;
-		Sint32					   preset_id = 0;
+		Int32					   preset_id = 0;
 		Bool                       use_downsampled_ssao = false;
 		Bool                       generate_normals = false;
 		FfxCacaoSettings		   cacao_settings{};

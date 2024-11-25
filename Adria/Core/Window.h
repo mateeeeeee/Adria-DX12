@@ -9,7 +9,7 @@ namespace adria
 		void*  handle	= nullptr;
 		Uint32 msg		= 0;
         Uint64 wparam	= 0;
-        Sint64  lparam	= 0;
+        Int64  lparam	= 0;
 		Float  width	= 0.0f;
 		Float  height	= 0.0f;
 	};
@@ -36,7 +36,7 @@ namespace adria
 		Uint32 PositionY() const;
 
 		Bool Loop();
-		void Quit(Sint32 exit_code);
+		void Quit(Int32 exit_code);
 
 		void* Handle() const;
 		Bool  IsActive() const;

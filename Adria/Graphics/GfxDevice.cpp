@@ -116,19 +116,19 @@ namespace adria
 			if (SUCCEEDED(dred->GetAutoBreadcrumbsOutput1(&DredAutoBreadcrumbsOutput)))
 			{
 				ADRIA_LOG(DEBUG, "[DRED] Last tracked GPU operations:");
-				std::map<Sint32, Wchar const*> contextStrings;
+				std::map<Int32, Wchar const*> contextStrings;
 				D3D12_AUTO_BREADCRUMB_NODE1 const* pNode = DredAutoBreadcrumbsOutput.pHeadAutoBreadcrumbNode;
 				while (pNode && pNode->pLastBreadcrumbValue)
 				{
-					Sint32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
+					Int32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
 					if (lastCompletedOp != (int)pNode->BreadcrumbCount && lastCompletedOp != 0)
 					{
 						Char const* cmd_list_name = "cmd_list";
 						Char const* queue_name = "graphics queue";
 						ADRIA_LOG(DEBUG, "[DRED] Commandlist \"%s\" on CommandQueue \"%s\", %d completed of %d", cmd_list_name, queue_name, lastCompletedOp, pNode->BreadcrumbCount);
 
-						Sint32 firstOp = std::max<Sint32>(lastCompletedOp - 100, 0);
-						Sint32 lastOp = std::min<Sint32>(lastCompletedOp + 20, Sint32(pNode->BreadcrumbCount) - 1);
+						Int32 firstOp = std::max<Int32>(lastCompletedOp - 100, 0);
+						Int32 lastOp = std::min<Int32>(lastCompletedOp + 20, Int32(pNode->BreadcrumbCount) - 1);
 
 						contextStrings.clear();
 						for (Uint32 breadcrumbContext = firstOp; breadcrumbContext < pNode->BreadcrumbContextsCount; ++breadcrumbContext)
@@ -137,7 +137,7 @@ namespace adria
 							contextStrings[context.BreadcrumbIndex] = context.pContextString;
 						}
 
-						for (Sint32 op = firstOp; op <= lastOp; ++op)
+						for (Int32 op = firstOp; op <= lastOp; ++op)
 						{
 							D3D12_AUTO_BREADCRUMB_OP breadcrumbOp = pNode->pCommandHistory[op];
 

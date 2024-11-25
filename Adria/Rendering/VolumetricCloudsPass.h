@@ -12,12 +12,12 @@ namespace adria
 	{
 		struct CloudParameters
 		{
-			Sint32 shape_noise_frequency = 4;
-			Sint32 shape_noise_resolution = 128;
-			Sint32 detail_noise_frequency = 6;
-			Sint32 detail_noise_resolution = 32;
+			Int32 shape_noise_frequency = 4;
+			Int32 shape_noise_resolution = 128;
+			Int32 detail_noise_frequency = 6;
+			Int32 detail_noise_resolution = 32;
 
-			Sint32 max_num_steps = 64;
+			Int32 max_num_steps = 64;
 			Float cloud_min_height = 1500.0f;
 			Float cloud_max_height = 4000.0f;
 			Float shape_noise_scale = 0.3f;

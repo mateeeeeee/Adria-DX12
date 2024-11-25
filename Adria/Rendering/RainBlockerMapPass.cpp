@@ -99,11 +99,11 @@ namespace adria
 		width = w, height = h;
 	}
 
-	Sint32 RainBlockerMapPass::GetRainBlockerMapIdx() const
+	Int32 RainBlockerMapPass::GetRainBlockerMapIdx() const
 	{
 		GfxDescriptor blocker_map_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, blocker_map_srv_gpu, blocker_map_srv);
-		return (Sint32)blocker_map_srv_gpu.GetIndex();
+		return (Int32)blocker_map_srv_gpu.GetIndex();
 	}
 
 	void RainBlockerMapPass::CreatePSOs()

@@ -47,20 +47,20 @@ namespace adria
 		Float  total_time;
 
 		Uint32 frame_count;
-		Sint32  lights_idx;
-		Sint32  light_count;
-		Sint32  lights_matrices_idx;
-		Sint32  accel_struct_idx;
-		Sint32  env_map_idx;
-		Sint32  meshes_idx;
-		Sint32  materials_idx;
-		Sint32  instances_idx;
-		Sint32  ddgi_volumes_idx;
-		Sint32  printf_buffer_idx;
+		Int32  lights_idx;
+		Int32  light_count;
+		Int32  lights_matrices_idx;
+		Int32  accel_struct_idx;
+		Int32  env_map_idx;
+		Int32  meshes_idx;
+		Int32  materials_idx;
+		Int32  instances_idx;
+		Int32  ddgi_volumes_idx;
+		Int32  printf_buffer_idx;
 
-		Sint32  rain_splash_diffuse_idx;
-		Sint32  rain_splash_bump_idx;
-		Sint32  rain_blocker_map_idx;
+		Int32  rain_splash_diffuse_idx;
+		Int32  rain_splash_bump_idx;
+		Int32  rain_blocker_map_idx;
 		Float  rain_total_time;
 	};
 
@@ -69,9 +69,9 @@ namespace adria
 		Vector4 position;
 		Vector4 direction;
 		Vector4 color;
-		Sint32 active;
+		Int32 active;
 		Float range;
-		Sint32 type;
+		Int32 type;
 		Float outer_cosine;
 
 		Float inner_cosine;
@@ -79,10 +79,10 @@ namespace adria
 		Float volumetric_strength;
 		Bool32 use_cascades;
 
-		Sint32 shadow_texture_index;
-		Sint32 shadow_matrix_index;
-		Sint32 shadow_mask_index;
-		Sint32 padd;
+		Int32 shadow_texture_index;
+		Int32 shadow_matrix_index;
+		Int32 shadow_mask_index;
+		Int32 padd;
 	};
 
 	struct MeshGPU

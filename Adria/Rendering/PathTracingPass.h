@@ -27,8 +27,8 @@ namespace adria
 		Uint32 width, height;
 		Bool is_supported;
 		std::unique_ptr<GfxTexture> accumulation_texture = nullptr;
-		Sint32 accumulated_frames = 1;
-		Sint32 max_bounces = 3;
+		Int32 accumulated_frames = 1;
+		Int32 max_bounces = 3;
 
 	private:
 		void CreateStateObject();

@@ -57,7 +57,7 @@ namespace adria
 				if (ImGui::TreeNode("ReSTIR GI"))
 				{
 					ImGui::Checkbox("Enable ReSTIR", &enable);
-					static Sint current_resampling_mode = static_cast<Sint>(resampling_mode);
+					static Int current_resampling_mode = static_cast<Int>(resampling_mode);
 					if (ImGui::Combo("Resampling mode", &current_resampling_mode, "None\0Temporal\0Spatial\0TemporalAndSpatial\0", 4))
 					{
 						resampling_mode = static_cast<ResamplingMode>(current_resampling_mode);

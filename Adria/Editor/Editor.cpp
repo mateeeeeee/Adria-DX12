@@ -193,7 +193,7 @@ namespace adria
 		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
 		style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
 
-		for (Sint i = 0; i <= ImGuiCol_COUNT; i++)
+		for (Int i = 0; i <= ImGuiCol_COUNT; i++)
 		{
 			ImVec4& col = style.Colors[i];
 			Float H, S, V;
@@ -294,13 +294,13 @@ namespace adria
 		{
 			if (ImGui::TreeNodeEx("Point Lights", 0))
 			{
-				static Sint light_count_to_add = 1;
+				static Int light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 				if (ImGui::Button("Create Random Point Lights"))
 				{
 					static RealRandomGenerator real(0.0f, 1.0f);
 
-					for (Sint32 i = 0; i < light_count_to_add; ++i)
+					for (Int32 i = 0; i < light_count_to_add; ++i)
 					{
 						LightParameters light_params{};
 						light_params.light_data.casts_shadows = false;
@@ -321,13 +321,13 @@ namespace adria
 			}
 			if (ImGui::TreeNodeEx("Spot Lights", 0))
 			{
-				static Sint light_count_to_add = 1;
+				static Int light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 				if (ImGui::Button("Create Random Spot Lights"))
 				{
 					static RealRandomGenerator real(0.0f, 1.0f);
 
-					for (Sint32 i = 0; i < light_count_to_add; ++i)
+					for (Int32 i = 0; i < light_count_to_add; ++i)
 					{
 						LightParameters light_params{};
 						light_params.light_data.casts_shadows = false;
@@ -353,7 +353,7 @@ namespace adria
 			if (ImGui::TreeNodeEx("Ocean", 0))
 			{
 				static GridParameters ocean_params{};
-				static Sint32 tile_count[2] = { 512, 512 };
+				static Int32 tile_count[2] = { 512, 512 };
 				static Float tile_size[2] = { 40.0f, 40.0f };
 				static Float texture_scale[2] = { 20.0f, 20.0f };
 
@@ -559,7 +559,7 @@ namespace adria
 
 					if (light->type == LightType::Directional)
 					{
-						static Sint current_shadow_type = light->casts_shadows;
+						static Int current_shadow_type = light->casts_shadows;
 						ImGui::Combo("Shadow Technique", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
 						if (!ray_tracing_supported && current_shadow_type == 2) current_shadow_type = 1;
 
@@ -968,7 +968,7 @@ namespace adria
 			if (show_profiling)
 			{
 				static constexpr Uint64 NUM_FRAMES = 128;
-				static constexpr Sint32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
+				static constexpr Int32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
 
 				static ProfilerState state{};
 				static Float FrameTimeArray[NUM_FRAMES] = { 0 };
@@ -982,7 +982,7 @@ namespace adria
 				RecentHighestFrameTime = std::max(RecentHighestFrameTime, FrameTimeArray[NUM_FRAMES - 1]);
 
 				Float frame_time_ms = FrameTimeArray[NUM_FRAMES - 1];
-				Sint32 const fps = static_cast<Sint32>(1000.0f / frame_time_ms);
+				Int32 const fps = static_cast<Int32>(1000.0f / frame_time_ms);
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))
 				{
@@ -1114,7 +1114,7 @@ namespace adria
 					Box,
 					Sphere
 				};
-				static Sint current_debug_renderer_primitive = 0;
+				static Int current_debug_renderer_primitive = 0;
 				static Float debug_color[4] = { 0.0f,0.0f, 0.0f, 1.0f };
 				ImGui::Combo("Debug Renderer Primitive", &current_debug_renderer_primitive, "Line\0Ray\0Box\0Sphere\0", 4);
 				ImGui::ColorEdit3("Debug Color", debug_color);
@@ -1191,7 +1191,7 @@ namespace adria
 				static Char capture_name[32] = { 'a', 'd', 'r', 'i', 'a' };
 				ImGui::InputText("Capture name", capture_name, sizeof(capture_name));
 
-				static Sint frame_count = 1;
+				static Int frame_count = 1;
 				ImGui::SliderInt("Number of capture frames", &frame_count, 1, 10);
 
 				if (ImGui::Button("Take capture"))
@@ -1210,7 +1210,7 @@ namespace adria
 				};
 				static std::unordered_map<void const*, GfxDescriptor, VoidPointerHash> debug_srv_map;
 
-				for (Sint32 i = 0; i < debug_textures.size(); ++i)
+				for (Int32 i = 0; i < debug_textures.size(); ++i)
 				{
 					ImGui::PushID(i);
 					auto& debug_texture = debug_textures[i];

@@ -27,10 +27,10 @@ namespace adria
 		Uint32 max_height;
 		FractalType fractal_type = FractalType::None;
 		NoiseType noise_type = NoiseType::Perlin;
-		Sint32 seed = 1337;
+		Int32 seed = 1337;
 		Float persistence = 0.5f;
 		Float lacunarity = 2.0f;
-		Sint32 octaves = 3;
+		Int32 octaves = 3;
 		Float noise_scale = 10;
 	};
 

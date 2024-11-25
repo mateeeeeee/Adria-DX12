@@ -360,7 +360,7 @@ namespace adria
 							if (idx < 0 || idx >= vector->size()) return false;
 							*out_text = vector->at(idx).c_str();
 							return true;
-						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (Sint32)FfxCacaoPresetNames.size());
+						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (Int32)FfxCacaoPresetNames.size());
 
 					ImGui::TreePop();
 				}

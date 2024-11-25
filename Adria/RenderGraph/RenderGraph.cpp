@@ -171,7 +171,7 @@ namespace adria
 					continue;
 				}
 				Bool found = false;
-				for (Sint32 j = (Sint32)i - 1; j >= 0; --j)
+				for (Int32 j = (Int32)i - 1; j >= 0; --j)
 				{
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.texture_state_map.contains(tex_id))
@@ -201,7 +201,7 @@ namespace adria
 					continue;
 				}
 				Bool found = false;
-				for (Sint32 j = (Sint32)i - 1; j >= 0; --j)
+				for (Int32 j = (Int32)i - 1; j >= 0; --j)
 				{
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.buffer_state_map.contains(buf_id))
@@ -1107,7 +1107,7 @@ namespace adria
 			struct
 			{
 				Char const* name{ "helvetica" };
-				Sint32       size{ 10 };
+				Int32       size{ 10 };
 			} font;
 			struct
 			{

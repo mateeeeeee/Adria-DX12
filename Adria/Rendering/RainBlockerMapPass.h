@@ -19,7 +19,7 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h);
 
-		Sint32 GetRainBlockerMapIdx() const;
+		Int32 GetRainBlockerMapIdx() const;
 		Matrix const& GetViewProjection() const { return view_projection; }
 
 	private:

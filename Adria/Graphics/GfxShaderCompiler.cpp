@@ -312,7 +312,7 @@ namespace adria
 					ADRIA_LOG(ERROR, "%s", err_msg);
 					std::string msg = "Click OK after you fixed the following errors: \n";
 					msg += err_msg;
-					Sint32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
+					Int32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
 					if (result == IDOK) goto compile;
 					else if (result == IDCANCEL) return false;
 				}

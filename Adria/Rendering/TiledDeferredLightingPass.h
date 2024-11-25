@@ -30,7 +30,7 @@ namespace adria
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		Bool visualize_tiled = false;
-		Sint32 visualize_max_lights = 16;
+		Int32 visualize_max_lights = 16;
 
 	private:
 		void CreatePSOs();

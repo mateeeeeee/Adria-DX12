@@ -78,19 +78,19 @@ namespace adria
 				Uint32 i = dst_handle.GetIndex();
 				struct TiledLightingConstants
 				{
-					Sint32  visualize_max_lights;
+					Int32  visualize_max_lights;
 					Uint32 normal_idx;
 					Uint32 diffuse_idx;
 					Uint32 depth_idx;
 					Uint32 emissive_idx;
 					Uint32 ao_idx;
 					Uint32 output_idx;
-					Sint32  debug_idx;
+					Int32  debug_idx;
 				} constants =
 				{
 					.visualize_max_lights = visualize_max_lights,
 					.normal_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4,
-					.output_idx = i + 5, .debug_idx = visualize_tiled ? Sint32(i + 6) : -1
+					.output_idx = i + 5, .debug_idx = visualize_tiled ? Int32(i + 6) : -1
 				};
 
 				static constexpr Float black[] = {0.0f,0.0f,0.0f,0.0f};
