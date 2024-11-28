@@ -2,6 +2,7 @@
 #include <shellapi.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include "StringUtil.h"
 
 namespace adria
@@ -28,12 +29,12 @@ namespace adria
 			else return def;
 		}
 
-		Int32 AsInt() const
+		Int AsInt() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (Int32)strtol(value.c_str(), nullptr, 10);
+			return (Int)strtol(value.c_str(), nullptr, 10);
 		}
-		Int32 AsIntOr(Int32 def) const
+		Int AsIntOr(Int def) const
 		{
 			if (IsPresent()) return AsInt();
 			else return def;
@@ -90,17 +91,29 @@ namespace adria
 	class CLIParser
 	{
 	public:
-		CLIParser() 
+		CLIParser() {}
+
+		ADRIA_MAYBE_UNUSED Uint32 AddArg(Bool has_value, std::convertible_to<std::string> auto... prefixes)
 		{
-			args.reserve(128);
+			Uint32 const arg_index = (Uint32)args.size();
+			CLIArg& arg = args.emplace_back(std::vector<std::string>{prefixes...}, has_value);
+			for (std::string const& prefix : arg.prefixes)
+			{
+				prefix_arg_index_map[prefix] = arg_index;
+			}
+			return arg_index;
 		}
 
-		ADRIA_NODISCARD CLIArg& AddArg(Bool has_value, std::convertible_to<std::string> auto... prefixes)
+		CLIArg const& operator[](std::convertible_to<std::string> auto const& prefix) const
 		{
-			args.emplace_back(std::vector<std::string>{prefixes...}, has_value);
-			return args.back();
+			ADRIA_ASSERT_MSG(prefix_arg_index_map.contains(prefix), "Did you forgot to add this Arg to CLIParser?");
+			return args[prefix_arg_index_map[prefix]];
 		}
-
+		CLIArg const& operator[](Uint32 i) const
+		{
+			return args[i];
+		}
+		
 		void Parse(Int argc, Wchar** argv)
 		{
 			std::vector<std::wstring> cmdline(argv, argv + argc);
@@ -135,5 +148,6 @@ namespace adria
 
 	private:
 		std::vector<CLIArg> args;
+		mutable std::unordered_map<std::string, Uint32> prefix_arg_index_map;
 	};
 }
