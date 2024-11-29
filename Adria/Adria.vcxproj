@@ -314,6 +314,7 @@
     <ClCompile Include="Rendering\VolumetricFogPass.cpp" />
     <ClCompile Include="Rendering\VolumetricLightingPass.cpp" />
     <ClCompile Include="Rendering\XeSSPass.cpp" />
+    <ClCompile Include="Utilities\CLIParser.cpp" />
     <ClCompile Include="Utilities\FilesUtil.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
     <ClCompile Include="Utilities\Image.cpp" />

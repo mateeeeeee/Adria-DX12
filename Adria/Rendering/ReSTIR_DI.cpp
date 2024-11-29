@@ -48,15 +48,12 @@ namespace adria
 
 	void ReSTIR_DI::AddPasses(RenderGraph& rg)
 	{
-		if (!supported)
-		{
-			return;
-		}
+		if (!supported) return;
 		QueueGUI([&]()
 			{
-				if (ImGui::TreeNode("ReSTIR GI"))
+				if (ImGui::TreeNode("ReSTIR DI"))
 				{
-					ImGui::Checkbox("Enable ReSTIR", &enable);
+					ImGui::Checkbox("Enable", &enable);
 					static Int current_resampling_mode = static_cast<Int>(resampling_mode);
 					if (ImGui::Combo("Resampling mode", &current_resampling_mode, "None\0Temporal\0Spatial\0TemporalAndSpatial\0", 4))
 					{
@@ -65,10 +62,7 @@ namespace adria
 					ImGui::TreePop();
 				}
 			});
-		if (!enable)
-		{
-			return;
-		}
+		if (!enable) return;
 
 		AddInitialSamplingPass(rg);
 
@@ -93,7 +87,7 @@ namespace adria
 			RGTextureReadWriteId ray_direction;
 		};
 
-		rg.AddPass<InitialSamplingPassData>("RESTIR GI Initial Sampling Pass",
+		rg.AddPass<InitialSamplingPassData>("RESTIR DI Initial Sampling Pass",
 			[=](InitialSamplingPassData& data, RenderGraphBuilder& builder)
 			{
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
@@ -158,7 +152,7 @@ namespace adria
 
 		};
 
-		rg.AddPass<TemporalResamplingPassData>("ReSTIR GI Temporal Resampling Pass", 
+		rg.AddPass<TemporalResamplingPassData>("ReSTIR DI Temporal Resampling Pass", 
 			[=](TemporalResamplingPassData& data, RGBuilder& builder)
 			{
 				
@@ -176,7 +170,7 @@ namespace adria
 
 		};
 
-		rg.AddPass<SpatialResamplingPassData>("ReSTIR GI Spatial Resampling Pass",
+		rg.AddPass<SpatialResamplingPassData>("ReSTIR DI Spatial Resampling Pass",
 			[=](SpatialResamplingPassData& data, RGBuilder& builder)
 			{
 

@@ -543,6 +543,9 @@
     <ClCompile Include="Rendering\SceneConfig.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\CLIParser.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

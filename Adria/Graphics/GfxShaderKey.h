@@ -44,7 +44,5 @@ namespace adria
 			return key.GetHash();
 		}
 	};
-	#define GfxShaderKeyDefine(key, name, ...) key.AddDefine(ADRIA_STRINGIFY(name) __VA_OPT__(,) ADRIA_STRINGIFY(__VA_ARGS__))
-
 }
 

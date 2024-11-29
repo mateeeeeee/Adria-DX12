@@ -27,28 +27,28 @@ namespace adria
 	};
 
 	template<typename PSO>
-	struct IsGraphicsPipelineState
+	struct IsGraphicsPipelineStateImpl
 	{
 		static constexpr Bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Graphics;
 	};
 	template<typename PSO>
-	constexpr Bool IsGraphicsPipelineStateV = IsGraphicsPipelineState<PSO>::value;
+	constexpr Bool IsGraphicsPipelineState = IsGraphicsPipelineStateImpl<PSO>::value;
 
 	template<typename PSO>
-	struct IsComputePipelineState
+	struct IsComputePipelineStateImpl
 	{
 		static constexpr Bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::Compute;
 	};
 	template<typename PSO>
-	constexpr Bool IsComputePipelineStateV = IsComputePipelineState<PSO>::value;
+	constexpr Bool IsComputePipelineState = IsComputePipelineStateImpl<PSO>::value;
 
 	template<typename PSO>
-	struct IsMeshShaderPipelineState
+	struct IsMeshShaderPipelineStateImpl
 	{
 		static constexpr Bool value = PSOTraits<PSO>::PipelineStateType == GfxPipelineStateType::MeshShader;
 	};
 	template<typename PSO>
-	constexpr Bool IsMeshShaderPipelineStateV = IsMeshShaderPipelineState<PSO>::value;
+	constexpr Bool IsMeshShaderPipelineState = IsMeshShaderPipelineStateImpl<PSO>::value;
 
 	template<typename PSO>
 	class GfxPipelineStatePermutations
@@ -125,7 +125,7 @@ namespace adria
 			AddDefine<stage, P>(name, "");
 		}
 
-		template<Uint32 P> requires !IsComputePipelineStateV<PSO>
+		template<Uint32 P> requires !IsComputePipelineState<PSO>
 		void SetCullMode(GfxCullMode cull_mode)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -133,7 +133,7 @@ namespace adria
 			desc.rasterizer_state.cull_mode = cull_mode;
 		}
 
-		template<Uint32 P> requires !IsComputePipelineStateV<PSO>
+		template<Uint32 P> requires !IsComputePipelineState<PSO>
 		void SetFillMode(GfxFillMode fill_mode)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());
@@ -141,7 +141,7 @@ namespace adria
 			desc.rasterizer_state.fill_mode = fill_mode;
 		}
 
-		template<Uint32 P> requires !IsComputePipelineStateV<PSO>
+		template<Uint32 P> requires !IsComputePipelineState<PSO>
 		void SetTopologyType(GfxPrimitiveTopologyType topology_type)
 		{
 			ADRIA_ASSERT(P < pso_descs.size());

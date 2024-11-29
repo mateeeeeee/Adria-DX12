@@ -1,5 +1,4 @@
 #pragma once
-#include <shellapi.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -7,13 +6,13 @@
 
 namespace adria
 {
+	class CLIParser;
 	class CLIArg
 	{
 		friend class CLIParser;
 	public:
-		CLIArg(std::vector<std::string>&& prefixes, Bool has_value)
-			: prefixes(std::move(prefixes)), has_value(has_value)
-		{}
+		CLIArg() = default;
+		CLIArg(std::vector<std::string>&& prefixes, Bool has_value) : prefixes(std::move(prefixes)), has_value(has_value) {}
 
 		Bool AsBool(Bool default_value = false) const
 		{
@@ -88,11 +87,27 @@ namespace adria
 		}
 	};
 
+	class CLIParseResult
+	{
+		friend class CLIParser;
+	public:
+		CLIArg const& operator[](std::convertible_to<std::string> auto const& prefix) const
+		{
+			ADRIA_ASSERT_MSG(cli_arg_map.contains(prefix), "Did you forgot to add this Arg to CLIParser?");
+			return cli_arg_map.find(prefix)->second;
+		}
+
+	private:
+		std::unordered_map<std::string, CLIArg> cli_arg_map;
+
+	private:
+		CLIParseResult(std::vector<CLIArg> const& args, std::unordered_map<std::string, Uint32> const& prefix_index_map);
+	};
+
 	class CLIParser
 	{
 	public:
 		CLIParser() {}
-
 		ADRIA_MAYBE_UNUSED Uint32 AddArg(Bool has_value, std::convertible_to<std::string> auto... prefixes)
 		{
 			Uint32 const arg_index = (Uint32)args.size();
@@ -103,51 +118,11 @@ namespace adria
 			}
 			return arg_index;
 		}
-
-		CLIArg const& operator[](std::convertible_to<std::string> auto const& prefix) const
-		{
-			ADRIA_ASSERT_MSG(prefix_arg_index_map.contains(prefix), "Did you forgot to add this Arg to CLIParser?");
-			return args[prefix_arg_index_map[prefix]];
-		}
-		CLIArg const& operator[](Uint32 i) const
-		{
-			return args[i];
-		}
-		
-		void Parse(Int argc, Wchar** argv)
-		{
-			std::vector<std::wstring> cmdline(argv, argv + argc);
-			for (Uint64 i = 0; i < cmdline.size(); ++i)
-			{
-				Bool found = false;
-				for (CLIArg& arg : args)
-				{
-					for (auto const& prefix : arg.prefixes) 
-					{
-						Bool prefix_found = cmdline[i] == ToWideString(prefix);
-						if (prefix_found)
-						{
-							found = true;
-							arg.SetIsPresent();
-							if (arg.has_value) arg.SetValue(ToString(cmdline[++i]));
-							break;
-						}
-					}
-					if (found) break;
-				}
-			}
-			LocalFree(argv);
-		}
-
-		void Parse(std::wstring const& cmd_line)
-		{
-			Int argc;
-			Wchar** argv = CommandLineToArgvW(cmd_line.c_str(), &argc);
-			Parse(argc, argv);
-		}
+		CLIParseResult Parse(Int argc, Wchar** argv);
+		CLIParseResult Parse(std::wstring const& cmd_line);
 
 	private:
 		std::vector<CLIArg> args;
-		mutable std::unordered_map<std::string, Uint32> prefix_arg_index_map;
+		std::unordered_map<std::string, Uint32> prefix_arg_index_map;
 	};
 }
