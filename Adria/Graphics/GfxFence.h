@@ -21,6 +21,7 @@ namespace adria
 		Uint64 GetCompletedValue() const;
 
 		operator ID3D12Fence* () const { return fence.Get(); }
+
 	private:
 		Ref<ID3D12Fence> fence = nullptr;
 		HANDLE event = nullptr;

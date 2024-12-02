@@ -44,15 +44,4 @@ namespace adria
 #define IS_CONSTRUCTIBLE_REQUIREMENT(T, Class) \
 	template<typename T, typename... Args, std::enable_if_t<std::is_constructible_v<Class, Args...>>* = nullptr>
 #endif
-
-//#define DECLARE_HAS_MEMBER_STRUCT(name) \
-//template <typename T, typename U = int> \
-//struct has_##name : std::false_type { }; \
-//template <typename T> \
-//struct has_##name <T, decltype(std::declval<T>().name, 0)> : std::true_type { }; \
-//template<typename T> constexpr bool has_##name##_v =  has_##name <T>::value
-//
-//DECLARE_HAS_MEMBER_STRUCT(position);
-//DECLARE_HAS_MEMBER_STRUCT(normal);
-
 }

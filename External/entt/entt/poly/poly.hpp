@@ -19,7 +19,7 @@ struct poly_inspector {
      * @brief Generic conversion operator (definition only).
      * @tparam Type Type to which conversion is requested.
      */
-    template<class Type>
+    template<typename Type>
     operator Type &&() const;
 
     /**
@@ -30,11 +30,11 @@ struct poly_inspector {
      * @return A poly inspector convertible to any type.
      */
     template<std::size_t Member, typename... Args>
-    poly_inspector invoke(Args &&...args) const;
+    [[nodiscard]] poly_inspector invoke(Args &&...args) const;
 
     /*! @copydoc invoke */
     template<std::size_t Member, typename... Args>
-    poly_inspector invoke(Args &&...args);
+    [[nodiscard]] poly_inspector invoke(Args &&...args);
 };
 
 /**
@@ -47,20 +47,21 @@ template<typename Concept, std::size_t Len, std::size_t Align>
 class poly_vtable {
     using inspector = typename Concept::template type<poly_inspector>;
 
-    template<typename Ret, typename... Args>
-    static auto vtable_entry(Ret (*)(inspector &, Args...)) -> Ret (*)(basic_any<Len, Align> &, Args...);
+    template<typename Ret, typename Clazz, typename... Args>
+    static auto vtable_entry(Ret (*)(Clazz &, Args...))
+        -> std::enable_if_t<std::is_base_of_v<std::remove_const_t<Clazz>, inspector>, Ret (*)(constness_as_t<basic_any<Len, Align>, Clazz> &, Args...)>;
 
     template<typename Ret, typename... Args>
-    static auto vtable_entry(Ret (*)(const inspector &, Args...)) -> Ret (*)(const basic_any<Len, Align> &, Args...);
+    static auto vtable_entry(Ret (*)(Args...))
+        -> Ret (*)(const basic_any<Len, Align> &, Args...);
 
-    template<typename Ret, typename... Args>
-    static auto vtable_entry(Ret (*)(Args...)) -> Ret (*)(const basic_any<Len, Align> &, Args...);
+    template<typename Ret, typename Clazz, typename... Args>
+    static auto vtable_entry(Ret (Clazz::*)(Args...))
+        -> std::enable_if_t<std::is_base_of_v<Clazz, inspector>, Ret (*)(basic_any<Len, Align> &, Args...)>;
 
-    template<typename Ret, typename... Args>
-    static auto vtable_entry(Ret (inspector::*)(Args...)) -> Ret (*)(basic_any<Len, Align> &, Args...);
-
-    template<typename Ret, typename... Args>
-    static auto vtable_entry(Ret (inspector::*)(Args...) const) -> Ret (*)(const basic_any<Len, Align> &, Args...);
+    template<typename Ret, typename Clazz, typename... Args>
+    static auto vtable_entry(Ret (Clazz::*)(Args...) const)
+        -> std::enable_if_t<std::is_base_of_v<Clazz, inspector>, Ret (*)(const basic_any<Len, Align> &, Args...)>;
 
     template<auto... Candidate>
     static auto make_vtable(value_list<Candidate...>) noexcept
@@ -190,7 +191,6 @@ decltype(auto) poly_call(Poly &&self, Args &&...args) {
  */
 template<typename Concept, std::size_t Len, std::size_t Align>
 class basic_poly: private Concept::template type<poly_base<basic_poly<Concept, Len, Align>>> {
-    /*! @brief A poly base is allowed to snoop into a poly object. */
     friend struct poly_base<basic_poly>;
 
 public:
@@ -200,9 +200,7 @@ public:
     using vtable_type = typename poly_vtable<Concept, Len, Align>::type;
 
     /*! @brief Default constructor. */
-    basic_poly() noexcept
-        : storage{},
-          vtable{} {}
+    basic_poly() noexcept = default;
 
     /**
      * @brief Constructs a poly by directly initializing the new object.
@@ -304,8 +302,8 @@ public:
     }
 
 private:
-    basic_any<Len, Align> storage;
-    vtable_type vtable;
+    basic_any<Len, Align> storage{};
+    vtable_type vtable{};
 };
 
 } // namespace entt

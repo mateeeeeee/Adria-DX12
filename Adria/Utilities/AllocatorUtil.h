@@ -17,9 +17,7 @@ namespace adria
 		return r ? address + (align - r) : address;
 	}
 
-	using OffsetType = Uint64;
-
-	inline constexpr OffsetType const INVALID_OFFSET = static_cast<OffsetType>(-1);
+	inline constexpr Uint64 INVALID_ALLOC_OFFSET = static_cast<Uint64>(-1);
 
 	struct DummyMutex
 	{

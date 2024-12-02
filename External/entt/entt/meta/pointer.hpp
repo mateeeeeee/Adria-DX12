@@ -1,3 +1,5 @@
+// IWYU pragma: always_keep
+
 #ifndef ENTT_META_POINTER_HPP
 #define ENTT_META_POINTER_HPP
 
@@ -21,6 +23,7 @@ struct is_meta_pointer_like<Type *>
  * @tparam N Number of elements of the array.
  */
 template<typename Type, std::size_t N>
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
 struct is_meta_pointer_like<Type (*)[N]>
     : std::false_type {};
 

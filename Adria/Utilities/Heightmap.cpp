@@ -43,7 +43,7 @@ namespace adria
 		return FastNoiseLite::FractalType_None;
 	}
 
-	Heightmap::Heightmap(NoiseDesc const& desc)
+	Heightmap::Heightmap(HeightmapDesc const& desc)
 	{
 		FastNoiseLite noise{};
 		noise.SetFractalType(GetFractalType(desc.fractal_type));
@@ -53,11 +53,11 @@ namespace adria
 		noise.SetFractalLacunarity(desc.lacunarity);
 		noise.SetFractalGain(desc.persistence);
 		noise.SetFrequency(0.1f);
-		hm.resize(desc.depth);
+		heightmap.resize(desc.depth);
 
 		for (Uint32 z = 0; z < desc.depth; z++)
 		{
-			hm[z].resize(desc.width);
+			heightmap[z].resize(desc.width);
 			for (Uint32 x = 0; x < desc.width; x++)
 			{
 
@@ -66,7 +66,7 @@ namespace adria
 
 				Float total = noise.GetNoise(xf, zf);
 
-				hm[z][x] = total * desc.max_height;
+				heightmap[z][x] = total * desc.max_height;
 			}
 		}
 	}
@@ -76,14 +76,14 @@ namespace adria
 	}
 	Float Heightmap::HeightAt(Uint64 x, Uint64 z)
 	{
-		return hm[z][x];
+		return heightmap[z][x];
 	}
 	Uint64 Heightmap::Width() const
 	{
-		return hm[0].size();
+		return heightmap[0].size();
 	}
 	Uint64 Heightmap::Depth() const
 	{
-		return hm.size();
+		return heightmap.size();
 	}
 }

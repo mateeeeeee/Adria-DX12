@@ -2,10 +2,10 @@
 #define ENTT_SIGNAL_EMITTER_HPP
 
 #include <functional>
-#include <memory>
 #include <type_traits>
 #include <utility>
 #include "../container/dense_map.hpp"
+#include "../core/compressed_pair.hpp"
 #include "../core/fwd.hpp"
 #include "../core/type_info.hpp"
 #include "../core/utility.hpp"
@@ -30,48 +30,92 @@ namespace entt {
  * to itself to its listeners.
  *
  * @tparam Derived Emitter type.
+ * @tparam Allocator Type of allocator used to manage memory and elements.
  */
-template<typename Derived>
+template<typename Derived, typename Allocator>
 class emitter {
-    template<typename Type>
-    using function_type = std::function<void(Type &, Derived &)>;
+    using key_type = id_type;
+    using mapped_type = std::function<void(void *)>;
 
-    template<typename Type>
-    [[nodiscard]] function_type<Type> &assure() {
-        static_assert(std::is_same_v<Type, std::decay_t<Type>>, "Non-decayed types not allowed");
-        auto &&ptr = handlers[type_hash<Type>::value()];
-
-        if(!ptr) {
-            ptr = std::make_shared<function_type<Type>>();
-        }
-
-        return *static_cast<function_type<Type> *>(ptr.get());
-    }
-
-    template<typename Type>
-    [[nodiscard]] const function_type<Type> *assure() const {
-        const auto it = handlers.find(type_hash<Type>::value());
-        return (it == handlers.cend()) ? nullptr : static_cast<const function_type<Type> *>(it->second.get());
-    }
+    using alloc_traits = std::allocator_traits<Allocator>;
+    using container_allocator = typename alloc_traits::template rebind_alloc<std::pair<const key_type, mapped_type>>;
+    using container_type = dense_map<key_type, mapped_type, identity, std::equal_to<>, container_allocator>;
 
 public:
+    /*! @brief Allocator type. */
+    using allocator_type = Allocator;
+    /*! @brief Unsigned integer type. */
+    using size_type = std::size_t;
+
     /*! @brief Default constructor. */
     emitter()
-        : handlers{} {}
-
-    /*! @brief Default destructor. */
-    virtual ~emitter() noexcept {
-        static_assert(std::is_base_of_v<emitter<Derived>, Derived>, "Invalid emitter type");
-    }
-
-    /*! @brief Default move constructor. */
-    emitter(emitter &&) = default;
+        : emitter{allocator_type{}} {}
 
     /**
-     * @brief Default move assignment operator.
+     * @brief Constructs an emitter with a given allocator.
+     * @param allocator The allocator to use.
+     */
+    explicit emitter(const allocator_type &allocator)
+        : handlers{allocator, allocator} {}
+
+    /*! @brief Default copy constructor, deleted on purpose. */
+    emitter(const emitter &) = delete;
+
+    /**
+     * @brief Move constructor.
+     * @param other The instance to move from.
+     */
+    emitter(emitter &&other) noexcept
+        : handlers{std::move(other.handlers)} {}
+
+    /**
+     * @brief Allocator-extended move constructor.
+     * @param other The instance to move from.
+     * @param allocator The allocator to use.
+     */
+    emitter(emitter &&other, const allocator_type &allocator)
+        : handlers{container_type{std::move(other.handlers.first()), allocator}, allocator} {
+        ENTT_ASSERT(alloc_traits::is_always_equal::value || handlers.second() == other.handlers.second(), "Copying an emitter is not allowed");
+    }
+
+    /*! @brief Default destructor. */
+    virtual ~emitter() {
+        static_assert(std::is_base_of_v<emitter<Derived, Allocator>, Derived>, "Invalid emitter type");
+    }
+
+    /**
+     * @brief Default copy assignment operator, deleted on purpose.
      * @return This emitter.
      */
-    emitter &operator=(emitter &&) = default;
+    emitter &operator=(const emitter &) = delete;
+
+    /**
+     * @brief Move assignment operator.
+     * @param other The instance to move from.
+     * @return This emitter.
+     */
+    emitter &operator=(emitter &&other) noexcept {
+        ENTT_ASSERT(alloc_traits::is_always_equal::value || handlers.second() == other.handlers.second(), "Copying an emitter is not allowed");
+        swap(other);
+        return *this;
+    }
+
+    /**
+     * @brief Exchanges the contents with those of a given emitter.
+     * @param other Emitter to exchange the content with.
+     */
+    void swap(emitter &other) noexcept {
+        using std::swap;
+        swap(handlers, other.handlers);
+    }
+
+    /**
+     * @brief Returns the associated allocator.
+     * @return The associated allocator.
+     */
+    [[nodiscard]] constexpr allocator_type get_allocator() const noexcept {
+        return handlers.second();
+    }
 
     /**
      * @brief Publishes a given event.
@@ -80,8 +124,8 @@ public:
      */
     template<typename Type>
     void publish(Type &&value) {
-        if(auto &handler = assure<std::remove_cv_t<std::remove_reference_t<Type>>>(); handler) {
-            handler(value, *static_cast<Derived *>(this));
+        if(const auto id = type_id<Type>().hash(); handlers.first().contains(id)) {
+            handlers.first()[id](&value);
         }
     }
 
@@ -92,7 +136,9 @@ public:
      */
     template<typename Type>
     void on(std::function<void(Type &, Derived &)> func) {
-        assure<Type>() = std::move(func);
+        handlers.first().insert_or_assign(type_id<Type>().hash(), [func = std::move(func), this](void *value) {
+            func(*static_cast<Type *>(value), static_cast<Derived &>(*this));
+        });
     }
 
     /**
@@ -101,12 +147,12 @@ public:
      */
     template<typename Type>
     void erase() {
-        handlers.erase(type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
+        handlers.first().erase(type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
     }
 
     /*! @brief Disconnects all the listeners. */
     void clear() noexcept {
-        handlers.clear();
+        handlers.first().clear();
     }
 
     /**
@@ -116,7 +162,7 @@ public:
      */
     template<typename Type>
     [[nodiscard]] bool contains() const {
-        return handlers.contains(type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
+        return handlers.first().contains(type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
     }
 
     /**
@@ -124,11 +170,11 @@ public:
      * @return True if there are no listeners registered, false otherwise.
      */
     [[nodiscard]] bool empty() const noexcept {
-        return handlers.empty();
+        return handlers.first().empty();
     }
 
 private:
-    dense_map<id_type, std::shared_ptr<void>, identity> handlers{};
+    compressed_pair<container_type, allocator_type> handlers;
 };
 
 } // namespace entt

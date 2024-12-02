@@ -18,8 +18,8 @@ namespace adria
 			GfxDescriptor begin;
 			GfxDescriptor end;
 		};
-	public:
 
+	public:
 		GfxDescriptorAllocator(GfxDevice* gfx_device, GfxDescriptorAllocatorDesc const& desc);
 		~GfxDescriptorAllocator();
 

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <type_traits>
@@ -28,9 +29,10 @@ template<typename Allocator>
 class basic_flow {
     using alloc_traits = std::allocator_traits<Allocator>;
     static_assert(std::is_same_v<typename alloc_traits::value_type, id_type>, "Invalid value type");
-    using task_container_type = dense_set<id_type, identity, std::equal_to<id_type>, typename alloc_traits::template rebind_alloc<id_type>>;
+    using task_container_type = dense_set<id_type, identity, std::equal_to<>, typename alloc_traits::template rebind_alloc<id_type>>;
     using ro_rw_container_type = std::vector<std::pair<std::size_t, bool>, typename alloc_traits::template rebind_alloc<std::pair<std::size_t, bool>>>;
-    using deps_container_type = dense_map<id_type, ro_rw_container_type, identity, std::equal_to<id_type>, typename alloc_traits::template rebind_alloc<std::pair<const id_type, ro_rw_container_type>>>;
+    using deps_container_type = dense_map<id_type, ro_rw_container_type, identity, std::equal_to<>, typename alloc_traits::template rebind_alloc<std::pair<const id_type, ro_rw_container_type>>>;
+    using adjacency_matrix_type = adjacency_matrix<directed_tag, typename alloc_traits::template rebind_alloc<std::size_t>>;
 
     void emplace(const id_type res, const bool is_rw) {
         ENTT_ASSERT(index.first() < vertices.size(), "Invalid node");
@@ -42,6 +44,76 @@ class basic_flow {
         deps[res].emplace_back(index.first(), is_rw);
     }
 
+    void setup_graph(adjacency_matrix_type &matrix) const {
+        for(const auto &elem: deps) {
+            const auto last = elem.second.cend();
+            auto it = elem.second.cbegin();
+
+            while(it != last) {
+                if(it->second) {
+                    // rw item
+                    if(auto curr = it++; it != last) {
+                        if(it->second) {
+                            matrix.insert(curr->first, it->first);
+                        } else if(const auto next = std::find_if(it, last, [](const auto &value) { return value.second; }); next != last) {
+                            for(; it != next; ++it) {
+                                matrix.insert(curr->first, it->first);
+                                matrix.insert(it->first, next->first);
+                            }
+                        } else {
+                            for(; it != next; ++it) {
+                                matrix.insert(curr->first, it->first);
+                            }
+                        }
+                    }
+                } else {
+                    // ro item (first iteration only)
+                    if(const auto next = std::find_if(it, last, [](const auto &value) { return value.second; }); next != last) {
+                        for(; it != next; ++it) {
+                            matrix.insert(it->first, next->first);
+                        }
+                    } else {
+                        it = last;
+                    }
+                }
+            }
+        }
+    }
+
+    void transitive_closure(adjacency_matrix_type &matrix) const {
+        const auto length = matrix.size();
+
+        for(std::size_t vk{}; vk < length; ++vk) {
+            for(std::size_t vi{}; vi < length; ++vi) {
+                for(std::size_t vj{}; vj < length; ++vj) {
+                    if(matrix.contains(vi, vk) && matrix.contains(vk, vj)) {
+                        matrix.insert(vi, vj);
+                    }
+                }
+            }
+        }
+    }
+
+    void transitive_reduction(adjacency_matrix_type &matrix) const {
+        const auto length = matrix.size();
+
+        for(std::size_t vert{}; vert < length; ++vert) {
+            matrix.erase(vert, vert);
+        }
+
+        for(std::size_t vj{}; vj < length; ++vj) {
+            for(std::size_t vi{}; vi < length; ++vi) {
+                if(matrix.contains(vi, vj)) {
+                    for(std::size_t vk{}; vk < length; ++vk) {
+                        if(matrix.contains(vj, vk)) {
+                            matrix.erase(vi, vk);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 public:
     /*! @brief Allocator type. */
     using allocator_type = Allocator;
@@ -49,6 +121,8 @@ public:
     using size_type = std::size_t;
     /*! @brief Iterable task list. */
     using iterable = iterable_adaptor<typename task_container_type::const_iterator>;
+    /*! @brief Adjacency matrix type. */
+    using graph_type = adjacency_matrix_type;
 
     /*! @brief Default constructor. */
     basic_flow()
@@ -60,9 +134,8 @@ public:
      */
     explicit basic_flow(const allocator_type &allocator)
         : index{0u, allocator},
-          vertices{},
-          deps{},
-          sync_on{} {}
+          vertices{allocator},
+          deps{allocator} {}
 
     /*! @brief Default copy constructor. */
     basic_flow(const basic_flow &) = default;
@@ -92,6 +165,9 @@ public:
           deps{std::move(other.deps), allocator},
           sync_on{other.sync_on} {}
 
+    /*! @brief Default destructor. */
+    ~basic_flow() = default;
+
     /**
      * @brief Default copy assignment operator.
      * @return This flow builder.
@@ -117,27 +193,36 @@ public:
      * @param pos Position of the identifier to return.
      * @return The requested identifier.
      */
-    id_type operator[](const size_type pos) const {
+    [[nodiscard]] id_type operator[](const size_type pos) const {
         return vertices.cbegin()[pos];
     }
 
     /*! @brief Clears the flow builder. */
     void clear() noexcept {
-        index.first() = sync_on = {};
+        index.first() = {};
         vertices.clear();
         deps.clear();
+        sync_on = {};
     }
 
     /**
      * @brief Exchanges the contents with those of a given flow builder.
      * @param other Flow builder to exchange the content with.
      */
-    void swap(basic_flow &other) {
+    void swap(basic_flow &other) noexcept {
         using std::swap;
         std::swap(index, other.index);
         std::swap(vertices, other.vertices);
         std::swap(deps, other.deps);
         std::swap(sync_on, other.sync_on);
+    }
+
+    /**
+     * @brief Returns true if a flow builder contains no tasks, false otherwise.
+     * @return True if the flow builder contains no tasks, false otherwise.
+     */
+    [[nodiscard]] bool empty() const noexcept {
+        return vertices.empty();
     }
 
     /**
@@ -164,7 +249,7 @@ public:
      * @brief Turns the current task into a sync point.
      * @return This flow builder.
      */
-    basic_flow& sync() {
+    basic_flow &sync() {
         ENTT_ASSERT(index.first() < vertices.size(), "Invalid node");
         sync_on = index.first();
 
@@ -172,6 +257,17 @@ public:
             elem.second.emplace_back(sync_on, true);
         }
 
+        return *this;
+    }
+
+    /**
+     * @brief Assigns a resource to the current task with a given access mode.
+     * @param res Resource identifier.
+     * @param is_rw Access mode.
+     * @return This flow builder.
+     */
+    basic_flow &set(const id_type res, bool is_rw = false) {
+        emplace(res, is_rw);
         return *this;
     }
 
@@ -233,72 +329,12 @@ public:
      * @brief Generates a task graph for the current content.
      * @return The adjacency matrix of the task graph.
      */
-    adjacency_matrix<directed_tag> graph() const {
-        const auto length = vertices.size();
-        adjacency_matrix<directed_tag> matrix{length};
+    [[nodiscard]] graph_type graph() const {
+        graph_type matrix{vertices.size(), get_allocator()};
 
-        // creates the adjacency matrix
-        for(const auto &elem: deps) {
-            const auto last = elem.second.cend();
-            auto it = elem.second.cbegin();
-
-            while(it != last) {
-                if(it->second) {
-                    // rw item
-                    if(auto curr = it++; it != last) {
-                        if(it->second) {
-                            matrix.insert(curr->first, it->first);
-                        } else if(const auto next = std::find_if(it, last, [](const auto &value) { return value.second; }); next != last) {
-                            for(; it != next; ++it) {
-                                matrix.insert(curr->first, it->first);
-                                matrix.insert(it->first, next->first);
-                            }
-                        } else {
-                            for(; it != next; ++it) {
-                                matrix.insert(curr->first, it->first);
-                            }
-                        }
-                    }
-                } else {
-                    // ro item (first iteration only)
-                    if(const auto next = std::find_if(it, last, [](const auto &value) { return value.second; }); next != last) {
-                        for(; it != next; ++it) {
-                            matrix.insert(it->first, next->first);
-                        }
-                    } else {
-                        it = last;
-                    }
-                }
-            }
-        }
-
-        // computes the transitive closure
-        for(std::size_t vk{}; vk < length; ++vk) {
-            for(std::size_t vi{}; vi < length; ++vi) {
-                for(std::size_t vj{}; vj < length; ++vj) {
-                    if(matrix.contains(vi, vk) && matrix.contains(vk, vj)) {
-                        matrix.insert(vi, vj);
-                    }
-                }
-            }
-        }
-
-        // applies the transitive reduction
-        for(std::size_t vert{}; vert < length; ++vert) {
-            matrix.erase(vert, vert);
-        }
-
-        for(std::size_t vj{}; vj < length; ++vj) {
-            for(std::size_t vi{}; vi < length; ++vi) {
-                if(matrix.contains(vi, vj)) {
-                    for(std::size_t vk{}; vk < length; ++vk) {
-                        if(matrix.contains(vj, vk)) {
-                            matrix.erase(vi, vk);
-                        }
-                    }
-                }
-            }
-        }
+        setup_graph(matrix);
+        transitive_closure(matrix);
+        transitive_reduction(matrix);
 
         return matrix;
     }
@@ -307,7 +343,7 @@ private:
     compressed_pair<size_type, allocator_type> index;
     task_container_type vertices;
     deps_container_type deps;
-    size_type sync_on;
+    size_type sync_on{};
 };
 
 } // namespace entt

@@ -44,7 +44,6 @@ namespace adria
 		};
 
 	public:
-		
 		void Init(EditorInit&& init);
 		void Destroy();
 

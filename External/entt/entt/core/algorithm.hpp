@@ -58,9 +58,11 @@ struct insertion_sort {
                 auto value = std::move(*it);
                 auto pre = it;
 
+                // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 for(; pre > first && compare(value, *(pre - 1)); --pre) {
                     *pre = std::move(*(pre - 1));
                 }
+                // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
                 *pre = std::move(value);
             }
@@ -95,20 +97,24 @@ struct radix_sort {
     template<typename It, typename Getter = identity>
     void operator()(It first, It last, Getter getter = Getter{}) const {
         if(first < last) {
-            static constexpr auto mask = (1 << Bit) - 1;
-            static constexpr auto buckets = 1 << Bit;
-            static constexpr auto passes = N / Bit;
+            constexpr auto passes = N / Bit;
 
             using value_type = typename std::iterator_traits<It>::value_type;
             std::vector<value_type> aux(std::distance(first, last));
 
             auto part = [getter = std::move(getter)](auto from, auto to, auto out, auto start) {
-                std::size_t index[buckets]{};
+                constexpr auto mask = (1 << Bit) - 1;
+                constexpr auto buckets = 1 << Bit;
+
+                // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
                 std::size_t count[buckets]{};
 
                 for(auto it = from; it != to; ++it) {
                     ++count[(getter(*it) >> start) & mask];
                 }
+
+                // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+                std::size_t index[buckets]{};
 
                 for(std::size_t pos{}, end = buckets - 1u; pos < end; ++pos) {
                     index[pos + 1u] = index[pos] + count[pos];

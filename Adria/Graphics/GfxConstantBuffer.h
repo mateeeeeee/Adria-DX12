@@ -13,8 +13,7 @@ namespace adria
 		}
 
 	public:
-		GfxConstantBuffer(GfxDevice* gfx, Uint32 cbuffer_count)
-			: cbuffer_size(GetCBufferSize()), cbuffer_count(cbuffer_count)
+		GfxConstantBuffer(GfxDevice* gfx, Uint32 cbuffer_count) : cbuffer_size(GetCBufferSize()), cbuffer_count(cbuffer_count)
 		{
 			GfxBufferDesc desc{};
 			desc.resource_usage = GfxResourceUsage::Upload;

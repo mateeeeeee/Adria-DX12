@@ -59,18 +59,6 @@
     <Filter Include="External\SimpleMath">
       <UniqueIdentifier>{2c8e0df6-adf6-494c-8d19-9be2a0108398}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External\FSR2">
-      <UniqueIdentifier>{22fa08d9-3022-4546-a5d4-cf37d5c80b98}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\FSR2\shaders">
-      <UniqueIdentifier>{84b53cae-09ca-4523-921c-c574a646d176}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\FSR2\dx12">
-      <UniqueIdentifier>{2331d734-2ade-44df-b566-8af7fea3f16f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\FSR2\dx12\shaders">
-      <UniqueIdentifier>{9f349144-e11e-4209-b522-22cf570f080e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\DDGI">
       <UniqueIdentifier>{f9ebf9f5-e2c7-486e-87e9-fee6fbb73a70}</UniqueIdentifier>
     </Filter>
@@ -121,6 +109,39 @@
     </Filter>
     <Filter Include="Saved\Ini Files">
       <UniqueIdentifier>{a2744df4-3628-4877-bb08-d631f8021b2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX">
+      <UniqueIdentifier>{b8168e59-9d19-45fb-98e9-80604b3e0d57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\host">
+      <UniqueIdentifier>{d274490b-0334-4c59-9515-044618e80a89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\host\backends">
+      <UniqueIdentifier>{d27aa9b4-e840-4cbb-b6be-07fb5e746658}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\host\backends\dx12">
+      <UniqueIdentifier>{fa427fcc-7c9b-4117-9382-043255312fd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu">
+      <UniqueIdentifier>{76053c1c-9b0f-4f7f-b9c8-c0bc4a3b0403}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu\fsr2">
+      <UniqueIdentifier>{08c057a1-2cc9-484e-8533-015d8223e10b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu\fsr3">
+      <UniqueIdentifier>{efdfd670-e1f5-469d-bc4b-204df968de1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu\cacao">
+      <UniqueIdentifier>{a59ef6ce-d7ee-4083-b33d-72aa8e2c3aae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu\vrs">
+      <UniqueIdentifier>{18380d28-462f-42bd-981f-88c044f84015}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu\cas">
+      <UniqueIdentifier>{cfe96992-8c52-45f2-ba86-6525dc52670b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FFX\gpu\dof">
+      <UniqueIdentifier>{37c1550d-f882-46be-b272-c5274b8161e5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -969,36 +990,6 @@
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_error.h">
-      <Filter>External\FSR2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_fsr2.h">
-      <Filter>External\FSR2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_fsr2_interface.h">
-      <Filter>External\FSR2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_types.h">
-      <Filter>External\FSR2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_util.h">
-      <Filter>External\FSR2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\shaders\ffx_fsr2_common.h">
-      <Filter>External\FSR2\shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\shaders\ffx_fsr2_resources.h">
-      <Filter>External\FSR2\shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\dx12\ffx_fsr2_dx12.h">
-      <Filter>External\FSR2\dx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\dx12\shaders\ffx_fsr2_shaders_dx12.h">
-      <Filter>External\FSR2\dx12\shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_assert.h">
-      <Filter>External\FSR2</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxShaderEnums.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -1193,6 +1184,222 @@
     </ClInclude>
     <ClInclude Include="Rendering\SceneConfig.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_vrs.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_util.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_types.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_opticalflow.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_interface.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_fx.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_fsr3upscaler.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_fsr3.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_fsr2.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_frameinterpolation.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_error.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_dof.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_cacao.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_cas.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_assert.h">
+      <Filter>External\FFX\host</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\backends\dx12\ffx_dx12.h">
+      <Filter>External\FFX\host\backends\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\backends\dx12\d3dx12.h">
+      <Filter>External\FFX\host\backends\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_common_types.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core_cpu.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core_glsl.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core_gpu_common.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core_gpu_common_half.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core_hlsl.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\ffx_core_portability.h">
+      <Filter>External\FFX\gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_accumulate.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_callbacks_glsl.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_callbacks_hlsl.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_common.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_compute_luminance_pyramid.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_depth_clip.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_lock.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_postprocess_lock_status.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_rcas.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_reconstruct_dilated_velocity_and_previous_depth.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_reproject.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_resources.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_sample.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_tcr_autogen.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr2\ffx_fsr2_upsample.h">
+      <Filter>External\FFX\gpu\fsr2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr3\ffx_fsr3_callbacks_hlsl.h">
+      <Filter>External\FFX\gpu\fsr3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr3\ffx_fsr3_common.h">
+      <Filter>External\FFX\gpu\fsr3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\fsr3\ffx_fsr3_resources.h">
+      <Filter>External\FFX\gpu\fsr3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_apply.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_callbacks_glsl.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_callbacks_hlsl.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_defines.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_edge_sensitive_blur.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_importance_map.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_prepare.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_resources.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_ssao_generation.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_upscale.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cacao\ffx_cacao_utils.h">
+      <Filter>External\FFX\gpu\cacao</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cas\ffx_cas.h">
+      <Filter>External\FFX\gpu\cas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cas\ffx_cas_callbacks_glsl.h">
+      <Filter>External\FFX\gpu\cas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cas\ffx_cas_callbacks_hlsl.h">
+      <Filter>External\FFX\gpu\cas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cas\ffx_cas_resources.h">
+      <Filter>External\FFX\gpu\cas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\cas\ffx_cas_sharpen.h">
+      <Filter>External\FFX\gpu\cas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_blur.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_callbacks_glsl.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_callbacks_hlsl.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_common.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_composite.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_dilate_depth.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_downsample_color.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_downsample_depth.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\dof\ffx_dof_resources.h">
+      <Filter>External\FFX\gpu\dof</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\vrs\ffx_variable_shading.h">
+      <Filter>External\FFX\gpu\vrs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\vrs\ffx_vrs_callbacks_glsl.h">
+      <Filter>External\FFX\gpu\vrs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\vrs\ffx_vrs_callbacks_hlsl.h">
+      <Filter>External\FFX\gpu\vrs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\vrs\ffx_vrs_resources.h">
+      <Filter>External\FFX\gpu\vrs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1523,5 +1730,10 @@
     <FxCompile Include="Resources\Shaders\ReSTIR\SpatialResampling.hlsl">
       <Filter>Shaders\ReSTIR</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\External\FidelityFX-SDK\include\FidelityFX\host\backends\dx12\license.txt">
+      <Filter>External\FFX\host\backends\dx12</Filter>
+    </Text>
   </ItemGroup>
 </Project>

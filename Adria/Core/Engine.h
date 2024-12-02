@@ -41,7 +41,7 @@ namespace adria
 		std::unique_ptr<GfxDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<SceneLoader> scene_loader;
-		ViewportData viewport_data{};
+		ViewportData viewport_data;
 
 	private:
 		void InitializeScene(SceneConfig const&);

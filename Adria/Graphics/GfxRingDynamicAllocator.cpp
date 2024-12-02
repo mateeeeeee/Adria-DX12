@@ -21,13 +21,13 @@ namespace adria
 
 	GfxDynamicAllocation GfxRingDynamicAllocator::Allocate(Uint64 size_in_bytes, Uint64 alignment)
 	{
-		OffsetType offset = INVALID_OFFSET;
+		Uint64 offset = INVALID_ALLOC_OFFSET;
 		{
 			std::lock_guard<std::mutex> guard(alloc_mutex);
 			offset = ring_allocator.Allocate(size_in_bytes, alignment);
 		}
 
-		if (offset != INVALID_OFFSET)
+		if (offset != INVALID_ALLOC_OFFSET)
 		{
 			GfxDynamicAllocation allocation{};
 			allocation.buffer = buffer.get();

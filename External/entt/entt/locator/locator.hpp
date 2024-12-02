@@ -24,14 +24,32 @@ namespace entt {
  * @tparam Service Service type.
  */
 template<typename Service>
-struct locator final {
+class locator final {
+    class service_handle {
+        friend class locator<Service>;
+        std::shared_ptr<Service> value{};
+    };
+
+public:
     /*! @brief Service type. */
     using type = Service;
+    /*! @brief Service node type. */
+    using node_type = service_handle;
 
     /*! @brief Default constructor, deleted on purpose. */
     locator() = delete;
+
+    /*! @brief Default copy constructor, deleted on purpose. */
+    locator(const locator &) = delete;
+
     /*! @brief Default destructor, deleted on purpose. */
     ~locator() = delete;
+
+    /**
+     * @brief Default copy assignment operator, deleted on purpose.
+     * @return This locator.
+     */
+    locator &operator=(const locator &) = delete;
 
     /**
      * @brief Checks whether a service locator contains a value.
@@ -62,51 +80,77 @@ struct locator final {
      * cases, they are discarded.
      *
      * @tparam Args Types of arguments to use to construct the fallback service.
-     * @tparam Impl Fallback service type.
+     * @tparam Type Fallback service type.
      * @param args Parameters to use to construct the fallback service.
      * @return A reference to a valid service.
      */
-    template<typename Impl = Service, typename... Args>
+    template<typename Type = Service, typename... Args>
     [[nodiscard]] static Service &value_or(Args &&...args) {
-        return service ? *service : emplace<Impl>(std::forward<Args>(args)...);
+        return service ? *service : emplace<Type>(std::forward<Args>(args)...);
     }
 
     /**
      * @brief Sets or replaces a service.
-     * @tparam Impl Service type.
+     * @tparam Type Service type.
      * @tparam Args Types of arguments to use to construct the service.
      * @param args Parameters to use to construct the service.
      * @return A reference to a valid service.
      */
-    template<typename Impl = Service, typename... Args>
+    template<typename Type = Service, typename... Args>
     static Service &emplace(Args &&...args) {
-        service = std::make_shared<Impl>(std::forward<Args>(args)...);
+        service = std::make_shared<Type>(std::forward<Args>(args)...);
         return *service;
     }
 
     /**
      * @brief Sets or replaces a service using a given allocator.
-     * @tparam Impl Service type.
+     * @tparam Type Service type.
      * @tparam Allocator Type of allocator used to manage memory and elements.
      * @tparam Args Types of arguments to use to construct the service.
      * @param alloc The allocator to use.
      * @param args Parameters to use to construct the service.
      * @return A reference to a valid service.
      */
-    template<typename Impl = Service, typename Allocator, typename... Args>
-    static Service &allocate_emplace(Allocator alloc, Args &&...args) {
-        service = std::allocate_shared<Impl>(alloc, std::forward<Args>(args)...);
+    template<typename Type = Service, typename Allocator, typename... Args>
+    static Service &emplace(std::allocator_arg_t, Allocator alloc, Args &&...args) {
+        service = std::allocate_shared<Type>(alloc, std::forward<Args>(args)...);
         return *service;
     }
 
-    /*! @brief Resets a service. */
-    static void reset() noexcept {
-        service.reset();
+    /**
+     * @brief Returns a handle to the underlying service.
+     * @return A handle to the underlying service.
+     */
+    static node_type handle() noexcept {
+        node_type node{};
+        node.value = service;
+        return node;
+    }
+
+    /**
+     * @brief Resets or replaces a service.
+     * @param other Optional handle with which to replace the service.
+     */
+    static void reset(const node_type &other = {}) noexcept {
+        service = other.value;
+    }
+
+    /**
+     * @brief Resets or replaces a service.
+     * @tparam Type Service type.
+     * @tparam Deleter Deleter type.
+     * @param elem A pointer to a service to manage.
+     * @param deleter A deleter to use to destroy the service.
+     */
+    template<typename Type, typename Deleter = std::default_delete<Type>>
+    static void reset(Type *elem, Deleter deleter = {}) {
+        service = std::shared_ptr<Service>{elem, std::move(deleter)};
     }
 
 private:
-    // std::shared_ptr because of its type erased allocator which is pretty useful here
-    inline static std::shared_ptr<Service> service = nullptr;
+    // std::shared_ptr because of its type erased allocator which is useful here
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+    inline static std::shared_ptr<Service> service{};
 };
 
 } // namespace entt

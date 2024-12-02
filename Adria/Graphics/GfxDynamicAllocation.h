@@ -10,8 +10,8 @@ namespace adria
 		GfxBuffer* buffer = nullptr;
 		void* cpu_address = nullptr;
 		Uint64 gpu_address = 0;
-		OffsetType offset = 0;
-		OffsetType size = 0;
+		Uint64 offset = 0;
+		Uint64 size = 0;
 
 		void Update(void const* data, Uint64 size, Uint64 offset = 0)
 		{

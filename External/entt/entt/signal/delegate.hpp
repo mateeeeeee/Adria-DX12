@@ -12,11 +12,7 @@
 
 namespace entt {
 
-/**
- * @cond TURN_OFF_DOXYGEN
- * Internal details not to be documented.
- */
-
+/*! @cond TURN_OFF_DOXYGEN */
 namespace internal {
 
 template<typename Ret, typename... Args>
@@ -31,11 +27,11 @@ constexpr auto function_pointer(Ret (Class::*)(Args...), Other &&...) -> Ret (*)
 template<typename Class, typename Ret, typename... Args, typename... Other>
 constexpr auto function_pointer(Ret (Class::*)(Args...) const, Other &&...) -> Ret (*)(Args...);
 
-template<typename Class, typename Type, typename... Other>
+template<typename Class, typename Type, typename... Other, typename = std::enable_if_t<std::is_member_object_pointer_v<Type Class::*>>>
 constexpr auto function_pointer(Type Class::*, Other &&...) -> Type (*)();
 
 template<typename... Type>
-using function_pointer_t = decltype(internal::function_pointer(std::declval<Type>()...));
+using function_pointer_t = decltype(function_pointer(std::declval<Type>()...));
 
 template<typename... Class, typename Ret, typename... Args>
 [[nodiscard]] constexpr auto index_sequence_for(Ret (*)(Args...)) {
@@ -43,19 +39,7 @@ template<typename... Class, typename Ret, typename... Args>
 }
 
 } // namespace internal
-
-/**
- * Internal details not to be documented.
- * @endcond
- */
-
-/*! @brief Used to wrap a function or a member of a specified type. */
-template<auto>
-struct connect_arg_t {};
-
-/*! @brief Constant of type connect_arg_t used to disambiguate calls. */
-template<auto Func>
-inline constexpr connect_arg_t<Func> connect_arg{};
+/*! @endcond */
 
 /**
  * @brief Basic delegate implementation.
@@ -80,29 +64,35 @@ class delegate;
  */
 template<typename Ret, typename... Args>
 class delegate<Ret(Args...)> {
+    using return_type = std::remove_const_t<Ret>;
+    using delegate_type = return_type(const void *, Args...);
+
     template<auto Candidate, std::size_t... Index>
     [[nodiscard]] auto wrap(std::index_sequence<Index...>) noexcept {
-        return [](const void *, Args... args) -> Ret {
+        return [](const void *, Args... args) -> return_type {
             [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
-            return static_cast<Ret>(std::invoke(Candidate, std::forward<type_list_element_t<Index, type_list<Args...>>>(std::get<Index>(arguments))...));
+            [[maybe_unused]] constexpr auto offset = !std::is_invocable_r_v<Ret, decltype(Candidate), type_list_element_t<Index, type_list<Args...>>...> * (sizeof...(Args) - sizeof...(Index));
+            return static_cast<Ret>(std::invoke(Candidate, std::forward<type_list_element_t<Index + offset, type_list<Args...>>>(std::get<Index + offset>(arguments))...));
         };
     }
 
     template<auto Candidate, typename Type, std::size_t... Index>
     [[nodiscard]] auto wrap(Type &, std::index_sequence<Index...>) noexcept {
-        return [](const void *payload, Args... args) -> Ret {
-            [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
+        return [](const void *payload, Args... args) -> return_type {
             Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
-            return static_cast<Ret>(std::invoke(Candidate, *curr, std::forward<type_list_element_t<Index, type_list<Args...>>>(std::get<Index>(arguments))...));
+            [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
+            [[maybe_unused]] constexpr auto offset = !std::is_invocable_r_v<Ret, decltype(Candidate), Type &, type_list_element_t<Index, type_list<Args...>>...> * (sizeof...(Args) - sizeof...(Index));
+            return static_cast<Ret>(std::invoke(Candidate, *curr, std::forward<type_list_element_t<Index + offset, type_list<Args...>>>(std::get<Index + offset>(arguments))...));
         };
     }
 
     template<auto Candidate, typename Type, std::size_t... Index>
     [[nodiscard]] auto wrap(Type *, std::index_sequence<Index...>) noexcept {
-        return [](const void *payload, Args... args) -> Ret {
-            [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
+        return [](const void *payload, Args... args) -> return_type {
             Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
-            return static_cast<Ret>(std::invoke(Candidate, curr, std::forward<type_list_element_t<Index, type_list<Args...>>>(std::get<Index>(arguments))...));
+            [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
+            [[maybe_unused]] constexpr auto offset = !std::is_invocable_r_v<Ret, decltype(Candidate), Type *, type_list_element_t<Index, type_list<Args...>>...> * (sizeof...(Args) - sizeof...(Index));
+            return static_cast<Ret>(std::invoke(Candidate, curr, std::forward<type_list_element_t<Index + offset, type_list<Args...>>>(std::get<Index + offset>(arguments))...));
         };
     }
 
@@ -115,9 +105,7 @@ public:
     using result_type = Ret;
 
     /*! @brief Default constructor. */
-    delegate() noexcept
-        : instance{nullptr},
-          fn{nullptr} {}
+    delegate() noexcept = default;
 
     /**
      * @brief Constructs a delegate with a given object or payload, if any.
@@ -149,7 +137,7 @@ public:
         instance = nullptr;
 
         if constexpr(std::is_invocable_r_v<Ret, decltype(Candidate), Args...>) {
-            fn = [](const void *, Args... args) -> Ret {
+            fn = [](const void *, Args... args) -> return_type {
                 return Ret(std::invoke(Candidate, std::forward<Args>(args)...));
             };
         } else if constexpr(std::is_member_pointer_v<decltype(Candidate)>) {
@@ -179,7 +167,7 @@ public:
         instance = &value_or_instance;
 
         if constexpr(std::is_invocable_r_v<Ret, decltype(Candidate), Type &, Args...>) {
-            fn = [](const void *payload, Args... args) -> Ret {
+            fn = [](const void *payload, Args... args) -> return_type {
                 Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
                 return Ret(std::invoke(Candidate, *curr, std::forward<Args>(args)...));
             };
@@ -203,7 +191,7 @@ public:
         instance = value_or_instance;
 
         if constexpr(std::is_invocable_r_v<Ret, decltype(Candidate), Type *, Args...>) {
-            fn = [](const void *payload, Args... args) -> Ret {
+            fn = [](const void *payload, Args... args) -> return_type {
                 Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
                 return Ret(std::invoke(Candidate, curr, std::forward<Args>(args)...));
             };
@@ -226,6 +214,7 @@ public:
      * @param payload User defined arbitrary data.
      */
     void connect(function_type *function, const void *payload = nullptr) noexcept {
+        ENTT_ASSERT(function != nullptr, "Uninitialized function pointer");
         instance = payload;
         fn = function;
     }
@@ -238,6 +227,14 @@ public:
     void reset() noexcept {
         instance = nullptr;
         fn = nullptr;
+    }
+
+    /**
+     * @brief Returns a pointer to the stored callable function target, if any.
+     * @return An opaque pointer to the stored callable function target.
+     */
+    [[nodiscard]] function_type *target() const noexcept {
+        return fn;
     }
 
     /**
@@ -284,8 +281,8 @@ public:
     }
 
 private:
-    const void *instance;
-    function_type *fn;
+    const void *instance{};
+    delegate_type *fn{};
 };
 
 /**

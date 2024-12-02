@@ -3,7 +3,6 @@
 
 namespace adria
 {
-
 	enum class FileType : Uint8
 	{
 		PNG,

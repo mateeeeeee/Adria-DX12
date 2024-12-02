@@ -19,12 +19,12 @@ namespace adria
 
 		ADRIA_NODISCARD GfxDescriptor Allocate(Uint32 count = 1)
 		{
-			OffsetType start = INVALID_OFFSET;
+			Uint64 start = INVALID_ALLOC_OFFSET;
 			{
 				std::lock_guard guard(alloc_mutex);
 				start = ring_allocator.Allocate(count);
 			}
-			ADRIA_ASSERT(start != INVALID_OFFSET && "Don't have enough space");
+			ADRIA_ASSERT(start != INVALID_ALLOC_OFFSET && "Don't have enough space");
 			return GetHandle((Uint32)start);
 		}
 

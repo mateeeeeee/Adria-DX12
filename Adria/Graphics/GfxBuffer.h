@@ -33,7 +33,6 @@ namespace adria
 	class GfxBuffer
 	{
 	public:
-
 		GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferData initial_data = {});
 		ADRIA_NONCOPYABLE_NONMOVABLE(GfxBuffer)
 		~GfxBuffer();

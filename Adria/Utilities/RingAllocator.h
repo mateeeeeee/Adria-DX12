@@ -10,19 +10,19 @@ namespace adria
 
 		struct BufferEntry
 		{
-			BufferEntry(Uint64 fv, OffsetType off, OffsetType sz) :
+			BufferEntry(Uint64 fv, Uint64 off, Uint64 sz) :
 				frame(fv),
 				offset(off),
 				size(sz)
 			{}
 			Uint64 frame;
-			OffsetType offset;
-			OffsetType size;
+			Uint64 offset;
+			Uint64 size;
 		};
 
 	public:
 
-		RingAllocator(OffsetType max_size, OffsetType reserve = 0) noexcept :
+		RingAllocator(Uint64 max_size, Uint64 reserve = 0) noexcept :
 			completed_frames{},
 			reserve{ reserve },
 			max_size{ max_size - reserve },
@@ -34,9 +34,9 @@ namespace adria
 		ADRIA_DEFAULT_COPYABLE_MOVABLE(RingAllocator)
 		~RingAllocator() = default;
 
-		OffsetType Allocate(OffsetType size, OffsetType align = 0)
+		Uint64 Allocate(Uint64 size, Uint64 align = 0)
 		{
-			if (Full()) return INVALID_OFFSET;
+			if (Full()) return INVALID_ALLOC_OFFSET;
 
 			if (tail >= head)
 			{
@@ -51,7 +51,7 @@ namespace adria
 				else if (size <= head)
 				{
 					// Allocate from the beginning of the buffer
-					OffsetType add_size = (max_size - tail) + size;
+					Uint64 add_size = (max_size - tail) + size;
 					used_size += add_size;
 					current_frame_size += add_size;
 					tail = size;
@@ -67,7 +67,7 @@ namespace adria
 				return offset + reserve;
 			}
 
-			return INVALID_OFFSET;
+			return INVALID_ALLOC_OFFSET;
 		}
 
 		void FinishCurrentFrame(Uint64 frame)
@@ -89,19 +89,19 @@ namespace adria
 			}
 		}
 
-		OffsetType MaxSize()  const { return max_size; }
+		Uint64 MaxSize()  const { return max_size; }
 		Bool Full()			  const { return used_size == max_size; };
 		Bool Empty()		  const { return used_size == reserve; };
-		OffsetType UsedSize() const { return used_size; }
+		Uint64 UsedSize() const { return used_size; }
 
 	private:
 		std::queue<BufferEntry> completed_frames;
-		OffsetType reserve = 0;
-		OffsetType head = 0;
-		OffsetType tail = 0;
-		OffsetType max_size = 0;
-		OffsetType used_size = 0;
-		OffsetType current_frame_size = 0;
+		Uint64 reserve = 0;
+		Uint64 head = 0;
+		Uint64 tail = 0;
+		Uint64 max_size = 0;
+		Uint64 used_size = 0;
+		Uint64 current_frame_size = 0;
 	};
 
 }

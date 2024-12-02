@@ -145,8 +145,8 @@ namespace adria
 		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, GfxBufferData const& initial_data);
 		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc);
 
-		std::unique_ptr<GfxGraphicsPipelineState>		CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc);
-		std::unique_ptr<GfxComputePipelineState>		CreateComputePipelineState(GfxComputePipelineStateDesc const& desc);
+		std::unique_ptr<GfxGraphicsPipelineState>	CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc);
+		std::unique_ptr<GfxComputePipelineState>	CreateComputePipelineState(GfxComputePipelineStateDesc const& desc);
 		std::unique_ptr<GfxMeshShaderPipelineState>	CreateMeshShaderPipelineState(GfxMeshShaderPipelineStateDesc const& desc);
 
 		std::unique_ptr<GfxQueryHeap>	   CreateQueryHeap(GfxQueryHeapDesc const& desc);

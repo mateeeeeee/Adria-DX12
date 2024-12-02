@@ -14,14 +14,14 @@ namespace adria
 
 	GfxDynamicAllocation GfxLinearDynamicAllocator::Allocate(Uint64 size_in_bytes, Uint64 alignment)
 	{
-		OffsetType offset = INVALID_OFFSET;
+		Uint64 offset = INVALID_ALLOC_OFFSET;
 		GfxAllocationPage& last_page = alloc_pages[current_page];
 		{
 			std::lock_guard<std::mutex> guard(alloc_mutex);
 			offset = last_page.linear_allocator.Allocate(size_in_bytes, alignment);
 		}
 
-		if (offset != INVALID_OFFSET)
+		if (offset != INVALID_ALLOC_OFFSET)
 		{
 			GfxDynamicAllocation allocation{};
 			allocation.buffer = last_page.buffer.get();

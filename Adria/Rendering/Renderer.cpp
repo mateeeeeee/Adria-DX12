@@ -363,8 +363,6 @@ namespace adria
 		CopyBuffer(meshes, scene_buffers[SceneBuffer_Mesh]);
 		CopyBuffer(instances, scene_buffers[SceneBuffer_Instance]);
 		CopyBuffer(materials, scene_buffers[SceneBuffer_Material]);
-
-		Uint64 count = reg.size();
 	}
 
 	void Renderer::UpdateFrameConstants(Float dt)
@@ -650,8 +648,7 @@ namespace adria
 		g_ThreadPool.Submit([this](std::string_view name) 
 			{
 			screenshot_fence.Wait(screenshot_fence_value);
-			WriteImageToFile(FileType::PNG, name.data(), display_width, display_height,
-							 screenshot_buffer->GetMappedData(), display_width * 4);
+			WriteImageToFile(FileType::PNG, name.data(), display_width, display_height, screenshot_buffer->GetMappedData(), display_width * 4);
 			screenshot_buffer.reset();
 			ADRIA_LOG(INFO, "Screenshot %s.png saved to screenshots folder!", screenshot_name.c_str());
 			screenshot_fence_value++;

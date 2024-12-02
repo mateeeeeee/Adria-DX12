@@ -19,7 +19,7 @@
 
 namespace adria
 {
-	Engine::Engine(EngineInit const& init) : window { init.window }
+	Engine::Engine(EngineInit const& init) : window{ init.window }, viewport_data{}
 	{
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();

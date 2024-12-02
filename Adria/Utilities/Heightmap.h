@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	enum class NoiseType
+	enum class NoiseType : Uint8
 	{
 		OpenSimplex2,
 		OpenSimplex2S,
@@ -13,14 +13,14 @@ namespace adria
 		ValueCubic,
 		Value
 	};
-	enum class FractalType
+	enum class FractalType : Uint8
 	{
 		None,
 		FBM,
 		Ridged,
 		PingPong
 	};
-	struct NoiseDesc
+	struct HeightmapDesc
 	{
 		Uint32 width;
 		Uint32 depth;
@@ -38,7 +38,7 @@ namespace adria
 	class Heightmap
 	{
 	public:	
-		explicit Heightmap(NoiseDesc const& desc);
+		explicit Heightmap(HeightmapDesc const& desc);
 		explicit Heightmap(std::string_view heightmap_path);
 
 		Float HeightAt(Uint64 x, Uint64 z);
@@ -46,6 +46,6 @@ namespace adria
 		Uint64 Depth() const;
 
 	private:
-		std::vector<std::vector<Float>> hm;
+		std::vector<std::vector<Float>> heightmap;
 	};
 }

@@ -12,30 +12,38 @@ namespace adria
 		friend class Singleton<ThreadPool>;
 	public:
 
-		ADRIA_NONCOPYABLE_NONMOVABLE(ThreadPool);
+		ADRIA_NONCOPYABLE_NONMOVABLE(ThreadPool)
 		~ThreadPool() = default;
 
-		void Initialize(Uint32 pool_size = std::thread::hardware_concurrency() - 1)
+		void Initialize(Uint pool_size = std::thread::hardware_concurrency() - 1)
 		{
 			done = false;
-			static const Uint32 max_threads = std::thread::hardware_concurrency();
-			Uint16 const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
 
+			static const Uint max_threads = std::thread::hardware_concurrency();
+			Uint const num_threads = pool_size == 0 ? max_threads - 1 : std::min(max_threads - 1, pool_size);
 			threads.reserve(num_threads);
-			for (Uint16 i = 0; i < num_threads; ++i)
+			for (Uint i = 0; i < num_threads; ++i)
 			{
 				threads.emplace_back(std::bind(&ThreadPool::ThreadWork, this));
 			}
 		}
 		void Destroy()
 		{
-			if (done) return;
+			if (done)
+			{
+				return;
+			}
+
 			{
 				std::unique_lock<std::mutex> lk(cond_mutex);
 				done = true;
 				cond_var.notify_all();
 			}
-			for (Uint16 i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
+
+			for (Uint i = 0; i < threads.size(); ++i)
+			{
+				if (threads[i].joinable())  threads[i].join();
+			}
 		}
 
 		template<typename F, typename... Args>
@@ -71,8 +79,15 @@ namespace adria
 				{
 					std::unique_lock<std::mutex> lk(cond_mutex);
 					while (!done && task_queue.Empty()) cond_var.wait(lk);
-					if (done) return;
-					else pop_success = task_queue.TryPop(task);
+
+					if (done)
+					{
+						return;
+					}
+					else
+					{
+						pop_success = task_queue.TryPop(task);
+					}
 				}
 
 				if (pop_success)

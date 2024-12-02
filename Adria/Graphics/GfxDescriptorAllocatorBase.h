@@ -35,7 +35,6 @@ namespace adria
 	class GfxDescriptorAllocatorBase
 	{
 	public:
-
 		GfxDescriptor GetHandle(Uint32 index = 0) const;
 		ID3D12DescriptorHeap* GetHeap() const { return heap.Get(); }
 		
@@ -49,7 +48,6 @@ namespace adria
 		Bool shader_visible = false;
 
 	protected:
-
 		GfxDescriptorAllocatorBase(GfxDevice* gfx, GfxDescriptorHeapType type, Uint32 descriptor_count, Bool shader_visible);
 		void CreateHeap();
 	};

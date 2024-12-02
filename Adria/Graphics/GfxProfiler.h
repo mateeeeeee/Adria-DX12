@@ -23,7 +23,6 @@ namespace adria
 		struct Impl;
 
 	public:
-
 		void Initialize(GfxDevice* gfx);
 		void Destroy();
 
