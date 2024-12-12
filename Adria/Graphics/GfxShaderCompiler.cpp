@@ -225,7 +225,7 @@ namespace adria
 				define_key += define.value;
 			}
 			Uint64 define_hash = crc64(define_key.c_str(), define_key.size());
-			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
+			std::string build_string = input.flags & GfxShaderCompilerFlag_Debug ? "debug" : "release";
 			Char cache_path[256];
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir.c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												     input.entry_point.c_str(), define_hash, build_string.c_str());
@@ -251,14 +251,14 @@ namespace adria
 
 			std::vector<Wchar const*> compile_args{};
 			compile_args.push_back(name.c_str());
-			if (input.flags & ShaderCompilerFlag_Debug)
+			if (input.flags & GfxShaderCompilerFlag_Debug)
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
 			}
 			//compile_args.push_back(L"-Qstrip_debug");
 			//compile_args.push_back(L"-Qstrip_reflect");
 
-			if (input.flags & ShaderCompilerFlag_DisableOptimization)
+			if (input.flags & GfxShaderCompilerFlag_DisableOptimization)
 			{
 				compile_args.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
 			}
@@ -321,7 +321,7 @@ namespace adria
 			Ref<IDxcBlob> blob;
 			GFX_CHECK_HR(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
 			
-			if (input.flags & ShaderCompilerFlag_Debug)
+			if (input.flags & GfxShaderCompilerFlag_Debug)
 			{
 				Ref<IDxcBlob> pdb_blob;
 				Ref<IDxcBlobUtf16> pdb_path_utf16;

@@ -14,9 +14,9 @@ namespace adria
 	
 	enum GfxShaderCompilerFlagBit
 	{
-		ShaderCompilerFlag_None = 0,
-		ShaderCompilerFlag_Debug = 1 << 0,
-		ShaderCompilerFlag_DisableOptimization = 1 << 1
+		GfxShaderCompilerFlag_None = 0,
+		GfxShaderCompilerFlag_Debug = 1 << 0,
+		GfxShaderCompilerFlag_DisableOptimization = 1 << 1
 	};
 	using GfxShaderCompilerFlags = Uint32;
 	struct GfxShaderDesc
@@ -26,7 +26,7 @@ namespace adria
 		std::string file = "";
 		std::string entry_point = "";
 		std::vector<GfxShaderDefine> defines{};
-		GfxShaderCompilerFlags flags = ShaderCompilerFlag_None;
+		GfxShaderCompilerFlags flags = GfxShaderCompilerFlag_None;
 	};
 
 	using GfxShaderBlob = std::vector<Uint8>;

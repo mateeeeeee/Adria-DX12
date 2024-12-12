@@ -1,7 +1,7 @@
 #include <set>
-#include "GFSDK_Aftermath_GpuCrashDumpDecoding.h"
 #include "ShaderManager.h"
 #include "Core/Paths.h"
+#include "Core/ConsoleManager.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
@@ -13,6 +13,9 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
+	static TAutoConsoleVariable<Bool> OptimizeShaders("r.Shaders.Optimize", true, "Whether to optimize shaders");
+	static TAutoConsoleVariable<Bool> ShaderDebugInfo("r.Shaders.DebugInfo", false, "Whether to keep debug data from shader bytecode");
+
 	namespace
 	{
 		std::unique_ptr<FileWatcher> file_watcher;
@@ -20,8 +23,20 @@ namespace adria
 		LibraryRecompiledEvent library_recompiled_event;
 		std::unordered_map<GfxShaderKey, GfxShader, GfxShaderKeyHash> shader_map;
 		std::unordered_map<fs::path, std::set<GfxShaderKey>> file_shader_map;
-		GfxShaderCompilerFlags shader_compiler_flags = ShaderCompilerFlag_None;
 
+		inline GfxShaderCompilerFlags GetShaderCompilerFlags()
+		{
+			GfxShaderCompilerFlags flags = GfxShaderCompilerFlag_None;
+			if (!OptimizeShaders.Get())
+			{
+				flags |= GfxShaderCompilerFlag_DisableOptimization;
+			}
+			if (ShaderDebugInfo.Get())
+			{
+				flags |= GfxShaderCompilerFlag_Debug;
+			}
+			return flags;
+		}
 		constexpr GfxShaderStage GetShaderStage(ShaderID shader)
 		{
 			switch (shader)
@@ -553,7 +568,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.model = GetShaderModel(shader);
 			shader_desc.file = paths::ShaderDir + GetShaderSource(shader);
-			shader_desc.flags = shader_compiler_flags;
+			shader_desc.flags = GetShaderCompilerFlags();
 			shader_desc.defines = shader.GetDefines();
 
 			GfxShaderCompileOutput output;
@@ -587,7 +602,8 @@ namespace adria
 		fs::create_directory(paths::ShaderCacheDir);
 		if (shader_debug)
 		{
-			shader_compiler_flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
+			OptimizeShaders->Set(false);
+			ShaderDebugInfo->Set(true);
 		}
 	}
 	void ShaderManager::Destroy()
