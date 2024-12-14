@@ -255,8 +255,6 @@ namespace adria
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
 			}
-			//compile_args.push_back(L"-Qstrip_debug");
-			//compile_args.push_back(L"-Qstrip_reflect");
 
 			if (input.flags & GfxShaderCompilerFlag_DisableOptimization)
 			{
