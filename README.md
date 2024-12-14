@@ -17,12 +17,11 @@ Graphics engine written in C++ using DirectX12.
 * Ultimate Bindless resource binding
 * Variable Rate Shading (FFX)
 * Volumetric lighting
-    - 2D Raymarching
+    - Raymarching
     - Fog volumes
 * Tiled/Clustered deferred rendering 
 * Shadows
-    - PCF shadows for directional, spot and point lights
-    - Cascade shadow maps for directional lights
+    - PCF shadows for directional, spot and point lights and cascade shadow maps for directional lights
     - Ray traced shadows (DXR)
 * Volumetric clouds
 * Hosek-Wilkie sky
@@ -46,7 +45,6 @@ Graphics engine written in C++ using DirectX12.
     - Render graph graphviz visualization
     - Shader debug printf
     - Nsight Aftermath SDK
-* D3D12 Enhanced Barriers support
 
 ## TODO
 * ReSTIR DI

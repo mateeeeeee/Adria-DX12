@@ -373,9 +373,9 @@ namespace adria
             reg.emplace<SubMesh>(light, submesh);
 
             Material material{};
-			material.base_color[0] = params.light_data.color.x;
-			material.base_color[1] = params.light_data.color.y;
-			material.base_color[2] = params.light_data.color.z;
+			material.albedo_color[0] = params.light_data.color.x;
+			material.albedo_color[1] = params.light_data.color.y;
+			material.albedo_color[2] = params.light_data.color.z;
 
             if (params.light_texture.has_value())
                 material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
@@ -430,7 +430,7 @@ namespace adria
 
 		Material ocean_material{};
 		static Float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
-		memcpy(ocean_material.base_color, default_ocean_color, 3 * sizeof(Float));
+		memcpy(ocean_material.albedo_color, default_ocean_color, 3 * sizeof(Float));
 		Ocean ocean_component{};
 
 		for (auto ocean_chunk : ocean_chunks)
@@ -532,66 +532,60 @@ namespace adria
 			}
 
 			auto GetImageURI = [&gltf_data](cgltf_texture* texture)
+			{
+				if (texture->extensions_count > 0)
 				{
-					if (texture->extensions_count > 0)
+					if (strcmp(texture->extensions[0].name, "MSFT_texture_dds") == 0)
 					{
-						if (strcmp(texture->extensions[0].name, "MSFT_texture_dds") == 0)
-						{
-							std::string extension_data(texture->extensions[0].data); 
-							std::vector<std::string> tokens = SplitString(extension_data, ':');
-							Int image_index = std::stoi(tokens[1]);
-							return gltf_data->images[image_index].uri;
-						}
-						return texture->image->uri;
+						std::string extension_data(texture->extensions[0].data); 
+						std::vector<std::string> tokens = SplitString(extension_data, ':');
+						Int image_index = std::stoi(tokens[1]);
+						return gltf_data->images[image_index].uri;
 					}
 					return texture->image->uri;
-				};
+				}
+				return texture->image->uri;
+			};
+			auto GetTexture = [&](cgltf_texture* texture, bool srgb, TextureHandle default_handle)
+			{
+				if (texture)
+				{
+					std::string texbase = params.textures_path + GetImageURI(texture);
+					return g_TextureManager.LoadTexture(texbase, srgb);
+				}
+				return default_handle;
+			};
 			if (gltf_material.has_pbr_metallic_roughness)
 			{
 				cgltf_pbr_metallic_roughness pbr_metallic_roughness = gltf_material.pbr_metallic_roughness;
-				material.base_color[0] = (Float)pbr_metallic_roughness.base_color_factor[0];
-				material.base_color[1] = (Float)pbr_metallic_roughness.base_color_factor[1];
-				material.base_color[2] = (Float)pbr_metallic_roughness.base_color_factor[2];
+				material.albedo_color[0] = (Float)pbr_metallic_roughness.base_color_factor[0];
+				material.albedo_color[1] = (Float)pbr_metallic_roughness.base_color_factor[1];
+				material.albedo_color[2] = (Float)pbr_metallic_roughness.base_color_factor[2];
 				material.metallic_factor = (Float)pbr_metallic_roughness.metallic_factor;
 				material.roughness_factor = (Float)pbr_metallic_roughness.roughness_factor;
-
-				if (cgltf_texture* texture = pbr_metallic_roughness.base_color_texture.texture)
-				{
-					std::string texbase = params.textures_path + GetImageURI(texture);
-					material.albedo_texture = g_TextureManager.LoadTexture(texbase, true);
-				}
-				else
-				{
-					material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
-				}
-
-				if (cgltf_texture* texture = pbr_metallic_roughness.metallic_roughness_texture.texture)
-				{
-					std::string texmetallicroughness = params.textures_path + GetImageURI(texture);
-					material.metallic_roughness_texture = g_TextureManager.LoadTexture(texmetallicroughness, false);
-				}
-				else
-				{
-					material.metallic_roughness_texture = DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE;
-				}
+				material.albedo_texture = GetTexture(pbr_metallic_roughness.base_color_texture.texture, true, DEFAULT_WHITE_TEXTURE_HANDLE);
+				material.metallic_roughness_texture = GetTexture(pbr_metallic_roughness.metallic_roughness_texture.texture, false, DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE);
 			}
 			else if (gltf_material.has_pbr_specular_glossiness)
 			{
 				cgltf_pbr_specular_glossiness pbr_specular_glossiness = gltf_material.pbr_specular_glossiness;
-
-				if (cgltf_texture* texture = pbr_specular_glossiness.diffuse_texture.texture)
-				{
-					std::string texbase = params.textures_path + GetImageURI(texture);
-					material.albedo_texture = g_TextureManager.LoadTexture(texbase, true);
-				}
-				else
-				{
-					material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
-				}
+				material.albedo_texture = GetTexture(pbr_specular_glossiness.diffuse_texture.texture, true, DEFAULT_WHITE_TEXTURE_HANDLE);
 				material.roughness_factor = 1.0f - gltf_material.pbr_specular_glossiness.glossiness_factor;
-				material.base_color[0]= gltf_material.pbr_specular_glossiness.diffuse_factor[0];
-				material.base_color[1] = gltf_material.pbr_specular_glossiness.diffuse_factor[1];
-				material.base_color[2] = gltf_material.pbr_specular_glossiness.diffuse_factor[2];
+				material.albedo_color[0]= gltf_material.pbr_specular_glossiness.diffuse_factor[0];
+				material.albedo_color[1] = gltf_material.pbr_specular_glossiness.diffuse_factor[1];
+				material.albedo_color[2] = gltf_material.pbr_specular_glossiness.diffuse_factor[2];
+			}
+
+			//shading extensions
+			material.extension = ShadingExtension::None;
+			if (gltf_material.has_clearcoat)
+			{
+				material.extension = ShadingExtension::ClearCoat;
+				material.clear_coat_texture = GetTexture(gltf_material.clearcoat.clearcoat_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
+				material.clear_coat_roughness_texture = GetTexture(gltf_material.clearcoat.clearcoat_roughness_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
+				material.clear_coat_normal_texture = GetTexture(gltf_material.clearcoat.clearcoat_normal_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
+				material.clear_coat = gltf_material.clearcoat.clearcoat_factor;
+				material.clear_coat_roughness = gltf_material.clearcoat.clearcoat_roughness_factor;
 			}
 
 			if (cgltf_texture* texture = gltf_material.normal_texture.texture)

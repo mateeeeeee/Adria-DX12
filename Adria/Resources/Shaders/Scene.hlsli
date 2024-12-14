@@ -16,17 +16,28 @@ struct Mesh
 	uint meshletCount;
 };
 
+#define SHADING_EXTENSION_NONE 0
+#define SHADING_EXTENSION_CLEARCOAT 1
+
 struct Material
 {
-	uint diffuseIdx;
-	uint normalIdx;
-	uint roughnessMetallicIdx;
-	uint emissiveIdx;
-	float3 baseColorFactor;
-	float emissiveFactor;
-	float metallicFactor;
-	float roughnessFactor;
-	float alphaCutoff;
+    uint    shadingExtension;
+	float3	baseColorFactor;
+	uint	diffuseIdx;
+	uint	roughnessMetallicIdx;
+	float	metallicFactor;
+	float   roughnessFactor;
+	
+	uint	normalIdx;
+	uint	emissiveIdx;
+	float	emissiveFactor;
+	float	alphaCutoff;
+
+	uint   clearCoatIdx;
+	uint   clearCoatRoughnessIdx;
+	uint   clearCoatNormalIdx;
+	float  clearCoat;
+	float  clearCoatRoughness;
 };
 
 struct Instance

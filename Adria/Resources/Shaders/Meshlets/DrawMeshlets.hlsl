@@ -81,14 +81,16 @@ struct PSOutput
 	float4 NormalMetallic	: SV_TARGET0;
 	float4 DiffuseRoughness : SV_TARGET1;
 	float4 Emissive			: SV_TARGET2;
+	float4 Custom			: SV_TARGET3;
 };
 
-PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
+PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic, uint extension, float3 customData)
 {
 	PSOutput output = (PSOutput)0;
 	output.NormalMetallic = float4(0.5f * NormalVS + 0.5f, metallic);
 	output.DiffuseRoughness = float4(BaseColor, roughness);
 	output.Emissive = float4(emissive.rgb, emissive.a / 256);
+	output.Custom = float4((float)extension / 255.0f, customData);
 	return output;
 }
 
@@ -122,7 +124,7 @@ PSOutput DrawMeshletsPS(MSToPS input)
 
 	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz * material.baseColorFactor, normalVS, float4(emissiveColor, material.emissiveFactor),
-		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor);
+		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor, 0, 0.0f);
 }
 
 

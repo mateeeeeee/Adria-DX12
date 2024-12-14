@@ -33,6 +33,13 @@ namespace adria
 		Mask
 	};
 
+	enum class ShadingExtension : Uint8
+	{
+		None,
+		ClearCoat,
+		Count
+	};
+
 	struct COMPONENT Transform
 	{
 		Matrix current_transform = Matrix::Identity;
@@ -61,19 +68,29 @@ namespace adria
 	};
 	struct COMPONENT Material
 	{
-		TextureHandle albedo_texture			  = INVALID_TEXTURE_HANDLE;
-		TextureHandle normal_texture			  = INVALID_TEXTURE_HANDLE;
-		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
-		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
+		//metallic roughness
+		TextureHandle albedo_texture				= INVALID_TEXTURE_HANDLE;
+		TextureHandle metallic_roughness_texture	= INVALID_TEXTURE_HANDLE;
+		Float		  albedo_color[3]				= { 1.0f, 1.0f, 1.0f };
+		Float		  metallic_factor				= 1.0f;
+		Float		  roughness_factor				= 1.0f;
 
-		Float base_color[3]		= { 1.0f, 1.0f, 1.0f };
-		Float metallic_factor	= 1.0f;
-		Float roughness_factor	= 1.0f;
-		Float emissive_factor	= 1.0f;
+		//common
+		TextureHandle normal_texture				= INVALID_TEXTURE_HANDLE;
+		TextureHandle emissive_texture				= INVALID_TEXTURE_HANDLE;
+		Float emissive_factor						= 1.0f;
+		Float alpha_cutoff							= 0.5f;
+		Bool  double_sided							= false;
+		MaterialAlphaMode alpha_mode				= MaterialAlphaMode::Opaque;
+		ShadingExtension extension					= ShadingExtension::None;
 
-		MaterialAlphaMode alpha_mode = MaterialAlphaMode::Opaque;
-		Float alpha_cutoff	= 0.5f;
-		Bool  double_sided	= false;
+		//clear coat
+		TextureHandle clear_coat_texture			= INVALID_TEXTURE_HANDLE;
+		TextureHandle clear_coat_roughness_texture	= INVALID_TEXTURE_HANDLE;
+		TextureHandle clear_coat_normal_texture		= INVALID_TEXTURE_HANDLE;
+		Float		  clear_coat					= 0.0f;
+		Float		  clear_coat_roughness			= 0.0f;
+
 	};
 	struct COMPONENT Light
 	{

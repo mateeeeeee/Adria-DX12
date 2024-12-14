@@ -101,15 +101,23 @@ namespace adria
 
 	struct MaterialGPU
 	{
-		Uint32 diffuse_idx;
-		Uint32 normal_idx;
-		Uint32 roughness_metallic_idx;
-		Uint32 emissive_idx;
-		Vector3 base_color_factor;
-		Float emissive_factor;
-		Float metallic_factor;
-		Float roughness_factor;
-		Float alpha_cutoff;
+		Uint32  shading_extension;
+		Vector3 albedo_color;
+		Uint32  albedo_idx;
+		Uint32  roughness_metallic_idx;
+		Float   metallic_factor;
+		Float   roughness_factor;
+
+		Uint32  normal_idx;
+		Uint32  emissive_idx;
+		Float   emissive_factor;
+		Float   alpha_cutoff;
+
+		Uint32 clear_coat_idx;
+		Uint32 clear_coat_roughness_idx;
+		Uint32 clear_coat_normal_idx;
+		Float  clear_coat;
+		Float  clear_coat_roughness;
 	};
 
 	struct InstanceGPU

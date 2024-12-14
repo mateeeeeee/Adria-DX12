@@ -68,7 +68,7 @@ namespace adria
 				} constants =
 				{
 					.model_matrix = transform.current_transform,
-					.diffuse_color = Vector3(material.base_color),
+					.diffuse_color = Vector3(material.albedo_color),
 					.diffuse_idx = (Uint32)material.albedo_texture
 				};
 				cmd_list->SetRootCBV(2, constants);

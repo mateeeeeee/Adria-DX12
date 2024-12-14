@@ -39,10 +39,12 @@ namespace adria
 				builder.DeclareTexture(RG_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_NAME(GBufferAlbedo), gbuffer_desc);
 				builder.DeclareTexture(RG_NAME(GBufferEmissive), gbuffer_desc);
+				builder.DeclareTexture(RG_NAME(GBufferCustom), gbuffer_desc);
 
 				builder.WriteRenderTarget(RG_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferCustom), RGLoadStoreAccessOp::Clear_Preserve);
 
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
@@ -117,17 +119,19 @@ namespace adria
 		gbuffer_pso_desc.depth_state.depth_enable = true;
 		gbuffer_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
 		gbuffer_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-		gbuffer_pso_desc.num_render_targets = 3u;
+		gbuffer_pso_desc.num_render_targets = 4u;
 		gbuffer_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 		gbuffer_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
 		gbuffer_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
+		gbuffer_pso_desc.rtv_formats[3] = GfxFormat::R8G8B8A8_UNORM;
 		gbuffer_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 
 		gbuffer_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(5, gbuffer_pso_desc);
 		gbuffer_psos->AddDefine<PS, 1>("MASK", "1");
 		gbuffer_psos->AddDefine<PS, 2>("MASK", "1");
 		gbuffer_psos->SetCullMode<2>(GfxCullMode::None);
-		gbuffer_psos->SetCullMode<3>(GfxCullMode::None);
+
+		gbuffer_psos->SetCullMode<3>(GfxCullMode::Back);
 		gbuffer_psos->AddDefine<PS, 4>("RAIN", "1");
 		gbuffer_psos->Finalize(gfx);
 	}

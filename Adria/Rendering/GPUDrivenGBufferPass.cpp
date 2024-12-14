@@ -158,10 +158,11 @@ namespace adria
 		mesh_pso_desc.depth_state.depth_enable = true;
 		mesh_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
 		mesh_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-		mesh_pso_desc.num_render_targets = 3u;
+		mesh_pso_desc.num_render_targets = 4u;
 		mesh_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 		mesh_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
 		mesh_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
+		mesh_pso_desc.rtv_formats[3] = GfxFormat::R8G8B8A8_UNORM;
 		mesh_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 		draw_psos = std::make_unique<GfxMeshShaderPipelineStatePermutations>(2, mesh_pso_desc);
 		draw_psos->AddDefine<PS, 1>("RAIN", "1");
@@ -525,10 +526,12 @@ namespace adria
 				builder.DeclareTexture(RG_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_NAME(GBufferAlbedo), gbuffer_desc);
 				builder.DeclareTexture(RG_NAME(GBufferEmissive), gbuffer_desc);
+				builder.DeclareTexture(RG_NAME(GBufferCustom), gbuffer_desc);
 
 				builder.WriteRenderTarget(RG_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferCustom), RGLoadStoreAccessOp::Clear_Preserve);
 
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
@@ -545,7 +548,6 @@ namespace adria
 			[=](DrawMeshletsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
 				GfxDescriptor src_handles[] =
 				{
 					ctx.GetReadOnlyBuffer(data.visible_meshlets)
@@ -826,6 +828,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteRenderTarget(RG_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteRenderTarget(RG_NAME(GBufferEmissive), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_NAME(GBufferCustom), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 

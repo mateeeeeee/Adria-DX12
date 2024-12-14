@@ -305,45 +305,53 @@ namespace adria
 				batch.world_transform = instance.world_transform;
 				submesh.bounding_box.Transform(batch.bounding_box, batch.world_transform);
 
-				InstanceGPU& instance_hlsl = instances.emplace_back();
-				instance_hlsl.instance_id = instanceID;
-				instance_hlsl.material_idx = static_cast<Uint32>(materials.size() + submesh.material_index);
-				instance_hlsl.mesh_index = static_cast<Uint32>(meshes.size() + instance.submesh_index);
-				instance_hlsl.world_matrix = instance.world_transform;
-				instance_hlsl.inverse_world_matrix = XMMatrixInverse(nullptr, instance.world_transform);
-				instance_hlsl.bb_origin = submesh.bounding_box.Center;
-				instance_hlsl.bb_extents = submesh.bounding_box.Extents;
+				InstanceGPU& instance_gpu = instances.emplace_back();
+				instance_gpu.instance_id = instanceID;
+				instance_gpu.material_idx = static_cast<Uint32>(materials.size() + submesh.material_index);
+				instance_gpu.mesh_index = static_cast<Uint32>(meshes.size() + instance.submesh_index);
+				instance_gpu.world_matrix = instance.world_transform;
+				instance_gpu.inverse_world_matrix = XMMatrixInverse(nullptr, instance.world_transform);
+				instance_gpu.bb_origin = submesh.bounding_box.Center;
+				instance_gpu.bb_extents = submesh.bounding_box.Extents;
 
 				++instanceID;
 			}
 			for (auto const& submesh : mesh.submeshes)
 			{
-				MeshGPU& mesh_hlsl = meshes.emplace_back();
-				mesh_hlsl.buffer_idx = mesh_buffer_online_srv.GetIndex();
-				mesh_hlsl.indices_offset = submesh.indices_offset;
-				mesh_hlsl.positions_offset = submesh.positions_offset;
-				mesh_hlsl.normals_offset = submesh.normals_offset;
-				mesh_hlsl.tangents_offset = submesh.tangents_offset;
-				mesh_hlsl.uvs_offset = submesh.uvs_offset;
+				MeshGPU& mesh_gpu = meshes.emplace_back();
+				mesh_gpu.buffer_idx = mesh_buffer_online_srv.GetIndex();
+				mesh_gpu.indices_offset = submesh.indices_offset;
+				mesh_gpu.positions_offset = submesh.positions_offset;
+				mesh_gpu.normals_offset = submesh.normals_offset;
+				mesh_gpu.tangents_offset = submesh.tangents_offset;
+				mesh_gpu.uvs_offset = submesh.uvs_offset;
 
-				mesh_hlsl.meshlet_offset = submesh.meshlet_offset;
-				mesh_hlsl.meshlet_vertices_offset = submesh.meshlet_vertices_offset;
-				mesh_hlsl.meshlet_triangles_offset = submesh.meshlet_triangles_offset;
-				mesh_hlsl.meshlet_count = submesh.meshlet_count;
+				mesh_gpu.meshlet_offset = submesh.meshlet_offset;
+				mesh_gpu.meshlet_vertices_offset = submesh.meshlet_vertices_offset;
+				mesh_gpu.meshlet_triangles_offset = submesh.meshlet_triangles_offset;
+				mesh_gpu.meshlet_count = submesh.meshlet_count;
 			}
 
 			for (auto const& material : mesh.materials)
 			{
-				MaterialGPU& material_hlsl = materials.emplace_back();
-				material_hlsl.diffuse_idx = (Uint32)material.albedo_texture;
-				material_hlsl.normal_idx = (Uint32)material.normal_texture;
-				material_hlsl.roughness_metallic_idx = (Uint32)material.metallic_roughness_texture;
-				material_hlsl.emissive_idx = (Uint32)material.emissive_texture;
-				material_hlsl.base_color_factor = Vector3(material.base_color);
-				material_hlsl.emissive_factor = material.emissive_factor;
-				material_hlsl.metallic_factor = material.metallic_factor;
-				material_hlsl.roughness_factor = material.roughness_factor;
-				material_hlsl.alpha_cutoff = material.alpha_cutoff;
+				MaterialGPU& material_gpu = materials.emplace_back();
+				material_gpu.shading_extension = (Uint32)material.extension;
+				material_gpu.albedo_color = Vector3(material.albedo_color);
+				material_gpu.albedo_idx = (Uint32)material.albedo_texture;
+				material_gpu.roughness_metallic_idx = (Uint32)material.metallic_roughness_texture;
+				material_gpu.metallic_factor = material.metallic_factor;
+				material_gpu.roughness_factor = material.roughness_factor;
+
+				material_gpu.normal_idx = (Uint32)material.normal_texture;
+				material_gpu.emissive_idx = (Uint32)material.emissive_texture;
+				material_gpu.emissive_factor = material.emissive_factor;
+				material_gpu.alpha_cutoff = material.alpha_cutoff;
+
+				material_gpu.clear_coat_idx = (Uint32)material.clear_coat_texture;
+				material_gpu.clear_coat_roughness_idx = (Uint32)material.clear_coat_roughness_texture;
+				material_gpu.clear_coat_normal_idx = (Uint32)material.clear_coat_normal_texture;
+				material_gpu.clear_coat = material.clear_coat;
+				material_gpu.clear_coat_roughness = material.clear_coat_roughness;
 			}
 		}
 

@@ -513,7 +513,7 @@ namespace adria
 					if (engine->reg.all_of<Material>(selected_entity))
 					{
 						auto& material = engine->reg.get<Material>(selected_entity);
-						memcpy(material.base_color, color, 3 * sizeof(Float));
+						memcpy(material.albedo_color, color, 3 * sizeof(Float));
 					}
 
 					if (light->type == LightType::Directional || light->type == LightType::Spot)
@@ -683,7 +683,7 @@ namespace adria
 					}
 					ImGui::PopID();
 
-					ImGui::ColorEdit3("Base Color", material->base_color);
+					ImGui::ColorEdit3("Base Color", material->albedo_color);
 					ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);

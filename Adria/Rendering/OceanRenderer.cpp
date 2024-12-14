@@ -39,7 +39,7 @@ namespace adria
 			for (auto e : ocean_view)
 			{
 				auto& material = ocean_view.get<Material>(e);
-				memcpy(material.base_color, ocean_color, sizeof(ocean_color));
+				memcpy(material.albedo_color, ocean_color, sizeof(ocean_color));
 			}
 		}
 
@@ -358,7 +358,7 @@ namespace adria
 					} constants =
 					{
 						.ocean_model_matrix = transform.current_transform,
-						.ocean_color = Vector3(material.base_color)
+						.ocean_color = Vector3(material.albedo_color)
 					};
 
 					cmd_list->SetRootConstants(1, indices);

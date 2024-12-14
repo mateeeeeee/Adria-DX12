@@ -1518,6 +1518,9 @@
     <None Include="Saved\Scenes\arcade.json">
       <Filter>Saved\Scenes</Filter>
     </None>
+    <None Include="Saved\Scenes\pica_pica.json">
+      <Filter>Saved\Scenes</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">

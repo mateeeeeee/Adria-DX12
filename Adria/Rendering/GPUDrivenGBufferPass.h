@@ -67,8 +67,8 @@ namespace adria
 
 		Bool rain_active = false;
 		std::unique_ptr<GfxMeshShaderPipelineStatePermutations> draw_psos;
-		std::unique_ptr<GfxComputePipelineStatePermutations>	  cull_meshlets_psos;
-		std::unique_ptr<GfxComputePipelineStatePermutations>	  cull_instances_psos;
+		std::unique_ptr<GfxComputePipelineStatePermutations>	cull_meshlets_psos;
+		std::unique_ptr<GfxComputePipelineStatePermutations>	cull_instances_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>    build_meshlet_cull_args_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>    build_meshlet_draw_args_psos;
 		std::unique_ptr<GfxComputePipelineState> clear_counters_pso;
