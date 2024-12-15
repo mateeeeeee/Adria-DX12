@@ -25,7 +25,7 @@ namespace adria
 		GfxShaderCompiler::Initialize();
 		gfx = std::make_unique<GfxDevice>(window, init.gfx_options);
 		ShaderManager::Initialize(init.gfx_options.shader_debug);
-		g_TextureManager.Initialize(gfx.get(), 1000);
+		g_TextureManager.Initialize(gfx.get());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
 		scene_loader = std::make_unique<SceneLoader>(reg, gfx.get());
 
@@ -75,8 +75,23 @@ namespace adria
 		Render();
 	}
 
+	void Engine::HandleSceneRequest()
+	{
+		if (scene_request)
+		{
+			gfx->WaitForGPU();
+			g_TextureManager.Clear();
+			reg.clear();
+			ProcessCVarIniFile(scene_request->ini_file);
+			gfx->SetRenderingNotStarted();
+			InitializeScene(*scene_request);
+			scene_request = std::nullopt;
+		}
+	}
+
 	void Engine::Update(Float dt)
 	{
+		HandleSceneRequest();
 		camera->Update(dt);
 		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
@@ -116,7 +131,7 @@ namespace adria
 
 	void Engine::InitializeScene(SceneConfig const& config)
 	{
-		auto cmd_list = gfx->GetCommandList();
+		auto cmd_list = gfx->GetLatestCommandList(GfxCommandListType::Graphics);
 		cmd_list->Begin();
 
 		camera = std::make_unique<Camera>(config.camera_params);

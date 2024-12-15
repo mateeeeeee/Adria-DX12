@@ -234,22 +234,18 @@ namespace adria
 		{
 			if (ImGui::BeginMenu(ICON_FA_FILE" File"))
 			{
-				if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN" Load Model"))
+				if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN" Open Scene"))
 				{
 					nfdchar_t* file_path = NULL;
-					const nfdchar_t* filter_list = "gltf";
+					const nfdchar_t* filter_list = "json";
 					nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 					if (result == NFD_OKAY)
 					{
-						std::string model_path = file_path;
-
-						ModelParameters params{};
-						params.model_path = model_path;
-						std::string texture_path = GetParentPath(model_path);
-						if (!texture_path.empty()) texture_path.append("/");
-
-						params.textures_path = texture_path;
-						engine->scene_loader->LoadModel_GLTF(params);
+						SceneConfig scene_config{};
+						if (ParseSceneConfig(file_path, scene_config, false))
+						{
+							engine->NewSceneRequest(scene_config);
+						}
 						free(file_path);
 					}
 				}

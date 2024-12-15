@@ -109,7 +109,10 @@ namespace adria
 
 	void DecalsPass::OnSceneInitialized()
 	{
-		CreateCubeBuffers();
+		if (!cube_vb || !cube_ib)
+		{
+			CreateCubeBuffers();
+		}
 	}
 
 	void DecalsPass::CreatePSOs()

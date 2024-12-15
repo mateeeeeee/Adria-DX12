@@ -13,5 +13,5 @@ namespace adria
 		std::string		 ini_file;
 	};
 
-	Bool ParseSceneConfig(std::string const& scene_file, SceneConfig& scene_config);
+	Bool ParseSceneConfig(std::string const& scene_file, SceneConfig& scene_config, Bool append_dir = true);
 }

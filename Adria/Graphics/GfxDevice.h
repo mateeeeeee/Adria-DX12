@@ -188,6 +188,9 @@ namespace adria
 		DispatchIndirectSignature& GetDispatchIndirectSignature() const { return *dispatch_indirect_signature;}
 		DispatchMeshIndirectSignature& GetDispatchMeshIndirectSignature() const { return *dispatch_mesh_indirect_signature;}
 
+		void SetRenderingNotStarted();
+		Bool IsFirstFrame() const { return first_frame; }
+
 		static constexpr Uint32 GetBackbufferCount()
 		{
 			return GFX_BACKBUFFER_COUNT;
@@ -262,6 +265,7 @@ namespace adria
 		};
 		std::unique_ptr<DRED> dred;
 		Bool rendering_not_started = true;
+		Bool first_frame = false;
 		Bool pix_dll_loaded = false;
 
 		std::unique_ptr<GfxNsightAftermathGpuCrashTracker> nsight_aftermath;

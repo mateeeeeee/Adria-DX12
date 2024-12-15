@@ -56,6 +56,14 @@ namespace adria
 		tlas_srv = gfx->CreateBufferSRV(&tlas->GetBuffer());
 	}
 
+	void AccelerationStructure::Clear()
+	{
+		blases.clear();
+		rt_geometries.clear();
+		rt_instances.clear();
+		tlas = nullptr;
+	}
+
 	Int32 AccelerationStructure::GetTLASIndex() const
 	{
 		GfxDescriptor tlas_srv_gpu = gfx->AllocateDescriptorsGPU();

@@ -234,6 +234,7 @@ namespace adria
 		if (!ray_tracing_supported) return;
 		if (reg.view<RayTracing>().size() == 0) return;
 
+		accel_structure.Clear();
 		auto ray_tracing_view = reg.view<Mesh, RayTracing>();
 		for (auto entity : ray_tracing_view)
 		{
@@ -494,7 +495,7 @@ namespace adria
 			{
 				switch (volumetric_path)
 				{
-				case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
+				case VolumetricPathType::Raymarching: volumetric_lighting_pass.AddPass(render_graph); break;
 				case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
 				}
 			}
@@ -528,7 +529,7 @@ namespace adria
 			if (lighting_path == LightingPathType::TiledDeferred) tiled_deferred_lighting_pass.GUI();
 			switch (volumetric_path)
 			{
-			case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.GUI(); break;
+			case VolumetricPathType::Raymarching: volumetric_lighting_pass.GUI(); break;
 			case VolumetricPathType::FogVolume:		volumetric_fog_pass.GUI();		break;
 			}
 			ocean_renderer.GUI();
@@ -582,7 +583,7 @@ namespace adria
 					static Int current_volumetric_path = (Int)volumetric_path;
 					if (ImGui::TreeNode("Misc"))
 					{
-						if (ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching 2D\0Fog Volume\0", 3))
+						if (ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching\0Fog Volume\0", 3))
 						{
 							VolumetricPath->Set(current_volumetric_path);
 						}

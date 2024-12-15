@@ -16,15 +16,28 @@ namespace adria
     TextureManager::TextureManager() {}
     TextureManager::~TextureManager() = default;
 
-	void TextureManager::Initialize(GfxDevice* _gfx, Uint32 max_textures)
+	void TextureManager::Initialize(GfxDevice* _gfx)
 	{
         gfx = _gfx;
 	}
+
+	void TextureManager::Clear()
+	{
+		for (auto& [handle, descriptor] : texture_srv_map)
+		{
+			gfx->FreeDescriptorCPU(descriptor, GfxDescriptorHeapType::CBV_SRV_UAV);
+		}
+		handle = TEXTURE_MANAGER_START_HANDLE;
+		texture_srv_map.clear();
+		texture_map.clear();
+		loaded_textures.clear();
+		is_scene_initialized = false;
+	}
+
 	void TextureManager::Destroy()
 	{
-        texture_map.clear();
-        loaded_textures.clear();
-        gfx = nullptr;
+		Clear();
+		gfx = nullptr;
 	}
 
     TextureHandle TextureManager::LoadTexture(std::string_view path, Bool srgb)

@@ -15,20 +15,24 @@ namespace adria
 	static constexpr Uint32 VOXEL_TEXEL_SIZE_Y = 8;
 	static constexpr Uint32 VOXEL_GRID_SIZE_Z  = 128;
 
-
 	VolumetricFogPass::VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
 		CreatePSOs();
 		CreateLightInjectionHistoryTexture();
+		blue_noise_handles.fill(INVALID_TEXTURE_HANDLE);
 	}
 
 	void VolumetricFogPass::OnSceneInitialized()
 	{
-		std::string blue_noise_base_path = paths::TexturesDir + "BlueNoise/";
-		for (Uint32 i = 0; i < BLUE_NOISE_TEXTURE_COUNT; ++i)
+		if (std::any_of(std::begin(blue_noise_handles), std::end(blue_noise_handles),
+			[](TextureHandle texture_handle) { return texture_handle == INVALID_TEXTURE_HANDLE;}))
 		{
-			std::string blue_noise_texture_path = blue_noise_base_path + "LDR_LLL1_" + std::to_string(i) + ".png";
-			blue_noise_handles[i] = g_TextureManager.LoadTexture(blue_noise_texture_path);
+			std::string blue_noise_base_path = paths::TexturesDir + "BlueNoise/";
+			for (Uint32 i = 0; i < BLUE_NOISE_TEXTURE_COUNT; ++i)
+			{
+				std::string blue_noise_texture_path = blue_noise_base_path + "LDR_LLL1_" + std::to_string(i) + ".png";
+				blue_noise_handles[i] = g_TextureManager.LoadTexture(blue_noise_texture_path);
+			}
 		}
 
 		BoundingBox scene_bounding_box;

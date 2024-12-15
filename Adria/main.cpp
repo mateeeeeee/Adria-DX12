@@ -50,7 +50,7 @@ int APIENTRY wWinMain(
     g_Input.Initialize(&window);
 
     EngineInit engine_init{};
-    engine_init.scene_file = cli_result["-scene"].AsStringOr("sponza.json");
+    engine_init.scene_file = cli_result["-scene"].AsStringOr("pica_pica.json");
 	engine_init.window = &window;
 	engine_init.gfx_options.vsync = cli_result["-vsync"];
 	engine_init.gfx_options.debug_device = cli_result["-debugdevice"];

@@ -68,11 +68,10 @@ namespace adria
 		irradiance_desc.width = irradiance_dimensions.x;
 		irradiance_desc.height = irradiance_dimensions.y;
 		irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-		irradiance_desc.bind_flags = GfxBindFlag::ShaderResource;
+		irradiance_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		irradiance_desc.initial_state = GfxResourceState::CopyDst;
 		ddgi_volume.irradiance_history = gfx->CreateTexture(irradiance_desc);
 		ddgi_volume.irradiance_history->SetName("DDGI Irradiance History");
-
 		ddgi_volume.irradiance_history_srv = gfx->CreateTextureSRV(ddgi_volume.irradiance_history.get());
 
 		Vector2u distance_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_DISTANCE_TEXELS);
@@ -80,11 +79,10 @@ namespace adria
 		distance_desc.width = distance_dimensions.x;
 		distance_desc.height = distance_dimensions.y;
 		distance_desc.format = GfxFormat::R16G16_FLOAT;
-		distance_desc.bind_flags = GfxBindFlag::ShaderResource;
+		distance_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		distance_desc.initial_state = GfxResourceState::CopyDst;
 		ddgi_volume.distance_history = gfx->CreateTexture(distance_desc);
 		ddgi_volume.distance_history->SetName("DDGI Distance History");
-
 		ddgi_volume.distance_history_srv = gfx->CreateTextureSRV(ddgi_volume.distance_history.get());
 	}
 
@@ -100,7 +98,8 @@ namespace adria
 
 		Uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 		RealRandomGenerator rng(0.0f, 1.0f);
-		Vector3 random_vector(2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f); random_vector.Normalize();
+		Vector3 random_vector(2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f); 
+		random_vector.Normalize();
 		Float random_angle = rng() * pi<Float> * 2.0f;
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
@@ -111,6 +110,35 @@ namespace adria
 		{
 			Uint32 heap_index;
 		};
+
+		if (gfx->IsFirstFrame())
+		{
+			struct DDGIClearHistoryPassData
+			{
+				RGTextureReadWriteId irradiance_history;
+				RGTextureReadWriteId distance_history;
+			};
+
+			rg.AddPass<DDGIClearHistoryPassData>("DDGI Clear History Pass",
+				[=](DDGIClearHistoryPassData& data, RenderGraphBuilder& builder)
+				{
+					data.irradiance_history = builder.WriteTexture(RG_NAME(DDGIIrradianceHistory));
+					data.distance_history = builder.WriteTexture(RG_NAME(DDGIDistanceHistory));
+				},
+				[=](DDGIClearHistoryPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
+				{
+					static constexpr Float black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+					Uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteTexture(data.irradiance_history));
+					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.distance_history));
+
+					cmd_list->ClearUAV(ctx.GetTexture(*data.irradiance_history), gfx->GetDescriptorGPU(i),
+									   ctx.GetReadWriteTexture(data.irradiance_history), black);
+					cmd_list->ClearUAV(ctx.GetTexture(*data.distance_history), gfx->GetDescriptorGPU(i + 1),
+									   ctx.GetReadWriteTexture(data.distance_history), black);
+				}, RGPassType::Compute);
+		}
 
 		struct DDGIRayTracePassData
 		{
@@ -135,7 +163,6 @@ namespace adria
 			[=](DDGIRayTracePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
 				Uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteBuffer(data.ray_buffer));
 				ctx.GetBlackboard().Create<DDGIBlackboardData>(i);
@@ -273,7 +300,6 @@ namespace adria
 
 		rg.ExportTexture(RG_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_NAME(DDGIDistance), ddgi_volume.distance_history.get());
-
 	}
 
 	void DDGIPass::AddVisualizePass(RenderGraph& rg)

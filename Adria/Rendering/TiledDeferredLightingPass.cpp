@@ -93,7 +93,7 @@ namespace adria
 					.output_idx = i + 5, .debug_idx = visualize_tiled ? Int32(i + 6) : -1
 				};
 
-				static constexpr Float black[] = {0.0f,0.0f,0.0f,0.0f};
+				static constexpr Float black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 				GfxTexture const& tiled_target = context.GetTexture(*data.output);
 				GfxTexture const& tiled_debug_target = context.GetTexture(*data.debug_output);
 				cmd_list->ClearUAV(tiled_target, gfx->GetDescriptorGPU(i + 5), context.GetReadWriteTexture(data.output), black);

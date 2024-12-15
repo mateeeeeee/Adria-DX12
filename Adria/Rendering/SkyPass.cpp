@@ -135,7 +135,10 @@ namespace adria
 
 	void SkyPass::OnSceneInitialized()
 	{
-		CreateCubeBuffers();
+		if (!sky_texture || !cube_vb || !cube_ib)
+		{
+			CreateCubeBuffers();
+		}
 	}
 
 	void SkyPass::GUI()

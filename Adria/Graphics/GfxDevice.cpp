@@ -421,6 +421,7 @@ namespace adria
 		if (rendering_not_started) [[unlikely]]
 		{
 			dynamic_allocator_on_init.reset();
+			first_frame = true;
 			rendering_not_started = false;
 		}
 
@@ -433,6 +434,7 @@ namespace adria
 	}
 	void GfxDevice::EndFrame()
 	{
+		if (first_frame) [[unlikely]] first_frame = false;
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 
 		graphics_cmd_list_pool[backbuffer_index]->EndCmdLists();
@@ -769,6 +771,12 @@ namespace adria
 		gpu_memory_usage.budget = budget.BudgetBytes;
 		gpu_memory_usage.usage = budget.UsageBytes;
 		return gpu_memory_usage;
+	}
+
+	void GfxDevice::SetRenderingNotStarted()
+	{
+		rendering_not_started = true;
+		dynamic_allocator_on_init.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
 	}
 
 	void GfxDevice::ProcessReleaseQueue()

@@ -46,7 +46,7 @@ namespace adria
 		enum class VolumetricPathType : Uint8
 		{
 			None,
-			Raymarching2D,
+			Raymarching,
 			FogVolume
 		};
 
@@ -164,7 +164,7 @@ namespace adria
 
 		//volumetric
 		Uint32			         volumetric_lights = 0;
-		VolumetricPathType		 volumetric_path = VolumetricPathType::Raymarching2D;
+		VolumetricPathType		 volumetric_path = VolumetricPathType::Raymarching;
 		//misc
 		ViewportData			 viewport_data;
 

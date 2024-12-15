@@ -12,6 +12,7 @@ namespace adria
 		using enum GfxCommonTextureType;
 		namespace
 		{
+			Bool initialized = false;
 			std::array<std::unique_ptr<GfxTexture>, (Uint64)Count>	common_textures;
 			std::unique_ptr<GfxDescriptorAllocator> common_views_heap;
 
@@ -113,8 +114,10 @@ namespace adria
 
 		void Initialize(GfxDevice* gfx)
 		{
+			if (initialized) return;
 			CreateCommonTextures(gfx);
 			CreateCommonViews(gfx);
+			initialized = true;
 		}
 
 		void Destroy()

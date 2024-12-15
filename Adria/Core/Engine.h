@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/GfxOptions.h"
 #include "Rendering/ViewportData.h"
+#include "Rendering/SceneConfig.h"
 #include "entt/entity/registry.hpp"
 
 namespace adria
@@ -17,7 +18,7 @@ namespace adria
 
 	struct EngineInit
 	{
-		std::string scene_file = "scene.json";
+		std::string scene_file;
 		Window* window = nullptr;
 		GfxOptions gfx_options;
 	};
@@ -42,10 +43,17 @@ namespace adria
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<SceneLoader> scene_loader;
 		ViewportData viewport_data;
+		std::optional<SceneConfig> scene_request;
 
 	private:
 		void InitializeScene(SceneConfig const&);
 		void ProcessCVarIniFile(std::string const&);
+
+		void NewSceneRequest(SceneConfig const& scene_cfg)
+		{
+			scene_request = scene_cfg;
+		}
+		void HandleSceneRequest();
 
 		void Update(Float dt);
 		void Render();

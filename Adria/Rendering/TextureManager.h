@@ -16,7 +16,8 @@ namespace adria
 
 	public:
 
-		void Initialize(GfxDevice* gfx, Uint32 max_textures);
+		void Initialize(GfxDevice* gfx);
+		void Clear();
 		void Destroy();
 
 		ADRIA_NODISCARD TextureHandle LoadTexture(std::string_view path, Bool srgb = false);

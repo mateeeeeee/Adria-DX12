@@ -163,6 +163,8 @@ namespace adria
 
 	void RainPass::OnSceneInitialized()
 	{
+		if (rain_data_buffer != nullptr) return; 
+
 		rain_streak_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "Rain/RainStreak.dds");
 		rain_splash_bump_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "Rain/SplashBump.dds");
 		rain_splash_diffuse_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "Rain/SplashDiffuse.dds");

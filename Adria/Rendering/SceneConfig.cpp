@@ -10,13 +10,14 @@ using namespace DirectX;
 
 namespace adria
 {
-	Bool ParseSceneConfig(std::string const& scene_file, SceneConfig& config)
+	Bool ParseSceneConfig(std::string const& scene_file, SceneConfig& config, Bool append_dir)
 	{
 		json models, lights, camera, skybox;
 		std::string ini_file;
 		try
 		{
-			JsonParams scene_params = json::parse(std::ifstream(paths::ScenesDir + scene_file));
+			std::string scene_file_full = append_dir ? paths::ScenesDir + scene_file : scene_file;
+			JsonParams scene_params = json::parse(std::ifstream(scene_file_full));
 			models = scene_params.FindJsonArray("models");
 			lights = scene_params.FindJsonArray("lights");
 			camera = scene_params.FindJson("camera");

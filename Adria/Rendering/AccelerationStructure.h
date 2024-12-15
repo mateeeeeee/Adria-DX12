@@ -21,6 +21,7 @@ namespace adria
 
 		void AddInstance(Mesh const& mesh);
 		void Build();
+		void Clear();
 
 		Int32 GetTLASIndex() const;
 
