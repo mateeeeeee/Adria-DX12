@@ -21,7 +21,6 @@ namespace adria
 
 	class RendererOutputPass
 	{
-		static constexpr Uint32 PERMUTATION_COUNT = (Uint32)RendererOutput::Count;
 	public:
 		RendererOutputPass(GfxDevice* gfx, Uint32 width, Uint32 height);
 		~RendererOutputPass();

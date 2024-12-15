@@ -543,9 +543,7 @@ namespace adria
 		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
 		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 
-		shadow_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, gfx_pso_desc);
-		shadow_psos->AddDefine<1>("TRANSPARENT", "1");
-		shadow_psos->Finalize(gfx);
+		shadow_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(gfx, gfx_pso_desc);
 	}
 
 	void ShadowRenderer::ShadowMapPass_Common(GfxCommandList* cmd_list, LightType light_type, Uint64 light_index, Uint64 matrix_index, Uint64 matrix_offset)
@@ -571,7 +569,11 @@ namespace adria
 		auto DrawBatch = [&](GfxCommandList* cmd_list, Bool masked_batch)
 		{
 			std::vector<Batch*>& batches = masked_batch ? masked_batches : opaque_batches;
-			GfxPipelineState* pso = masked_batch ? shadow_psos->Get<1>() : shadow_psos->Get<0>();
+			if (masked_batch)
+			{
+				shadow_psos->AddDefine("TRANSPARENT", "1");
+			}
+			GfxPipelineState* pso = shadow_psos->Get();
 			cmd_list->SetRootConstants(1, constants);
 			cmd_list->SetPipelineState(pso);
 			for (Batch* batch : batches)

@@ -276,7 +276,12 @@ namespace adria
 					.resolution_factor = (Uint32)resolution
 				};
 
-				GfxPipelineState* clouds_pso = temporal_reprojection ? clouds_psos->Get<1>() : clouds_psos->Get<0>();
+				if (temporal_reprojection)
+				{
+					clouds_psos->AddDefine("REPROJECTION", "1");
+				}
+
+				GfxPipelineState* clouds_pso = clouds_psos->Get();
 				cmd_list->SetPipelineState(clouds_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
@@ -433,9 +438,7 @@ namespace adria
 	{
 		GfxComputePipelineStateDesc clouds_pso_desc{};
 		clouds_pso_desc.CS = CS_Clouds;
-		clouds_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, clouds_pso_desc);
-		clouds_psos->AddDefine<1>("REPROJECTION", "1");
-		clouds_psos->Finalize(gfx);
+		clouds_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, clouds_pso_desc);
 
 		clouds_pso_desc.CS = CS_CloudType;
 		clouds_type_pso = gfx->CreateComputePipelineState(clouds_pso_desc);

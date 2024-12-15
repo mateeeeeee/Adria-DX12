@@ -123,14 +123,10 @@ namespace adria
 		compute_prefiltered_texture_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		compute_pso_desc.CS = CS_DepthOfField_BokehFirstPass;
-		bokeh_first_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
-		bokeh_first_pass_psos->AddDefine<1>("KARIS_INVERSE", "1");
-		bokeh_first_pass_psos->Finalize(gfx);
+		bokeh_first_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_DepthOfField_BokehSecondPass;
-		bokeh_second_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
-		bokeh_second_pass_psos->AddDefine<1>("KARIS_INVERSE", "1");
-		bokeh_second_pass_psos->Finalize(gfx);
+		bokeh_second_pass_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_DepthOfField_ComputePostfilteredTexture;
 		compute_posfiltered_texture_pso = gfx->CreateComputePipelineState(compute_pso_desc);
@@ -472,7 +468,11 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(bokeh_first_pass_psos->Get(BokehKarisInverse.Get()));
+				if (BokehKarisInverse.Get())
+				{
+					bokeh_first_pass_psos->AddDefine("KARIS_INVERSE", "1");
+				}
+				cmd_list->SetPipelineState(bokeh_first_pass_psos->Get());
 				GfxDescriptor src_descriptors[] =
 				{
 					ctx.GetReadOnlyTexture(data.color),
@@ -547,7 +547,11 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(bokeh_second_pass_psos->Get(BokehKarisInverse.Get()));
+				if (BokehKarisInverse.Get())
+				{
+					bokeh_second_pass_psos->AddDefine("KARIS_INVERSE", "1");
+				}
+				cmd_list->SetPipelineState(bokeh_second_pass_psos->Get());
 
 				GfxDescriptor src_descriptors[] =
 				{

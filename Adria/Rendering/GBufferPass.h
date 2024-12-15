@@ -19,14 +19,14 @@ namespace adria
 
 		void OnRainEvent(Bool enabled)
 		{
-			use_rain_pso = enabled;
+			raining = enabled;
 		}
 
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;
 		Uint32 width, height;
-		Bool use_rain_pso = false;
+		Bool raining = false;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> gbuffer_psos;
 
 	private:

@@ -164,33 +164,20 @@ namespace adria
 		mesh_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
 		mesh_pso_desc.rtv_formats[3] = GfxFormat::R8G8B8A8_UNORM;
 		mesh_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-		draw_psos = std::make_unique<GfxMeshShaderPipelineStatePermutations>(2, mesh_pso_desc);
-		draw_psos->AddDefine<PS, 1>("RAIN", "1");
-		draw_psos->Finalize(gfx);
+		draw_psos = std::make_unique<GfxMeshShaderPipelineStatePermutations>(gfx, mesh_pso_desc);
 
 		GfxComputePipelineStateDesc compute_pso_desc{};
-
 		compute_pso_desc.CS = CS_CullInstances;
-		cull_instances_psos = std::make_unique<GfxComputePipelineStatePermutations>(3, compute_pso_desc);
-		cull_instances_psos->AddDefine<1>("OCCLUSION_CULL", "0");
-		cull_instances_psos->AddDefine<2>("SECOND_PHASE", "1");
-		cull_instances_psos->Finalize(gfx);
+		cull_instances_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_CullMeshlets;
-		cull_meshlets_psos = std::make_unique<GfxComputePipelineStatePermutations>(3, compute_pso_desc);
-		cull_meshlets_psos->AddDefine<1>("OCCLUSION_CULL", "0");
-		cull_meshlets_psos->AddDefine<2>("SECOND_PHASE", "1");
-		cull_meshlets_psos->Finalize(gfx);
+		cull_meshlets_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_BuildMeshletDrawArgs;
-		build_meshlet_draw_args_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
-		build_meshlet_draw_args_psos->AddDefine<1>("SECOND_PHASE", "1");
-		build_meshlet_draw_args_psos->Finalize(gfx);
+		build_meshlet_draw_args_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_BuildMeshletCullArgs;
-		build_meshlet_cull_args_psos = std::make_unique<GfxComputePipelineStatePermutations>(2, compute_pso_desc);
-		build_meshlet_cull_args_psos->AddDefine<1>("SECOND_PHASE", "1");
-		build_meshlet_cull_args_psos->Finalize(gfx);
+		build_meshlet_cull_args_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_BuildInstanceCullArgs;
 		build_instance_cull_args_pso = gfx->CreateComputePipelineState(compute_pso_desc);
@@ -345,7 +332,11 @@ namespace adria
 					.candidate_meshlets_counter_idx = i + 4,
 				};
 
-				GfxPipelineState* pso = occlusion_culling ? cull_instances_psos->Get<0>() : cull_instances_psos->Get<1>();
+				if (!occlusion_culling)
+				{
+					cull_instances_psos->AddDefine("OCCLUSION_CULL", "0");
+				}
+				GfxPipelineState* pso = cull_instances_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
@@ -392,7 +383,7 @@ namespace adria
 					.candidate_meshlets_counter_idx = i + 0,
 					.meshlet_cull_args_idx = i + 1
 				};
-				cmd_list->SetPipelineState(build_meshlet_cull_args_psos->Get<0>());
+				cmd_list->SetPipelineState(build_meshlet_cull_args_psos->Get());
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 
@@ -455,7 +446,11 @@ namespace adria
 					.visible_meshlets_counter_idx = i + 4,
 				};
 
-				GfxPipelineState* pso = occlusion_culling ? cull_meshlets_psos->Get<0>() : cull_meshlets_psos->Get<1>();
+				if (!occlusion_culling)
+				{
+					cull_meshlets_psos->AddDefine("OCCLUSION_CULL", "0");
+				}
+				GfxPipelineState* pso = cull_meshlets_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
@@ -503,7 +498,7 @@ namespace adria
 					.visible_meshlets_counter_idx = i + 0,
 					.meshlet_draw_args_idx = i + 1
 				};
-				cmd_list->SetPipelineState(build_meshlet_draw_args_psos->Get<0>());
+				cmd_list->SetPipelineState(build_meshlet_draw_args_psos->Get());
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 
@@ -565,7 +560,11 @@ namespace adria
 				};
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
-				GfxPipelineState* pso = rain_active ? draw_psos->Get<1>() : draw_psos->Get<0>();
+				if (rain_active)
+				{
+					draw_psos->AddDefine("RAIN", "1");
+				}
+				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
@@ -676,7 +675,13 @@ namespace adria
 					.candidate_meshlets_idx = i + 3,
 					.candidate_meshlets_counter_idx = i + 4,
 				};
-				cmd_list->SetPipelineState(cull_instances_psos->Get<2>());
+
+				cull_instances_psos->AddDefine("SECOND_PHASE", "1");
+				if (!occlusion_culling)
+				{
+					cull_instances_psos->AddDefine("OCCLUSION_CULL", "0");
+				}
+				cmd_list->SetPipelineState(cull_instances_psos->Get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& dispatch_args = ctx.GetIndirectArgsBuffer(data.cull_args);
@@ -716,7 +721,8 @@ namespace adria
 					.candidate_meshlets_counter_idx = i + 0,
 					.meshlet_cull_args_idx = i + 1
 				};
-				cmd_list->SetPipelineState(build_meshlet_cull_args_psos->Get<1>());
+				build_meshlet_cull_args_psos->AddDefine("SECOND_PHASE", "1");
+				cmd_list->SetPipelineState(build_meshlet_cull_args_psos->Get());
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 
@@ -771,7 +777,13 @@ namespace adria
 					.visible_meshlets_idx = i + 3,
 					.visible_meshlets_counter_idx = i + 4,
 				};
-				cmd_list->SetPipelineState(cull_meshlets_psos->Get<2>());
+
+				if (!occlusion_culling)
+				{
+					cull_meshlets_psos->AddDefine("OCCLUSION_CULL", "0");
+				}
+				cull_meshlets_psos->AddDefine("SECOND_PHASE", "1");
+				cmd_list->SetPipelineState(cull_meshlets_psos->Get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 
@@ -811,7 +823,8 @@ namespace adria
 					.visible_meshlets_counter_idx = i + 0,
 					.meshlet_draw_args_idx = i + 1
 				};
-				cmd_list->SetPipelineState(build_meshlet_draw_args_psos->Get<1>());
+				build_meshlet_draw_args_psos->AddDefine("SECOND_PHASE", "1");
+				cmd_list->SetPipelineState(build_meshlet_draw_args_psos->Get());
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 
@@ -857,7 +870,11 @@ namespace adria
 
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
-				GfxPipelineState* pso = rain_active ? draw_psos->Get<1>() : draw_psos->Get<0>();
+				if (rain_active)
+				{
+					draw_psos->AddDefine("RAIN", "1");
+				}
+				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);

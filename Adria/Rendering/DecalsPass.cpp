@@ -65,7 +65,18 @@ namespace adria
 				auto decal_pass_lambda = [&](Bool modify_normals)
 				{
 					if (decal_view.empty()) return;
-					GfxPipelineState* pso = modify_normals ? decal_psos->Get<1>() : decal_psos->Get<0>();
+
+					if (modify_normals)
+					{
+						using enum GfxShaderStage;
+						decal_psos->AddDefine<PS>("DECAL_MODIFY_NORMALS");
+						decal_psos->ModifyDesc([](GfxGraphicsPipelineStateDesc& desc)
+							{
+								desc.num_render_targets = 2;
+								desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
+							});
+					}
+					GfxPipelineState* pso = decal_psos->Get();
 					cmd_list->SetPipelineState(pso);
 					for (auto e : decal_view)
 					{
@@ -103,7 +114,6 @@ namespace adria
 
 	void DecalsPass::CreatePSOs()
 	{
-		using enum GfxShaderStage;
 		GfxGraphicsPipelineStateDesc decals_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Decals), decals_pso_desc.input_layout);
 		decals_pso_desc.root_signature = GfxRootSignatureID::Common;
@@ -113,15 +123,7 @@ namespace adria
 		decals_pso_desc.depth_state.depth_enable = false;
 		decals_pso_desc.num_render_targets = 1;
 		decals_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
-
-		decal_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, decals_pso_desc);
-		decal_psos->AddDefine<PS, 1>("DECAL_MODIFY_NORMALS");
-		decal_psos->ModifyDesc<1>([](GfxGraphicsPipelineStateDesc& desc) 
-			{
-				desc.num_render_targets = 2;
-				desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
-			});
-		decal_psos->Finalize(gfx);
+		decal_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(gfx, decals_pso_desc);
 	}
 
 	void DecalsPass::CreateCubeBuffers()

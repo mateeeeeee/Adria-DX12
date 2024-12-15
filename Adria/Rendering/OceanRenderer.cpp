@@ -318,15 +318,13 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 				if (ocean_tesselation)
 				{
-					cmd_list->SetPipelineState(
-						ocean_wireframe ? ocean_lod_psos->Get<1>() :
-										  ocean_lod_psos->Get<0>());
+					if (ocean_wireframe) ocean_lod_psos->SetFillMode(GfxFillMode::Wireframe);
+					cmd_list->SetPipelineState(ocean_lod_psos->Get());
 				}
 				else
 				{
-					cmd_list->SetPipelineState(
-						ocean_wireframe ? ocean_psos->Get<1>() :
-										  ocean_psos->Get<0>());
+					if (ocean_wireframe) ocean_psos->SetFillMode(GfxFillMode::Wireframe);
+					cmd_list->SetPipelineState(ocean_psos->Get());
 				}
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
@@ -428,7 +426,6 @@ namespace adria
 
 	void OceanRenderer::CreatePSOs()
 	{
-		using enum GfxShaderStage;
 		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Ocean), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
@@ -440,18 +437,13 @@ namespace adria
 		gfx_pso_desc.num_render_targets = 1;
 		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-
-		ocean_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, gfx_pso_desc);
-		ocean_psos->SetFillMode<1>(GfxFillMode::Wireframe);
-		ocean_psos->Finalize(gfx);
+		ocean_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(gfx, gfx_pso_desc);
 
 		gfx_pso_desc.VS = VS_OceanLOD;
 		gfx_pso_desc.DS = DS_OceanLOD;
 		gfx_pso_desc.HS = HS_OceanLOD;
 		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Patch;
-		ocean_lod_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(2, gfx_pso_desc);
-		ocean_lod_psos->SetFillMode<1>(GfxFillMode::Wireframe);
-		ocean_lod_psos->Finalize(gfx);
+		ocean_lod_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(gfx, gfx_pso_desc);
 
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_FFT_Horizontal;

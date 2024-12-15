@@ -87,6 +87,7 @@ namespace adria
 
 	Bool GfxShaderKey::operator==(GfxShaderKey const& key) const
 	{
+		if (impl->id != key.impl->id) return false;
 		return GetHash() == key.GetHash();
 	}
 

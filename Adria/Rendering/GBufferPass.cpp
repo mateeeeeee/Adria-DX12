@@ -62,13 +62,18 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto GetPSO = [this](MaterialAlphaMode alpha_mode)
 				{
+					using enum GfxShaderStage;
+					if (raining)
+					{
+						gbuffer_psos->AddDefine<PS>("RAIN", "1");
+					}
 					switch (alpha_mode)
 					{
-					case MaterialAlphaMode::Opaque: return gbuffer_psos->Get<0>();
-					case MaterialAlphaMode::Mask:   return gbuffer_psos->Get<1>();
-					case MaterialAlphaMode::Blend:  return gbuffer_psos->Get<3>();
+					case MaterialAlphaMode::Opaque: break;
+					case MaterialAlphaMode::Mask:   gbuffer_psos->AddDefine<PS>("MASK", "1"); break;
+					case MaterialAlphaMode::Blend:  gbuffer_psos->SetCullMode(GfxCullMode::None); break;
 					}
-					return gbuffer_psos->Get<0>();
+					return gbuffer_psos->Get();
 				};
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
@@ -84,7 +89,6 @@ namespace adria
 					if (!batch.camera_visibility) continue;
 
 					GfxPipelineState* pso = GetPSO(batch.alpha_mode);
-					if (use_rain_pso) pso = gbuffer_psos->Get<4>();
 					cmd_list->SetPipelineState(pso);
 
 					struct GBufferConstants
@@ -110,7 +114,6 @@ namespace adria
 
 	void GBufferPass::CreatePSOs()
 	{
-		using enum GfxShaderStage;
 		GfxGraphicsPipelineStateDesc gbuffer_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_GBuffer), gbuffer_pso_desc.input_layout);
 		gbuffer_pso_desc.root_signature = GfxRootSignatureID::Common;
@@ -126,14 +129,7 @@ namespace adria
 		gbuffer_pso_desc.rtv_formats[3] = GfxFormat::R8G8B8A8_UNORM;
 		gbuffer_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 
-		gbuffer_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(5, gbuffer_pso_desc);
-		gbuffer_psos->AddDefine<PS, 1>("MASK", "1");
-		gbuffer_psos->AddDefine<PS, 2>("MASK", "1");
-		gbuffer_psos->SetCullMode<2>(GfxCullMode::None);
-
-		gbuffer_psos->SetCullMode<3>(GfxCullMode::Back);
-		gbuffer_psos->AddDefine<PS, 4>("RAIN", "1");
-		gbuffer_psos->Finalize(gfx);
+		gbuffer_psos = std::make_unique<GfxGraphicsPipelineStatePermutations>(gfx, gbuffer_pso_desc);
 	}
 
 }
