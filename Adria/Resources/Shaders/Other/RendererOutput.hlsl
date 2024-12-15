@@ -10,6 +10,7 @@ struct RendererOutputConstants
 	uint diffuseIdx;
 	uint depthIdx;
 	uint emissiveIdx;
+	uint customIdx;
 	uint aoIdx;
 	uint outputIdx;
 };
@@ -83,6 +84,11 @@ void RendererOutputCS(CSInput input)
 	outputTexture[input.DispatchThreadId.xy] = float4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
 	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting * M_PI / brdfData.Diffuse, 1.0f); 
+
+#elif OUTPUT_CUSTOM
+	Texture2D customTexture = ResourceDescriptorHeap[RendererOutputPassCB.customIdx];
+	float4    customData	= customTexture.Sample(LinearWrapSampler, uv);
+	outputTexture[input.DispatchThreadId.xy] = customData;
 #else 
 	outputTexture[input.DispatchThreadId.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f); 
 #endif

@@ -13,6 +13,7 @@ namespace adria
 		Emissive,
 		AmbientOcclusion,
 		IndirectLighting,
+		Custom,
 		Count
 	};
 

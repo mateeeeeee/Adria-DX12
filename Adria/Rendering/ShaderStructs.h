@@ -113,6 +113,10 @@ namespace adria
 		Float   emissive_factor;
 		Float   alpha_cutoff;
 
+		Int32	anisotropy_idx;
+		Float	anisotropy_strength;
+		Float	anisotropy_rotation;
+
 		Uint32 clear_coat_idx;
 		Uint32 clear_coat_roughness_idx;
 		Uint32 clear_coat_normal_idx;

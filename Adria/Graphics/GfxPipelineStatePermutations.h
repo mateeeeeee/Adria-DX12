@@ -8,23 +8,63 @@ namespace adria
 	template<typename PSO>
 	struct PSOTraits;
 
+	struct GfxGraphicsPipelineStateDescHash
+	{
+		ADRIA_NODISCARD Uint64 operator()(GfxGraphicsPipelineStateDesc const& desc) const
+		{
+			HashState state;
+			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxGraphicsPipelineStateDesc)));
+			state.Combine(desc.VS.GetHash());
+			state.Combine(desc.PS.GetHash());
+			state.Combine(desc.DS.GetHash());
+			state.Combine(desc.HS.GetHash());
+			state.Combine(desc.GS.GetHash());
+			return state;
+		}
+	};
+	struct GfxComputePipelineStateDescHash
+	{
+		ADRIA_NODISCARD Uint64 operator()(GfxComputePipelineStateDesc const& desc) const
+		{
+			HashState state;
+			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxGraphicsPipelineStateDesc)));
+			state.Combine(desc.CS.GetHash());
+			return state;
+		}
+	};
+	struct GfxMeshShaderPipelineStateDescHash
+	{
+		ADRIA_NODISCARD Uint64 operator()(GfxMeshShaderPipelineStateDesc const& desc) const
+		{
+			HashState state;
+			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxGraphicsPipelineStateDesc)));
+			state.Combine(desc.AS.GetHash());
+			state.Combine(desc.MS.GetHash());
+			state.Combine(desc.PS.GetHash());
+			return state;
+		}
+	};
+
 	template<>
 	struct PSOTraits<GfxGraphicsPipelineState>
 	{
 		static constexpr GfxPipelineStateType PipelineStateType = GfxPipelineStateType::Graphics;
 		using PSODescType = GfxGraphicsPipelineStateDesc;
+		using PSODescHasher = GfxGraphicsPipelineStateDescHash;
 	};
 	template<>
 	struct PSOTraits<GfxComputePipelineState>
 	{
 		static constexpr GfxPipelineStateType PipelineStateType = GfxPipelineStateType::Compute;
 		using PSODescType = GfxComputePipelineStateDesc;
+		using PSODescHasher = GfxComputePipelineStateDescHash;
 	};
 	template<>
 	struct PSOTraits<GfxMeshShaderPipelineState>
 	{
 		static constexpr GfxPipelineStateType PipelineStateType = GfxPipelineStateType::MeshShader;
 		using PSODescType = GfxMeshShaderPipelineStateDesc;
+		using PSODescHasher = GfxMeshShaderPipelineStateDescHash;
 	};
 
 	template<typename PSO>
@@ -55,14 +95,6 @@ namespace adria
 	class GfxPipelineStatePermutations
 	{
 		template <typename PSODesc>
-		struct PSODescHash
-		{
-			ADRIA_NODISCARD Uint64 operator()(PSODesc const& desc) const
-			{
-				return crc64(reinterpret_cast<Char const*>(&desc), sizeof(PSODesc));
-			}
-		};
-		template <typename PSODesc>
 		struct PSODescComparator
 		{
 			ADRIA_NODISCARD Bool operator()(PSODesc const& lhs, PSODesc const& rhs) const
@@ -71,7 +103,8 @@ namespace adria
 			}
 		};
 		using PSODesc = PSOTraits<PSO>::PSODescType;
-		using PSOPermutationMap = std::unordered_map<PSODesc, std::unique_ptr<PSO>, PSODescHash<PSODesc>, PSODescComparator<PSODesc>>;
+		using PSODescHasher = PSOTraits<PSO>::PSODescHasher;
+		using PSOPermutationMap = std::unordered_map<PSODesc, std::unique_ptr<PSO>, PSODescHasher, PSODescComparator<PSODesc>>;
 		static constexpr GfxPipelineStateType PSOType = PSOTraits<PSO>::PipelineStateType;
 
 	public:

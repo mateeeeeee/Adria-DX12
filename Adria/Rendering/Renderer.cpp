@@ -347,6 +347,10 @@ namespace adria
 				material_gpu.emissive_factor = material.emissive_factor;
 				material_gpu.alpha_cutoff = material.alpha_cutoff;
 
+				material_gpu.anisotropy_idx = material.anisotropy_texture == INVALID_TEXTURE_HANDLE ? -1 : material.anisotropy_texture;
+				material_gpu.anisotropy_strength = material.anisotropy_strength;
+				material_gpu.anisotropy_rotation = material.anisotropy_rotation;
+
 				material_gpu.clear_coat_idx = (Uint32)material.clear_coat_texture;
 				material_gpu.clear_coat_roughness_idx = (Uint32)material.clear_coat_roughness_texture;
 				material_gpu.clear_coat_normal_idx = (Uint32)material.clear_coat_normal_texture;

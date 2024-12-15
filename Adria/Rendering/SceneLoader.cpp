@@ -578,12 +578,19 @@ namespace adria
 
 			//shading extensions
 			material.extension = ShadingExtension::None;
+			if (gltf_material.has_anisotropy)
+			{
+				material.extension = ShadingExtension::Anisotropy;
+				material.anisotropy_texture = GetTexture(gltf_material.anisotropy.anisotropy_texture.texture, true, INVALID_TEXTURE_HANDLE);
+				material.anisotropy_strength = gltf_material.anisotropy.anisotropy_strength;
+				material.anisotropy_rotation = gltf_material.anisotropy.anisotropy_rotation;
+			}
 			if (gltf_material.has_clearcoat)
 			{
 				material.extension = ShadingExtension::ClearCoat;
 				material.clear_coat_texture = GetTexture(gltf_material.clearcoat.clearcoat_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
 				material.clear_coat_roughness_texture = GetTexture(gltf_material.clearcoat.clearcoat_roughness_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
-				material.clear_coat_normal_texture = GetTexture(gltf_material.clearcoat.clearcoat_normal_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
+				material.clear_coat_normal_texture = GetTexture(gltf_material.clearcoat.clearcoat_normal_texture.texture, false, DEFAULT_NORMAL_TEXTURE_HANDLE);
 				material.clear_coat = gltf_material.clearcoat.clearcoat_factor;
 				material.clear_coat_roughness = gltf_material.clearcoat.clearcoat_roughness_factor;
 			}

@@ -89,7 +89,14 @@ PSOutput GBufferPS(VSToPS input)
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
+	uint extension = 1;
+	float3 customData = 0.0f;
+#if SHADING_EXTENSION_ANISOTROPY
+	//#todo
+#elif SHADING_EXTENSION_CLEARCOAT
+	//#todo
+#endif
 	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz * materialData.baseColorFactor, normalVS, float4(emissiveColor, materialData.emissiveFactor),
-					   aoRoughnessMetallic.g * materialData.roughnessFactor, aoRoughnessMetallic.b * materialData.metallicFactor, 0, 0.0f);
+					   aoRoughnessMetallic.g * materialData.roughnessFactor, aoRoughnessMetallic.b * materialData.metallicFactor, extension, customData);
 }

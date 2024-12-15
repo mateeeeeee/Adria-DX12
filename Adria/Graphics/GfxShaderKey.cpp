@@ -74,6 +74,8 @@ namespace adria
 
 	Uint64 GfxShaderKey::GetHash() const
 	{
+		if (!impl) return 0;
+
 		std::string define_key;
 		for (GfxShaderDefine const& define : impl->defines)
 		{

@@ -833,6 +833,7 @@ namespace adria
 					AddRendererOutputMenuItem(Emissive);
 					AddRendererOutputMenuItem(AmbientOcclusion);
 					AddRendererOutputMenuItem(IndirectLighting);
+					AddRendererOutputMenuItem(Custom);
 				#undef AddRendererOutputMenuItem
 					ImGui::EndMenu();
 				}

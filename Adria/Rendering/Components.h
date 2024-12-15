@@ -36,6 +36,7 @@ namespace adria
 	enum class ShadingExtension : Uint8
 	{
 		None,
+		Anisotropy,
 		ClearCoat,
 		Count
 	};
@@ -83,6 +84,11 @@ namespace adria
 		Bool  double_sided							= false;
 		MaterialAlphaMode alpha_mode				= MaterialAlphaMode::Opaque;
 		ShadingExtension extension					= ShadingExtension::None;
+
+		//anisotropy
+		TextureHandle								anisotropy_texture = INVALID_TEXTURE_HANDLE;
+		Float										anisotropy_strength = 0.0f;
+		Float										anisotropy_rotation = 0.0f;
 
 		//clear coat
 		TextureHandle clear_coat_texture			= INVALID_TEXTURE_HANDLE;

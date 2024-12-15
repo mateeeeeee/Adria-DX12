@@ -16,12 +16,17 @@ struct Mesh
 	uint meshletCount;
 };
 
-#define SHADING_EXTENSION_NONE 0
-#define SHADING_EXTENSION_CLEARCOAT 1
+enum ShadingExtension : uint
+{
+    ShadingExtension_Default,
+    ShadingExtension_Anisotropy,
+    ShadingExtension_ClearCoat,
+    ShadingExtension_Max,
+};
 
 struct Material
 {
-    uint    shadingExtension;
+    ShadingExtension shadingExtension;
 	float3	baseColorFactor;
 	uint	diffuseIdx;
 	uint	roughnessMetallicIdx;
@@ -32,6 +37,10 @@ struct Material
 	uint	emissiveIdx;
 	float	emissiveFactor;
 	float	alphaCutoff;
+
+	int		anisotropyIdx;
+	float	anisotropyStrength;
+	float	anisotropyRotation;
 
 	uint   clearCoatIdx;
 	uint   clearCoatRoughnessIdx;

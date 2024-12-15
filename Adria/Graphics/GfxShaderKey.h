@@ -8,8 +8,6 @@ namespace adria
 	class GfxShaderKey
 	{
 		struct Impl;
-		friend class ShaderManager;
-		friend struct GfxShaderKeyHash;
 	public:
 		GfxShaderKey();
 		GfxShaderKey(ShaderID shader_id);
@@ -26,15 +24,13 @@ namespace adria
 
 		std::vector<GfxShaderDefine> const& GetDefines() const;
 		ShaderID GetShaderID() const;
+		Uint64 GetHash() const;
 
 		operator ShaderID() const;
 		Bool operator==(GfxShaderKey const& key) const;
 
 	private:
 		std::unique_ptr<Impl> impl;
-
-	private:
-		Uint64 GetHash() const;
 	};
 
 	struct GfxShaderKeyHash

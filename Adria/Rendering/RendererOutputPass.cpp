@@ -25,6 +25,7 @@ namespace adria
 			RGTextureReadOnlyId  gbuffer_normal;
 			RGTextureReadOnlyId  gbuffer_albedo;
 			RGTextureReadOnlyId  gbuffer_emissive;
+			RGTextureReadOnlyId  gbuffer_custom;
 			RGTextureReadOnlyId  depth;
 			RGTextureReadOnlyId  ambient_occlusion;
 			RGTextureReadWriteId output;
@@ -38,6 +39,7 @@ namespace adria
 				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.gbuffer_custom = builder.ReadTexture(RG_NAME(GBufferCustom), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_NonPixelShader);
 
 				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
@@ -51,6 +53,7 @@ namespace adria
 												context.GetReadOnlyTexture(data.gbuffer_albedo),
 												context.GetReadOnlyTexture(data.depth),
 												context.GetReadOnlyTexture(data.gbuffer_emissive),
+												context.GetReadOnlyTexture(data.gbuffer_custom),
 												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
 												context.GetReadWriteTexture(data.output) };
 
@@ -68,11 +71,13 @@ namespace adria
 					Uint32 diffuse_idx;
 					Uint32 depth_idx;
 					Uint32 emissive_idx;
+					Uint32 custom_idx;
 					Uint32 ao_idx;
 					Uint32 output_idx;
 				} constants =
 				{
-					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4, .output_idx = i + 5
+					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, 
+					.custom_idx = i + 4, .ao_idx = i + 5, .output_idx = i + 6
 				};
 
 				static std::array<Char const*, (Uint32)RendererOutput::Count> OutputDefines =
@@ -84,7 +89,8 @@ namespace adria
 					"OUTPUT_METALLIC",
 					"OUTPUT_EMISSIVE",
 					"OUTPUT_AO",
-					"OUTPUT_INDIRECT"
+					"OUTPUT_INDIRECT",
+					"OUTPUT_CUSTOM"
 				};
 				if (type != RendererOutput::Final)
 				{
