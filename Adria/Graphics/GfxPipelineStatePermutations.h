@@ -27,7 +27,7 @@ namespace adria
 		ADRIA_NODISCARD Uint64 operator()(GfxComputePipelineStateDesc const& desc) const
 		{
 			HashState state;
-			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxGraphicsPipelineStateDesc)));
+			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxComputePipelineStateDesc)));
 			state.Combine(desc.CS.GetHash());
 			return state;
 		}
@@ -37,7 +37,7 @@ namespace adria
 		ADRIA_NODISCARD Uint64 operator()(GfxMeshShaderPipelineStateDesc const& desc) const
 		{
 			HashState state;
-			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxGraphicsPipelineStateDesc)));
+			state.Combine(crc64(reinterpret_cast<Char const*>(&desc), sizeof(GfxMeshShaderPipelineStateDesc)));
 			state.Combine(desc.AS.GetHash());
 			state.Combine(desc.MS.GetHash());
 			state.Combine(desc.PS.GetHash());
@@ -94,17 +94,10 @@ namespace adria
 	template<typename PSO>
 	class GfxPipelineStatePermutations
 	{
-		template <typename PSODesc>
-		struct PSODescComparator
-		{
-			ADRIA_NODISCARD Bool operator()(PSODesc const& lhs, PSODesc const& rhs) const
-			{
-				return true; //todo
-			}
-		};
 		using PSODesc = PSOTraits<PSO>::PSODescType;
 		using PSODescHasher = PSOTraits<PSO>::PSODescHasher;
-		using PSOPermutationMap = std::unordered_map<PSODesc, std::unique_ptr<PSO>, PSODescHasher, PSODescComparator<PSODesc>>;
+		//using PSOPermutationMap = std::unordered_map<PSODesc, std::unique_ptr<PSO>, PSODescHasher, PSODescComparator<PSODesc>>;
+		using PSOPermutationMap = std::unordered_map<Uint64, std::unique_ptr<PSO>>;
 		static constexpr GfxPipelineStateType PSOType = PSOTraits<PSO>::PipelineStateType;
 
 	public:
@@ -189,11 +182,12 @@ namespace adria
 
 		PSO* Get() const
 		{
-			if (!pso_permutations.contains(current_pso_desc))
+			Uint64 pso_hash = PSODescHasher{}(current_pso_desc);
+			if (!pso_permutations.contains(pso_hash))
 			{
-				pso_permutations[current_pso_desc] = std::make_unique<PSO>(gfx, current_pso_desc);
+				pso_permutations[pso_hash] = std::make_unique<PSO>(gfx, current_pso_desc);
 			}
-			PSO* pso = pso_permutations[current_pso_desc].get();
+			PSO* pso = pso_permutations[pso_hash].get();
 			current_pso_desc = base_pso_desc;
 			return pso;
 		}

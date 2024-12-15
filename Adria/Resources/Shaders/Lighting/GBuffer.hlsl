@@ -59,7 +59,7 @@ PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float r
 	output.NormalMetallic = float4(0.5f * NormalVS + 0.5f, metallic);
 	output.DiffuseRoughness = float4(BaseColor, roughness);
 	output.Emissive = float4(emissive.rgb, emissive.a / 256);
-	output.Custom = float4((float)extension / 255.0f, customData);
+	output.Custom = float4(customData, (float)extension / 255.0f);
 	return output;
 }
 
@@ -89,7 +89,7 @@ PSOutput GBufferPS(VSToPS input)
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	uint extension = 1;
+	uint extension = 0;
 	float3 customData = 0.0f;
 #if SHADING_EXTENSION_ANISOTROPY
 	//#todo

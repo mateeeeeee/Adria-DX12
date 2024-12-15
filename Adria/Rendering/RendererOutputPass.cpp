@@ -92,10 +92,7 @@ namespace adria
 					"OUTPUT_INDIRECT",
 					"OUTPUT_CUSTOM"
 				};
-				if (type != RendererOutput::Final)
-				{
-					renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");
-				}
+				renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");
 
 				cmd_list->SetPipelineState(renderer_output_psos->Get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
