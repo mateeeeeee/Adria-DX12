@@ -56,7 +56,7 @@ namespace adria
 		GfxDescriptor fog_volume_buffer_srv;
 		Uint32 fog_volume_buffer_idx;
 
-		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles = { INVALID_TEXTURE_HANDLE };
+		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles;
 		std::unique_ptr<GfxComputePipelineState>  light_injection_pso;
 		std::unique_ptr<GfxComputePipelineState>  scattering_integration_pso;
 		std::unique_ptr<GfxGraphicsPipelineState> combine_fog_pso;
