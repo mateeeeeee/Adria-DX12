@@ -67,7 +67,6 @@ namespace adria
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		selected_entity = entt::null;
 		SetStyle();
-
 		fs::create_directory(paths::PixCapturesDir);
 	}
 	void Editor::Destroy()
@@ -130,7 +129,7 @@ namespace adria
 				GfxDescriptor src_descriptor = ctx.GetReadOnlyTexture(data.src);
 				gui->Begin();
 				{
-					ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+					ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 					MenuBar();
 					Scene(src_descriptor);
 					ListEntities();
@@ -150,66 +149,6 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
 
 	}
-
-	void Editor::SetStyle()
-	{
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImGui::StyleColorsDark(&style);
-
-		style.Alpha = 1.0f;
-		style.FrameRounding = 3.0f;
-		style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
-		style.Colors[ImGuiCol_PopupBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
-		style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
-		style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-		style.Colors[ImGuiCol_FrameBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
-		style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-		style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-		style.Colors[ImGuiCol_TitleBg] = ImVec4(0.96f, 0.96f, 0.96f, 1.00f);
-		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 1.00f, 1.00f, 0.51f);
-		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
-		style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
-		style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
-		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		style.Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
-		style.Colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
-		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
-		style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-		style.Colors[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
-		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-		style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-
-		for (Int i = 0; i <= ImGuiCol_COUNT; i++)
-		{
-			ImVec4& col = style.Colors[i];
-			Float H, S, V;
-			ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
-
-			if (S < 0.1f)
-			{
-				V = 1.0f - V;
-			}
-			ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
-			if (col.w < 1.00f)
-			{
-				col.w *= 0.9f;
-			}
-		}
-	}
 	void Editor::HandleInput()
 	{
 		if (scene_focused && g_Input.IsKeyDown(KeyCode::I))
@@ -217,14 +156,7 @@ namespace adria
 			gui->ToggleVisibility();
 			g_Input.SetMouseVisibility(gui->IsVisible());
 		}
-		if (scene_focused && g_Input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (g_Input.IsKeyDown(KeyCode::Tilde)) show_basic_console = !show_basic_console;
-		if (gizmo_enabled && gui->IsVisible())
-		{
-			if (g_Input.IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-			if (g_Input.IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-			if (g_Input.IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
-		}
 		if (gui->IsVisible()) engine->camera->Enable(scene_focused);
 		else engine->camera->Enable(true);
 	}
@@ -267,16 +199,8 @@ namespace adria
 			}
 			if (ImGui::BeginMenu(ICON_FA_QUESTION" Help"))
 			{
-				ImGui::Text("Controls\n");
-				ImGui::Text(
-					"Move Camera with W, A, S, D, Q and E. Hold Right Click and move Mouse for rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
-					"Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
-					"Press G to toggle Gizmo. (Scene Window has to be active) \n"
-					"When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
-					"To hot-reload shaders, press F5."
-				);
+				ImGui::Text("TODO");
 				ImGui::Spacing();
-
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
@@ -545,7 +469,8 @@ namespace adria
 					if (engine->reg.all_of<Transform>(selected_entity))
 					{
 						auto& tr = engine->reg.get<Transform>(selected_entity);
-						tr.current_transform = XMMatrixTranslationFromVector(light->position);
+						Vector3 translation(light->position.x, light->position.y, light->position.z);
+						tr.current_transform = Matrix::CreateTranslation(translation);
 					}
 					ImGui::Checkbox("Active", &light->active);
 					if (light->active && changed)
@@ -690,14 +615,17 @@ namespace adria
 				{
 					Matrix tr = transform->current_transform;
 					
-					Float translation[3], rotation[3], scale[3];
-					ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
-					Bool change = ImGui::InputFloat3("Translation", translation);
-					change &= ImGui::InputFloat3("Rotation", rotation);
-					change &= ImGui::InputFloat3("Scale", scale);
-					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
-
-					transform->current_transform = tr;
+					Vector3 translation, scale;
+					Quaternion rotation;
+					Matrix(tr.m[0]).Decompose(scale, rotation, translation);
+					Bool change = ImGui::InputFloat3("Translation", &translation.x);
+					change &= ImGui::InputFloat3("Rotation", &rotation.x);
+					change &= ImGui::InputFloat3("Scale", &scale.x);
+					
+					Matrix scale_matrix = Matrix::CreateScale(scale);
+					Matrix rotation_matrix = Matrix::CreateFromQuaternion(rotation);
+					Matrix translation_matrix = Matrix::CreateTranslation(translation);
+					transform->current_transform = translation_matrix * rotation_matrix * scale_matrix;
 				}
 
 				auto decal = engine->reg.try_get<Decal>(selected_entity);
@@ -859,31 +787,6 @@ namespace adria
 			viewport_data.scene_viewport_size_x = size.x;
 			viewport_data.scene_viewport_size_y = size.y;
 		}
-
-		if (selected_entity != entt::null && engine->reg.all_of<Transform>(selected_entity) && gizmo_enabled)
-		{
-			ImGuizmo::SetDrawlist();
-
-			ImVec2 window_size = ImGui::GetWindowSize();
-			ImVec2 window_pos = ImGui::GetWindowPos();
-
-			ImGuizmo::SetRect(window_pos.x, window_pos.y,
-				window_size.x, window_size.y);
-
-			auto& camera = *engine->camera;
-
-			Matrix camera_view = camera.View();
-			Matrix camera_proj = camera.Proj();
-			auto& entity_transform = engine->reg.get<Transform>(selected_entity);
-
-			if (ImGuizmo::IsUsing())
-			{
-				Matrix tr = entity_transform.current_transform;
-				Bool change = ImGuizmo::Manipulate(camera_view.m[0], camera_proj.m[0], gizmo_op, ImGuizmo::LOCAL, tr.m[0]);
-				entity_transform.current_transform = tr;
-			}
-		}
-
 		ImGui::End();
 	}
 	void Editor::Log()
@@ -995,7 +898,7 @@ namespace adria
 							break;
 						}
 					}
-					ImGui::PlotLines("", FrameTimeArray, NUM_FRAMES, 0, "GPU frame time (ms)", 0.0f, FrameTimeGraphMaxValues[max_i], ImVec2(0, 80));
+					ImGui::PlotLines("GPU Profile Lines", FrameTimeArray, NUM_FRAMES, 0, "GPU frame time (ms)", 0.0f, FrameTimeGraphMaxValues[max_i], ImVec2(0, 80));
 
 					constexpr Uint32 avg_timestamp_update_interval = 1000;
 					static auto MillisecondsNow = []()
@@ -1235,4 +1138,64 @@ namespace adria
 		}
 		ImGui::End();
 	}
+	void Editor::SetStyle()
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImGui::StyleColorsDark(&style);
+
+		style.Alpha = 1.0f;
+		style.FrameRounding = 3.0f;
+		style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
+		style.Colors[ImGuiCol_PopupBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
+		style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
+		style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+		style.Colors[ImGuiCol_FrameBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
+		style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+		style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+		style.Colors[ImGuiCol_TitleBg] = ImVec4(0.96f, 0.96f, 0.96f, 1.00f);
+		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 1.00f, 1.00f, 0.51f);
+		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
+		style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
+		style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
+		style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
+		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		style.Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+		style.Colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+		style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+		style.Colors[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
+		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+		style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+
+		for (Int i = 0; i <= ImGuiCol_COUNT; i++)
+		{
+			ImVec4& col = style.Colors[i];
+			Float H, S, V;
+			ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
+
+			if (S < 0.1f)
+			{
+				V = 1.0f - V;
+			}
+			ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
+			if (col.w < 1.00f)
+			{
+				col.w *= 0.9f;
+			}
+		}
+	}
+
 }

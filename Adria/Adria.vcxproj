@@ -171,7 +171,6 @@
   <ItemGroup>
     <ClCompile Include="..\External\D3D12MA\D3D12MemAlloc.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\imgui.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\imgui_demo.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\imgui_draw.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_dx12.cpp" />
@@ -410,7 +409,6 @@
     <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imconfig.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imgui.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\ImGuizmo.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_dx12.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_win32.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imgui_internal.h" />

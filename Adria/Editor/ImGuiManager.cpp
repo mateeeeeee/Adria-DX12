@@ -5,7 +5,6 @@
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
-#include "ImGui/ImGuizmo.h"
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -54,7 +53,6 @@ namespace adria
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
 
 		imgui_allocator->ReleaseCompletedFrames(frame_count);
 	}

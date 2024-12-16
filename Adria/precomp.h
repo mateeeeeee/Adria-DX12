@@ -29,7 +29,6 @@
 #include "cereal/types/vector.hpp"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImGui/imgui.h"
-#include "ImGui/ImGuizmo.h"
 
 #include "Core/Types.h"
 #include "Core/Macros.h"

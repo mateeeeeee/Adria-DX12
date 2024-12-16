@@ -5,7 +5,6 @@
 #include "EditorEvents.h"
 #include "Rendering/ViewportData.h"
 #include "Utilities/Singleton.h"
-#include "ImGui/ImGuizmo.h"
 #include "entt/entity/fwd.hpp"
 
 namespace adria
@@ -66,9 +65,6 @@ namespace adria
 
 		Bool scene_focused = false;
 		entt::entity selected_entity;
-		
-		Bool gizmo_enabled = false;
-		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 
 		Bool reload_shaders = false;
 		Bool visibility_flags[Flag_Count] = {false};

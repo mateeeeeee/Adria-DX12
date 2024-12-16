@@ -381,9 +381,6 @@
     <ClCompile Include="..\External\ImGui\ImGui\imgui_widgets.cpp">
       <Filter>External\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\ImGuizmo.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="Logging\OutputStreamLogger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
@@ -940,9 +937,6 @@
       <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\ImGui\ImGui\imgui_internal.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\ImGuizmo.h">
       <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\External\ImGui\ImGui\imstb_rectpack.h">
