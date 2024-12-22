@@ -69,13 +69,13 @@ void ClusteredDeferredLightingCS(CSInput input)
 	uint lightOffset = lightGridBuffer[tileIndex].offset;
 	
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
-	LightingResult lightResult = (LightingResult)0;
+	float3 directLighting = 0.0f;
 	for (uint i = 0; i < lightCount; i++)
 	{
 		uint lightIndex = lightIndexList[lightOffset + i];
 		Light light = lightBuffer[lightIndex];
 		if (!light.active) continue;
-        lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
+        directLighting += DoLight(ShadingExtension_Default, light, brdfData, viewPosition, viewNormal, V, uv, 0.0f);
     }
 
 	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.aoIdx];
@@ -87,5 +87,5 @@ void ClusteredDeferredLightingCS(CSInput input)
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 
 	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.outputIdx];
-	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
+	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + directLighting + emissiveColor, 1.0f);
 }

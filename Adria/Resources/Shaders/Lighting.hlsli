@@ -35,6 +35,134 @@ struct Light
 };
 
 
+///Lighting
+
+float GetShadowMapFactor(Light light, float3 viewPosition);
+float GetRayTracedShadowsFactor(Light light, float2 uv);
+
+float DoAttenuation(float distance, float range)
+{
+	float att = saturate(1.0f - (distance * distance / (range * range)));
+	return att * att;
+}
+
+float GetLightAttenuation(Light light, float3 P, out float3 L)
+{
+	L = normalize(light.position.xyz - P);
+	float attenuation = 1.0f;
+	if(light.type == POINT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+	}
+	else if(light.type == SPOT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+
+		float3 normalizedLightDir = normalize(light.direction.xyz);
+		float cosAng = dot(-normalizedLightDir, L);
+		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
+		conAtt *= conAtt;
+
+		attenuation *= conAtt;
+	}
+	return attenuation;
+}
+
+float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
+{
+	float3 L;
+	float attenuation = GetLightAttenuation(light, P, L);
+	if(attenuation <= 0.0f) return 0.0f;
+
+	float NdotL = saturate(dot(N, L));
+	if(NdotL == 0.0f) return 0.0f;
+
+	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
+    float3 brdf = DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
+	return brdf * NdotL * light.color.rgb;
+}
+
+float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
+{
+	float3 L;
+	float attenuation = GetLightAttenuation(light, P, L);
+	if(attenuation <= 0.0f) return 0.0f;
+
+	attenuation *= GetShadowMapFactor(light, P);
+	attenuation *= GetRayTracedShadowsFactor(light, uv);
+	if(attenuation <= 0.0f) return  0.0f;
+
+	float NdotL = saturate(dot(N, L));
+	if(NdotL == 0.0f) return 0.0f;
+
+    float3 brdf = DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
+	return brdf * NdotL * light.color.rgb;
+}
+
+float3 DoLight(ShadingExtension extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float3 customData)
+{
+	float3 result = 0.0f;
+	switch(extension)
+	{
+	case ShadingExtension_ClearCoat:
+	{
+		//decode custom data for clearcoat
+		//#todo
+	}
+	case ShadingExtension_Default: 
+	case ShadingExtension_Anisotropy:
+	case ShadingExtension_Max:
+	default:
+		result = DoLight_Default(light, brdfData, P, N, V, uv); break;
+	}
+	return result;
+}
+
+float3 GetIndirectLighting(float3 viewPosition, float3 viewNormal, float3 diffuseColor, float ambientOcclusion)
+{
+	float3 indirectLighting = 0.0f;
+	int ddgiVolumesIdx = FrameCB.ddgiVolumesIdx;
+	if (ddgiVolumesIdx >= 0)
+	{
+		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
+		DDGIVolume ddgiVolume = ddgiVolumes[0];
+		
+		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
+		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+		worldPosition /= worldPosition.w;
+		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
+		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, -Wo);
+	}
+	else
+	{
+		indirectLighting = 0.1f * FrameCB.ambientColor.rgb * diffuseColor * ambientOcclusion;
+	}
+	return indirectLighting;
+}
+
+float3 GetIndirectLightingWS(float3 worldPosition, float3 worldNormal, float3 diffuseColor, float ambientOcclusion)
+{
+	float3 indirectLighting = 0.0f;
+	int ddgiVolumesIdx = FrameCB.ddgiVolumesIdx;
+	if (ddgiVolumesIdx >= 0)
+	{
+		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
+		DDGIVolume ddgiVolume = ddgiVolumes[0];
+		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
+		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, -Wo);
+	}
+	else
+	{
+		indirectLighting = 0.1f * FrameCB.ambientColor.rgb * diffuseColor * ambientOcclusion;
+	}
+	return indirectLighting;
+}
+
+
+
+
 ///Shadows
 
 float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
@@ -213,6 +341,7 @@ float GetShadowMapFactor(Light light, float3 viewPosition)
 	return shadowFactor;
 }
 
+
 float GetRayTracedShadowsFactor(Light light, float2 uv)
 {
 	bool rayTracedShadows = light.shadowMaskIndex >= 0;
@@ -226,221 +355,4 @@ float GetRayTracedShadowsFactor(Light light, float2 uv)
 }
 
 
-///Lighting
-
-struct LightingResult
-{
-	float3 Diffuse;
-	float3 Specular;
-
-	LightingResult operator+(LightingResult res2) 
-	{
-		LightingResult res = (LightingResult)0;
-		res.Diffuse  = Diffuse + res2.Diffuse;
-		res.Specular = Specular + res2.Specular;
-		return res;
-	}
-};
-
-
-float DoAttenuation(float distance, float range)
-{
-	float att = saturate(1.0f - (distance * distance / (range * range)));
-	return att * att;
-}
-
-float GetLightAttenuation(Light light, float3 P, out float3 L)
-{
-	L = normalize(light.position.xyz - P);
-	float attenuation = 1.0f;
-	if(light.type == POINT_LIGHT)
-	{
-		float distance = length(light.position.xyz - P);
-		attenuation = DoAttenuation(distance, light.range);
-	}
-	else if(light.type == SPOT_LIGHT)
-	{
-		float distance = length(light.position.xyz - P);
-		attenuation = DoAttenuation(distance, light.range);
-
-		float3 normalizedLightDir = normalize(light.direction.xyz);
-		float cosAng = dot(-normalizedLightDir, L);
-		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
-		conAtt *= conAtt;
-
-		attenuation *= conAtt;
-	}
-	return attenuation;
-}
-
-
-LightingResult DefaultLitBxDF(float3 diffuseColor, float3 specularColor, float specularRoughness, float3 N, float3 V, float3 L, float attenuation)
-{
-	LightingResult lighting = (LightingResult)0;
-	if(attenuation <= 0.0f) return lighting;
-
-	float NdotL = saturate(dot(N, L));
-	if(NdotL == 0.0f) return lighting;
-
-	float3 H = normalize(V + L);
-	float a = specularRoughness * specularRoughness;
-	float a2 = clamp(a * a, 0.0001f, 1.0f);
-
-	float D = D_GGX(N, H, a);
-	float Vis = V_SmithJointApprox(N, V, L, a);
-	float3 F = F_Schlick(V, H, specularColor);
-
-	lighting.Specular = (attenuation * NdotL) * (D * Vis) * F;
-	lighting.Diffuse = (attenuation * NdotL) * DiffuseBRDF(diffuseColor);
-
-	return lighting;
-}
-
-LightingResult DoLightNoShadows(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
-{
-	LightingResult result = (LightingResult)0;
-	
-	float3 L;
-	float attenuation = GetLightAttenuation(light, P, L);
-	if(attenuation <= 0.0f) return result;
-
-	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
-	result = DefaultLitBxDF(brdfData.Diffuse, brdfData.Specular, brdfData.Roughness, N, V, L, attenuation);
-
-	result.Diffuse  *= light.color.rgb;
-	result.Specular *= light.color.rgb;
-	return result;
-}
-
-LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
-{
-	LightingResult result = (LightingResult)0;
-	
-	float3 L;
-	float attenuation = GetLightAttenuation(light, P, L);
-	if(attenuation <= 0.0f) return result;
-
-	attenuation *= GetShadowMapFactor(light, P);
-	attenuation *= GetRayTracedShadowsFactor(light, uv);
-	if(attenuation <= 0.0f) return result;
-
-	result = DefaultLitBxDF(brdfData.Diffuse, brdfData.Specular, brdfData.Roughness, N, V, L, attenuation);
-
-	result.Diffuse  *= light.color.rgb;
-	result.Specular *= light.color.rgb;
-	return result;
-}
-
-LightingResult DoLight(ShadingExtension extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float3 customData)
-{
-	LightingResult result = (LightingResult)0;
-	switch(extension)
-	{
-	case ShadingExtension_ClearCoat:
-	{
-		//decode custom data for clearcoat
-		//#todo
-	}
-	case ShadingExtension_Default: 
-	case ShadingExtension_Anisotropy:
-	case ShadingExtension_Max:
-	default:
-		result = DoLight(light, brdfData, P, N, V, uv); break;
-	}
-	return result;
-}
-
-float3 GetIndirectLighting(float3 viewPosition, float3 viewNormal, float3 diffuseColor, float ambientOcclusion)
-{
-	float3 indirectLighting = 0.0f;
-	int ddgiVolumesIdx = FrameCB.ddgiVolumesIdx;
-	if (ddgiVolumesIdx >= 0)
-	{
-		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
-		DDGIVolume ddgiVolume = ddgiVolumes[0];
-		
-		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
-		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
-		worldPosition /= worldPosition.w;
-		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
-		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, -Wo);
-	}
-	else
-	{
-		indirectLighting = 0.1f * FrameCB.ambientColor.rgb * diffuseColor * ambientOcclusion;
-	}
-	return indirectLighting;
-}
-
-float3 GetIndirectLightingWS(float3 worldPosition, float3 worldNormal, float3 diffuseColor, float ambientOcclusion)
-{
-	float3 indirectLighting = 0.0f;
-	int ddgiVolumesIdx = FrameCB.ddgiVolumesIdx;
-	if (ddgiVolumesIdx >= 0)
-	{
-		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
-		DDGIVolume ddgiVolume = ddgiVolumes[0];
-		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
-		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, -Wo);
-	}
-	else
-	{
-		indirectLighting = 0.1f * FrameCB.ambientColor.rgb * diffuseColor * ambientOcclusion;
-	}
-	return indirectLighting;
-}
-
 #endif
-
-
-//SSCS
-/*
-static const uint SSCS_MAX_STEPS = 16;
-float ScreenSpaceShadows(Light light, float3 viewPosition)
-{
-	float3 rayPosition = viewPosition;
-	float2 rayUV = 0.0f;
-
-	float4 rayProjected = mul(float4(rayPosition, 1.0f), FrameCB.projection);
-	rayProjected.xy /= rayProjected.w;
-	rayUV = rayProjected.xy * float2(0.5f, -0.5f) + 0.5f;
-
-	float depth = depthTexture.Sample(PointClampSampler, rayUV);
-	float linearDepth = LinearizeDepth(depth);
-
-	const float SSCS_STEP_LENGTH = light.sscsMaxRayDistance / (float)SSCS_MAX_STEPS;
-	if (linearDepth > light.sscsMaxDepthDistance) return 1.0f;
-
-	float3 rayDirection = normalize(-light.direction.xyz);
-	float3 rayStep = rayDirection * SSCS_STEP_LENGTH;
-
-	float occlusion = 0.0f;
-	[unroll(SSCS_MAX_STEPS)]
-	for (uint i = 0; i < SSCS_MAX_STEPS; i++)
-	{
-		// Step the ray
-		rayPosition += rayStep;
-
-		rayProjected = mul(float4(rayPosition, 1.0), FrameCB.projection);
-		rayProjected.xy /= rayProjected.w;
-		rayUV = rayProjected.xy * float2(0.5f, -0.5f) + 0.5f;
-
-		[branch]
-		if (IsSaturated(rayUV))
-		{
-			depth = depthTexture.Sample(PointClampSampler, rayUV);
-			linearDepth = LinearizeDepth(depth);
-			float depthDelta = rayProjected.z - linearDepth;
-
-			if (depthDelta > 0 && (depthDelta < light.sscsThickness))
-			{
-				occlusion = 1.0f;
-				float2 fade = max(12 * abs(rayUV - 0.5) - 5, 0);
-				occlusion *= saturate(1 - dot(fade, fade));
-				break;
-			}
-		}
-	}
-	return 1.0f - occlusion;
-}
-*/

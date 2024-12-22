@@ -101,10 +101,10 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 		Light light = lights[i];
 		bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
 		if(!visibility) continue;
+
 		
-		LightingResult result = DoLightNoShadows(light, worldPosition.xyz, normalize(worldNormal), V, albedoColor.xyz, metallic, roughness);
-		radiance += result.Diffuse;
-		radiance += result.Specular;
+		float3 directLighting = DoLightNoShadows_Default(light, worldPosition.xyz, normalize(worldNormal), V, albedoColor.xyz, metallic, roughness);
+		radiance += directLighting;
 	}
 	radiance += materialProperties.emissive;
 	radiance += GetIndirectLightingWS(worldPosition, worldNormal, albedoColor, 1.0f);

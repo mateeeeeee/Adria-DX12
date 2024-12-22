@@ -138,14 +138,14 @@ void TiledDeferredLightingCS(CSInput input)
 	float  roughness = albedoRoughness.a;
 
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
-	LightingResult lightResult = (LightingResult)0; 
+	float3 directLighting = 0.0f;
 	if (all(input.DispatchThreadId.xy < FrameCB.renderResolution))
 	{
 		for (int i = 0; i < TileNumLights; ++i)
 		{
 			Light light = lightBuffer[TileLightIndices[i]];
 			if (!light.active) continue;
-            lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
+            directLighting += DoLight(ShadingExtension_Default, light, brdfData, viewPosition, viewNormal, V, uv, 0.0f);
         }
 	}
 
@@ -158,7 +158,7 @@ void TiledDeferredLightingCS(CSInput input)
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
 	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[TiledLightingPassCB.outputIdx];
-	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
+	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + directLighting + emissiveColor, 1.0f);
 
 	if (TiledLightingPassCB.debugIdx > 0)
 	{
