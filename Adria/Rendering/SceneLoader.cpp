@@ -588,8 +588,8 @@ namespace adria
 			if (gltf_material.has_clearcoat)
 			{
 				material.extension = ShadingExtension::ClearCoat;
-				material.clear_coat_texture = GetTexture(gltf_material.clearcoat.clearcoat_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
-				material.clear_coat_roughness_texture = GetTexture(gltf_material.clearcoat.clearcoat_roughness_texture.texture, false, DEFAULT_BLACK_TEXTURE_HANDLE);
+				material.clear_coat_texture = GetTexture(gltf_material.clearcoat.clearcoat_texture.texture, false, DEFAULT_WHITE_TEXTURE_HANDLE);
+				material.clear_coat_roughness_texture = GetTexture(gltf_material.clearcoat.clearcoat_roughness_texture.texture, false, DEFAULT_WHITE_TEXTURE_HANDLE);
 				material.clear_coat_normal_texture = GetTexture(gltf_material.clearcoat.clearcoat_normal_texture.texture, false, DEFAULT_NORMAL_TEXTURE_HANDLE);
 				material.clear_coat = gltf_material.clearcoat.clearcoat_factor;
 				material.clear_coat_roughness = gltf_material.clearcoat.clearcoat_roughness_factor;

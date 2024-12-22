@@ -5,6 +5,7 @@
 #include "Common.hlsli"
 #include "Constants.hlsli"
 #include "BRDF.hlsli"
+#include "Scene.hlsli"
 #include "DDGI/DDGICommon.hlsli"
 
 #define DIRECTIONAL_LIGHT 0
@@ -327,6 +328,25 @@ LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float
 
 	result.Diffuse  *= light.color.rgb;
 	result.Specular *= light.color.rgb;
+	return result;
+}
+
+LightingResult DoLight(ShadingExtension extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float3 customData)
+{
+	LightingResult result = (LightingResult)0;
+	switch(extension)
+	{
+	case ShadingExtension_ClearCoat:
+	{
+		//decode custom data for clearcoat
+		//#todo
+	}
+	case ShadingExtension_Default: 
+	case ShadingExtension_Anisotropy:
+	case ShadingExtension_Max:
+	default:
+		result = DoLight(light, brdfData, P, N, V, uv); break;
+	}
 	return result;
 }
 

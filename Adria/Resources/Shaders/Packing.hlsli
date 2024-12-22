@@ -79,4 +79,34 @@ float3 DecodeNormal16x2(uint f)
     return DecodeNormalOctahedron(n * 2.0 - 1.0);
 }
 
+//credit: https://github.com/zhaijialong/RealEngine/blob/main/shaders/common.hlsli
+float4 EncodeClearCoat(float clearCoat, float roughness, float3 normal)
+{
+    uint clearCoatU6 = (uint)round(clearCoat * 63.0);
+    uint roughnessU6 = (uint)round(roughness * 63.0);
+
+    float2 encodedNormal = EncodeNormalOctahedron(normal) * 0.5 + 0.5;
+    uint2 normalU10 = (uint2)round(encodedNormal * 1023.0);
+    
+    uint4 dataU8 = uint4(clearCoatU6 | ((normalU10.x >> 2) & 0xC0),
+                         roughnessU6 | ((normalU10.y >> 2) & 0xC0),
+                         normalU10.x & 0xFF,
+                         normalU10.y & 0xFF);
+    
+    return dataU8 / 255.0;
+}
+void DecodeClearCoat(float4 data, out float clearCoat, out float roughness, out float3 normal)
+{
+    uint4 dataU8 = (uint4)round(data * 255.0);
+
+    uint clearCoatU6 = dataU8.x & 0x3F;
+    uint roughnessU6 = dataU8.y & 0x3F;
+    uint2 normalU10 = uint2(dataU8.z | ((dataU8.x & 0xC0) << 2), dataU8.w | ((dataU8.y & 0xC0) << 2));
+    
+    clearCoat = clearCoatU6 / 63.0;
+    roughness = roughnessU6 / 63.0;
+    normal = DecodeNormalOctahedron((normalU10 / 1023.0) * 2.0 - 1.0);
+}
+
+
 #endif

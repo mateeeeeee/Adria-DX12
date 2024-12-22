@@ -1,4 +1,5 @@
 #include "Scene.hlsli"
+#include "Packing.hlsli"
 #if RAIN
 #include "Weather/RainUtil.hlsli"
 #endif
@@ -53,16 +54,6 @@ VSToPS GBufferVS(uint vertexId : SV_VertexID)
 	return output;
 }
 
-PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic, uint extension, float3 customData)
-{
-	PSOutput output = (PSOutput)0;
-	output.NormalMetallic = float4(0.5f * NormalVS + 0.5f, metallic);
-	output.DiffuseRoughness = float4(BaseColor, roughness);
-	output.Emissive = float4(emissive.rgb, emissive.a / 256);
-	output.Custom = float4(customData, (float)extension / 255.0f);
-	return output;
-}
-
 PSOutput GBufferPS(VSToPS input)
 {
     Instance instanceData = GetInstanceData(GBufferPassCB.instanceId);
@@ -87,16 +78,37 @@ PSOutput GBufferPS(VSToPS input)
 #if RAIN
 	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);
 #endif
-	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	uint extension = 0;
+	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
+	float4 emissive = float4(emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb, materialData.emissiveFactor);
+	float roughness = aoRoughnessMetallic.g * materialData.roughnessFactor;
+	float metallic = aoRoughnessMetallic.b * materialData.metallicFactor;
 	float3 customData = 0.0f;
+
+	PSOutput output = (PSOutput)0;
+	output.NormalMetallic = float4(0.5f * normalVS + 0.5f, metallic);
+	output.DiffuseRoughness = float4(albedoColor.xyz * materialData.baseColorFactor, roughness);
+	output.Emissive = float4(emissive.rgb, emissive.a / 256);
+	output.Custom = float4(customData, (float)ShadingExtension_Default / 255.0f);
+
 #if SHADING_EXTENSION_ANISOTROPY
 	//#todo
 #elif SHADING_EXTENSION_CLEARCOAT
-	//#todo
+	float clearCoat = materialData.clearCoat;
+	float clearCoatRoughness = materialData.clearCoatRoughness;
+	
+	Texture2D clearCoatTexture = ResourceDescriptorHeap[materialData.clearCoatIdx];
+	Texture2D clearCoatRoughnessTexture = ResourceDescriptorHeap[materialData.clearCoatRoughnessIdx];
+	clearCoat *= clearCoatTexture.Sample(LinearWrapSampler, input.Uvs).r;
+	clearCoatRoughness *= clearCoatRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).g;
+
+	Texture2D clearCoatNormalTexture = ResourceDescriptorHeap[materialData.clearCoatNormalIdx];
+    float3 clearCoatNormalTS = normalize(clearCoatNormalTexture.Sample(LinearWrapSampler, input.Uvs).xyz * 2.0f - 1.0f);
+    float3 clearCoatNormal = normalize(mul(clearCoatNormal, TBN));
+	clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
+
+	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
+	output.Custom = float4(customData, (float)ShadingExtension_ClearCoat / 255.0f);
 #endif
-	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
-	return PackGBuffer(albedoColor.xyz * materialData.baseColorFactor, normalVS, float4(emissiveColor, materialData.emissiveFactor),
-					   aoRoughnessMetallic.g * materialData.roughnessFactor, aoRoughnessMetallic.b * materialData.metallicFactor, extension, customData);
+	return output;
 }
