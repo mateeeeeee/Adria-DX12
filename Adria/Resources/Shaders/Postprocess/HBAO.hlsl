@@ -1,4 +1,5 @@
 #include "CommonResources.hlsli"
+#include "Packing.hlsli"
 #include "Constants.hlsli"
 
 #define BLOCK_SIZE 16
@@ -72,7 +73,7 @@ float ComputeCoarseAO(Texture2D<float> depthTexture, float2 UV, float radiusInPi
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void HBAO_CS(CSInput input)
 {
-    Texture2D normalTexture = ResourceDescriptorHeap[HBAOPassCB.normalIdx];
+    Texture2D normalRT = ResourceDescriptorHeap[HBAOPassCB.normalIdx];
     Texture2D<float> depthTexture = ResourceDescriptorHeap[HBAOPassCB.depthIdx];
     Texture2D noiseTexture = ResourceDescriptorHeap[HBAOPassCB.noiseIdx];
     RWTexture2D<float> outputTexture = ResourceDescriptorHeap[HBAOPassCB.outputIdx];
@@ -81,8 +82,7 @@ void HBAO_CS(CSInput input)
     float depth = depthTexture.Sample(LinearBorderSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
 
-    float3 viewNormal = normalTexture.Sample(LinearBorderSampler, uv).rgb;
-    viewNormal = 2.0f * viewNormal - 1.0f;
+    float3 viewNormal = DecodeNormalOctahedron(normalRT.Sample(LinearBorderSampler, uv).xy * 2.0f - 1.0f);
     viewNormal = normalize(viewNormal);
     float radiusInPixels = HBAOPassCB.radiusToScreen / viewPosition.z;
     float3 rand = noiseTexture.Sample(PointWrapSampler, uv * HBAOPassCB.noiseScale).xyz;

@@ -34,7 +34,7 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void SSAO_CS(CSInput input)
 {
-    Texture2D normalTexture = ResourceDescriptorHeap[SSAOPassCB.normalIdx];
+    Texture2D normalRT = ResourceDescriptorHeap[SSAOPassCB.normalIdx];
     Texture2D<float> depthTexture = ResourceDescriptorHeap[SSAOPassCB.depthIdx];
     Texture2D noiseTexture = ResourceDescriptorHeap[SSAOPassCB.noiseIdx];
     RWTexture2D<float> outputTexture = ResourceDescriptorHeap[SSAOPassCB.outputIdx];
@@ -45,8 +45,7 @@ void SSAO_CS(CSInput input)
     
     uint2 resolution = uint2(FrameCB.renderResolution) >> SSAOPassCB.resolutionFactor;
     float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
-    float3 viewNormal = normalTexture.Sample(LinearBorderSampler, uv).rgb;
-    viewNormal = 2.0f * viewNormal - 1.0f;
+    float3 viewNormal = DecodeNormalOctahedron(normalRT.Sample(LinearBorderSampler, uv).xy * 2.0f - 1.0f);
     viewNormal = normalize(viewNormal);
     
     float depth = depthTexture.Sample(LinearBorderSampler, uv);

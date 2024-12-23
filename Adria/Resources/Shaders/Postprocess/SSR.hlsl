@@ -1,6 +1,7 @@
 #include "CommonResources.hlsli"
 #include "Random.hlsli"
 #include "Reflections.hlsli"
+#include "Packing.hlsli"
 
 #define USE_GGX 0
 #define BLOCK_SIZE 16
@@ -94,8 +95,8 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void SSR_CS(CSInput input)
 {
-    Texture2D normalTexture = ResourceDescriptorHeap[SSRPassCB.normalIdx];
-    Texture2D diffuseTexture = ResourceDescriptorHeap[SSRPassCB.diffuseIdx];
+    Texture2D normalRT = ResourceDescriptorHeap[SSRPassCB.normalIdx];
+    Texture2D diffuseRT = ResourceDescriptorHeap[SSRPassCB.diffuseIdx];
     Texture2D<float> depthTexture = ResourceDescriptorHeap[SSRPassCB.depthIdx];
     Texture2D sceneTexture = ResourceDescriptorHeap[SSRPassCB.sceneIdx];
     RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[SSRPassCB.outputIdx];
@@ -108,11 +109,9 @@ void SSR_CS(CSInput input)
         outputTexture[input.DispatchThreadId.xy] = sceneColor;
         return;
     }
-    float4 viewNormalMetallic = normalTexture.Sample(LinearBorderSampler, uv);
-    float3 viewNormal = viewNormalMetallic.rgb;
-    viewNormal = 2.0f * viewNormal - 1.0f;
-    viewNormal = normalize(viewNormal);
-    float roughness = diffuseTexture.Sample(LinearBorderSampler, uv).a;
+
+    float3 viewNormal = DecodeNormalOctahedron(normalRT.Sample(LinearBorderSampler, uv).xy * 2.0f - 1.0f);
+    float roughness = diffuseRT.Sample(LinearBorderSampler, uv).a;
 
     if (roughness >= ROUGHNESS_CUTOFF)
     {

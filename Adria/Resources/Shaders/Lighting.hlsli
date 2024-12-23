@@ -5,6 +5,7 @@
 #include "Common.hlsli"
 #include "Constants.hlsli"
 #include "BRDF.hlsli"
+#include "Packing.hlsli"
 #include "Scene.hlsli"
 #include "DDGI/DDGICommon.hlsli"
 
@@ -84,6 +85,36 @@ float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float
 	return brdf * NdotL * light.color.rgb;
 }
 
+struct ClearCoatData
+{
+	float ClearCoat;
+	float ClearCoatRoughness;
+	float3 ClearCoatNormal;
+};
+float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float clearCoat, float clearCoatRoughness, float3 clearCoatNormal)
+{
+	float3 L;
+	float attenuation = GetLightAttenuation(light, P, L);
+	if(attenuation <= 0.0f) return 0.0f;
+
+	attenuation *= GetShadowMapFactor(light, P);
+	attenuation *= GetRayTracedShadowsFactor(light, uv);
+	if(attenuation <= 0.0f) return  0.0f;
+
+	float NdotL = saturate(dot(N, L));
+	if(NdotL == 0.0f) return 0.0f;
+
+	float3 clearCoatSpecular = 0.04f;
+
+	float3 clearCoatF;
+    float3 clearCoatBRDF = SpecularBRDF(clearCoatNormal, V, L, clearCoatSpecular, clearCoatRoughness, clearCoatF);
+    float3 baseBRDF = DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
+     
+    float baseNdotL = saturate(dot(N, L));
+    float3 brdf = baseBRDF * (1.0 - clearCoat * clearCoatF) * baseNdotL + clearCoatBRDF * clearCoat * NdotL;
+    return brdf * light.color.rgb;
+}
+
 float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
 {
 	float3 L;
@@ -108,9 +139,12 @@ float3 DoLight(uint extension, Light light, BrdfData brdfData, float3 P, float3 
 	{
 	case ShadingExtension_ClearCoat:
 	{
-		//decode custom data for clearcoat
-		//#todo
+		float clearCoat, clearCoatRoughness;
+		float3 clearCoatNormal;
+		DecodeClearCoat(customData, clearCoat, clearCoatRoughness, clearCoatNormal);
+		result = DoLight_ClearCoat(light, brdfData, P, N, V, uv, clearCoat, clearCoatRoughness, clearCoatNormal); break;
 	}
+	break;
 	case ShadingExtension_Default: 
 	case ShadingExtension_Anisotropy:
 	case ShadingExtension_Max:

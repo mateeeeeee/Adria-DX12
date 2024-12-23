@@ -1,4 +1,5 @@
 #include "RayTracingUtil.hlsli"
+#include "Packing.hlsli"
 
 struct RayTracedAmbientOcclusionConstants
 {
@@ -24,7 +25,7 @@ void RTAO_RayGen()
 {
     RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTexture = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.depthIdx];
-	Texture2D normalTexture = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.normalsIdx];
+	Texture2D normalRT = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.normalsIdx];
 	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.outputIdx];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
@@ -33,8 +34,7 @@ void RTAO_RayGen()
 	float depth = depthTexture.Load(int3(launchIndex.xy, 0)).r;
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float3 worldPosition = GetWorldPosition(texCoords, depth);
-	float3 viewNormal = normalTexture.Load(int3(launchIndex.xy, 0)).xyz;
-	viewNormal = 2.0 * viewNormal - 1.0;
+    float3 viewNormal = DecodeNormalOctahedron(normalRT.Load(int3(launchIndex.xy, 0)).xy * 2.0f - 1.0f);
 	float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
 
 	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 47, 16);

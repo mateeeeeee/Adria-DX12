@@ -99,8 +99,8 @@ PSOutput GBufferPS(VSToPS input)
 
 	Texture2D clearCoatNormalTexture = ResourceDescriptorHeap[materialData.clearCoatNormalIdx];
     float3 clearCoatNormalTS = normalize(clearCoatNormalTexture.Sample(LinearWrapSampler, input.Uvs).xyz * 2.0f - 1.0f);
-    float3 clearCoatNormal = normalize(mul(clearCoatNormal, TBN));
-	clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
+    float3 clearCoatNormal = normalize(mul(clearCoatNormalTS, TBN));
+	float3 clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
 	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
 #endif
 

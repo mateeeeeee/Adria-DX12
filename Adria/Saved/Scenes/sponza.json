@@ -17,13 +17,19 @@
 		"skybox" : {
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
 	},
-    "models" : [
-			{
-				"path": "Resources/Models/Sponza/Sponza.gltf",
-				"scale": [ 12.0, 12.0, -12.0 ],
-				"use_ccw": true,
-				"force_alpha_mask": false
-			}
+	"models": [
+		{
+			"path": "Resources/Models/Sponza/Sponza.gltf",
+			"scale": [ 12.0, 12.0, -12.0 ],
+			"use_ccw": true,
+			"force_alpha_mask": false
+		},
+		{
+			"path": "Resources/Models/ToyCar/ToyCar.gltf",
+			"scale": [ 300.0, 300.0, -300.0 ],
+			"use_ccw": true,
+			"force_alpha_mask": false
+		}
 	],
 	  "lights" : [
 		{

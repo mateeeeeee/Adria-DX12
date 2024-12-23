@@ -55,7 +55,7 @@ namespace adria
 				cas_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
 				cas_dispatch_desc.color = GetFfxResource(input_texture);
 				cas_dispatch_desc.output = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
-				cas_dispatch_desc.renderSize = { width, height };
+				cas_dispatch_desc.renderSize = { input_texture.GetWidth(), input_texture.GetHeight() };
 				cas_dispatch_desc.sharpness = sharpness;
 
 				FfxErrorCode errorCode = ffxCasContextDispatch(&cas_context, &cas_dispatch_desc);
