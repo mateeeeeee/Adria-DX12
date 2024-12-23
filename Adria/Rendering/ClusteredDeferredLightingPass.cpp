@@ -7,6 +7,7 @@
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Math/Packing.h"
 #include "Logging/Logger.h"
 #include "entt/entity/registry.hpp"
 
@@ -119,14 +120,15 @@ namespace adria
 
 		struct ClusteredDeferredLightingPassData
 		{
-			RGBufferReadOnlyId light_grid;
-			RGBufferReadOnlyId light_list;
-			RGTextureReadOnlyId gbuffer_normal;
-			RGTextureReadOnlyId gbuffer_albedo;
+			RGTextureReadOnlyId  gbuffer_normal;
+			RGTextureReadOnlyId  gbuffer_albedo;
 			RGTextureReadOnlyId  gbuffer_emissive;
+			RGTextureReadOnlyId  gbuffer_custom;
 			RGTextureReadOnlyId  depth;
 			RGTextureReadOnlyId  ambient_occlusion;
 			RGTextureReadWriteId output;
+			RGBufferReadOnlyId   light_grid;
+			RGBufferReadOnlyId   light_list;
 		};
 		rendergraph.AddPass<ClusteredDeferredLightingPassData>("Clustered Deferred Lighting Pass",
 			[=](ClusteredDeferredLightingPassData& data, RenderGraphBuilder& builder)
@@ -140,10 +142,11 @@ namespace adria
 
 				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_PixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_PixelShader);
+				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.gbuffer_custom = builder.ReadTexture(RG_NAME(GBufferCustom), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil), ReadAccess_PixelShader);
 				data.light_grid = builder.ReadBuffer(RG_NAME(LightGrid), ReadAccess_PixelShader);
 				data.light_list = builder.ReadBuffer(RG_NAME(LightList), ReadAccess_PixelShader);
-				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
 
 				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion)))
 					data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
@@ -155,11 +158,16 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),
-												context.GetReadOnlyTexture(data.gbuffer_normal), context.GetReadOnlyTexture(data.gbuffer_albedo), 
-												context.GetReadOnlyTexture(data.depth),  context.GetReadOnlyTexture(data.gbuffer_emissive),
+				GfxDescriptor src_handles[] = { 
+												context.GetReadOnlyTexture(data.gbuffer_normal), 
+												context.GetReadOnlyTexture(data.gbuffer_albedo), 
+												context.GetReadOnlyTexture(data.gbuffer_emissive),
+												context.GetReadOnlyTexture(data.gbuffer_custom),
+												context.GetReadOnlyTexture(data.depth), 
 												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
-												context.GetReadWriteTexture(data.output) };
+												context.GetReadWriteTexture(data.output),
+												context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid)
+				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				Uint32 i = dst_handle.GetIndex();
 				gfx->CopyDescriptors(dst_handle, src_handles);
@@ -170,19 +178,21 @@ namespace adria
 				
 				struct ClusteredDeferredLightingConstants
 				{
-					Uint32 light_index_list_idx;
-					Uint32 light_grid_idx;
 					Uint32 normal_idx;
 					Uint32 diffuse_idx;
-					Uint32 depth_idx;
 					Uint32 emissive_idx;
+					Uint32 custom_idx;
+					Uint32 depth_idx;
 					Uint32 ao_idx;
 					Uint32 output_idx;
-				} constants = 
+					Uint32 light_buffer_data_packed;
+				} constants =
 				{
-					.light_index_list_idx = i, .light_grid_idx = i + 1, .normal_idx = i + 2, .diffuse_idx = i + 3,
-					.depth_idx = i + 4, .emissive_idx = i + 5, .ao_idx = i + 6, .output_idx = i + 7
+					.normal_idx = i + 0, .diffuse_idx = i + 1,
+					.emissive_idx = i + 2,.custom_idx = i + 3,  .depth_idx = i + 4, .ao_idx = i + 5,
+					.output_idx = i + 6, .light_buffer_data_packed = PackTwoUint16ToUint32((Uint16)i + 7, (Uint16)i + 8)
 				};
+				ADRIA_ASSERT(i + 8 < UINT32_MAX);
 
 				cmd_list->SetPipelineState(clustered_lighting_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);

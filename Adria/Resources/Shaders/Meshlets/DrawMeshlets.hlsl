@@ -1,5 +1,6 @@
 #include "GpuDrivenRendering.hlsli"
 #include "Scene.hlsli"
+#include "Packing.hlsli"
 #if RAIN
 #include "Weather/RainUtil.hlsli"
 #endif
@@ -78,21 +79,11 @@ void DrawMeshletsMS(
 
 struct PSOutput
 {
-	float4 NormalMetallic	: SV_TARGET0;
-	float4 DiffuseRoughness : SV_TARGET1;
-	float4 Emissive			: SV_TARGET2;
-	float4 Custom			: SV_TARGET3;
+	float4 NormalRT			: SV_TARGET0;
+	float4 DiffuseRT		: SV_TARGET1;
+	float4 EmissiveRT		: SV_TARGET2;
+	float4 CustomRT			: SV_TARGET3;
 };
-
-PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic, uint extension, float3 customData)
-{
-	PSOutput output = (PSOutput)0;
-	output.NormalMetallic = float4(0.5f * NormalVS + 0.5f, metallic);
-	output.DiffuseRoughness = float4(BaseColor, roughness);
-	output.Emissive = float4(emissive.rgb, emissive.a / 256);
-	output.Custom = float4((float)extension / 255.0f, customData);
-	return output;
-}
 
 PSOutput DrawMeshletsPS(MSToPS input)
 {
@@ -120,11 +111,38 @@ PSOutput DrawMeshletsPS(MSToPS input)
 #if RAIN
 	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);
 #endif
-	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
-	return PackGBuffer(albedoColor.xyz * material.baseColorFactor, normalVS, float4(emissiveColor, material.emissiveFactor),
-		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor, 0, 0.0f);
+	float3 viewNormal = normalize(mul(normal, (float3x3) FrameCB.view));
+	float4 emissive = float4(emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb, material.emissiveFactor);
+	float roughness = aoRoughnessMetallic.g * material.roughnessFactor;
+	float metallic = aoRoughnessMetallic.b * material.metallicFactor;
+	float4 customData = 0.0f;
+	uint shadingExtension = ShadingExtension_Default;
+
+#if SHADING_EXTENSION_ANISOTROPY
+	//#todo
+#elif SHADING_EXTENSION_CLEARCOAT
+	float clearCoat = material.clearCoat;
+	float clearCoatRoughness = material.clearCoatRoughness;
+	
+	Texture2D clearCoatTexture = ResourceDescriptorHeap[material.clearCoatIdx];
+	Texture2D clearCoatRoughnessTexture = ResourceDescriptorHeap[material.clearCoatRoughnessIdx];
+	clearCoat *= clearCoatTexture.Sample(LinearWrapSampler, input.Uvs).r;
+	clearCoatRoughness *= clearCoatRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).g;
+
+	Texture2D clearCoatNormalTexture = ResourceDescriptorHeap[material.clearCoatNormalIdx];
+    float3 clearCoatNormalTS = normalize(clearCoatNormalTexture.Sample(LinearWrapSampler, input.Uvs).xyz * 2.0f - 1.0f);
+    float3 clearCoatNormal = normalize(mul(clearCoatNormal, TBN));
+	clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
+	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
+#endif
+
+	PSOutput output = (PSOutput)0;
+	output.NormalRT = EncodeGBufferNormalRT(viewNormal, metallic, shadingExtension);
+	output.DiffuseRT = float4(albedoColor.xyz * material.baseColorFactor, roughness);
+	output.EmissiveRT = float4(emissive.rgb, emissive.a / 256);
+	output.CustomRT = customData;
+	return output;
 }
 
 

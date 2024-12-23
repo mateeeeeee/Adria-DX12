@@ -7,6 +7,7 @@
 #include "Graphics/GfxCommon.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Math/Packing.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -31,6 +32,7 @@ namespace adria
 			RGTextureReadOnlyId  gbuffer_normal;
 			RGTextureReadOnlyId  gbuffer_albedo;
 			RGTextureReadOnlyId  gbuffer_emissive;
+			RGTextureReadOnlyId  gbuffer_custom;
 			RGTextureReadOnlyId  depth;
 			RGTextureReadOnlyId  ambient_occlusion;
 			RGTextureReadWriteId output;
@@ -54,6 +56,7 @@ namespace adria
 				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.gbuffer_emissive = builder.ReadTexture(RG_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.gbuffer_custom = builder.ReadTexture(RG_NAME(GBufferCustom), ReadAccess_NonPixelShader);
 
 				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion)))
 					data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
@@ -67,8 +70,9 @@ namespace adria
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
 												context.GetReadOnlyTexture(data.gbuffer_albedo),
-												context.GetReadOnlyTexture(data.depth),
 												context.GetReadOnlyTexture(data.gbuffer_emissive),
+												context.GetReadOnlyTexture(data.gbuffer_custom),
+												context.GetReadOnlyTexture(data.depth),
 												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
 												context.GetReadWriteTexture(data.output),
 												context.GetReadWriteTexture(data.debug_output) };
@@ -76,22 +80,24 @@ namespace adria
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				Uint32 i = dst_handle.GetIndex();
+
 				struct TiledLightingConstants
 				{
-					Int32  visualize_max_lights;
 					Uint32 normal_idx;
 					Uint32 diffuse_idx;
-					Uint32 depth_idx;
 					Uint32 emissive_idx;
+					Uint32 custom_idx;
+					Uint32 depth_idx;
 					Uint32 ao_idx;
 					Uint32 output_idx;
-					Int32  debug_idx;
+					Uint32 debug_data_packed;
 				} constants =
 				{
-					.visualize_max_lights = visualize_max_lights,
-					.normal_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4,
-					.output_idx = i + 5, .debug_idx = visualize_tiled ? Int32(i + 6) : -1
+					.normal_idx = i, .diffuse_idx = i + 1, .emissive_idx = i + 2, .custom_idx = i + 3, 
+					.depth_idx = i + 4, .ao_idx = i + 5, .output_idx = i + 6, 
+					.debug_data_packed = PackTwoUint16ToUint32(visualize_tiled ? Uint16(i + 7) : 0, (Uint16)visualize_max_lights)
 				};
+				if (visualize_tiled) ADRIA_ASSERT(i + 7 < UINT16_MAX);
 
 				static constexpr Float black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 				GfxTexture const& tiled_target = context.GetTexture(*data.output);
@@ -105,7 +111,10 @@ namespace adria
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		if (visualize_tiled)  copy_to_texture_pass.AddPass(rendergraph, RG_NAME(HDR_RenderTarget), RG_NAME(TiledDebugTarget), BlendMode::AdditiveBlend);
+		if (visualize_tiled)
+		{
+			copy_to_texture_pass.AddPass(rendergraph, RG_NAME(HDR_RenderTarget), RG_NAME(TiledDebugTarget), BlendMode::AdditiveBlend);
+		}
 	}
 
 	void TiledDeferredLightingPass::GUI()

@@ -11,14 +11,14 @@ struct LightGrid
 
 struct ClusteredDeferredLightingConstants
 {
-	uint lightIndexListIdx;
-	uint lightGridBufferIdx;
-	uint normalMetallicIdx;
+	uint normalIdx;
 	uint diffuseIdx;
-	uint depthIdx;
 	uint emissiveIdx;
+	uint customIdx;
+	uint depthIdx;
 	uint aoIdx;
 	uint outputIdx;
+	uint lightBufferDataPacked;
 };
 ConstantBuffer<ClusteredDeferredLightingConstants> ClusteredDeferredLightingPassCB : register(b1);
 
@@ -33,26 +33,35 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ClusteredDeferredLightingCS(CSInput input)
 {
-	StructuredBuffer<Light> lightBuffer		 = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	Texture2D               normalMetallicTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.normalMetallicIdx];
-	Texture2D               diffuseTexture	 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.diffuseIdx];
+	Texture2D               normalRT		 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.normalIdx];
+	Texture2D               diffuseRT		 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.diffuseIdx];
+	Texture2D				emissiveRT		 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.emissiveIdx];
+	Texture2D				customRT		 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.customIdx];
 	Texture2D<float>        depthTexture	 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.depthIdx];
-	StructuredBuffer<uint>  lightIndexList	 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.lightIndexListIdx];
-	StructuredBuffer<LightGrid> lightGridBuffer	 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.lightGridBufferIdx];
+
+	uint2 lightBufferData = UnpackTwoUint16FromUint32(ClusteredDeferredLightingPassCB.lightBufferDataPacked);
+	
+	StructuredBuffer<uint>  lightIndexList		= ResourceDescriptorHeap[lightBufferData.x];
+	StructuredBuffer<LightGrid> lightGridBuffer	= ResourceDescriptorHeap[lightBufferData.y];
+	StructuredBuffer<Light> lightBuffer			= ResourceDescriptorHeap[FrameCB.lightsIdx];
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
-	float4 normalMetallic = normalMetallicTexture.Sample(LinearWrapSampler, uv);
-	float3 viewNormal = 2.0f * normalMetallic.rgb - 1.0f;
-	float  metallic = normalMetallic.a;
+	float3 viewNormal;
+	float metallic;
+	uint  shadingExtension;
+	float4 normalRTData = normalRT.Sample(LinearWrapSampler, uv);
+	DecodeGBufferNormalRT(normalRTData, viewNormal, metallic, shadingExtension);
 	float  depth = depthTexture.Sample(LinearWrapSampler, uv);
 
 	float3 viewPosition = GetViewPosition(uv, depth);
-	float4 albedoRoughness = diffuseTexture.Sample(LinearWrapSampler, uv);
 	float3 V = normalize(float3(0.0f, 0.0f, 0.0f) - viewPosition);
+	float4 albedoRoughness = diffuseRT.Sample(LinearWrapSampler, uv);
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;
-	float linearDepth = LinearizeDepth(depth);
+	float4 customData = customRT.Sample(LinearWrapSampler, uv);
+
+	float  linearDepth = LinearizeDepth(depth);
 	
 	float nearPlane = min(FrameCB.cameraNear, FrameCB.cameraFar);
 	float farPlane = max(FrameCB.cameraNear, FrameCB.cameraFar);
@@ -61,9 +70,7 @@ void ClusteredDeferredLightingCS(CSInput input)
 	uint2 clusterDim = ceil(FrameCB.renderResolution / float2(16, 16));
 	uint3 tiles = uint3(uint2(((float2) input.DispatchThreadId.xy + 0.5f) / clusterDim), zCluster);
 
-	uint tileIndex = tiles.x +
-		16 * tiles.y +
-		(256) * tiles.z;
+	uint tileIndex = tiles.x + 16 * tiles.y + (256) * tiles.z;
 
 	uint lightCount = lightGridBuffer[tileIndex].lightCount;
 	uint lightOffset = lightGridBuffer[tileIndex].offset;
@@ -75,15 +82,14 @@ void ClusteredDeferredLightingCS(CSInput input)
 		uint lightIndex = lightIndexList[lightOffset + i];
 		Light light = lightBuffer[lightIndex];
 		if (!light.active) continue;
-        directLighting += DoLight(ShadingExtension_Default, light, brdfData, viewPosition, viewNormal, V, uv, 0.0f);
+        directLighting += DoLight(shadingExtension, light, brdfData, viewPosition, viewNormal, V, uv, customData);
     }
 
 	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.aoIdx];
 	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
 
-	Texture2D emissiveTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.emissiveIdx];
-	float4 emissiveData = emissiveTexture.Sample(LinearWrapSampler, uv);
+	float4 emissiveData = emissiveRT.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 
 	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.outputIdx];

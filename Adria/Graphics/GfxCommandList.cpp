@@ -610,21 +610,26 @@ namespace adria
 		current_render_pass = nullptr;
 	}
 
-	void GfxCommandList::SetPipelineState(GfxPipelineState* state)
+	void GfxCommandList::SetPipelineState(GfxPipelineState* pso)
 	{
-		if (state != current_pso)
+		if (pso != current_pso)
 		{
-			current_pso = state;
-			if (state == nullptr)
+			current_pso = pso;
+			if (pso == nullptr)
 			{
 				cmd_list->SetPipelineState(nullptr);
 			}
 			else
 			{
-				cmd_list->SetPipelineState(*state);
-				if (state->GetType() == GfxPipelineStateType::Graphics || state->GetType() == GfxPipelineStateType::MeshShader)
+				cmd_list->SetPipelineState(*pso);
+				if (pso->GetType() == GfxPipelineStateType::Graphics || pso->GetType() == GfxPipelineStateType::MeshShader)
+				{
 					ADRIA_ASSERT(current_context == Context::Graphics);
-				else ADRIA_ASSERT(current_context == Context::Compute);
+				}
+				else
+				{
+					ADRIA_ASSERT(current_context == Context::Compute);
+				}
 			}
 		}
 	}

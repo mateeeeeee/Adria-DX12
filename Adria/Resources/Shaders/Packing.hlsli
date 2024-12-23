@@ -36,7 +36,6 @@ uint2 UnpackTwoUint16FromUint32(in uint packed)
     return unpacked;
 }
 
-
 float4 UnpackUintColor(uint color)
 {
     float4 outCol = float4((color >> 24 & 0xff) / 255.0, (color >> 16 & 0xff) / 255.0f, (color >> 8 & 0xff) / 255.0, (color >> 0 & 0xff) / 255.0);
@@ -79,7 +78,21 @@ float3 DecodeNormal16x2(uint f)
     return DecodeNormalOctahedron(n * 2.0 - 1.0);
 }
 
-//credit: https://github.com/zhaijialong/RealEngine/blob/main/shaders/common.hlsli
+
+float4 EncodeGBufferNormalRT(float3 viewNormal, float metallic, uint shadingExtension)
+{
+    float2 encodedNormal = EncodeNormalOctahedron(viewNormal) * 0.5f + 0.5f;
+    return float4(encodedNormal, metallic, (float)shadingExtension / 255.0f);
+}
+
+void DecodeGBufferNormalRT(float4 data, out float3 viewNormal, out float metallic, out uint shadingExtension)
+{
+    viewNormal = DecodeNormalOctahedron(data.xy * 2.0f - 1.0f);
+    metallic = data.z;
+    shadingExtension = uint(data.w * 255.0f);
+}
+
+//credit: https://github.com/zhaijialong/RealEngine/blob/main/shaders/common.hlsli 
 float4 EncodeClearCoat(float clearCoat, float roughness, float3 normal)
 {
     uint clearCoatU6 = (uint)round(clearCoat * 63.0);

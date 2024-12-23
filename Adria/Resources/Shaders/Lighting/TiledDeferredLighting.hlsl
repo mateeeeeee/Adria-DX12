@@ -6,14 +6,14 @@
 
 struct TiledLightingConstants
 {
-	int  maxLightsVisualization;
-	uint normalMetallicIdx;
+	uint normalIdx;
 	uint diffuseIdx;
-	uint depthIdx;
 	uint emissiveIdx;
+	uint customIdx;
+	uint depthIdx;
 	uint aoIdx;
 	uint outputIdx;
-	int  debugIdx;
+	uint debugDataPacked;
 };
 ConstantBuffer<TiledLightingConstants> TiledLightingPassCB : register(b1);
 
@@ -33,14 +33,15 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void TiledDeferredLightingCS(CSInput input)
 {
-	Texture2D               normalMetallicTexture	= ResourceDescriptorHeap[TiledLightingPassCB.normalMetallicIdx];
-	Texture2D               diffuseTexture			= ResourceDescriptorHeap[TiledLightingPassCB.diffuseIdx];
-	Texture2D<float>        depthTexture			= ResourceDescriptorHeap[TiledLightingPassCB.depthIdx];
+	Texture2D               normalRT	 = ResourceDescriptorHeap[TiledLightingPassCB.normalIdx];
+	Texture2D               diffuseRT	 = ResourceDescriptorHeap[TiledLightingPassCB.diffuseIdx];
+	Texture2D				emissiveRT	 = ResourceDescriptorHeap[TiledLightingPassCB.emissiveIdx];
+	Texture2D               customRT	 = ResourceDescriptorHeap[TiledLightingPassCB.customIdx];
+	Texture2D<float>        depthTexture = ResourceDescriptorHeap[TiledLightingPassCB.depthIdx];
 
 	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	uint totalLights, _unused;
 	lightBuffer.GetDimensions(totalLights, _unused);
-
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	float nearPlane = min(FrameCB.cameraNear, FrameCB.cameraFar);
@@ -128,14 +129,19 @@ void TiledDeferredLightingCS(CSInput input)
 
 	GroupMemoryBarrierWithGroupSync();
 
+	float3 viewNormal;
+	float metallic;
+	uint  shadingExtension;
+	float4 normalRTData = normalRT.Sample(LinearWrapSampler, uv);
+	DecodeGBufferNormalRT(normalRTData, viewNormal, metallic, shadingExtension);
+
 	float3 viewPosition = GetViewPosition(uv, depth);
-	float4 normalMetallic = normalMetallicTexture.Load(int3(input.DispatchThreadId.xy, 0));
-	float3 viewNormal  = 2.0f * normalMetallic.rgb - 1.0f;
-	float metallic = normalMetallic.a;
-	float4 albedoRoughness = diffuseTexture.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 V = normalize(0.0f.xxx - viewPosition);
+
+	float4 albedoRoughness = diffuseRT.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;
+	float4 customData = customRT.Sample(LinearWrapSampler, uv);
 
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	float3 directLighting = 0.0f;
@@ -145,7 +151,7 @@ void TiledDeferredLightingCS(CSInput input)
 		{
 			Light light = lightBuffer[TileLightIndices[i]];
 			if (!light.active) continue;
-            directLighting += DoLight(ShadingExtension_Default, light, brdfData, viewPosition, viewNormal, V, uv, 0.0f);
+            directLighting += DoLight(shadingExtension, light, brdfData, viewPosition, viewNormal, V, uv, customData);
         }
 	}
 
@@ -153,14 +159,14 @@ void TiledDeferredLightingCS(CSInput input)
 	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
 
-	Texture2D emissiveTexture = ResourceDescriptorHeap[TiledLightingPassCB.emissiveIdx];
-	float4 emissiveData = emissiveTexture.Sample(LinearWrapSampler, uv);
+	float4 emissiveData = emissiveRT.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
 	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[TiledLightingPassCB.outputIdx];
 	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + directLighting + emissiveColor, 1.0f);
 
-	if (TiledLightingPassCB.debugIdx > 0)
+	uint2 debugData = UnpackTwoUint16FromUint32(TiledLightingPassCB.debugDataPacked);
+	if (debugData.x > 0)
 	{
 		const float3 heatMap[] =
 		{
@@ -172,13 +178,13 @@ void TiledDeferredLightingCS(CSInput input)
 			float3(1, 0, 0),
 		};
 		const uint heatMapMax = 5;
-		float  l = saturate((float)TileNumLights / TiledLightingPassCB.maxLightsVisualization) * heatMapMax;
+		float  l = saturate((float)TileNumLights / debugData.y) * heatMapMax;
 		float3 a = heatMap[floor(l)];
 		float3 b = heatMap[ceil(l)];
 
 		float4 debugColor = float4(lerp(a, b, l - floor(l)), 0.5f);
 
-		RWTexture2D<float4> debugTexture = ResourceDescriptorHeap[TiledLightingPassCB.debugIdx];
+		RWTexture2D<float4> debugTexture = ResourceDescriptorHeap[debugData.x];
 		debugTexture[input.DispatchThreadId.xy] = debugColor;
 	}
 }

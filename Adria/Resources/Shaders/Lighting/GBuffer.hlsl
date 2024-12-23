@@ -22,10 +22,10 @@ struct VSToPS
 
 struct PSOutput
 {
-	float4 NormalMetallic	: SV_TARGET0;
-	float4 DiffuseRoughness : SV_TARGET1;
-	float4 Emissive			: SV_TARGET2;
-	float4 Custom			: SV_TARGET3;
+	float4 NormalRT	: SV_TARGET0;
+	float4 DiffuseRT : SV_TARGET1;
+	float4 EmissiveRT			: SV_TARGET2;
+	float4 CustomRT			: SV_TARGET3;
 
 };
 
@@ -79,17 +79,12 @@ PSOutput GBufferPS(VSToPS input)
 	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);
 #endif
 
-	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
+	float3 viewNormal = normalize(mul(normal, (float3x3) FrameCB.view));
 	float4 emissive = float4(emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb, materialData.emissiveFactor);
 	float roughness = aoRoughnessMetallic.g * materialData.roughnessFactor;
 	float metallic = aoRoughnessMetallic.b * materialData.metallicFactor;
-	float3 customData = 0.0f;
-
-	PSOutput output = (PSOutput)0;
-	output.NormalMetallic = float4(0.5f * normalVS + 0.5f, metallic);
-	output.DiffuseRoughness = float4(albedoColor.xyz * materialData.baseColorFactor, roughness);
-	output.Emissive = float4(emissive.rgb, emissive.a / 256);
-	output.Custom = float4(customData, (float)ShadingExtension_Default / 255.0f);
+	float4 customData = 0.0f;
+	uint shadingExtension = ShadingExtension_Default;
 
 #if SHADING_EXTENSION_ANISOTROPY
 	//#todo
@@ -106,9 +101,13 @@ PSOutput GBufferPS(VSToPS input)
     float3 clearCoatNormalTS = normalize(clearCoatNormalTexture.Sample(LinearWrapSampler, input.Uvs).xyz * 2.0f - 1.0f);
     float3 clearCoatNormal = normalize(mul(clearCoatNormal, TBN));
 	clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
-
 	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
-	output.Custom = float4(customData, (float)ShadingExtension_ClearCoat / 255.0f);
 #endif
+
+	PSOutput output = (PSOutput)0;
+	output.NormalRT = EncodeGBufferNormalRT(viewNormal, metallic, shadingExtension);
+	output.DiffuseRT = float4(albedoColor.xyz * materialData.baseColorFactor, roughness);
+	output.EmissiveRT = float4(emissive.rgb, emissive.a / 256);
+	output.CustomRT = customData;
 	return output;
 }

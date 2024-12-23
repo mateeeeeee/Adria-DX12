@@ -302,6 +302,7 @@ namespace adria
 				Batch& batch = reg.emplace<Batch>(batch_entity);
 				batch.instance_id = instanceID;
 				batch.alpha_mode = material.alpha_mode;
+				batch.shading_extension = material.shading_extension;
 				batch.submesh = &submesh;
 				batch.world_transform = instance.world_transform;
 				submesh.bounding_box.Transform(batch.bounding_box, batch.world_transform);
@@ -336,7 +337,7 @@ namespace adria
 			for (auto const& material : mesh.materials)
 			{
 				MaterialGPU& material_gpu = materials.emplace_back();
-				material_gpu.shading_extension = (Uint32)material.extension;
+				material_gpu.shading_extension = (Uint32)material.shading_extension;
 				material_gpu.albedo_color = Vector3(material.albedo_color);
 				material_gpu.albedo_idx = (Uint32)material.albedo_texture;
 				material_gpu.roughness_metallic_idx = (Uint32)material.metallic_roughness_texture;

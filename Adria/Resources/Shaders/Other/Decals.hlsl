@@ -1,4 +1,5 @@
 #include "CommonResources.hlsli"
+#include "Packing.hlsli"
 
 #define DECAL_XY 0
 #define DECAL_YZ 1
@@ -39,9 +40,9 @@ VSToPS DecalsVS(VSInput input)
 
 struct PSOutput
 {
-	float4 DiffuseRoughness : SV_TARGET0;
+	float4 DiffuseRT : SV_TARGET0;
 #ifdef DECAL_MODIFY_NORMALS
-	float4 NormalMetallic   : SV_TARGET1;
+	float4 NormalRT   : SV_TARGET1;
 #endif
 };
 
@@ -75,13 +76,13 @@ PSOutput DecalsPS(VSToPS input)
 		texCoords = posLS.xz + 0.5f;
 		break;
 	default:
-		output.DiffuseRoughness.rgb = float3(1, 0, 0);
+		output.DiffuseRT.rgb = float3(1, 0, 0);
 		return output;
 	}
 
 	float4 albedo = albedoTexture.SampleLevel(LinearWrapSampler, texCoords, 0);
 	if (albedo.a < 0.1) discard;
-	output.DiffuseRoughness.rgb = albedo.rgb;
+	output.DiffuseRT.rgb = albedo.rgb;
 
 #ifdef DECAL_MODIFY_NORMALS
 	Texture2D<float4> normalTexture = ResourceDescriptorHeap[DecalsPassCB.decalNormalIdx];
@@ -95,11 +96,11 @@ PSOutput DecalsPS(VSToPS input)
 
 	float3x3 TBN = float3x3(tangent, binormal, normal);
 
-	float3 DecalNormal = normalTexture.Sample(LinearWrapSampler, texCoords).xyz;
-	DecalNormal = 2.0f * DecalNormal - 1.0f;
-	DecalNormal = mul(DecalNormal, TBN);
-	float3 DecalNormalVS = normalize(mul(DecalNormal, (float3x3)FrameCB.view));
-	output.NormalMetallic.rgb = 0.5 * DecalNormalVS + 0.5;
+	float3 decalNormal = normalTexture.Sample(LinearWrapSampler, texCoords).xyz;
+	decalNormal = 2.0f * decalNormal - 1.0f;
+	decalNormal = mul(decalNormal, TBN);
+	float3 decalViewNormal = normalize(mul(decalNormal, (float3x3)FrameCB.view));
+	output.NormalRT.rg = EncodeNormalOctahedron(decalViewNormal) * 0.5f + 0.5f;
 #endif
 	return output;
 }

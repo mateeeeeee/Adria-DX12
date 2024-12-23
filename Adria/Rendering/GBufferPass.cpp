@@ -60,13 +60,19 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				auto GetPSO = [this](MaterialAlphaMode alpha_mode)
+				auto GetPSO = [this](ShadingExtension extension, MaterialAlphaMode alpha_mode)
 				{
 					using enum GfxShaderStage;
 					if (raining)
 					{
 						gbuffer_psos->AddDefine<PS>("RAIN", "1");
 					}
+					switch (extension)
+					{
+					case ShadingExtension::Anisotropy: gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_ANISOTROPY", "1"); break;
+					case ShadingExtension::ClearCoat: gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_CLEARCOAT", "1"); break;
+					}
+
 					switch (alpha_mode)
 					{
 					case MaterialAlphaMode::Opaque: break;
@@ -81,14 +87,18 @@ namespace adria
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
 
-				reg.sort<Batch>([](Batch const& lhs, Batch const& rhs) { return lhs.alpha_mode < rhs.alpha_mode; });
+				reg.sort<Batch>([](Batch const& lhs, Batch const& rhs) 
+					{ 
+						if(lhs.alpha_mode != rhs.alpha_mode) return lhs.alpha_mode < rhs.alpha_mode;
+						return lhs.shading_extension < rhs.shading_extension;
+					});
 				auto batch_view = reg.view<Batch>();
 				for (auto batch_entity : batch_view)
 				{
 					Batch& batch = batch_view.get<Batch>(batch_entity);
 					if (!batch.camera_visibility) continue;
 
-					GfxPipelineState* pso = GetPSO(batch.alpha_mode);
+					GfxPipelineState* pso = GetPSO(batch.shading_extension, batch.alpha_mode);
 					cmd_list->SetPipelineState(pso);
 
 					struct GBufferConstants

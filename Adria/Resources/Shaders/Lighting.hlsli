@@ -101,7 +101,7 @@ float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float
 	return brdf * NdotL * light.color.rgb;
 }
 
-float3 DoLight(ShadingExtension extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float3 customData)
+float3 DoLight(uint extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
 {
 	float3 result = 0.0f;
 	switch(extension)

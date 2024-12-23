@@ -77,7 +77,6 @@ void PT_RayGen()
 
             if (i == PathTracingPassCB.bounceCount - 1) break;
 
-            //indirect light
             float probDiffuse = ProbabilityToSampleDiffuse(brdfData.Diffuse, brdfData.Specular);
             bool chooseDiffuse = NextRand(randSeed) < probDiffuse;
 
