@@ -45,9 +45,9 @@ namespace adria
 
 	class ShadowRenderer
 	{
-		static constexpr Uint32 SHADOW_MAP_SIZE = 2048;
+		static constexpr Uint32 SHADOW_MAP_SIZE = 1024;
+		static constexpr Uint32 SHADOW_CASCADE_MAP_SIZE = 2048;
 		static constexpr Uint32 SHADOW_CUBE_SIZE = 512;
-		static constexpr Uint32 SHADOW_CASCADE_MAP_SIZE = 1024;
 		static constexpr Uint32 SHADOW_CASCADE_COUNT = 4;
 
 	public:

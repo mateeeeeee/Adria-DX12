@@ -89,6 +89,7 @@ PSOutput GBufferPS(VSToPS input)
 #if SHADING_EXTENSION_ANISOTROPY
 	//#todo
 #elif SHADING_EXTENSION_CLEARCOAT
+	shadingExtension = ShadingExtension_ClearCoat;
 	float clearCoat = materialData.clearCoat;
 	float clearCoatRoughness = materialData.clearCoatRoughness;
 	

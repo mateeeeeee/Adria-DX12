@@ -101,17 +101,15 @@ float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, flo
 	attenuation *= GetRayTracedShadowsFactor(light, uv);
 	if(attenuation <= 0.0f) return  0.0f;
 
-	float NdotL = saturate(dot(N, L));
-	if(NdotL == 0.0f) return 0.0f;
-
+	float clearCoatNdotL = saturate(dot(clearCoatNormal, L));
 	float3 clearCoatSpecular = 0.04f;
 
 	float3 clearCoatF;
     float3 clearCoatBRDF = SpecularBRDF(clearCoatNormal, V, L, clearCoatSpecular, clearCoatRoughness, clearCoatF);
     float3 baseBRDF = DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
      
-    float baseNdotL = saturate(dot(N, L));
-    float3 brdf = baseBRDF * (1.0 - clearCoat * clearCoatF) * baseNdotL + clearCoatBRDF * clearCoat * NdotL;
+    float NdotL = saturate(dot(N, L));
+    float3 brdf = baseBRDF * (1.0 - clearCoat * clearCoatF) * NdotL + clearCoatBRDF * clearCoat * clearCoatNdotL;
     return brdf * light.color.rgb;
 }
 

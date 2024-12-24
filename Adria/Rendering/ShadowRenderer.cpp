@@ -19,6 +19,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<Float> CascadesSplitLambda("r.Shadows.CascadesSplitLambda", 0.5f, "Lambda used when calculating cascades split");
 	static TAutoConsoleVariable<Float> ShadowFarFactor("r.Shadows.FarFactor", 1.2f, "Far factor used to calculate projection matrices of directional light");
+	static TAutoConsoleVariable<Float> ShadowLightDistanceFactor("r.Shadows.LightDistanceFactor", 1.0f, "Factor used to calculate projection matrices of directional light");
 
 	namespace
 	{
@@ -152,7 +153,7 @@ namespace adria
 		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, Uint32 shadow_cascade_size, std::vector<BoundingObject>& bounding_objects)
 		{
 			Float const far_factor = ShadowFarFactor.Get();
-			Float const light_distance_factor = 1.0f;
+			Float const light_distance_factor = ShadowLightDistanceFactor.Get();
 
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, camera.View().Invert());
