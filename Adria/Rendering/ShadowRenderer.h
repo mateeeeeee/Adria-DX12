@@ -69,7 +69,7 @@ namespace adria
 		void AddRayTracingShadowPasses(RenderGraph& rg);
 
 		void FillFrameCBuffer(FrameCBuffer& frame_cbuffer);
-
+		void GUI();
 		ShadowTextureRenderedEvent& GetShadowTextureRenderedEvent() { return shadow_rendered_event; }
 
 	private:

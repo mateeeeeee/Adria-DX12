@@ -528,9 +528,10 @@ namespace adria
 		if (renderer_output == RendererOutput::Final)
 		{
 			if (lighting_path == LightingPathType::TiledDeferred) tiled_deferred_lighting_pass.GUI();
+			shadow_renderer.GUI();
 			switch (volumetric_path)
 			{
-			case VolumetricPathType::Raymarching: volumetric_lighting_pass.GUI(); break;
+			case VolumetricPathType::Raymarching:	volumetric_lighting_pass.GUI(); break;
 			case VolumetricPathType::FogVolume:		volumetric_fog_pass.GUI();		break;
 			}
 			ocean_renderer.GUI();

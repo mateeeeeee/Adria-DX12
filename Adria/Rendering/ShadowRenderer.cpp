@@ -11,6 +11,7 @@
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
 
 using namespace DirectX;
@@ -223,6 +224,23 @@ namespace adria
 		frame_cbuffer.lights_matrices_idx = light_matrices_gpu_index;
 		frame_cbuffer.cascade_splits = Vector4(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 	}
+
+	void ShadowRenderer::GUI()
+	{
+		QueueGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Shadow Settings", ImGuiTreeNodeFlags_None))
+				{
+					ImGui::SliderFloat("Cascades Split Lambda", CascadesSplitLambda.GetPtr(), 0.0f, 1.0f);
+					ImGui::SliderFloat("Far Plane Factor", ShadowFarFactor.GetPtr(), 0.1f, 4.0f);
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}, GUICommandGroup_Renderer
+		);
+	}
+
 	void ShadowRenderer::SetupShadows(Camera const* camera)
 	{
 		static constexpr Uint32 backbuffer_count = GFX_BACKBUFFER_COUNT;
