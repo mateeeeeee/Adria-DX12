@@ -14,6 +14,7 @@ namespace adria
 		AmbientOcclusion,
 		IndirectLighting,
 		Custom,
+		ShadingExtension,
 		Count
 	};
 

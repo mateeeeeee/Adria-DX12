@@ -24,7 +24,7 @@ namespace adria
 
 	static TAutoConsoleVariable<Float> SSAOPower("r.SSAO.Power", 1.5f, "Controls the power of SSAO");
 	static TAutoConsoleVariable<Float> SSAORadius("r.SSAO.Radius", 1.0f, "Controls the radius of SSAO");
-	static TAutoConsoleVariable<int>   SSAOResolution("r.SSAO.Resolution", SSAOResolution_Half, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
+	static TAutoConsoleVariable<Int>   SSAOResolution("r.SSAO.Resolution", SSAOResolution_Full, "Sets the resolution mode for SSAO: 0 - Full resolution, 1 - Half resolution, 2 - Quarter resolution");
 
 	SSAOPass::SSAOPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr), blur_pass(gfx)
 	{
@@ -77,7 +77,8 @@ namespace adria
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				Uint32 const i = dst_descriptor.GetIndex();
 
-				Int32 resolution = SSAOResolution.Get();
+				Uint32 ssao_width  = width >> SSAOResolution.Get();
+				Uint32 ssao_height = height >> SSAOResolution.Get();
 
 				struct SSAOConstants
 				{
@@ -92,8 +93,8 @@ namespace adria
 					Uint32   output_idx;
 				} constants = 
 				{
-					.ssao_params_packed = PackTwoFloatsToUint32(SSAORadius.Get(),SSAOPower.Get()), .resolution_factor = (Uint32)resolution,
-					.noise_scale_x = (width >> resolution) * 1.0f / NOISE_DIM, .noise_scale_y = (height >> resolution) * 1.0f / NOISE_DIM,
+					.ssao_params_packed = PackTwoFloatsToUint32(SSAORadius.Get(),SSAOPower.Get()), .resolution_factor = (Uint32)SSAOResolution.Get(),
+					.noise_scale_x = ssao_width * 1.0f / NOISE_DIM, .noise_scale_y = ssao_height * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
@@ -101,7 +102,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, ssao_kernel);
-				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(ssao_width, 16), DivideAndRoundUp(ssao_height, 16), 1);
 
 			}, RGPassType::Compute);
 

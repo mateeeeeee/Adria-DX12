@@ -90,6 +90,7 @@ namespace adria
 					"OUTPUT_EMISSIVE",
 					"OUTPUT_AO",
 					"OUTPUT_INDIRECT",
+					"OUTPUT_SHADING_EXTENSION",
 					"OUTPUT_CUSTOM"
 				};
 				renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");

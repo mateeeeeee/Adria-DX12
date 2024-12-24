@@ -732,12 +732,12 @@ namespace adria
 					{
 						if (ImGui::MenuItem(item_name, nullptr, lighting_path == current_path)) { engine->renderer->SetLightingPath(lighting_path); }
 					};
-				#define AddLightingPathMenuItem(name) AddMenuItem(LightingPathType::##name, #name)
+					#define AddLightingPathMenuItem(name) AddMenuItem(LightingPathType::##name, #name)
 					AddLightingPathMenuItem(Deferred);
 					AddLightingPathMenuItem(TiledDeferred);
 					AddLightingPathMenuItem(ClusteredDeferred);
 					AddLightingPathMenuItem(PathTracing);
-				#undef AddLightingPathMenuItem
+					#undef AddLightingPathMenuItem
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Renderer Output"))
@@ -748,7 +748,7 @@ namespace adria
 						if (ImGui::MenuItem(item_name, nullptr, output == current_output)) { engine->renderer->SetRendererOutput(output); }
 					};
 
-				#define AddRendererOutputMenuItem(name) AddMenuItem(RendererOutput::##name, #name)
+					#define AddRendererOutputMenuItem(name) AddMenuItem(RendererOutput::##name, #name)
 					AddRendererOutputMenuItem(Final);
 					AddRendererOutputMenuItem(Diffuse);
 					AddRendererOutputMenuItem(WorldNormal);
@@ -758,7 +758,8 @@ namespace adria
 					AddRendererOutputMenuItem(AmbientOcclusion);
 					AddRendererOutputMenuItem(IndirectLighting);
 					AddRendererOutputMenuItem(Custom);
-				#undef AddRendererOutputMenuItem
+					AddRendererOutputMenuItem(ShadingExtension);
+					#undef AddRendererOutputMenuItem
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenuBar();

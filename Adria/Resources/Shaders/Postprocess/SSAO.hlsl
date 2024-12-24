@@ -46,7 +46,6 @@ void SSAO_CS(CSInput input)
     uint2 resolution = uint2(FrameCB.renderResolution) >> SSAOPassCB.resolutionFactor;
     float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
     float3 viewNormal = DecodeNormalOctahedron(normalRT.Sample(LinearBorderSampler, uv).xy * 2.0f - 1.0f);
-    viewNormal = normalize(viewNormal);
     
     float depth = depthTexture.Sample(LinearBorderSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
@@ -68,7 +67,7 @@ void SSAO_CS(CSInput input)
         float sampleDepth = depthTexture.Sample(LinearBorderSampler, offset.xy);
         sampleDepth = GetViewPosition(offset.xy, sampleDepth).z;
         float rangeCheck = smoothstep(0.0, 1.0, ssaoRadius / abs(viewPosition.z - sampleDepth));
-        occlusion += rangeCheck * step(sampleDepth, samplePos.z - 0.01);
+        occlusion += rangeCheck * step(sampleDepth, samplePos.z);
     }
     occlusion = 1.0 - (occlusion / SSAO_KERNEL_SIZE);
     outputTexture[input.DispatchThreadId.xy] = pow(abs(occlusion), ssaoPower);
