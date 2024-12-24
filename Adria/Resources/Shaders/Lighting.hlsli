@@ -82,15 +82,10 @@ float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float
 
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
     float3 brdf = DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
-	return brdf * NdotL * light.color.rgb;
+	return brdf * NdotL * light.color.rgb * attenuation;
 }
 
-struct ClearCoatData
-{
-	float ClearCoat;
-	float ClearCoatRoughness;
-	float3 ClearCoatNormal;
-};
+
 float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float clearCoat, float clearCoatRoughness, float3 clearCoatNormal)
 {
 	float3 L;
@@ -110,7 +105,7 @@ float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, flo
      
     float NdotL = saturate(dot(N, L));
     float3 brdf = baseBRDF * (1.0 - clearCoat * clearCoatF) * NdotL + clearCoatBRDF * clearCoat * clearCoatNdotL;
-    return brdf * light.color.rgb;
+    return brdf * light.color.rgb * attenuation;
 }
 
 float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
@@ -127,7 +122,7 @@ float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float
 	if(NdotL == 0.0f) return 0.0f;
 
     float3 brdf = DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
-	return brdf * NdotL * light.color.rgb;
+	return brdf * NdotL * attenuation * light.color.rgb;
 }
 
 float3 DoLight(uint extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
