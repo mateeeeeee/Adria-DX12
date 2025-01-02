@@ -113,6 +113,19 @@ float3 AnisotropyBRDF(float3 L, float3 V, float3 N, float3 T, float3 diffuse, fl
     return DiffuseBRDF(diffuse) * (1.0 - F) + D * Vis * F;
 }
 
+// https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_sheen/README.md
+float3 SheenBRDF(float3 L, float3 V, float3 N, float3 sheenColor, float sheenRoughness)
+{
+    //#todo
+    return sheenColor;
+}
+
+
+float SheenScale(float3 V, float3 N, float3 sheenColor, float sheenRoughness)
+{
+    return 1.0f;
+}
+
 float DielectricSpecularToF0(float specular)
 {
     return 0.08f * specular;

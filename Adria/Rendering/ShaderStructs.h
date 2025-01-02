@@ -122,6 +122,11 @@ namespace adria
 		Uint32 clear_coat_normal_idx;
 		Float  clear_coat;
 		Float  clear_coat_roughness;
+
+		Vector3 sheen_color;
+		Float sheen_roughness;
+		Uint32 sheen_color_idx;
+		Uint32 sheen_roughness_idx;
 	};
 
 	struct InstanceGPU

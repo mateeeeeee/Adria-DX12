@@ -38,6 +38,7 @@ namespace adria
 		None,
 		Anisotropy,
 		ClearCoat,
+		Sheen,
 		Count
 	};
 
@@ -96,6 +97,12 @@ namespace adria
 		TextureHandle clear_coat_normal_texture		= INVALID_TEXTURE_HANDLE;
 		Float		  clear_coat					= 0.0f;
 		Float		  clear_coat_roughness			= 0.0f;
+
+		//sheen 
+		TextureHandle sheen_color_texture = INVALID_TEXTURE_HANDLE;
+		TextureHandle sheen_roughness_texture = INVALID_TEXTURE_HANDLE;
+		Float sheen_color[3] = { 0.0f, 0.0f, 0.0f };
+		Float sheen_roughness = 0.0f;
 
 	};
 	struct COMPONENT Light

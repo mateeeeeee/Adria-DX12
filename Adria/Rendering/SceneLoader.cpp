@@ -571,7 +571,7 @@ namespace adria
 				cgltf_pbr_specular_glossiness pbr_specular_glossiness = gltf_material.pbr_specular_glossiness;
 				material.albedo_texture = GetTexture(pbr_specular_glossiness.diffuse_texture.texture, true, DEFAULT_WHITE_TEXTURE_HANDLE);
 				material.roughness_factor = 1.0f - gltf_material.pbr_specular_glossiness.glossiness_factor;
-				material.albedo_color[0]= gltf_material.pbr_specular_glossiness.diffuse_factor[0];
+				material.albedo_color[0] = gltf_material.pbr_specular_glossiness.diffuse_factor[0];
 				material.albedo_color[1] = gltf_material.pbr_specular_glossiness.diffuse_factor[1];
 				material.albedo_color[2] = gltf_material.pbr_specular_glossiness.diffuse_factor[2];
 			}
@@ -593,6 +593,16 @@ namespace adria
 				material.clear_coat_normal_texture = GetTexture(gltf_material.clearcoat.clearcoat_normal_texture.texture, false, DEFAULT_NORMAL_TEXTURE_HANDLE);
 				material.clear_coat = gltf_material.clearcoat.clearcoat_factor;
 				material.clear_coat_roughness = gltf_material.clearcoat.clearcoat_roughness_factor;
+			}
+			if (gltf_material.has_sheen)
+			{
+				material.shading_extension = ShadingExtension::Sheen;
+				material.sheen_color_texture = GetTexture(gltf_material.sheen.sheen_color_texture.texture, true, DEFAULT_WHITE_TEXTURE_HANDLE);
+				material.sheen_roughness_texture = GetTexture(gltf_material.sheen.sheen_color_texture.texture, false, DEFAULT_WHITE_TEXTURE_HANDLE);
+				material.sheen_color[0] = gltf_material.sheen.sheen_color_factor[0];
+				material.sheen_color[1] = gltf_material.sheen.sheen_color_factor[1];
+				material.sheen_color[2] = gltf_material.sheen.sheen_color_factor[2];
+				material.sheen_roughness = gltf_material.sheen.sheen_roughness_factor;
 			}
 
 			if (cgltf_texture* texture = gltf_material.normal_texture.texture)

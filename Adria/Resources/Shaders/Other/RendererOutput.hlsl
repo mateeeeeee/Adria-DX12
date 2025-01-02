@@ -90,8 +90,8 @@ void RendererOutputCS(CSInput input)
 
 #elif OUTPUT_SHADING_EXTENSION
 	//#todo
-	uint shadingExtension = uint(normalRT.Sample(LinearWrapSampler, uv).w * 255.0f)
-	 static float3 Colors[] = 
+	uint shadingExtension = uint(normalRT.Sample(LinearWrapSampler, uv).w * 255.0f);
+	static float3 Colors[] = 
     {
         float3(1.0, 0.0, 0.0),  
         float3(0.0, 1.0, 0.0),  

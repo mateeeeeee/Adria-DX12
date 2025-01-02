@@ -20,7 +20,8 @@ struct Mesh
 #define ShadingExtension_Default 0 
 #define ShadingExtension_Anisotropy 1
 #define ShadingExtension_ClearCoat 2
-#define ShadingExtension_Max 3
+#define ShadingExtension_Sheen 3
+#define ShadingExtension_Max 4
 
 struct Material
 {
@@ -45,6 +46,11 @@ struct Material
 	uint   clearCoatNormalIdx;
 	float  clearCoat;
 	float  clearCoatRoughness;
+
+	float3 sheenColor;
+	float  sheenRoughness;
+	uint   sheenColorIdx;
+	uint   sheenRoughnessIdx;
 };
 
 struct Instance

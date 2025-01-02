@@ -71,6 +71,15 @@ float GetLightAttenuation(Light light, float3 P, out float3 L)
 	return attenuation;
 }
 
+float GetAttenuation(Light light, float3 P, float2 uv, out float3 L)
+{
+	float attenuation = GetLightAttenuation(light, P, L);
+	if(attenuation <= 0.0f) return 0.0f;
+	attenuation *= GetShadowMapFactor(light, P);
+	attenuation *= GetRayTracedShadowsFactor(light, uv);
+	return attenuation;
+}
+
 float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
 {
 	float3 L;
@@ -85,15 +94,28 @@ float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float
 	return brdf * NdotL * light.color.rgb * attenuation;
 }
 
+float3 DoLight_Sheen(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 sheenData)
+{
+	float3 L;
+	float attenuation = GetAttenuation(light, P, uv, L);
+	if(attenuation <= 0.0f) return 0.0f;
+
+	float NdotL = saturate(dot(N, L));
+	if(NdotL == 0.0f) return 0.0f;
+
+	float3 sheenColor = sheenData.xyz;
+    float  sheenRoughness = sheenData.w;
+    float3 sheenBRDF = SheenBRDF(L, V, N, sheenColor, sheenRoughness);
+    float  sheenScaling = SheenScale(V, N, sheenColor, sheenRoughness);
+
+    float3 brdf = sheenBRDF + sheenScaling * DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
+    return brdf * light.color.rgb * NdotL * attenuation;
+}
 
 float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float clearCoat, float clearCoatRoughness, float3 clearCoatNormal)
 {
 	float3 L;
-	float attenuation = GetLightAttenuation(light, P, L);
-	if(attenuation <= 0.0f) return 0.0f;
-
-	attenuation *= GetShadowMapFactor(light, P);
-	attenuation *= GetRayTracedShadowsFactor(light, uv);
+	float attenuation = GetAttenuation(light, P, uv, L);
 	if(attenuation <= 0.0f) return  0.0f;
 
 	float clearCoatNdotL = saturate(dot(clearCoatNormal, L));
@@ -111,11 +133,7 @@ float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, flo
 float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
 {
 	float3 L;
-	float attenuation = GetLightAttenuation(light, P, L);
-	if(attenuation <= 0.0f) return 0.0f;
-
-	attenuation *= GetShadowMapFactor(light, P);
-	attenuation *= GetRayTracedShadowsFactor(light, uv);
+	float attenuation = GetAttenuation(light, P, uv, L);
 	if(attenuation <= 0.0f) return  0.0f;
 
 	float NdotL = saturate(dot(N, L));
@@ -136,6 +154,11 @@ float3 DoLight(uint extension, Light light, BrdfData brdfData, float3 P, float3 
 		float3 clearCoatNormal;
 		DecodeClearCoat(customData, clearCoat, clearCoatRoughness, clearCoatNormal);
 		result = DoLight_ClearCoat(light, brdfData, P, N, V, uv, clearCoat, clearCoatRoughness, clearCoatNormal); break;
+	}
+	break;
+	case ShadingExtension_Sheen: 
+	{
+		result = DoLight_Sheen(light, brdfData, P, N, V, uv, customData); break;
 	}
 	break;
 	case ShadingExtension_Default: 

@@ -358,6 +358,11 @@ namespace adria
 				material_gpu.clear_coat_normal_idx = (Uint32)material.clear_coat_normal_texture;
 				material_gpu.clear_coat = material.clear_coat;
 				material_gpu.clear_coat_roughness = material.clear_coat_roughness;
+
+				material_gpu.sheen_color = Vector3(material.sheen_color);
+				material_gpu.sheen_color_idx = (Uint32)material.sheen_color_texture;
+				material_gpu.sheen_roughness = material.sheen_roughness;
+				material_gpu.sheen_roughness_idx = (Uint32)material.sheen_roughness_texture;
 			}
 		}
 
