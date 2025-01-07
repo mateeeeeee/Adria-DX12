@@ -349,7 +349,7 @@ namespace adria
 				material_gpu.emissive_factor = material.emissive_factor;
 				material_gpu.alpha_cutoff = material.alpha_cutoff;
 
-				material_gpu.anisotropy_idx = material.anisotropy_texture == INVALID_TEXTURE_HANDLE ? -1 : material.anisotropy_texture;
+				material_gpu.anisotropy_idx = (Uint32)material.anisotropy_texture;
 				material_gpu.anisotropy_strength = material.anisotropy_strength;
 				material_gpu.anisotropy_rotation = material.anisotropy_rotation;
 
@@ -501,7 +501,7 @@ namespace adria
 			{
 				switch (volumetric_path)
 				{
-				case VolumetricPathType::Raymarching: volumetric_lighting_pass.AddPass(render_graph); break;
+				case VolumetricPathType::Raymarching:	volumetric_lighting_pass.AddPass(render_graph); break;
 				case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
 				}
 			}
