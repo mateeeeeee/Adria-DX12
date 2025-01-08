@@ -1,7 +1,4 @@
-<img align="left" src="Adria/Resources/Icons/adria_logo.png" width="120px"/>
-<br/><br/>
-
-# Adria-DX12
+<img align="center" padding="2" src="Adria/Resources/Icons/adria_logo_wide2.png"/>
 
 Graphics engine written in C++ using DirectX12. 
 
