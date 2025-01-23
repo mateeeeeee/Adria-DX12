@@ -61,6 +61,7 @@ namespace adria
 		Int32  rain_splash_diffuse_idx;
 		Int32  rain_splash_bump_idx;
 		Int32  rain_blocker_map_idx;
+		Int32  sheenE_idx;
 		Float  rain_total_time;
 	};
 

@@ -106,7 +106,9 @@ float3 DoLight_Sheen(Light light, BrdfData brdfData, float3 P, float3 N, float3 
 	float3 sheenColor = sheenData.xyz;
     float  sheenRoughness = sheenData.w;
     float3 sheenBRDF = SheenBRDF(L, V, N, sheenColor, sheenRoughness);
-    float  sheenScaling = SheenScale(V, N, sheenColor, sheenRoughness);
+
+	Texture2D sheenETexture = ResourceDescriptorHeap[FrameCB.sheenEIdx];
+    float  sheenScaling = SheenScale(V, N, sheenColor, sheenRoughness, sheenETexture);
 
     float3 brdf = sheenBRDF + sheenScaling * DefaultBRDF(L, V, N, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness);
     return brdf * light.color.rgb * NdotL * attenuation;

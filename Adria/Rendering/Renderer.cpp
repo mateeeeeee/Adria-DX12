@@ -186,6 +186,7 @@ namespace adria
 
 	void Renderer::OnSceneInitialized()
 	{
+		sheenE_texture = g_TextureManager.LoadTexture(paths::TexturesDir + "SheenE.dds");
 		sky_pass.OnSceneInitialized();
 		decals_pass.OnSceneInitialized();
 		rain_pass.OnSceneInitialized();
@@ -430,7 +431,7 @@ namespace adria
 		frame_cbuf_data.rain_blocker_map_idx = rain_pass.GetRainBlockerMapIndex();
 		frame_cbuf_data.rain_view_projection = rain_pass.GetRainViewProjection();
 		frame_cbuf_data.rain_total_time = rain_pass.GetRainTotalTime();
-
+		frame_cbuf_data.sheenE_idx = (Int32)sheenE_texture;
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
 			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();

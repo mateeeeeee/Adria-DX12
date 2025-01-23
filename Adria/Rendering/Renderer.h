@@ -148,6 +148,7 @@ namespace adria
 
 		LightingPathType	 lighting_path = LightingPathType::Deferred;
 		RendererOutput		 renderer_output = RendererOutput::Final;
+		TextureHandle		 sheenE_texture = INVALID_TEXTURE_HANDLE;
 
 		//weather
 		Float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };

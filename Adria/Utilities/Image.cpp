@@ -204,14 +204,33 @@ namespace adria
 			}
 			else
 			{
+				static constexpr Uint32 FOURCC_R5G6B5 = 23;			// B5G6R5_UNORM  
+				static constexpr Uint32 FOURCC_RGB5A1 = 25;			// B5G5R5A1_UNORM
+				static constexpr Uint32 FOURCC_RGBA4 = 26;			// B4G4R4A4_UNORM
+				static constexpr Uint32 FOURCC_RGBA16U = 36;
+				static constexpr Uint32 FOURCC_RGBA16S = 110;
+				static constexpr Uint32 FOURCC_R16F = 111;
+				static constexpr Uint32 FOURCC_RG16F = 112;
+				static constexpr Uint32 FOURCC_RGBA16F = 113;
+				static constexpr Uint32 FOURCC_R32F = 114;
+				static constexpr Uint32 FOURCC_RG32F = 115;
+				static constexpr Uint32 FOURCC_RGBA32F = 116;
 				switch (four_cc)
 				{
-				case MakeFourCC('B', 'C', '4', 'U'):	format = GfxFormat::BC4_UNORM;		break;
-				case MakeFourCC('D', 'X', 'T', '1'):	format = GfxFormat::BC1_UNORM;		break;
-				case MakeFourCC('D', 'X', 'T', '3'):	format = GfxFormat::BC2_UNORM;		break;
-				case MakeFourCC('D', 'X', 'T', '5'):	format = GfxFormat::BC3_UNORM;		break;
-				case MakeFourCC('B', 'C', '5', 'U'):	format = GfxFormat::BC5_UNORM;		break;
-				case MakeFourCC('A', 'T', 'I', '2'):	format = GfxFormat::BC5_UNORM;		break;
+				case MakeFourCC('B', 'C', '4', 'U'):	format = GfxFormat::BC4_UNORM;			break;
+				case MakeFourCC('D', 'X', 'T', '1'):	format = GfxFormat::BC1_UNORM;			break;
+				case MakeFourCC('D', 'X', 'T', '3'):	format = GfxFormat::BC2_UNORM;			break;
+				case MakeFourCC('D', 'X', 'T', '5'):	format = GfxFormat::BC3_UNORM;			break;
+				case MakeFourCC('B', 'C', '5', 'U'):	format = GfxFormat::BC5_UNORM;			break;
+				case MakeFourCC('A', 'T', 'I', '2'):	format = GfxFormat::BC5_UNORM;			break;
+				case FOURCC_RGBA16U:					format = GfxFormat::R16G16B16A16_UNORM;	break;
+				case FOURCC_RGBA16S:					format = GfxFormat::R16G16B16A16_SNORM;	break;
+				case FOURCC_R16F:						format = GfxFormat::R16_FLOAT;			break;
+				case FOURCC_RG16F:						format = GfxFormat::R16G16_FLOAT;		break;
+				case FOURCC_RGBA16F:					format = GfxFormat::R16G16B16A16_FLOAT;	break;
+				case FOURCC_R32F:						format = GfxFormat::R32_FLOAT;			break;
+				case FOURCC_RG32F:						format = GfxFormat::R32G32_FLOAT;		break;
+				case FOURCC_RGBA32F:					format = GfxFormat::R32G32B32A32_FLOAT;	break;
 				case 0:
 					if (bpp == 32)
 					{

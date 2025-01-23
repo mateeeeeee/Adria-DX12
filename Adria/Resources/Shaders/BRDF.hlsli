@@ -114,16 +114,52 @@ float3 AnisotropyBRDF(float3 L, float3 V, float3 N, float3 T, float3 diffuse, fl
 }
 
 // https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_sheen/README.md
-float3 SheenBRDF(float3 L, float3 V, float3 N, float3 sheenColor, float sheenRoughness)
+
+float L(float x, float alphaG)
 {
-    //#todo
-    return sheenColor;
+    float OneMinusAlphaSq = (1.0 - alphaG) * (1.0 - alphaG);
+    float a = lerp(21.5473, 25.3245, OneMinusAlphaSq);
+    float b = lerp(3.82987, 3.32435, OneMinusAlphaSq);
+    float c = lerp(0.19823, 0.16801, OneMinusAlphaSq);
+    float d = lerp(-1.97760, -1.27393, OneMinusAlphaSq);
+    float e = lerp(-4.32054, -4.85967, OneMinusAlphaSq);
+    return a / (1.0 + b * pow(x, c)) + d * x + e;
 }
 
-
-float SheenScale(float3 V, float3 N, float3 sheenColor, float sheenRoughness)
+float LambdaSheen(float cosTheta, float alphaG)
 {
-    return 1.0f;
+    return abs(cosTheta) < 0.5 ? exp(L(cosTheta, alphaG)) : exp(2.0 * L(0.5, alphaG) - L(1.0 - cosTheta, alphaG));
+}
+
+float3 SheenBRDF(float3 L, float3 V, float3 N, float3 sheenColor, float sheenRoughness)
+{
+    float3 H = normalize(L + V);
+    float NdotH = saturate(dot(N, H));
+    float NdotL = saturate(dot(N, L));
+    float NdotV = saturate(dot(N, V));
+
+    float alphaG = sheenRoughness * sheenRoughness;
+    float invR = 1.0 / alphaG;
+    float cos2h = NdotH * NdotH;
+    float sin2h = 1.0 - cos2h;
+
+    float sheenDistribution = (2.0 + invR) * pow(sin2h, 0.5 * invR) / (2.0 * M_PI);
+
+    float lambdaV = LambdaSheen(NdotV, alphaG);
+    float lambdaL = LambdaSheen(NdotL, alphaG);
+    //Charlie model
+    float sheenVisibility = 1.0f / ((1.0f + lambdaV + lambdaL) * (4.0f * NdotV * NdotL));
+    //Ashikhmin and Premoze
+    //float sheenVisibility = 1.0f / (4.0f * (NdotL + NdotV - NdotL * NdotV));
+    return sheenColor * sheenDistribution * sheenVisibility;
+}
+
+float SheenScale(float3 V, float3 N, float3 sheenColor, float sheenRoughness, Texture2D sheenETexture)
+{
+    float VdotN = saturate(dot(V, N));
+    float maxSheen = max(max(sheenColor.r, sheenColor.g), sheenColor.b);
+    float E_VdotN = sheenETexture.SampleLevel(LinearWrapSampler, float2(VdotN, sheenRoughness * sheenRoughness), 0).r;
+    return 1.0f - maxSheen * E_VdotN;
 }
 
 float DielectricSpecularToF0(float specular)
