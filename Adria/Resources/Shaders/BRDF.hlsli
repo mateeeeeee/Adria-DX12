@@ -138,6 +138,7 @@ float3 SheenBRDF(float3 L, float3 V, float3 N, float3 sheenColor, float sheenRou
     float NdotL = saturate(dot(N, L));
     float NdotV = saturate(dot(N, V));
 
+    sheenRoughness = max(sheenRoughness, MIN_ROUGHNESS);
     float alphaG = sheenRoughness * sheenRoughness;
     float invR = 1.0 / alphaG;
     float cos2h = NdotH * NdotH;

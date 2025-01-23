@@ -104,6 +104,7 @@ PSOutput GBufferPS(VSToPS input)
 	float3 clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
 	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
 #elif SHADING_EXTENSION_SHEEN
+	shadingExtension = ShadingExtension_Sheen;
 	float3 sheenColor = materialData.sheenColor;
 	float  sheenRoughness = materialData.sheenRoughness;
 	Texture2D sheenColorTexture = ResourceDescriptorHeap[materialData.sheenColorIdx];

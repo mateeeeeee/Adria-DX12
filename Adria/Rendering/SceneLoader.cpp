@@ -598,7 +598,7 @@ namespace adria
 			{
 				material.shading_extension = ShadingExtension::Sheen;
 				material.sheen_color_texture = GetTexture(gltf_material.sheen.sheen_color_texture.texture, true, DEFAULT_WHITE_TEXTURE_HANDLE);
-				material.sheen_roughness_texture = GetTexture(gltf_material.sheen.sheen_color_texture.texture, false, DEFAULT_WHITE_TEXTURE_HANDLE);
+				material.sheen_roughness_texture = GetTexture(gltf_material.sheen.sheen_roughness_texture.texture, false, DEFAULT_WHITE_TEXTURE_HANDLE);
 				material.sheen_color[0] = gltf_material.sheen.sheen_color_factor[0];
 				material.sheen_color[1] = gltf_material.sheen.sheen_color_factor[1];
 				material.sheen_color[2] = gltf_material.sheen.sheen_color_factor[2];
