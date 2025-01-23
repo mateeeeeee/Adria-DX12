@@ -103,8 +103,15 @@ PSOutput GBufferPS(VSToPS input)
     float3 clearCoatNormal = normalize(mul(clearCoatNormalTS, TBN));
 	float3 clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
 	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
+#elif SHADING_EXTENSION_SHEEN
+	float3 sheenColor = materialData.sheenColor;
+	float  sheenRoughness = materialData.sheenRoughness;
+	Texture2D sheenColorTexture = ResourceDescriptorHeap[materialData.sheenColorIdx];
+	Texture2D sheenRoughnessTexture = ResourceDescriptorHeap[materialData.sheenRoughnessIdx];
+	sheenColor *= sheenColorTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
+	sheenRoughness *= sheenRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).r;
+	customData = float4(sheenColor, sheenRoughness);
 #endif
-
 	PSOutput output = (PSOutput)0;
 	output.NormalRT = EncodeGBufferNormalRT(viewNormal, metallic, shadingExtension);
 	output.DiffuseRT = float4(albedoColor.xyz * materialData.baseColorFactor, roughness);

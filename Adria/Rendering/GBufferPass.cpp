@@ -69,8 +69,9 @@ namespace adria
 					}
 					switch (extension)
 					{
-					case ShadingExtension::Anisotropy: gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_ANISOTROPY", "1"); break;
-					case ShadingExtension::ClearCoat: gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_CLEARCOAT", "1"); break;
+					case ShadingExtension::Anisotropy:	gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_ANISOTROPY", "1"); break;
+					case ShadingExtension::ClearCoat:	gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_CLEARCOAT", "1"); break;
+					case ShadingExtension::Sheen:		gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_SHEEN", "1"); break;
 					}
 
 					switch (alpha_mode)
