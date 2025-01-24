@@ -350,7 +350,7 @@ namespace adria
 				material_gpu.emissive_factor = material.emissive_factor;
 				material_gpu.alpha_cutoff = material.alpha_cutoff;
 
-				material_gpu.anisotropy_idx = (Uint32)material.anisotropy_texture;
+				material_gpu.anisotropy_idx = (Int32)material.anisotropy_texture;
 				material_gpu.anisotropy_strength = material.anisotropy_strength;
 				material_gpu.anisotropy_rotation = material.anisotropy_rotation;
 

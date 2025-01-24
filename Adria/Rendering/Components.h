@@ -84,7 +84,7 @@ namespace adria
 		Float alpha_cutoff							= 0.5f;
 		Bool  double_sided							= false;
 		MaterialAlphaMode alpha_mode				= MaterialAlphaMode::Opaque;
-		ShadingExtension shading_extension					= ShadingExtension::None;
+		ShadingExtension shading_extension			= ShadingExtension::None;
 
 		//anisotropy
 		TextureHandle								anisotropy_texture = INVALID_TEXTURE_HANDLE;

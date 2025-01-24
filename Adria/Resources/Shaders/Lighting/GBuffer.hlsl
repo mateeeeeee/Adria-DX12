@@ -87,7 +87,24 @@ PSOutput GBufferPS(VSToPS input)
 	uint shadingExtension = ShadingExtension_Default;
 
 #if SHADING_EXTENSION_ANISOTROPY
-	//#todo
+	shadingExtension = ShadingExtension_Anisotropy;
+	float anisotropyStrength = materialData.anisotropyStrength;
+	float anisotropyRotation = materialData.anisotropyRotation;
+	float2 anisotropyDir = float2(1.0f, 0.5f);
+	if (materialData.anisotropyIdx >= 0)
+	{
+		Texture2D anisotropyTexture = ResourceDescriptorHeap[materialData.anisotropyIdx];
+		float3 anisotropyTexSample = anisotropyTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
+		anisotropyStrength *= anisotropyTexSample.b;
+		anisotropyDir = anisotropyTexSample.rg;
+	}
+	anisotropyDir = 2.0f * anisotropyDir - 1.0f;
+    float cosTheta = cos(anisotropyRotation);
+    float sinTheta = sin(anisotropyRotation);
+    float2 rotatedDir = float2(cosTheta * anisotropyDir.x - sinTheta * anisotropyDir.y,
+							   sinTheta * anisotropyDir.x + cosTheta * anisotropyDir.y);
+    float3 anisotropicT = normalize(mul(float3(rotatedDir, 0.0), TBN));
+	customData = float4(anisotropicT, anisotropyStrength);
 #elif SHADING_EXTENSION_CLEARCOAT
 	shadingExtension = ShadingExtension_ClearCoat;
 	float clearCoat = materialData.clearCoat;

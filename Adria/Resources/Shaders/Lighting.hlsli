@@ -132,6 +132,36 @@ float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, flo
     return brdf * light.color.rgb * attenuation;
 }
 
+float3 DoLight_Anisotropy(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
+{
+	float3 L;
+    float attenuation = GetAttenuation(light, P, uv, L);
+    if (attenuation <= 0.0f) return 0.0f;
+
+    float NdotL = saturate(dot(N, L));
+    if (NdotL == 0.0f) return 0.0f;
+
+	float3  anisotropicT = customData.xyz;
+	float   anisotropyStrength = customData.w;
+
+	float3 anisotropicB = normalize(cross(N, anisotropicT));
+    float TdotL = dot(anisotropicT, L);
+    float BdotL = dot(anisotropicB, L);
+	float3 H = normalize(V + L);
+    float TdotH = dot(anisotropicT, H);
+    float BdotH = dot(anisotropicB, H);
+
+    float ab = brdfData.Roughness * brdfData.Roughness;
+    float at = lerp(ab, 1.0f, anisotropyStrength * anisotropyStrength);
+
+	float3 D = D_GGX_Aniso(at, ab, anisotropicT, anisotropicB, N, H);
+    float3 Vis = V_SmithGGX_Aniso(at, ab, anisotropicT, anisotropicB, N, V, L);
+    float3 F = F_Schlick(V, H, brdfData.Specular);
+
+    float3 brdf = DiffuseBRDF(brdfData.Diffuse) * (1.0 - F) + D * Vis * F;
+    return brdf * light.color.rgb * NdotL * attenuation;
+}
+
 float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
 {
 	float3 L;
@@ -155,16 +185,20 @@ float3 DoLight(uint extension, Light light, BrdfData brdfData, float3 P, float3 
 		float clearCoat, clearCoatRoughness;
 		float3 clearCoatNormal;
 		DecodeClearCoat(customData, clearCoat, clearCoatRoughness, clearCoatNormal);
-		result = DoLight_ClearCoat(light, brdfData, P, N, V, uv, clearCoat, clearCoatRoughness, clearCoatNormal); break;
+		result = DoLight_ClearCoat(light, brdfData, P, N, V, uv, clearCoat, clearCoatRoughness, clearCoatNormal);
 	}
 	break;
 	case ShadingExtension_Sheen: 
 	{
-		result = DoLight_Sheen(light, brdfData, P, N, V, uv, customData); break;
+		result = DoLight_Sheen(light, brdfData, P, N, V, uv, customData); 
+	}
+	break;
+	case ShadingExtension_Anisotropy:
+	{
+		DoLight_Anisotropy(light, brdfData, P, N, V, uv, customData);
 	}
 	break;
 	case ShadingExtension_Default: 
-	case ShadingExtension_Anisotropy:
 	case ShadingExtension_Max:
 	default:
 		result = DoLight_Default(light, brdfData, P, N, V, uv); break;
