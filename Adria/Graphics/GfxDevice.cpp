@@ -9,6 +9,7 @@
 #include "GfxDescriptorAllocator.h"
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
+#include "GfxCommandSignature.h"
 #include "GfxQueryHeap.h"
 #include "GfxPipelineState.h"
 #include "GfxNsightAftermathGpuCrashTracker.h"
@@ -367,12 +368,12 @@ namespace adria
 		wait_fence.Create(this, "Wait Fence");
 		release_fence.Create(this, "Release Fence");
 
-		draw_indirect_signature = std::make_unique<DrawIndirectSignature>(device.Get());
-		draw_indexed_indirect_signature = std::make_unique<DrawIndexedIndirectSignature>(device.Get());
-		dispatch_indirect_signature = std::make_unique<DispatchIndirectSignature>(device.Get());
+		draw_indirect_signature = std::make_unique<DrawIndirectSignature>(this);
+		draw_indexed_indirect_signature = std::make_unique<DrawIndexedIndirectSignature>(this);
+		dispatch_indirect_signature = std::make_unique<DispatchIndirectSignature>(this);
 		if (device_capabilities.SupportsMeshShaders())
 		{
-			dispatch_mesh_indirect_signature = std::make_unique<DispatchMeshIndirectSignature>(device.Get());
+			dispatch_mesh_indirect_signature = std::make_unique<DispatchMeshIndirectSignature>(this);
 		}
 		SetInfoQueue();
 		CreateCommonRootSignature();

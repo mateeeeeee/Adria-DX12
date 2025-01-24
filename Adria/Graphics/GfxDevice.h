@@ -21,7 +21,6 @@
 #include "GfxCapabilities.h"
 #include "GfxDescriptorAllocatorBase.h"
 #include "GfxMacros.h"
-#include "GfxCommandSignature.h"
 #include "GfxRayTracingAS.h"
 #include "GfxShadingRate.h"
 #include "Utilities/Releasable.h"
@@ -59,6 +58,10 @@ namespace adria
 	class GfxGraphicsPipelineState;
 	class GfxComputePipelineState;
 	class GfxMeshShaderPipelineState;
+	class DrawIndirectSignature;
+	class DrawIndexedIndirectSignature;
+	class DispatchIndirectSignature;
+	class DispatchMeshIndirectSignature;
 
 	class GfxLinearDynamicAllocator;
 	class GfxDescriptorAllocator;

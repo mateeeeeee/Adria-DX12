@@ -6,6 +6,7 @@
 #include "GfxQueryHeap.h"
 #include "GfxPipelineState.h"
 #include "GfxRenderPass.h"
+#include "GfxCommandSignature.h"
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRayTracingShaderTable.h"

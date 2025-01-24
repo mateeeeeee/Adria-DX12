@@ -209,6 +209,7 @@
     <ClCompile Include="Graphics\GfxCommandList.cpp" />
     <ClCompile Include="Graphics\GfxCommandListPool.cpp" />
     <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
+    <ClCompile Include="Graphics\GfxCommandSignature.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
     <ClCompile Include="Graphics\GfxDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\GfxDescriptorAllocatorBase.cpp" />

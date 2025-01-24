@@ -564,6 +564,7 @@
     <ClCompile Include="Utilities\CLIParser.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxCommandSignature.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
