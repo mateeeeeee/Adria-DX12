@@ -97,21 +97,6 @@ float3 DefaultBRDF(float3 L, float3 V, float3 N, float3 diffuse, float3 specular
 
     return diffuseBrdf + specularBrdf;
 }
-float3 AnisotropyBRDF(float3 L, float3 V, float3 N, float3 T, float3 diffuse, float3 specular, float roughness, float anisotropy)
-{
-    float a = roughness * roughness;
-    float ax = max(a * (1.0 + anisotropy), MIN_ROUGHNESS);
-    float ay = max(a * (1.0 - anisotropy), MIN_ROUGHNESS);
-    
-    float3 B = cross(N, T);
-    float3 H = normalize(V + L);
-    
-    float3 D = D_GGX_Aniso(ax, ay, T, B, N, H);
-    float3 Vis = V_SmithGGX_Aniso(ax, ay, T, B, N, V, L);
-    float3 F = F_Schlick(V, H, specular);
-    
-    return DiffuseBRDF(diffuse) * (1.0 - F) + D * Vis * F;
-}
 
 // https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_sheen/README.md
 

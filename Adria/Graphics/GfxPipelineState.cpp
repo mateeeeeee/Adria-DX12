@@ -362,7 +362,7 @@ namespace adria
 		d3d12_desc.DS = GetGfxShader(desc.DS);
 		std::vector<D3D12_INPUT_ELEMENT_DESC> input_element_descs;
 		ConvertInputLayout(desc.input_layout, input_element_descs);
-		d3d12_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (UINT)input_element_descs.size() };
+		d3d12_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (Uint32)input_element_descs.size() };
 		d3d12_desc.BlendState = ConvertBlendDesc(desc.blend_state);
 		d3d12_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
 		d3d12_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);

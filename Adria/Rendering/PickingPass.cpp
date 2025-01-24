@@ -97,7 +97,7 @@ namespace adria
 
 	PickingData PickingPass::GetPickingData() const
 	{
-		UINT backbuffer_index = gfx->GetBackbufferIndex();
+		Uint32 backbuffer_index = gfx->GetBackbufferIndex();
 		PickingData const* data = read_picking_buffers[backbuffer_index]->GetMappedData<PickingData>();
 		PickingData picking_data = *data;
 		return picking_data;

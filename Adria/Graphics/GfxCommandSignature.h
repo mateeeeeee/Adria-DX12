@@ -20,29 +20,29 @@ namespace adria
 	struct IndirectCommandTraits<IndirectCommandType::Draw>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
-		static constexpr UINT Stride = sizeof(D3D12_DRAW_ARGUMENTS);
+		static constexpr Uint32 Stride = sizeof(D3D12_DRAW_ARGUMENTS);
 	};
 	template<>
 	struct IndirectCommandTraits<IndirectCommandType::DrawIndexed>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-		static constexpr UINT Stride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+		static constexpr Uint32 Stride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
 	};
 	template<>
 	struct IndirectCommandTraits<IndirectCommandType::Dispatch>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
-		static constexpr UINT Stride = sizeof(D3D12_DISPATCH_ARGUMENTS);
+		static constexpr Uint32 Stride = sizeof(D3D12_DISPATCH_ARGUMENTS);
 	};
 
 	template<>
 	struct IndirectCommandTraits<IndirectCommandType::DispatchMesh>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH;
-		static constexpr UINT Stride = sizeof(D3D12_DISPATCH_MESH_ARGUMENTS);
+		static constexpr Uint32 Stride = sizeof(D3D12_DISPATCH_MESH_ARGUMENTS);
 	};
 
-	template<IndirectCommandType type>
+	template<IndirectCommandType Type>
 	class IndirectCommandSignature
 	{
 	public:
@@ -52,8 +52,8 @@ namespace adria
 			D3D12_INDIRECT_ARGUMENT_DESC argument_desc{};
 			desc.NumArgumentDescs = 1;
 			desc.pArgumentDescs = &argument_desc;
-			desc.ByteStride = IndirectCommandTraits<type>::Stride;
-			argument_desc.Type = IndirectCommandTraits<type>::ArgumentType;
+			desc.ByteStride = IndirectCommandTraits<Type>::Stride;
+			argument_desc.Type = IndirectCommandTraits<Type>::ArgumentType;
 			GFX_CHECK_HR(device->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(cmd_signature.GetAddressOf())));
 		}
 		operator ID3D12CommandSignature* () const

@@ -10,7 +10,7 @@ namespace adria
 
 	GfxBuffer::GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferData initial_data) : gfx(gfx), desc(desc)
 	{
-		UINT64 buffer_size = desc.size;
+		Uint64 buffer_size = desc.size;
 		if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::ConstantBuffer))
 			buffer_size = Align(buffer_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 

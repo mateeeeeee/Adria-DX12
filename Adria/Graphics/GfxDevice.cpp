@@ -1016,8 +1016,8 @@ namespace adria
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
 					uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
-					uav_desc.Buffer.NumElements = (UINT)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / desc.stride;
+					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 					uav_desc.Buffer.StructureByteStride = desc.stride;
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))

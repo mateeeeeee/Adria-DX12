@@ -105,7 +105,7 @@ namespace adria
 
 		std::vector<Image> images{};
 		std::vector<GfxTextureSubData> subresources;
-		for (UINT i = 0; i < cubemap_textures.size(); ++i)
+		for (Uint32 i = 0; i < cubemap_textures.size(); ++i)
 		{
 			images.emplace_back(cubemap_textures[i]);
 			GfxTextureSubData subresource_data{};
@@ -140,7 +140,7 @@ namespace adria
 
 	void TextureManager::EnableMipMaps(Bool mips)
     {
-        mipmaps = mips;
+        enable_mipmaps = mips;
     }
 
 	void TextureManager::OnSceneInitialized()

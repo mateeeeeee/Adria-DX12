@@ -52,7 +52,7 @@ namespace adria
 			break;
 		case GfxTextureType_3D:
 			resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
-			resource_desc.DepthOrArraySize = (UINT16)desc.depth;
+			resource_desc.DepthOrArraySize = (Uint16)desc.depth;
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Texture Type!");
@@ -120,7 +120,7 @@ namespace adria
 		auto device = gfx->GetDevice();
 		if (desc.heap_type == GfxResourceUsage::Readback || desc.heap_type == GfxResourceUsage::Upload)
 		{
-			UINT64 required_size = 0;
+			Uint64 required_size = 0;
 			device->GetCopyableFootprints(&resource_desc, 0, 1, 0, nullptr, nullptr, nullptr, &required_size);
 			resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 			resource_desc.Width = required_size;
