@@ -8,6 +8,7 @@ namespace adria
 		Final,
 		Diffuse,
 		WorldNormal,
+		Depth,
 		Roughness,
 		Metallic,
 		Emissive,

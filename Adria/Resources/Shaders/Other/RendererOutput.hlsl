@@ -1,5 +1,6 @@
 #include "Lighting.hlsli"
 #include "Packing.hlsli"
+#include "CommonResources.hlsli"
 
 #define BLOCK_SIZE 16
 
@@ -45,6 +46,12 @@ void RendererOutputCS(CSInput input)
 	float3 worldNormal = mul(viewNormal, (float3x3)transpose(FrameCB.view));
 	worldNormal = normalize(0.5f * worldNormal + 0.5f);
 	outputTexture[input.DispatchThreadId.xy] = float4(worldNormal, 1.0f);
+
+#elif OUTPUT_DEPTH 
+	float  depth		    = depthTexture.Sample(LinearWrapSampler, uv);
+	float linearDepth = LinearizeDepth(depth);
+	float normalizedLinearDepth = linearDepth / FrameCB.cameraNear;
+	outputTexture[input.DispatchThreadId.xy] = float4(normalizedLinearDepth, normalizedLinearDepth, normalizedLinearDepth, 1.0f);
 
 #elif OUTPUT_ROUGHNESS
 	float4 albedoRoughness	= diffuseRT.Sample(LinearWrapSampler, uv);

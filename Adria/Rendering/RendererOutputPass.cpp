@@ -85,6 +85,7 @@ namespace adria
 					"",
 					"OUTPUT_DIFFUSE",
 					"OUTPUT_NORMALS",
+					"OUTPUT_DEPTH",
 					"OUTPUT_ROUGHNESS",
 					"OUTPUT_METALLIC",
 					"OUTPUT_EMISSIVE",

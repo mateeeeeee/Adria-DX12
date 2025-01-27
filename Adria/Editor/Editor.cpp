@@ -752,6 +752,7 @@ namespace adria
 					AddRendererOutputMenuItem(Final);
 					AddRendererOutputMenuItem(Diffuse);
 					AddRendererOutputMenuItem(WorldNormal);
+					AddRendererOutputMenuItem(Depth);
 					AddRendererOutputMenuItem(Roughness);
 					AddRendererOutputMenuItem(Metallic);
 					AddRendererOutputMenuItem(Emissive);
