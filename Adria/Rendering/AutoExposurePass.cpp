@@ -196,7 +196,7 @@ namespace adria
 							Uint64 histogram_size = histogram_copy->GetSize() / sizeof(Int32);
 							Int32* hist_data = histogram_copy->GetMappedData<Int32>();
 							Int32 max_value = MaxElement(hist_data, histogram_size);
-							auto converter = [](void* data, Int32 idx)-> Float
+							auto converter = [](PVoid data, Int32 idx)-> Float
 								{
 									return static_cast<Float>(*(((Int32*)data) + idx));
 								};

@@ -47,12 +47,12 @@ namespace adria
 		GfxFormat GetFormat() const;
 
 		Bool IsMapped() const;
-		void* GetMappedData() const;
+		PVoid GetMappedData() const;
 		template<typename T>
 		T* GetMappedData() const;
-		ADRIA_MAYBE_UNUSED void* Map();
+		ADRIA_MAYBE_UNUSED PVoid Map();
 		void Unmap();
-		void Update(void const* src_data, Uint64 data_size, Uint64 offset = 0);
+		void Update(PCVoid src_data, Uint64 data_size, Uint64 offset = 0);
 		template<typename T>
 		void Update(T const& src_data);
 

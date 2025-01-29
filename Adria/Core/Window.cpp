@@ -131,9 +131,9 @@ namespace adria
         PostQuitMessage(exit_code);
 	}
 
-    void* Window::Handle() const
+    PVoid Window::Handle() const
     {
-        return static_cast<void*>(hwnd);
+        return static_cast<PVoid>(hwnd);
     }
     Bool Window::IsActive() const
     {

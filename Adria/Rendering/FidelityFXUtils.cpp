@@ -114,7 +114,7 @@ namespace adria
 	{
 		FfxInterface* ffx_interface = new FfxInterface{};
 		Uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(context_count);
-		void* scratch_buffer = malloc(scratch_buffer_size);
+		PVoid scratch_buffer = malloc(scratch_buffer_size);
 		ADRIA_ASSERT(scratch_buffer);
 		memset(scratch_buffer, 0, scratch_buffer_size);
 		FfxErrorCode error_code = ffxGetInterfaceDX12(ffx_interface, gfx->GetDevice(), scratch_buffer, scratch_buffer_size, context_count);

@@ -111,7 +111,7 @@ namespace adria
 	public:
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureData const& data);
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc);
-		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer); //constructor used by swapchain for creating backbuffer texture
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, PVoid backbuffer); //constructor used by swapchain for creating backbuffer texture
 		ADRIA_NONCOPYABLE_NONMOVABLE(GfxTexture)
 		~GfxTexture();
 
@@ -127,10 +127,10 @@ namespace adria
 		Bool IsSRGB() const { return (desc.misc_flags & GfxTextureMiscFlag::SRGB) != GfxTextureMiscFlag::None; }
 
 		Bool IsMapped() const;
-		void* GetMappedData() const;
+		PVoid GetMappedData() const;
 		template<typename T>
 		T* GetMappedData() const;
-		void* Map();
+		PVoid Map();
 		void Unmap();
 
 		void SetName(Char const* name);
@@ -140,7 +140,7 @@ namespace adria
 		Ref<ID3D12Resource> resource;
 		GfxTextureDesc desc;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
-		void* mapped_data = nullptr;
+		PVoid mapped_data = nullptr;
 		Bool is_backbuffer = false;
 	};
 

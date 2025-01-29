@@ -39,7 +39,7 @@ namespace adria
 		{
 			desc = _desc;
 		}
-		void SetShaderData(void const* data, Uint64 size)
+		void SetShaderData(PCVoid data, Uint64 size)
 		{
 			shader_blob.resize(size);
 			memcpy(shader_blob.data(), data, size);
@@ -47,9 +47,9 @@ namespace adria
 
 		GfxShaderDesc const& GetDesc() const { return desc; }
 
-		void* GetData() const
+		PVoid GetData() const
 		{
-			return !shader_blob.empty() ? (void*)shader_blob.data() : nullptr;
+			return !shader_blob.empty() ? (PVoid)shader_blob.data() : nullptr;
 		}
 		Uint64 GetSize() const
 		{

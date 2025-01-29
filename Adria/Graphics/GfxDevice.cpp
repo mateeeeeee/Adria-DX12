@@ -663,7 +663,7 @@ namespace adria
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
 	}
 
-	std::unique_ptr<GfxTexture> GfxDevice::CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer)
+	std::unique_ptr<GfxTexture> GfxDevice::CreateBackbufferTexture(GfxTextureDesc const& desc, PVoid backbuffer)
 	{
 		return std::make_unique<GfxTexture>(this, desc, backbuffer);
 	}
@@ -829,7 +829,7 @@ namespace adria
 					D3D12_MESSAGE_SEVERITY Severity,
 					D3D12_MESSAGE_ID ID,
 					LPCSTR pDescription,
-					void* pContext)
+					PVOID pContext)
 				{
 					ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
 				};

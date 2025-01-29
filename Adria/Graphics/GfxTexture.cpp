@@ -215,7 +215,7 @@ namespace adria
 		}
 	}
 
-	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer) 
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, PVoid backbuffer) 
 		: gfx(gfx), desc(desc), resource((ID3D12Resource*)backbuffer), is_backbuffer(true)
 	{}
 
@@ -253,12 +253,12 @@ namespace adria
 		return mapped_data != nullptr;
 	}
 
-	void* GfxTexture::GetMappedData() const
+	PVoid GfxTexture::GetMappedData() const
 	{
 		return mapped_data;
 	}
 
-	void* GfxTexture::Map()
+	PVoid GfxTexture::Map()
 	{
 		HRESULT hr;
 		if (desc.heap_type == GfxResourceUsage::Readback)

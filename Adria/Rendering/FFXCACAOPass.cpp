@@ -354,13 +354,13 @@ namespace adria
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
 					ImGui::Combo("Preset", &preset_id,
-						[](void* vec, int idx, const Char** out_text)
+						[](PVoid vec, Int idx, const Char** out_text)
 						{
 							std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
 							if (idx < 0 || idx >= vector->size()) return false;
 							*out_text = vector->at(idx).c_str();
 							return true;
-						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (Int32)FfxCacaoPresetNames.size());
+						}, reinterpret_cast<PVoid>(&FfxCacaoPresetNames), (Int32)FfxCacaoPresetNames.size());
 
 					ImGui::TreePop();
 				}

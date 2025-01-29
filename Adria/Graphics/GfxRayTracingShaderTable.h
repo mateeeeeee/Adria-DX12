@@ -16,7 +16,7 @@ namespace adria
 			using ShaderIdentifier = Uint8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
 			GfxShaderRecord() = default;
-			void Init(void const* _shader_id, void* _local_root_args = nullptr, Uint32 _local_root_args_size = 0)
+			void Init(PCVoid _shader_id, PVoid _local_root_args = nullptr, Uint32 _local_root_args_size = 0)
 			{
 				local_root_args_size = _local_root_args_size;
 				memcpy(shader_id, _shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
@@ -32,9 +32,9 @@ namespace adria
 	public:
 		explicit GfxRayTracingShaderTable(GfxStateObject* state_object);
 
-		void SetRayGenShader(Char const* name, void* local_data = nullptr, Uint32 data_size = 0);
-		void AddMissShader(Char const* name, Uint32 i, void* local_data = nullptr, Uint32 data_size = 0);
-		void AddHitGroup(Char const* name, Uint32 i, void* local_data = nullptr, Uint32 data_size = 0);
+		void SetRayGenShader(Char const* name, PVoid local_data = nullptr, Uint32 data_size = 0);
+		void AddMissShader(Char const* name, Uint32 i, PVoid local_data = nullptr, Uint32 data_size = 0);
+		void AddHitGroup(Char const* name, Uint32 i, PVoid local_data = nullptr, Uint32 data_size = 0);
 
 		void Commit(GfxLinearDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc);
 		void Commit(GfxRingDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc);

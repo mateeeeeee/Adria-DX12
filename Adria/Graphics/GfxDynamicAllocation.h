@@ -8,12 +8,12 @@ namespace adria
 	struct GfxDynamicAllocation
 	{
 		GfxBuffer* buffer = nullptr;
-		void* cpu_address = nullptr;
+		PVoid cpu_address = nullptr;
 		Uint64 gpu_address = 0;
 		Uint64 offset = 0;
 		Uint64 size = 0;
 
-		void Update(void const* data, Uint64 size, Uint64 offset = 0)
+		void Update(PCVoid data, Uint64 size, Uint64 offset = 0)
 		{
 			memcpy((Uint8*)cpu_address + offset, data, size);
 		}

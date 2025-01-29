@@ -15,8 +15,8 @@ namespace adria
 {
 	static TAutoConsoleVariable<Float> MaxCircleOfConfusion("r.DepthOfField.MaxCoC", 0.05f, "Maximum value of Circle of Confusion in Custom Depth of Field effect");
 	static TAutoConsoleVariable<Float> AlphaInterpolation("r.DepthOfField.AlphaInterpolation", 1.0f, "Interpolation factor");
-	static TAutoConsoleVariable<int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
-	static TAutoConsoleVariable<int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
+	static TAutoConsoleVariable<Int>   BokehKernelRingCount("r.DepthOfField.Bokeh.KernelRingCount", 5, "");
+	static TAutoConsoleVariable<Int>   BokehKernelRingDensity("r.DepthOfField.Bokeh.KernelRingDensity", 7, "");
 	static TAutoConsoleVariable<Bool>  BokehKarisInverse("r.DepthOfField.Bokeh.KarisInverse", false, "Karis Inverse: 0 - disable, 1 - enable");
 
 	static TAutoConsoleVariable<Float> FocalLength("r.DepthOfField.FocalLength", 200.0f, "Focal Length used in Depth of Field pass");

@@ -24,4 +24,6 @@ namespace adria
 	using Float64	= double;
 	using Uintptr	= std::uintptr_t;
 	using Intptr	= std::intptr_t;
+	using PVoid		= void*;
+	using PCVoid	= void const*;
 }
