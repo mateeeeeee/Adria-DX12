@@ -12,7 +12,7 @@ namespace adria
 	public:
 		GfxReflectionBlob(void const* pShaderBytecode, Uint64 byteLength) : bytecodeSize{ byteLength }
 		{
-			pBytecode = const_cast<LPVOID>(pShaderBytecode);
+			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
 		virtual ~GfxReflectionBlob() { /*non owning blob -> empty destructor*/ }
 		virtual LPVOID STDMETHODCALLTYPE GetBufferPointer(void) override { return pBytecode; }
@@ -20,7 +20,7 @@ namespace adria
 		virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppv) override
 		{
 			if (ppv == NULL) return E_POINTER;
-			if (riid == __uuidof(IDxcBlob)) 
+			if (riid == __uuidof(IDxcBlob)) //uuid(guid_str)
 				*ppv = static_cast<IDxcBlob*>(this);
 			else if (riid == IID_IUnknown)
 				*ppv = static_cast<IUnknown*>(this);

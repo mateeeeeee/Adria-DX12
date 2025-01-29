@@ -114,7 +114,7 @@ namespace adria
 		}
 	}
 
-	PVoid GfxBuffer::GetMappedData() const
+	void* GfxBuffer::GetMappedData() const
 	{
 		return mapped_data;
 	}
@@ -160,7 +160,7 @@ namespace adria
 		return mapped_data != nullptr;
 	}
 
-	PVoid GfxBuffer::Map()
+	void* GfxBuffer::Map()
 	{
 		if (mapped_data) return mapped_data;
 
@@ -185,9 +185,8 @@ namespace adria
 		mapped_data = nullptr;
 	}
 
-	void GfxBuffer::Update(PCVoid src_data, Uint64 data_size, Uint64 offset /*= 0*/)
+	void GfxBuffer::Update(void const* src_data, Uint64 data_size, Uint64 offset /*= 0*/)
 	{
-		LPCVOID;
 		ADRIA_ASSERT(desc.resource_usage == GfxResourceUsage::Upload);
 		if (mapped_data)
 		{

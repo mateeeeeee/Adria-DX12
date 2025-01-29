@@ -87,5 +87,6 @@ namespace adria
 		std::unique_ptr<GfxBuffer> result_buffer;
 		std::unique_ptr<GfxBuffer> scratch_buffer;
 		std::unique_ptr<GfxBuffer> instance_buffer;
+		void* instance_buffer_cpu_address = nullptr;
 	};
 }

@@ -9,7 +9,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<Int>  Upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
+	static TAutoConsoleVariable<int>  Upscaler("r.Upscaler", 0, "0 - No Upscaler, 1 - FSR2, 2 - FSR3, 3 - XeSS, 4 - DLSS3");
 	
 	enum class UpscalerType : Uint8
 	{

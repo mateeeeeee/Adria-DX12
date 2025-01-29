@@ -25,7 +25,7 @@ namespace adria
 		ToneMapOperator_ACES
 	};
 
-	static TAutoConsoleVariable<Int>   TonemapOperator("r.Tonemap.Operator", ToneMapOperator_TonyMcMapface, "0 - None, 1 - Reinhard, 2 - Hable, 3 - Linear, 4 - TonyMcMapface, 5 - AgX");
+	static TAutoConsoleVariable<int>   TonemapOperator("r.Tonemap.Operator", ToneMapOperator_TonyMcMapface, "0 - None, 1 - Reinhard, 2 - Hable, 3 - Linear, 4 - TonyMcMapface, 5 - AgX");
 	static TAutoConsoleVariable<Float> TonemapExposure("r.Tonemap.Exposure", 1.0f, "Tonemap exposure applied in addition to exposure from AutoExposure pass");
 	
 	ToneMapPass::ToneMapPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)

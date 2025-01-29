@@ -6,7 +6,7 @@ namespace adria
 {
 	struct WindowEventData
 	{
-		PVoid  handle	= nullptr;
+		void*  handle	= nullptr;
 		Uint32 msg		= 0;
         Uint64 wparam	= 0;
         Int64  lparam	= 0;
@@ -38,7 +38,7 @@ namespace adria
 		Bool Loop();
 		void Quit(Int32 exit_code);
 
-		PVoid Handle() const;
+		void* Handle() const;
 		Bool  IsActive() const;
 
 		WindowEvent& GetWindowEvent() { return window_event; }

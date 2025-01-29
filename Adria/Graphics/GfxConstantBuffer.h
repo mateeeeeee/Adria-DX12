@@ -32,7 +32,7 @@ namespace adria
 		~GfxConstantBuffer();
 
 		void Update(CBufferT const& data, Uint32 cbuffer_index);
-		void Update(PVoid data, Uint32 data_size, Uint32 cbuffer_index);
+		void Update(void* data, Uint32 data_size, Uint32 cbuffer_index);
 
 		Uint64 GetGpuAddress(Uint32 cbuffer_index) const
 		{
@@ -67,7 +67,7 @@ namespace adria
 	}
 
 	template<typename CBufferT>
-	void GfxConstantBuffer<CBufferT>::Update(PVoid data, Uint32 data_size, Uint32 cbuffer_index)
+	void GfxConstantBuffer<CBufferT>::Update(void* data, Uint32 data_size, Uint32 cbuffer_index)
 	{
 		memcpy(&mapped_data[cbuffer_index * cbuffer_size], data, data_size);
 	}

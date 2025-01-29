@@ -101,13 +101,13 @@ namespace adria
 		}
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::OnCrashDump(PCVoid gpu_crash_dump_data, const Uint32 gpu_crash_dump_size)
+	void GfxNsightAftermathGpuCrashTracker::OnCrashDump(const void* gpu_crash_dump_data, const Uint32 gpu_crash_dump_size)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 		WriteGpuCrashDumpToFile(gpu_crash_dump_data, gpu_crash_dump_size);
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::OnShaderDebugInfo(PCVoid shader_debug_info, const Uint32 shader_debug_info_size)
+	void GfxNsightAftermathGpuCrashTracker::OnShaderDebugInfo(const void* shader_debug_info, const Uint32 shader_debug_info_size)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -168,7 +168,7 @@ namespace adria
 		}
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::WriteGpuCrashDumpToFile(PCVoid gpu_crash_dump_data, Uint32 gpu_crash_dump_size)
+	void GfxNsightAftermathGpuCrashTracker::WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, Uint32 gpu_crash_dump_size)
 	{
 		// Create a GPU crash dump decoder object for the GPU crash dump.
 		GFSDK_Aftermath_GpuCrashDump_Decoder decoder{};
@@ -235,7 +235,7 @@ namespace adria
 		GFSDK_Aftermath_GpuCrashDump_DestroyDecoder(decoder);
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, PCVoid shader_debug_info, Uint32 shader_debug_info_size)
+	void GfxNsightAftermathGpuCrashTracker::WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, Uint32 shader_debug_info_size)
 	{
 		std::string file_path = paths::AftermathDir + "shader-" + ToString(identifier) + ".nvdbg";
 		std::ofstream f(file_path, std::ios::out | std::ios::binary);

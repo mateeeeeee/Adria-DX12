@@ -13,7 +13,7 @@ namespace adria
 	}
 	static Char* Strdup(const Char* s)
 	{
-		IM_ASSERT(s); Uint64 len = strlen(s) + 1; PVoid buf = malloc(len); IM_ASSERT(buf); return (Char*)memcpy(buf, (const void*)s, len);
+		IM_ASSERT(s); Uint64 len = strlen(s) + 1; void* buf = malloc(len); IM_ASSERT(buf); return (Char*)memcpy(buf, (const void*)s, len);
 	}
 	static void  Strtrim(Char* s)
 	{
@@ -108,7 +108,7 @@ namespace adria
 		// Command-line
 		Bool reclaim_focus = false;
 		ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
-		if (ImGui::InputText("Input", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, TextEditCallbackStub, (PVoid)this))
+		if (ImGui::InputText("Input", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, TextEditCallbackStub, (void*)this))
 		{
 			Char* s = InputBuf;
 			Strtrim(s);
@@ -163,7 +163,7 @@ namespace adria
 		ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
 		ImGui::PushItemWidth(-1);
 		Bool reclaim_focus = false;
-		if (ImGui::InputText("##console", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, TextEditCallbackStub, (PVoid)this))
+		if (ImGui::InputText("##console", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, TextEditCallbackStub, (void*)this))
 		{
 			Char* s = InputBuf;
 			Strtrim(s);

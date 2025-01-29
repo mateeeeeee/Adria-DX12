@@ -109,7 +109,7 @@ namespace adria
 		void EndFrame();
 		void TakePixCapture(Char const* capture_name, Uint32 num_frames);
 
-		PVoid GetHwnd() const { return hwnd; }
+		void* GetHwnd() const { return hwnd; }
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
@@ -142,7 +142,7 @@ namespace adria
 
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
 
-		std::unique_ptr<GfxTexture> CreateBackbufferTexture(GfxTextureDesc const& desc, PVoid backbuffer);
+		std::unique_ptr<GfxTexture> CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
 		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureData const& data);
 		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc);
 		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, GfxBufferData const& initial_data);
@@ -200,7 +200,7 @@ namespace adria
 		}
 
 	private:
-		PVoid hwnd;
+		void* hwnd;
 		Uint32 width, height;
 		Uint32 frame_index;
 

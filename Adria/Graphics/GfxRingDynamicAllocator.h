@@ -26,6 +26,6 @@ namespace adria
 		RingAllocator ring_allocator;
 		std::mutex alloc_mutex;
 		std::unique_ptr<GfxBuffer> buffer;
-		PVoid cpu_address;
+		void* cpu_address;
 	};
 }

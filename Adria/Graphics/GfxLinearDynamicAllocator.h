@@ -17,7 +17,7 @@ namespace adria
 		{
 			std::unique_ptr<GfxBuffer> buffer;
 			LinearAllocator linear_allocator;
-			PVoid cpu_address;
+			void* cpu_address;
 
 			GfxAllocationPage(GfxDevice* gfx, Uint64 page_size);
 			GfxAllocationPage(GfxAllocationPage&&);

@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<Int> DepthOfField("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Custom, 2 - FFX");
+	static TAutoConsoleVariable<int> DepthOfField("r.DepthOfField", 0, "0 - No Depth of Field, 1 - Custom, 2 - FFX");
 
 	enum class DepthOfFieldType : Uint8
 	{

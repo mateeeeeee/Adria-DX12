@@ -15,7 +15,7 @@ namespace adria
 		ReflectionType_Count
 	};
 
-	static TAutoConsoleVariable<Int> Reflection("r.Reflections", ReflectionType_SSR, "0 - No Reflections, 1 - SSR, 2 - RTR");
+	static TAutoConsoleVariable<int> Reflection("r.Reflections", ReflectionType_SSR, "0 - No Reflections, 1 - SSR, 2 - RTR");
 
 	ReflectionPassGroup::ReflectionPassGroup(GfxDevice* gfx, Uint32 width, Uint32 height) : reflection_type(ReflectionType_SSR)
 	{
