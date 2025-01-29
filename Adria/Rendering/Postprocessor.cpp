@@ -32,7 +32,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<int>  AmbientOcclusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
+	static TAutoConsoleVariable<Int>  AmbientOcclusion("r.AmbientOcclusion", 1, "0 - No AO, 1 - SSAO, 2 - HBAO, 3 - CACAO, 4 - RTAO");
 	
 	enum AmbientOcclusionType : Uint8
 	{

@@ -354,7 +354,7 @@ namespace adria
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
 					ImGui::Combo("Preset", &preset_id,
-						[](void* vec, int idx, const Char** out_text)
+						[](void* vec, Int idx, const Char** out_text)
 						{
 							std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
 							if (idx < 0 || idx >= vector->size()) return false;

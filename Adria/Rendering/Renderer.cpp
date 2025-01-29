@@ -30,8 +30,8 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<int>  LightingPath("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
-	static TAutoConsoleVariable<int>  VolumetricPath("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
+	static TAutoConsoleVariable<Int>  LightingPath("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
+	static TAutoConsoleVariable<Int>  VolumetricPath("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),

@@ -6,7 +6,7 @@ namespace adria
 	{
 		ImGuiTextBuffer     Buf;
 		ImGuiTextFilter     Filter;
-		ImVector<int>       LineOffsets;
+		ImVector<Int>       LineOffsets;
 		Bool                AutoScroll;
 
 		ImGuiLogger()
@@ -23,12 +23,12 @@ namespace adria
 		}
 		void AddLog(const Char* fmt, ...) IM_FMTARGS(2)
 		{
-			int old_size = Buf.size();
+			Int old_size = Buf.size();
 			va_list args;
 			va_start(args, fmt);
 			Buf.appendfv(fmt, args);
 			va_end(args);
-			for (int new_size = Buf.size(); old_size < new_size; old_size++)
+			for (Int new_size = Buf.size(); old_size < new_size; old_size++)
 				if (Buf[old_size] == '\n')
 					LineOffsets.push_back(old_size + 1);
 		}
@@ -70,7 +70,7 @@ namespace adria
 			const Char* buf_end = Buf.end();
 			if (Filter.IsActive())
 			{
-				for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
+				for (Int line_no = 0; line_no < LineOffsets.Size; line_no++)
 				{
 					const Char* line_start = buf + LineOffsets[line_no];
 					const Char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
@@ -84,7 +84,7 @@ namespace adria
 				clipper.Begin(LineOffsets.Size);
 				while (clipper.Step())
 				{
-					for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+					for (Int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
 					{
 						const Char* line_start = buf + LineOffsets[line_no];
 						const Char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;

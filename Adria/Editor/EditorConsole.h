@@ -19,11 +19,11 @@ namespace adria
 		ImVector<const Char*> Commands;
 		ImVector<const Char*> CommandDescriptions;
 		ImVector<Char*>       History;
-		int                   HistoryPos;
+		Int                   HistoryPos;
 		ImGuiTextFilter       Filter;
 		Bool                  AutoScroll;
 		Bool                  ScrollToBottom;
-		int					  CursorPos;
+		Int					  CursorPos;
 
 	private:
 		void    ClearLog();

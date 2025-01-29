@@ -3,13 +3,13 @@
 
 namespace adria
 {
-	static int Stricmp(const Char* s1, const Char* s2)
+	static Int Stricmp(const Char* s1, const Char* s2)
 	{
-		int d; while ((d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; } return d;
+		Int d; while ((d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; } return d;
 	}
-	static int Strnicmp(const Char* s1, const Char* s2, int n)
+	static Int Strnicmp(const Char* s1, const Char* s2, Int n)
 	{
-		int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d;
+		Int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d;
 	}
 	static Char* Strdup(const Char* s)
 	{
@@ -44,7 +44,7 @@ namespace adria
 	EditorConsole::~EditorConsole()
 	{
 		ClearLog();
-		for (int i = 0; i < History.Size; i++) free(History[i]);
+		for (Int i = 0; i < History.Size; i++) free(History[i]);
 	}
 
 	void EditorConsole::Draw(const Char* title, Bool* p_open)
@@ -84,7 +84,7 @@ namespace adria
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
 		if (copy_to_clipboard) ImGui::LogToClipboard();
-		for (int i = 0; i < Items.Size; i++)
+		for (Int i = 0; i < Items.Size; i++)
 		{
 			const Char* item = Items[i];
 			if (!Filter.PassFilter(item)) continue;
@@ -179,7 +179,7 @@ namespace adria
 		ImGui::SameLine();
 		ImGui::TextUnformatted(InputBuf);
 
-		for (int i = History.Size - 1; i >= 0 ; i--)
+		for (Int i = History.Size - 1; i >= 0 ; i--)
 		{
 			ImGui::TextUnformatted(History[i]);
 		}
@@ -189,9 +189,9 @@ namespace adria
 
 	void EditorConsole::ClearLog()
 	{
-		for (int i = 0; i < Items.Size; i++) free(Items[i]);
+		for (Int i = 0; i < Items.Size; i++) free(Items[i]);
 		Items.clear();
-		for (int i = 0; i < History.Size; i++) free(History[i]);
+		for (Int i = 0; i < History.Size; i++) free(History[i]);
 		History.clear();
 	}
 	void EditorConsole::AddLog(const Char* fmt, ...) IM_FMTARGS(2)
@@ -209,7 +209,7 @@ namespace adria
 	{
 		AddLog("# %s\n", cmd);
 		HistoryPos = -1;
-		for (int i = History.Size - 1; i >= 0; i--)
+		for (Int i = History.Size - 1; i >= 0; i--)
 		{
 			if (Stricmp(History[i], cmd) == 0)
 			{
@@ -227,12 +227,12 @@ namespace adria
 		else if (Stricmp(cmd, "help") == 0)
 		{
 			AddLog("Commands:");
-			for (int i = 0; i < Commands.Size; i++) AddLog("- %s : %s", Commands[i], CommandDescriptions[i]);
+			for (Int i = 0; i < Commands.Size; i++) AddLog("- %s : %s", Commands[i], CommandDescriptions[i]);
 		}
 		else if (Stricmp(cmd, "history") == 0)
 		{
-			int first = History.Size - 10;
-			for (int i = first > 0 ? first : 0; i < History.Size; i++)
+			Int first = History.Size - 10;
+			for (Int i = first > 0 ? first : 0; i < History.Size; i++)
 				AddLog("%3d: %s\n", i, History[i]);
 		}
 		else if (!g_ConsoleManager.ProcessInput(cmd))
@@ -242,7 +242,7 @@ namespace adria
 
 		ScrollToBottom = true;
 	}
-	int EditorConsole::TextEditCallback(ImGuiInputTextCallbackData* data)
+	Int EditorConsole::TextEditCallback(ImGuiInputTextCallbackData* data)
 	{
 		switch (data->EventFlag)
 		{
@@ -259,7 +259,7 @@ namespace adria
 			}
 
 			ImVector<const Char*> candidates;
-			for (int i = 0; i < Commands.Size; i++)
+			for (Int i = 0; i < Commands.Size; i++)
 				if (Strnicmp(Commands[i], word_start, (int)(word_end - word_start)) == 0)
 					candidates.push_back(Commands[i]);
 
@@ -275,12 +275,12 @@ namespace adria
 			}
 			else if (candidates.Size != Commands.Size)
 			{
-				int match_len = (int)(word_end - word_start);
+				Int match_len = (int)(word_end - word_start);
 				for (;;)
 				{
-					int c = 0;
+					Int c = 0;
 					Bool all_candidates_matches = true;
-					for (int i = 0; i < candidates.Size && all_candidates_matches; i++)
+					for (Int i = 0; i < candidates.Size && all_candidates_matches; i++)
 						if (i == 0)
 							c = toupper(candidates[i][match_len]);
 						else if (c == 0 || c != toupper(candidates[i][match_len]))
@@ -298,7 +298,7 @@ namespace adria
 
 				// List matches
 				AddLog("Possible matches:\n");
-				for (int i = 0; i < candidates.Size; i++)
+				for (Int i = 0; i < candidates.Size; i++)
 					AddLog("- %s\n", candidates[i]);
 			}
 
@@ -306,7 +306,7 @@ namespace adria
 		}
 		case ImGuiInputTextFlags_CallbackHistory:
 		{
-			const int prev_history_pos = HistoryPos;
+			const Int prev_history_pos = HistoryPos;
 			if (data->EventKey == ImGuiKey_UpArrow)
 			{
 				if (HistoryPos == -1)

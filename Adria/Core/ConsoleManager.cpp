@@ -360,13 +360,13 @@ namespace adria
 			}
 			else if constexpr (std::is_same_v<T, Float>)
 			{
-				value = detail::ConsoleVariableConversionHelper<int>::GetFloat(int_value);
+				value = detail::ConsoleVariableConversionHelper<Int>::GetFloat(int_value);
 				OnChangedDelegate().Broadcast(this);
 				return true;
 			}
 			else if constexpr (std::is_same_v<T, std::string>)
 			{
-				value = detail::ConsoleVariableConversionHelper<int>::GetString(int_value);
+				value = detail::ConsoleVariableConversionHelper<Int>::GetString(int_value);
 				OnChangedDelegate().Broadcast(this);
 				return true;
 			}
