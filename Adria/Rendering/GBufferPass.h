@@ -7,6 +7,7 @@ namespace adria
 {
 	class GfxDevice;
 	class RenderGraph;
+	enum class RendererOutput : Uint32;
 
 	class GBufferPass
 	{
@@ -16,17 +17,18 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h);
-
 		void OnRainEvent(Bool enabled)
 		{
 			raining = enabled;
 		}
+		void OnRendererOutputChanged(RendererOutput renderer_output);
 
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;
 		Uint32 width, height;
 		Bool raining = false;
+		Bool debug_mipmaps = false;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> gbuffer_psos;
 
 	private:

@@ -96,7 +96,24 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	Texture2D normalTexture = ResourceDescriptorHeap[material.normalIdx];
 	Texture2D metallicRoughnessTexture = ResourceDescriptorHeap[material.roughnessMetallicIdx];
 	Texture2D emissiveTexture = ResourceDescriptorHeap[material.emissiveIdx];
+	PSOutput output = (PSOutput)0;
 
+#if VIEW_MIPMAPS
+	static const float3 mipColors[6] = 
+	{
+		float3(1.0f, 0.0f, 0.0f),   // Mip 0: Red
+		float3(0.0f, 1.0f, 0.0f),   // Mip 1: Green
+		float3(0.0f, 0.0f, 1.0f),   // Mip 2: Blue
+		float3(1.0f, 1.0f, 0.0f),   // Mip 3: Yellow
+		float3(1.0f, 0.5f, 0.0f),   // Mip 4: Orange
+		float3(0.5f, 0.0f, 0.5f)    // Mip 5 and above: Purple
+	};
+	float mipLevel = albedoTexture.CalculateLevelOfDetail(LinearWrapSampler, input.Uvs);
+	mipLevel = clamp(mipLevel, 0.0f, 5.0f);
+	int mipColorIndex = round(mipLevel);
+	output.DiffuseRT = float4(mipColors[mipColorIndex], 1.0f);
+	return output;
+#endif
 	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(material.baseColorFactor, 1.0f);
 	if (albedoColor.a < material.alphaCutoff) discard;
 
@@ -136,8 +153,6 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	clearCoatNormalVS = normalize(mul(clearCoatNormal, (float3x3) FrameCB.view));
 	customData = EncodeClearCoat(clearCoat, clearCoatRoughness, clearCoatNormalVS);
 #endif
-
-	PSOutput output = (PSOutput)0;
 	output.NormalRT = EncodeGBufferNormalRT(viewNormal, metallic, shadingExtension);
 	output.DiffuseRT = float4(albedoColor.xyz * material.baseColorFactor, roughness);
 	output.EmissiveRT = float4(emissive.rgb, emissive.a / 256);

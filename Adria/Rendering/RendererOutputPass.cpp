@@ -92,7 +92,8 @@ namespace adria
 					"OUTPUT_AO",
 					"OUTPUT_INDIRECT",
 					"OUTPUT_SHADING_EXTENSION",
-					"OUTPUT_CUSTOM"
+					"OUTPUT_CUSTOM",
+					"OUTPUT_MIPMAPS"
 				};
 				renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");
 

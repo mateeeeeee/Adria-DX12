@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "RendererOutputPass.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "entt/entity/registry.hpp"
@@ -49,6 +50,11 @@ namespace adria
 	Bool GPUDrivenGBufferPass::IsEnabled() const
 	{
 		return GpuDrivenRendering.Get();
+	}
+
+	void GPUDrivenGBufferPass::OnRendererOutputChanged(RendererOutput renderer_output)
+	{
+		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
 	}
 
 	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
@@ -560,10 +566,9 @@ namespace adria
 				};
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
-				if (rain_active)
-				{
-					draw_psos->AddDefine("RAIN", "1");
-				}
+
+				if (debug_mipmaps) draw_psos->AddDefine("VIEW_MIPMAPS", "1");
+				if (rain_active) draw_psos->AddDefine("RAIN", "1");
 				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
@@ -870,10 +875,9 @@ namespace adria
 
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
-				if (rain_active)
-				{
-					draw_psos->AddDefine("RAIN", "1");
-				}
+
+				if (debug_mipmaps) draw_psos->AddDefine("VIEW_MIPMAPS", "1");
+				if (rain_active) draw_psos->AddDefine("RAIN", "1");
 				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);

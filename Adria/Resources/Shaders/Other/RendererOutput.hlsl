@@ -36,7 +36,7 @@ void RendererOutputCS(CSInput input)
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 	
-#if OUTPUT_DIFFUSE
+#if OUTPUT_DIFFUSE || OUTPUT_MIPMAPS
 	float4 albedoRoughness	= diffuseRT.Sample(LinearWrapSampler, uv);
 	float3 albedo = albedoRoughness.rgb;
 	outputTexture[input.DispatchThreadId.xy] = float4(albedo, 1.0f);

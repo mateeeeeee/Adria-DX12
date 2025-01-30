@@ -760,6 +760,7 @@ namespace adria
 					AddRendererOutputMenuItem(IndirectLighting);
 					AddRendererOutputMenuItem(Custom);
 					AddRendererOutputMenuItem(ShadingExtension);
+					AddRendererOutputMenuItem(ViewMipMaps);
 					#undef AddRendererOutputMenuItem
 					ImGui::EndMenu();
 				}

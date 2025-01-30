@@ -11,6 +11,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 	class GfxBuffer;
+	enum class RendererOutput : Uint32;
 
 	class GPUDrivenGBufferPass
 	{
@@ -48,6 +49,7 @@ namespace adria
 		{
 			rain_active = enabled;
 		}
+		void OnRendererOutputChanged(RendererOutput renderer_output);
 
 	private:
 		GfxDevice* gfx;
@@ -66,6 +68,7 @@ namespace adria
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT] = {};
 
 		Bool rain_active = false;
+		Bool debug_mipmaps = false;
 		std::unique_ptr<GfxMeshShaderPipelineStatePermutations> draw_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	cull_meshlets_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	cull_instances_psos;

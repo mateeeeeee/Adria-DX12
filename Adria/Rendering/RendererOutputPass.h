@@ -16,6 +16,8 @@ namespace adria
 		IndirectLighting,
 		Custom,
 		ShadingExtension,
+		ViewMipMaps,
+		TriangleOverdraw,
 		Count
 	};
 

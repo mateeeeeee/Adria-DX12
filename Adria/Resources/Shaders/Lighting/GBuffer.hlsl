@@ -58,12 +58,28 @@ PSOutput GBufferPS(VSToPS input)
 {
     Instance instanceData = GetInstanceData(GBufferPassCB.instanceId);
     Material materialData = GetMaterialData(instanceData.materialIdx);
-
 	Texture2D albedoTexture = ResourceDescriptorHeap[materialData.diffuseIdx];
 	Texture2D normalTexture = ResourceDescriptorHeap[materialData.normalIdx];
 	Texture2D metallicRoughnessTexture = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
 	Texture2D emissiveTexture = ResourceDescriptorHeap[materialData.emissiveIdx];
+	PSOutput output = (PSOutput)0;
 
+#if VIEW_MIPMAPS
+	static const float3 mipColors[6] = 
+	{
+		float3(1.0f, 0.0f, 0.0f),   // Mip 0: Red
+		float3(0.0f, 1.0f, 0.0f),   // Mip 1: Green
+		float3(0.0f, 0.0f, 1.0f),   // Mip 2: Blue
+		float3(1.0f, 1.0f, 0.0f),   // Mip 3: Yellow
+		float3(1.0f, 0.5f, 0.0f),   // Mip 4: Orange
+		float3(0.5f, 0.0f, 0.5f)    // Mip 5 and above: Purple
+	};
+	float mipLevel = albedoTexture.CalculateLevelOfDetail(LinearWrapSampler, input.Uvs);
+	mipLevel = clamp(mipLevel, 0.0f, 5.0f);
+	int mipColorIndex = round(mipLevel);
+	output.DiffuseRT = float4(mipColors[mipColorIndex], 1.0f);
+	return output;
+#endif
 	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 	if (albedoColor.a < materialData.alphaCutoff) discard;
 
@@ -130,7 +146,6 @@ PSOutput GBufferPS(VSToPS input)
 	sheenRoughness *= sheenRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).r;
 	customData = float4(sheenColor, sheenRoughness);
 #endif
-	PSOutput output = (PSOutput)0;
 	output.NormalRT = EncodeGBufferNormalRT(viewNormal, metallic, shadingExtension);
 	output.DiffuseRT = float4(albedoColor.xyz * materialData.baseColorFactor, roughness);
 	output.EmissiveRT = float4(emissive.rgb, emissive.a / 256);

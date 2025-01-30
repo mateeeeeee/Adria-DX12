@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "RendererOutputPass.h"
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxTracyProfiler.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
@@ -63,10 +64,9 @@ namespace adria
 				auto GetPSO = [this](ShadingExtension extension, MaterialAlphaMode alpha_mode)
 				{
 					using enum GfxShaderStage;
-					if (raining)
-					{
-						gbuffer_psos->AddDefine<PS>("RAIN", "1");
-					}
+					if (debug_mipmaps) gbuffer_psos->AddDefine<PS>("VIEW_MIPMAPS", "1");
+					if (raining) gbuffer_psos->AddDefine<PS>("RAIN", "1");
+
 					switch (extension)
 					{
 					case ShadingExtension::Anisotropy:	gbuffer_psos->AddDefine<PS>("SHADING_EXTENSION_ANISOTROPY", "1"); break;
@@ -121,6 +121,11 @@ namespace adria
 	void GBufferPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void GBufferPass::OnRendererOutputChanged(RendererOutput renderer_output)
+	{
+		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
 	}
 
 	void GBufferPass::CreatePSOs()
