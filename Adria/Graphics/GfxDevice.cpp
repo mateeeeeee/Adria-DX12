@@ -18,6 +18,7 @@
 #include "Logging/Logger.h"
 #include "Core/Window.h"
 #include "Core/ConsoleManager.h"
+#include "Core/CommandLineOptions.h"
 
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
@@ -256,17 +257,17 @@ namespace adria
 		CloseHandle(dred_wait_handle);
 	}
 
-	GfxDevice::GfxDevice(Window* window, GfxOptions const& options)
+	GfxDevice::GfxDevice(Window* window)
 		: frame_index(0), shading_rate_info{}
 	{
-		VSync->Set(options.vsync);
+		VSync->Set(g_CommandLineOptions.GetVsync());
 		hwnd = window->Handle();
 		width = window->Width();
 		height = window->Height();
 
 		HRESULT hr = E_FAIL;
 		Uint32 dxgi_factory_flags = 0;
-		SetupOptions(options, dxgi_factory_flags);
+		SetupOptions(dxgi_factory_flags);
 		GFX_CHECK_HR(CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(dxgi_factory.GetAddressOf())));
 
 		Ref<IDXGIAdapter4> adapter;
@@ -304,7 +305,7 @@ namespace adria
 			D3D_FEATURE_LEVEL_11_0
 		};
 
-		if (options.aftermath)
+		if (g_CommandLineOptions.GetAftermath())
 		{
 			nsight_aftermath = std::make_unique<GfxNsightAftermathGpuCrashTracker>(this);
 		}
@@ -379,7 +380,7 @@ namespace adria
 		CreateCommonRootSignature();
 
 		std::atexit(ReportLiveObjects);
-		if (options.dred)
+		if (g_CommandLineOptions.GetDRED())
 		{
 			dred = std::make_unique<DRED>(this);
 		}
@@ -839,10 +840,13 @@ namespace adria
 		}
 	}
 
-	void GfxDevice::SetupOptions(GfxOptions const& options, Uint32& dxgi_factory_flags)
+	void GfxDevice::SetupOptions(Uint32& dxgi_factory_flags)
 	{
-		if (options.aftermath) return;
-		if (options.debug_device)
+		if (g_CommandLineOptions.GetAftermath())
+		{
+			return;
+		}
+		if (g_CommandLineOptions.GetDebugDevice())
 		{
 			Ref<ID3D12Debug> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
@@ -857,7 +861,7 @@ namespace adria
 			}
 			else ADRIA_LOG(WARNING, "Debug Layer setup failed!");
 		}
-		if (options.dred)
+		if (g_CommandLineOptions.GetDRED())
 		{
 			Ref<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
 			HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(dred_settings.GetAddressOf()));
@@ -874,7 +878,7 @@ namespace adria
 			}
 			else ADRIA_LOG(WARNING, "DRED setup failed!");
 		}
-		if (options.gpu_validation)
+		if (g_CommandLineOptions.GetGpuValidation())
 		{
 			Ref<ID3D12Debug1> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
@@ -887,7 +891,7 @@ namespace adria
 #endif
 			}
 		}
-		if (options.pix)
+		if (g_CommandLineOptions.GetPIX())
 		{
 			HMODULE pix_library = PIXLoadLatestWinPixGpuCapturerLibrary();
 			if (pix_library)

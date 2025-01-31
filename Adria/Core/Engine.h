@@ -1,5 +1,4 @@
 #pragma once
-#include "Graphics/GfxOptions.h"
 #include "Rendering/ViewportData.h"
 #include "Rendering/SceneConfig.h"
 #include "entt/entity/registry.hpp"
@@ -16,19 +15,12 @@ namespace adria
 	class ImGuiManager;
 	class Camera;
 
-	struct EngineInit
-	{
-		std::string scene_file;
-		Window* window = nullptr;
-		GfxOptions gfx_options;
-	};
-
 	class Engine
 	{
 		friend class Editor;
 
 	public:
-		explicit Engine(EngineInit const&);
+		Engine(Window* window, std::string const& scene_file);
 		ADRIA_NONCOPYABLE_NONMOVABLE(Engine)
 		~Engine();
 

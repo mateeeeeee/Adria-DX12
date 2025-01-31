@@ -565,6 +565,7 @@
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxCommandSignature.cpp" />
+    <ClCompile Include="Core\CommandLineOptions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1072,9 +1073,6 @@
     <ClInclude Include="Core\ConsoleManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxOptions.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\DDGIPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
@@ -1396,6 +1394,7 @@
     <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\gpu\vrs\ffx_vrs_resources.h">
       <Filter>External\FFX\gpu\vrs</Filter>
     </ClInclude>
+    <ClInclude Include="Core\CommandLineOptions.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

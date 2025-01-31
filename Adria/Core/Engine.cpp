@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Input.h"
 #include "Paths.h"
+#include "CommandLineOptions.h"
 #include "ConsoleManager.h"
 #include "Logging/Logger.h"
 #include "Graphics/GfxDevice.h"
@@ -19,12 +20,12 @@
 
 namespace adria
 {
-	Engine::Engine(EngineInit const& init) : window{ init.window }, viewport_data{}
+	Engine::Engine(Window* window, std::string const& scene_file) : window{ window }, viewport_data{}
 	{
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
-		gfx = std::make_unique<GfxDevice>(window, init.gfx_options);
-		ShaderManager::Initialize(init.gfx_options.shader_debug);
+		gfx = std::make_unique<GfxDevice>(window);
+		ShaderManager::Initialize(g_CommandLineOptions.GetShaderDebug());
 		g_TextureManager.Initialize(gfx.get());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
 		scene_loader = std::make_unique<SceneLoader>(reg, gfx.get());
@@ -34,10 +35,10 @@ namespace adria
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		input_events.f6_pressed_event.AddMember(&Renderer::OnTakeScreenshot, *renderer);
-		std::ignore = input_events.f5_pressed_event.AddStatic(ShaderManager::CheckIfShadersHaveChanged);
+		input_events.f5_pressed_event.AddStatic(ShaderManager::CheckIfShadersHaveChanged);
 
 		SceneConfig scene_config{};
-		if (ParseSceneConfig(init.scene_file, scene_config))
+		if (ParseSceneConfig(scene_file, scene_config))
 		{
 			ProcessCVarIniFile(scene_config.ini_file);
 			InitializeScene(scene_config);

@@ -9,6 +9,7 @@
 
 namespace adria
 {
+	class Window;
 	class GfxDevice;
 	class GfxDescriptor;
 	class Engine;
@@ -16,12 +17,12 @@ namespace adria
 	class RenderGraph;
 	class EditorLogger;
 	class EditorConsole;
-	struct EngineInit;
 	struct Material;
 
 	struct EditorInit
 	{
-		EngineInit& engine_init;
+		Window* window;
+		std::string scene_file;
 	};
 
 	class Editor : public Singleton<Editor>

@@ -15,7 +15,6 @@
 #define D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED
 #include "D3D12MemAlloc.h"
 
-#include "GfxOptions.h"
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
 #include "GfxCapabilities.h"
@@ -94,7 +93,7 @@ namespace adria
 	{
 		friend class GfxCommandList;
 	public:
-		GfxDevice(Window* window, GfxOptions const&);
+		explicit GfxDevice(Window* window);
 		ADRIA_NONCOPYABLE(GfxDevice)
 		ADRIA_DEFAULT_MOVABLE(GfxDevice)
 		~GfxDevice();
@@ -274,7 +273,7 @@ namespace adria
 		std::unique_ptr<GfxNsightAftermathGpuCrashTracker> nsight_aftermath;
 
 	private:
-		void SetupOptions(GfxOptions const& options, Uint32& dxgi_factory_flags);
+		void SetupOptions(Uint32& dxgi_factory_flags);
 		void SetInfoQueue();
 		void CreateCommonRootSignature();
 

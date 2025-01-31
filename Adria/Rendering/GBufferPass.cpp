@@ -89,11 +89,16 @@ namespace adria
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
 
-				reg.sort<Batch>([](Batch const& lhs, Batch const& rhs) 
+				reg.sort<Batch>([&frame_data](Batch const& lhs, Batch const& rhs)
 					{ 
 						if(lhs.alpha_mode != rhs.alpha_mode) return lhs.alpha_mode < rhs.alpha_mode;
-						return lhs.shading_extension < rhs.shading_extension;
+						if(lhs.shading_extension != rhs.shading_extension)  return lhs.shading_extension < rhs.shading_extension;
+						Vector3 camera_position(frame_data.camera_position);
+						Float lhs_distance = Vector3::DistanceSquared(camera_position, lhs.bounding_box.Center);
+						Float rhs_distance = Vector3::DistanceSquared(camera_position, rhs.bounding_box.Center);
+						return lhs_distance < rhs_distance;
 					});
+
 				auto batch_view = reg.view<Batch>();
 				for (auto batch_entity : batch_view)
 				{

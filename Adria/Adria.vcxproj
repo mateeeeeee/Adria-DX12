@@ -194,6 +194,7 @@
     <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp" />
     <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp" />
     <ClCompile Include="..\External\tracy\TracyClient.cpp" />
+    <ClCompile Include="Core\CommandLineOptions.cpp" />
     <ClCompile Include="Core\ConsoleManager.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Input.cpp" />
@@ -420,6 +421,7 @@
     <ClInclude Include="..\External\SimpleMath\SimpleMath.h" />
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp" />
     <ClInclude Include="..\External\tracy\tracy\TracyD3D12.hpp" />
+    <ClInclude Include="Core\CommandLineOptions.h" />
     <ClInclude Include="Core\ConsoleManager.h" />
     <ClInclude Include="Core\IConsoleManager.h" />
     <ClInclude Include="Core\Types.h" />
@@ -449,7 +451,6 @@
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h" />
-    <ClInclude Include="Graphics\GfxOptions.h" />
     <ClInclude Include="Graphics\GfxPipelineStatePermutations.h" />
     <ClInclude Include="Graphics\GfxPipelineStatePermutationsFwd.h" />
     <ClInclude Include="Graphics\GfxQueryHeap.h" />
