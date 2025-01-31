@@ -29,6 +29,7 @@ namespace adria
 		Uint32 width, height;
 		Bool raining = false;
 		Bool debug_mipmaps = false;
+		Bool triangle_overdraw = false;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> gbuffer_psos;
 
 	private:

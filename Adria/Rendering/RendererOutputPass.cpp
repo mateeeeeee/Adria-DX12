@@ -5,6 +5,7 @@
 #include "Graphics/GfxCommon.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Editor/GUICommand.h"
 
 namespace adria
 {
@@ -62,8 +63,7 @@ namespace adria
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				Float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 5),
-					context.GetReadWriteTexture(data.output), clear);
+				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 5), context.GetReadWriteTexture(data.output), clear);
 
 				struct RendererOutputConstants
 				{
@@ -74,10 +74,12 @@ namespace adria
 					Uint32 custom_idx;
 					Uint32 ao_idx;
 					Uint32 output_idx;
+					Uint32 triangle_overdraw_scale;
 				} constants =
 				{
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, 
-					.custom_idx = i + 4, .ao_idx = i + 5, .output_idx = i + 6
+					.custom_idx = i + 4, .ao_idx = i + 5, .output_idx = i + 6,
+					.triangle_overdraw_scale = (Uint32)triangle_overdraw_scale
 				};
 
 				static std::array<Char const*, (Uint32)RendererOutput::Count> OutputDefines =
@@ -93,7 +95,8 @@ namespace adria
 					"OUTPUT_INDIRECT",
 					"OUTPUT_SHADING_EXTENSION",
 					"OUTPUT_CUSTOM",
-					"OUTPUT_MIPMAPS"
+					"OUTPUT_MIPMAPS",
+					"OUTPUT_OVERDRAW"
 				};
 				renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");
 
@@ -102,6 +105,19 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
+	}
+
+	void RendererOutputPass::GUI()
+	{
+		QueueGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Renderer Output Settings", ImGuiTreeNodeFlags_None))
+				{
+					ImGui::SliderInt("Triangle Overdraw Scale", &triangle_overdraw_scale, 1, 5);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}, GUICommandGroup_Renderer);
 	}
 
 	void RendererOutputPass::CreatePSOs()

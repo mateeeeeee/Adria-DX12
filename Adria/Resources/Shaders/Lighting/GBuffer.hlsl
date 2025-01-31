@@ -150,5 +150,11 @@ PSOutput GBufferPS(VSToPS input)
 	output.DiffuseRT = float4(albedoColor.xyz * materialData.baseColorFactor, roughness);
 	output.EmissiveRT = float4(emissive.rgb, emissive.a / 256);
 	output.CustomRT = customData;
+
+#if TRIANGLE_OVERDRAW
+	RWTexture2D<uint> triangleOverdrawTexture = ResourceDescriptorHeap[FrameCB.triangleOverdrawIdx];
+    uint2 texCoords = uint2(input.Position.xy);
+	InterlockedAdd(triangleOverdrawTexture[texCoords], 1);
+#endif
 	return output;
 }

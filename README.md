@@ -13,9 +13,7 @@ Graphics engine written in C++ using DirectX12.
 * Temporal upscalers : FSR2, FSR3, XeSS, DLSS3
 * Ultimate Bindless resource binding
 * Variable Rate Shading (FFX)
-* Volumetric lighting
-    - Raymarching
-    - Fog volumes
+* Volumetric lighting: Raymarching, Fog volumes
 * Tiled/Clustered deferred rendering 
 * Shadows
     - PCF shadows for directional, spot and point lights and cascade shadow maps for directional lights
@@ -42,6 +40,8 @@ Graphics engine written in C++ using DirectX12.
     - Render graph graphviz visualization
     - Shader debug printf
     - Nsight Aftermath SDK
+    - Debug Outputs: Diffuse, Normal, Depth, Roughness, Metallic, Emissive, AO, GI, \
+      Custom, Shading Extension, View Mipmaps, Triangle Overdraw
 
 ## TODO
 * ReSTIR DI

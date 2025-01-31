@@ -14,6 +14,7 @@ struct RendererOutputConstants
 	uint customIdx;
 	uint aoIdx;
 	uint outputIdx;
+	uint triangleOverdrawScale;
 };
 ConstantBuffer<RendererOutputConstants> RendererOutputPassCB : register(b1);
 
@@ -110,6 +111,21 @@ void RendererOutputCS(CSInput input)
         float3(0.5, 0.5, 0.5)   
     };
 	outputTexture[input.DispatchThreadId.xy] = float4(Colors[shadingExtension], 1.0f);
+#elif OUTPUT_OVERDRAW
+	RWTexture2D<uint> triangleOverdrawTexture = ResourceDescriptorHeap[FrameCB.triangleOverdrawIdx];
+	uint2 texCoords = uint2(uv * FrameCB.renderResolution);
+	uint overdrawCount = triangleOverdrawTexture.Load(texCoords);
+	overdrawCount = min(overdrawCount / RendererOutputPassCB.triangleOverdrawScale, 4);
+    
+    static const float3 overdrawColors[] = 
+{
+        float3(0.0f, 1.0f, 0.0f),  // Green
+        float3(1.0f, 1.0f, 0.0f),  // Yellow
+        float3(1.0f, 0.5f, 0.0f),  // Orange
+        float3(1.0f, 0.0f, 0.0f),  // Red
+        float3(0.5f, 0.0f, 0.0f)   // Dark Red
+    };
+    outputTexture[input.DispatchThreadId.xy] = float4(overdrawColors[overdrawCount], 1.0f);
 #else 
 	outputTexture[input.DispatchThreadId.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f); 
 #endif

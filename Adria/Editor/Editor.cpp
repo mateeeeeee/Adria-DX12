@@ -761,6 +761,7 @@ namespace adria
 					AddRendererOutputMenuItem(Custom);
 					AddRendererOutputMenuItem(ShadingExtension);
 					AddRendererOutputMenuItem(ViewMipMaps);
+					AddRendererOutputMenuItem(TriangleOverdraw);
 					#undef AddRendererOutputMenuItem
 					ImGui::EndMenu();
 				}

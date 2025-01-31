@@ -52,7 +52,8 @@ namespace adria
 		g_DebugRenderer.Initialize(gfx, width, height);
 		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
-		CreateSizeDependentResources();
+		CreateDisplaySizeDependentResources();
+		CreateRenderSizeDependentResources();
 
 		postprocessor.AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&Renderer::OnRenderResolutionChanged, *this));
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
@@ -62,7 +63,6 @@ namespace adria
 		rain_pass.GetRainEvent().AddMember(&GPUDrivenGBufferPass::OnRainEvent, gpu_driven_renderer);
 		rain_pass.GetRainEvent().AddMember(&GBufferPass::OnRainEvent, gbuffer_pass);
 		screenshot_fence.Create(gfx, "Screenshot Fence");
-
 		{
 			LightingPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPathType>(cvar->GetInt()); }));
 			VolumetricPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { volumetric_path = static_cast<VolumetricPathType>(cvar->GetInt()); }));
@@ -81,7 +81,7 @@ namespace adria
 	void Renderer::SetLightingPath(LightingPathType path)
 	{
 		lighting_path = path;
-		LightingPath->Set((int)path);
+		LightingPath->Set((Int)path);
 	}
 
 	void Renderer::SetViewportData(ViewportData const& vp)
@@ -152,7 +152,7 @@ namespace adria
 		if (display_width != w || display_height != h)
 		{
 			display_width = w; display_height = h;
-			CreateSizeDependentResources();
+			CreateDisplaySizeDependentResources();
 			postprocessor.OnResize(w, h);
 			g_DebugRenderer.OnResize(w, h);
 			path_tracer.OnResize(w, h);
@@ -164,6 +164,7 @@ namespace adria
 		if (render_width != w || render_height != h)
 		{
 			render_width = w, render_height = h;
+			CreateRenderSizeDependentResources();
 
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
@@ -220,16 +221,29 @@ namespace adria
 		path_tracer.Reset();
 	}
 
-	void Renderer::CreateSizeDependentResources()
+	void Renderer::CreateDisplaySizeDependentResources()
 	{
-		GfxTextureDesc ldr_desc{};
-		ldr_desc.width = display_width;
-		ldr_desc.height = display_height;
-		ldr_desc.format = GfxFormat::R8G8B8A8_UNORM;
-		ldr_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
-		ldr_desc.initial_state = GfxResourceState::ComputeUAV;
-		final_texture = gfx->CreateTexture(ldr_desc);
+		GfxTextureDesc final_texture_desc{};
+		final_texture_desc.width = display_width;
+		final_texture_desc.height = display_height;
+		final_texture_desc.format = GfxFormat::R8G8B8A8_UNORM;
+		final_texture_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
+		final_texture_desc.initial_state = GfxResourceState::ComputeUAV;
+		final_texture = gfx->CreateTexture(final_texture_desc);
 	}
+
+	void Renderer::CreateRenderSizeDependentResources()
+	{
+		GfxTextureDesc overdraw_texture_desc{};
+		overdraw_texture_desc.width = render_width;
+		overdraw_texture_desc.height = render_height;
+		overdraw_texture_desc.format = GfxFormat::R32_UINT;
+		overdraw_texture_desc.bind_flags = GfxBindFlag::UnorderedAccess;
+		overdraw_texture_desc.initial_state = GfxResourceState::ComputeUAV;
+		overdraw_texture = gfx->CreateTexture(overdraw_texture_desc);
+		overdraw_texture_uav = gfx->CreateTextureUAV(overdraw_texture.get());
+	}
+
 	void Renderer::CreateAS()
 	{
 		if (!ray_tracing_supported) return;
@@ -393,8 +407,8 @@ namespace adria
 
 		camera_jitter = Vector2(0.0f, 0.0f);
 		if (postprocessor.NeedsJitter()) camera_jitter = camera->Jitter(gfx->GetFrameIndex());
-
 		if (camera->IsChanged()) path_tracer.Reset();
+
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
 		frame_cbuf_data.camera_position = camera->Position();
@@ -430,11 +444,17 @@ namespace adria
 		frame_cbuf_data.rain_splash_bump_idx = rain_pass.GetRainSplashBumpIndex();
 		frame_cbuf_data.rain_blocker_map_idx = rain_pass.GetRainBlockerMapIndex();
 		frame_cbuf_data.rain_view_projection = rain_pass.GetRainViewProjection();
-		frame_cbuf_data.rain_total_time = rain_pass.GetRainTotalTime();
 		frame_cbuf_data.sheenE_idx = (Int32)sheenE_texture;
+		frame_cbuf_data.rain_total_time = rain_pass.GetRainTotalTime();
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
 			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
+		}
+		if (renderer_output == RendererOutput::TriangleOverdraw)
+		{
+			overdraw_texture_uav_gpu = gfx->AllocateDescriptorsGPU();
+			gfx->CopyDescriptors(1, overdraw_texture_uav_gpu, overdraw_texture_uav);
+			frame_cbuf_data.triangle_overdraw_idx = overdraw_texture_uav_gpu.GetIndex();
 		}
 
 		auto lights = reg.view<Light>();
@@ -477,6 +497,10 @@ namespace adria
 		{
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
+		}
+		if(renderer_output == RendererOutput::TriangleOverdraw)
+		{
+			ClearTriangleOverdrawTexture(render_graph);
 		}
 		if (rain_pass.IsEnabled()) rain_pass.AddBlockerPass(render_graph);
 		if (gpu_driven_renderer.IsEnabled()) gpu_driven_renderer.AddPasses(render_graph);
@@ -607,7 +631,20 @@ namespace adria
 					}
 				}, GUICommandGroup_Renderer);
 		}
+		renderer_output_pass.GUI();
 		postprocessor.GUI();
+	}
+
+	void Renderer::ClearTriangleOverdrawTexture(RenderGraph& rg)
+	{
+		rg.AddPass<void>("Clear Triangle Overdraw Texture Pass",
+			[=](RenderGraphBuilder& builder)
+			{},
+			[&](RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				Uint32 clear[] = { 0,0,0,0 };
+				cmd_list->ClearUAV(*overdraw_texture, overdraw_texture_uav_gpu, overdraw_texture_uav, clear);
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

@@ -35,12 +35,14 @@ namespace adria
 			width = w, height = h;
 		}
 		void AddPass(RenderGraph&, RendererOutput);
+		void GUI();
 
 	private:
 		GfxDevice* gfx;
 		Uint32 width;
 		Uint32 height;
 		std::unique_ptr<GfxComputePipelineStatePermutations> renderer_output_psos;
+		Int triangle_overdraw_scale = 1;
 
 	private:
 		void CreatePSOs();

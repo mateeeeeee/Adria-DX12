@@ -55,6 +55,7 @@ namespace adria
 	void GPUDrivenGBufferPass::OnRendererOutputChanged(RendererOutput renderer_output)
 	{
 		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
+		triangle_overdraw = (renderer_output == RendererOutput::TriangleOverdraw);
 	}
 
 	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
@@ -569,6 +570,7 @@ namespace adria
 
 				if (debug_mipmaps) draw_psos->AddDefine("VIEW_MIPMAPS", "1");
 				if (rain_active) draw_psos->AddDefine("RAIN", "1");
+				if (triangle_overdraw) draw_psos->AddDefine("TRIANGLE_OVERDRAW", "1");
 				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
@@ -878,6 +880,7 @@ namespace adria
 
 				if (debug_mipmaps) draw_psos->AddDefine("VIEW_MIPMAPS", "1");
 				if (rain_active) draw_psos->AddDefine("RAIN", "1");
+				if (triangle_overdraw) draw_psos->AddDefine("TRIANGLE_OVERDRAW", "1");
 				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);

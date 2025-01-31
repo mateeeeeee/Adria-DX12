@@ -150,6 +150,11 @@ namespace adria
 
 		LightingPathType	 lighting_path = LightingPathType::Deferred;
 		RendererOutput		 renderer_output = RendererOutput::Final;
+
+		std::unique_ptr<GfxTexture> overdraw_texture = nullptr;
+		GfxDescriptor				overdraw_texture_uav;
+		GfxDescriptor				overdraw_texture_uav_gpu;
+
 		TextureHandle		 sheenE_texture = INVALID_TEXTURE_HANDLE;
 
 		//weather
@@ -172,7 +177,8 @@ namespace adria
 		ViewportData			 viewport_data;
 
 	private:
-		void CreateSizeDependentResources();
+		void CreateDisplaySizeDependentResources();
+		void CreateRenderSizeDependentResources();
 		void CreateAS();
 
 		void GUI();
@@ -183,6 +189,7 @@ namespace adria
 		void Render_Deferred(RenderGraph& rg);
 		void Render_PathTracing(RenderGraph& rg);
 
+		void ClearTriangleOverdrawTexture(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);
 		void TakeScreenshot(RenderGraph& rg);
 	};

@@ -66,6 +66,7 @@ namespace adria
 					using enum GfxShaderStage;
 					if (debug_mipmaps) gbuffer_psos->AddDefine<PS>("VIEW_MIPMAPS", "1");
 					if (raining) gbuffer_psos->AddDefine<PS>("RAIN", "1");
+					if (triangle_overdraw) gbuffer_psos->AddDefine<PS>("TRIANGLE_OVERDRAW", "1");
 
 					switch (extension)
 					{
@@ -126,6 +127,7 @@ namespace adria
 	void GBufferPass::OnRendererOutputChanged(RendererOutput renderer_output)
 	{
 		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
+		triangle_overdraw = (renderer_output == RendererOutput::TriangleOverdraw);
 	}
 
 	void GBufferPass::CreatePSOs()
