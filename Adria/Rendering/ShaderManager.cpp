@@ -2,6 +2,7 @@
 #include "ShaderManager.h"
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
+#include "Core/CommandLineOptions.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
@@ -594,13 +595,13 @@ namespace adria
 		}
 	}
 
-	void ShaderManager::Initialize(Bool shader_debug)
+	void ShaderManager::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
 		file_watcher->AddPathToWatch(paths::ShaderDir);
 		std::ignore = file_watcher->GetFileModifiedEvent().AddStatic(OnShaderFileChanged);
 		fs::create_directory(paths::ShaderCacheDir);
-		if (shader_debug)
+		if (CommandLineOptions::GetShaderDebug())
 		{
 			OptimizeShaders->Set(false);
 			ShaderDebugInfo->Set(true);

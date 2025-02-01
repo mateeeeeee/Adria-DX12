@@ -33,7 +33,7 @@ namespace adria
 	FFXVRSPass::FFXVRSPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), shading_rate_image_tile_size(0),
 		ffx_interface(nullptr), vrs_context{}, vrs_context_description{}
 	{
-		is_supported = gfx->GetCapabilities().SupportsVSR();
+		is_supported = gfx->GetCapabilities().CheckVSRSupport(VSRSupport::Tier2);
 		if (!is_supported)
 		{
 			return;

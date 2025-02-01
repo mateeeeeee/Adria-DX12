@@ -16,23 +16,23 @@ int APIENTRY wWinMain(
     _In_ LPWSTR    lpCmdLine,
     _In_ int       nCmdShow)
 {
-    g_CommandLineOptions.Initialize(lpCmdLine);
+    CommandLineOptions::Initialize(lpCmdLine);
     
-    std::string log_file = g_CommandLineOptions.GetLogFile();  
-    LogLevel log_level = static_cast<LogLevel>(g_CommandLineOptions.GetLogLevel());
+    std::string log_file = CommandLineOptions::GetLogFile();  
+    LogLevel log_level = static_cast<LogLevel>(CommandLineOptions::GetLogLevel());
     g_Log.Register(new FileLogger(log_file.c_str(), log_level));
     g_Log.Register(new OutputDebugStringLogger(log_level));
 
-    std::string window_title = g_CommandLineOptions.GetWindowTitle();
+    std::string window_title = CommandLineOptions::GetWindowTitle();
     WindowInit window_init{};
-    window_init.width = g_CommandLineOptions.GetWindowWidth();
-    window_init.height = g_CommandLineOptions.GetWindowHeight();
+    window_init.width = CommandLineOptions::GetWindowWidth();
+    window_init.height = CommandLineOptions::GetWindowHeight();
     window_init.title = window_title.c_str();
-    window_init.maximize = g_CommandLineOptions.GetMaximizeWindow();
+    window_init.maximize = CommandLineOptions::GetMaximizeWindow();
     Window window(window_init);
     g_Input.Initialize(&window);
 
-    EditorInit editor_init{ .window = &window, .scene_file = g_CommandLineOptions.GetSceneFile() };
+    EditorInit editor_init{ .window = &window, .scene_file = CommandLineOptions::GetSceneFile() };
     g_Editor.Init(std::move(editor_init));
     window.GetWindowEvent().AddLambda([](WindowEventData const& msg_data) { g_Editor.OnWindowEvent(msg_data); });
     while (window.Loop())

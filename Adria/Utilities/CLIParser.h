@@ -7,6 +7,7 @@
 namespace adria
 {
 	class CLIParser;
+
 	class CLIArg
 	{
 		friend class CLIParser;
@@ -17,8 +18,9 @@ namespace adria
 		Bool AsBool(Bool default_value = false) const
 		{
 			ADRIA_ASSERT(has_value);
-			if (value == "true" || value == "1") return true;
-			if (value == "false" || value == "0") return false;
+			if (values.empty()) return default_value;
+			if (values[0] == "true" || values[0] == "1") return true;
+			if (values[0] == "false" || values[0] == "0") return false;
 			ADRIA_ASSERT_MSG(false, "Invalid bool argument!");
 			ADRIA_UNREACHABLE();
 		}
@@ -31,7 +33,7 @@ namespace adria
 		Int AsInt() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (Int)strtol(value.c_str(), nullptr, 10);
+			return (Int)strtol(values[0].c_str(), nullptr, 10);
 		}
 		Int AsIntOr(Int def) const
 		{
@@ -42,23 +44,29 @@ namespace adria
 		Float AsFloat() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (Float)std::strtod(value.c_str(), nullptr);
+			return (Float)std::strtod(values[0].c_str(), nullptr);
 		}
 		Float AsFloatOr(Float def) const
 		{
 			if (IsPresent()) return AsFloat();
 			else return def;
 		}
-		
+
 		std::string AsString() const
 		{
 			ADRIA_ASSERT(has_value);
-			return value;
+			return values.empty() ? "" : values[0];
 		}
 		std::string AsStringOr(std::string const& def) const
 		{
 			if (IsPresent()) return AsString();
 			else return def;
+		}
+
+		std::vector<std::string> AsStrings() const
+		{
+			ADRIA_ASSERT(has_value);
+			return values;
 		}
 
 		Bool IsPresent() const
@@ -73,13 +81,13 @@ namespace adria
 	private:
 		std::vector<std::string> prefixes;
 		Bool has_value;
-		std::string value;
+		std::vector<std::string> values;
 		Bool is_present = false;
 
-		void SetValue(std::string const& _value)
+		void AddValue(std::string const& value)
 		{
 			ADRIA_ASSERT(has_value);
-			value = _value;
+			values.push_back(value);
 		}
 		void SetIsPresent()
 		{
@@ -91,6 +99,7 @@ namespace adria
 	{
 		friend class CLIParser;
 	public:
+
 		CLIArg const& operator[](std::convertible_to<std::string> auto const& prefix) const
 		{
 			ADRIA_ASSERT_MSG(cli_arg_map.contains(prefix), "Did you forgot to add this Arg to CLIParser?");
@@ -118,8 +127,8 @@ namespace adria
 			}
 			return arg_index;
 		}
-		CLIParseResult Parse(Int argc, Wchar** argv);
-		CLIParseResult Parse(std::wstring const& cmd_line);
+		ADRIA_NODISCARD CLIParseResult Parse(Int argc, Wchar** argv);
+		ADRIA_NODISCARD CLIParseResult Parse(std::wstring const& cmd_line);
 
 	private:
 		std::vector<CLIArg> args;

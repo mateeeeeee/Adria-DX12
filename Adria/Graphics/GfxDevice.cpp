@@ -260,7 +260,7 @@ namespace adria
 	GfxDevice::GfxDevice(Window* window)
 		: frame_index(0), shading_rate_info{}
 	{
-		VSync->Set(g_CommandLineOptions.GetVsync());
+		VSync->Set(CommandLineOptions::GetVsync());
 		hwnd = window->Handle();
 		width = window->Width();
 		height = window->Height();
@@ -295,7 +295,6 @@ namespace adria
 		std::string adapter_description = ToString(adapter_wide_description);
 		ADRIA_LOG(INFO, "GPU: %s", adapter_description.c_str());
 
-		
 		D3D_FEATURE_LEVEL feature_levels[] =
 		{
 			D3D_FEATURE_LEVEL_12_2,
@@ -305,7 +304,7 @@ namespace adria
 			D3D_FEATURE_LEVEL_11_0
 		};
 
-		if (g_CommandLineOptions.GetAftermath())
+		if (CommandLineOptions::GetAftermath())
 		{
 			nsight_aftermath = std::make_unique<GfxNsightAftermathGpuCrashTracker>(this);
 		}
@@ -380,7 +379,7 @@ namespace adria
 		CreateCommonRootSignature();
 
 		std::atexit(ReportLiveObjects);
-		if (g_CommandLineOptions.GetDRED())
+		if (CommandLineOptions::GetDRED())
 		{
 			dred = std::make_unique<DRED>(this);
 		}
@@ -842,11 +841,11 @@ namespace adria
 
 	void GfxDevice::SetupOptions(Uint32& dxgi_factory_flags)
 	{
-		if (g_CommandLineOptions.GetAftermath())
+		if (CommandLineOptions::GetAftermath())
 		{
 			return;
 		}
-		if (g_CommandLineOptions.GetDebugDevice())
+		if (CommandLineOptions::GetDebugDevice())
 		{
 			Ref<ID3D12Debug> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
@@ -861,7 +860,7 @@ namespace adria
 			}
 			else ADRIA_LOG(WARNING, "Debug Layer setup failed!");
 		}
-		if (g_CommandLineOptions.GetDRED())
+		if (CommandLineOptions::GetDRED())
 		{
 			Ref<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
 			HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(dred_settings.GetAddressOf()));
@@ -878,7 +877,7 @@ namespace adria
 			}
 			else ADRIA_LOG(WARNING, "DRED setup failed!");
 		}
-		if (g_CommandLineOptions.GetGpuValidation())
+		if (CommandLineOptions::GetGpuValidation())
 		{
 			Ref<ID3D12Debug1> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
@@ -891,7 +890,7 @@ namespace adria
 #endif
 			}
 		}
-		if (g_CommandLineOptions.GetPIX())
+		if (CommandLineOptions::GetPIX())
 		{
 			HMODULE pix_library = PIXLoadLatestWinPixGpuCapturerLibrary();
 			if (pix_library)

@@ -124,7 +124,7 @@ namespace adria
 	class ShaderManager
 	{
 	public:
-		static void Initialize(Bool shader_debug);
+		static void Initialize();
 		static void Destroy();
 		static void CheckIfShadersHaveChanged();
 
