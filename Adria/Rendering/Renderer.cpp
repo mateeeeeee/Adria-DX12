@@ -78,6 +78,13 @@ namespace adria
 		gfxcommon::Destroy();
 	}
 
+	void Renderer::SetRendererOutput(RendererOutput type)
+	{
+		renderer_output = type;
+		gbuffer_pass.OnRendererOutputChanged(type);
+		gpu_driven_renderer.OnRendererOutputChanged(type);
+	}
+
 	void Renderer::SetLightingPath(LightingPathType path)
 	{
 		lighting_path = path;

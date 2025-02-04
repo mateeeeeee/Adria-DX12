@@ -55,6 +55,8 @@ namespace adria
 		void AddDebugTexture(GUITexture&& debug_texture);
 		void AddRenderPass(RenderGraph& rg);
 
+		Engine*		GetEngine() const { return engine.get(); }
+
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<ImGuiManager> gui;

@@ -71,12 +71,7 @@ namespace adria
 
 		RendererOutput GetRendererOutput() const { return renderer_output; }
 		LightingPathType GetLightingPath() const { return lighting_path; }
-		void SetRendererOutput(RendererOutput type)
-		{
-			renderer_output = type;
-			gbuffer_pass.OnRendererOutputChanged(type);
-			gpu_driven_renderer.OnRendererOutputChanged(type);
-		}
+		void SetRendererOutput(RendererOutput type);
 		void SetLightingPath(LightingPathType path);
 		void SetViewportData(ViewportData const& vp);
 

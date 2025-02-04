@@ -27,6 +27,9 @@ namespace adria
 		void OnWindowEvent(WindowEventInfo const& msg_data);
 		void Run();
 
+		Renderer* GetRenderer()   const { return renderer.get(); }
+		GfxDevice* GetGfxDevice() const { return gfx.get(); }
+
 	private:
 		Window* window = nullptr;
 		entt::registry reg;
