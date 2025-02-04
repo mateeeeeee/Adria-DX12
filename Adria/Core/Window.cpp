@@ -7,7 +7,7 @@ namespace adria
 	LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 		Window* this_window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-		WindowEventData window_data{};
+		WindowEventInfo window_data{};
 		window_data.handle = hwnd;
 		window_data.msg  = static_cast<Uint32>(msg);
 		window_data.wparam = static_cast<Uint64>(w_param);
@@ -140,7 +140,7 @@ namespace adria
         return GetForegroundWindow() == hwnd;
     }
 
-	void Window::BroadcastEvent(WindowEventData const& data)
+	void Window::BroadcastEvent(WindowEventInfo const& data)
 	{
         window_event.Broadcast(data);
 	}

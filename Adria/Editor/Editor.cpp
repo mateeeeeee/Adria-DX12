@@ -75,7 +75,7 @@ namespace adria
 		engine.reset();
 		console.reset();
 	}
-	void Editor::OnWindowEvent(WindowEventData const& msg_data)
+	void Editor::OnWindowEvent(WindowEventInfo const& msg_data)
 	{
 		engine->OnWindowEvent(msg_data);
 		gui->OnWindowEvent(msg_data);

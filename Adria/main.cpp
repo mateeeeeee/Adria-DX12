@@ -23,18 +23,18 @@ int APIENTRY wWinMain(
     g_Log.Register(new FileLogger(log_file.c_str(), log_level));
     g_Log.Register(new OutputDebugStringLogger(log_level));
 
-    std::string window_title = CommandLineOptions::GetWindowTitle();
     WindowInit window_init{};
     window_init.width = CommandLineOptions::GetWindowWidth();
     window_init.height = CommandLineOptions::GetWindowHeight();
-    window_init.title = window_title.c_str();
     window_init.maximize = CommandLineOptions::GetMaximizeWindow();
+	std::string window_title = CommandLineOptions::GetWindowTitle();
+	window_init.title = window_title.c_str();
     Window window(window_init);
     g_Input.Initialize(&window);
 
     EditorInit editor_init{ .window = &window, .scene_file = CommandLineOptions::GetSceneFile() };
     g_Editor.Init(std::move(editor_init));
-    window.GetWindowEvent().AddLambda([](WindowEventData const& msg_data) { g_Editor.OnWindowEvent(msg_data); });
+    window.GetWindowEvent().AddLambda([](WindowEventInfo const& msg_data) { g_Editor.OnWindowEvent(msg_data); });
     while (window.Loop())
     {
         g_Editor.Run();

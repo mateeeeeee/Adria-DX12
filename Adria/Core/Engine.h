@@ -5,7 +5,7 @@
 
 namespace adria
 {
-	struct WindowEventData;
+	struct WindowEventInfo;
 	class Window;
 	struct SceneConfig;
 	class GfxDevice;
@@ -24,7 +24,7 @@ namespace adria
 		ADRIA_NONCOPYABLE_NONMOVABLE(Engine)
 		~Engine();
 
-		void OnWindowEvent(WindowEventData const& msg_data);
+		void OnWindowEvent(WindowEventInfo const& msg_data);
 		void Run();
 
 	private:

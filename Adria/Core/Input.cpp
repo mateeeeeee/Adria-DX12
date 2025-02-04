@@ -130,7 +130,7 @@ namespace adria
 		}
 
 	}
-	void Input::OnWindowEvent(WindowEventData const& data)
+	void Input::OnWindowEvent(WindowEventInfo const& data)
 	{
 		HWND handle = static_cast<HWND>(data.handle);
 		{

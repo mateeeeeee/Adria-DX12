@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	struct WindowEventData
+	struct WindowEventInfo
 	{
 		void*  handle	= nullptr;
 		Uint32 msg		= 0;
@@ -21,7 +21,7 @@ namespace adria
         Bool maximize;
     };
 
-	DECLARE_EVENT(WindowEvent, Window, WindowEventData const&)
+	DECLARE_EVENT(WindowEvent, Window, WindowEventInfo const&)
 
 	class Window
 	{
@@ -42,7 +42,7 @@ namespace adria
 		Bool  IsActive() const;
 
 		WindowEvent& GetWindowEvent() { return window_event; }
-		void BroadcastEvent(WindowEventData const&);
+		void BroadcastEvent(WindowEventInfo const&);
 
 	private:
 		HWND hwnd = nullptr;

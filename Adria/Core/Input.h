@@ -38,7 +38,7 @@ namespace adria
 	};
 
 	class Window;
-	struct WindowEventData;
+	struct WindowEventInfo;
 
 	DECLARE_EVENT(WindowResizedEvent, Input, Uint32, Uint32)
 	DECLARE_EVENT(RightMouseClickedEvent, Input, Int32, Int32)
@@ -66,7 +66,7 @@ namespace adria
 
 		InputEvents& GetInputEvents() { return input_events; }
 		void Tick();
-		void OnWindowEvent(WindowEventData const&);
+		void OnWindowEvent(WindowEventInfo const&);
 
 		Bool GetKey(KeyCode key)    const { return keys[(Uint64)key]; }
 		Bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(Uint64)key]; }
