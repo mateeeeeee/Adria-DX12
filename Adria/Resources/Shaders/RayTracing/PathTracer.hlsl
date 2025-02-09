@@ -18,9 +18,8 @@ void PT_RayGen()
     float2 pixel = float2(DispatchRaysIndex().xy);
     float2 resolution = float2(DispatchRaysDimensions().xy);
 
-    uint randSeed = InitRand(pixel.x + pixel.y * resolution.x, FrameCB.frameCount, 16);
-
-    float2 offset = float2(NextRand(randSeed), NextRand(randSeed));
+    RNG rng = RNG_Initialize(pixel.x + pixel.y * resolution.x, FrameCB.frameCount, 16);
+    float2 offset = float2(RNG_GetNext(rng), RNG_GetNext(rng));
     pixel += lerp(-0.5f.xx, 0.5f.xx, offset);
 
     float2 ncdXY = (pixel / (resolution * 0.5f)) - 1.0f;
@@ -64,7 +63,7 @@ void PT_RayGen()
             float lightWeight = 0.0f;
 
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
-            if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
+            if (SampleLightRIS(rng, worldPosition, worldNormal, lightIndex, lightWeight))
             {
                   Light light = lightBuffer[lightIndex];
 			      float visibility = TraceShadowRay(light, worldPosition.xyz);
@@ -78,12 +77,12 @@ void PT_RayGen()
             if (i == PathTracingPassCB.bounceCount - 1) break;
 
             float probDiffuse = ProbabilityToSampleDiffuse(brdfData.Diffuse, brdfData.Specular);
-            bool chooseDiffuse = NextRand(randSeed) < probDiffuse;
+            bool chooseDiffuse = RNG_GetNext(rng) < probDiffuse;
 
             float3 wi;
             if (chooseDiffuse)
             {
-                wi = GetCosHemisphereSample(randSeed, worldNormal);
+                wi = GetCosHemisphereSample(rng, worldNormal);
 
                 float3 diffuseBrdf = DiffuseBRDF(brdfData.Diffuse);
                 float NdotL = saturate(dot(worldNormal, wi));
@@ -93,7 +92,7 @@ void PT_RayGen()
             }
             else
             {
-                float2 u = float2(NextRand(randSeed), NextRand(randSeed));
+                float2 u = float2(RNG_GetNext(rng), RNG_GetNext(rng));
                 float3 H = SampleGGX(u, brdfData.Roughness, worldNormal);
 
                 float roughness = max(brdfData.Roughness, 0.065);

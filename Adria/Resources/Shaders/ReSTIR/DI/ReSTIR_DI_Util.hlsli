@@ -164,7 +164,7 @@ ReSTIR_DI_Reservoir ReSTIR_DI_SampleBrdf()
     return ReSTIR_DI_EmptyDIReservoir();
 }
 
-ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout seed, out ReSTIR_DI_LightSample lightSample)
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout RNG rng, out ReSTIR_DI_LightSample lightSample)
 {
     lightSample = ReSTIR_DI_EmptyLightSample();
 
@@ -180,8 +180,8 @@ ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout seed, out ReSTIR_DI_L
     ReSTIR_DI_Reservoir state = ReSTIR_DI_EmptyDIReservoir();
     ReSTIR_DI_CombineDIReservoirs(state, localReservoir, 0.5, localReservoir.targetPdf);
 
-    bool selectInfinite = ReSTIR_DI_CombineDIReservoirs(state, infiniteReservoir, NextRand(seed), infiniteReservoir.targetPdf);
-    bool selectBrdf = ReSTIR_DI_CombineDIReservoirs(state, brdfReservoir, NextRand(seed), brdfReservoir.targetPdf);
+    bool selectInfinite = ReSTIR_DI_CombineDIReservoirs(state, infiniteReservoir, RNG_GetNext(rng), infiniteReservoir.targetPdf);
+    bool selectBrdf = ReSTIR_DI_CombineDIReservoirs(state, brdfReservoir, RNG_GetNext(rng), brdfReservoir.targetPdf);
     
     ReSTIR_DI_FinalizeResampling(state, 1.0, 1.0);
     state.M = 1;

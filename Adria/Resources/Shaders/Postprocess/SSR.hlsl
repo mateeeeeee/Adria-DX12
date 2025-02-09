@@ -118,9 +118,9 @@ void SSR_CS(CSInput input)
         outputTexture[input.DispatchThreadId.xy] = sceneColor;
         return;
     }
-
-    uint randSeed = InitRand(input.DispatchThreadId.x + input.DispatchThreadId.y * BLOCK_SIZE, 0, 16);
-    float2 rand = float2(NextRand(randSeed), NextRand(randSeed));
+    
+    RNG rng = RNG_Initialize(input.DispatchThreadId.x + input.DispatchThreadId.y * BLOCK_SIZE, 0, 16);
+    float2 rand = float2(RNG_GetNext(rng), RNG_GetNext(rng));
 
     float3 viewPosition = GetViewPosition(uv, depth);
 #if USE_GGX

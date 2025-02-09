@@ -37,9 +37,9 @@ void RTAO_RayGen()
     float3 viewNormal = DecodeNormalOctahedron(normalRT.Load(int3(launchIndex.xy, 0)).xy * 2.0f - 1.0f);
 	float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
 
-	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 47, 16);
-
-	float3 worldDir = GetCosHemisphereSample(randSeed, worldNormal);
+	RNG rng = RNG_Initialize(launchIndex.x + launchIndex.y * launchDim.x, 47, 16);
+    float2 offset = float2(RNG_GetNext(rng), RNG_GetNext(rng));
+	float3 worldDir = GetCosHemisphereSample(rng, worldNormal);
 	AORayData rayPayload = { true };
 	RayDesc rayAO;
 	rayAO.Origin = OffsetRay(worldPosition, worldNormal);

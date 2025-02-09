@@ -531,7 +531,7 @@ namespace adria
 			case CS_ReSTIR_DI_TemporalResampling:
 				return "TemporalResamplingCS";
 			case CS_ReSTIR_DI_SpatialResampling:
-				return "SpatialResampling";
+				return "SpatialResamplingCS";
 			case CS_RendererOutput:
 				return "RendererOutputCS";
 			case CS_DepthOfField_ComputeCoC:

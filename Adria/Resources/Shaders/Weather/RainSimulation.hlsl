@@ -48,8 +48,8 @@ void RainSimulationCS(CSInput input)
 	bool OutsideBounds = abs(rainDrop.Pos.y - boundsCenter.y) > boundsExtents.y;
 	if(OutsideBounds)
 	{
-		uint randSeed = InitRand(GroupIdx, 47, 16);
-		float4 random01 = float4(NextRand(randSeed), NextRand(randSeed), NextRand(randSeed), NextRand(randSeed));
+		RNG rng = RNG_Initialize(GroupIdx, 47, 16);
+		float4 random01 = float4(RNG_GetNext(rng), RNG_GetNext(rng), RNG_GetNext(rng), RNG_GetNext(rng));
 		float4 random_11 = (random01 * 2.0) - 1.0;
 	
 		rainDrop.Pos.xyz = boundsCenter.xyz + boundsExtents.xyz * random_11.xyz;

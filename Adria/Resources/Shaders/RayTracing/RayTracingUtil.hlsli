@@ -10,11 +10,11 @@
 
 typedef BuiltInTriangleIntersectionAttributes HitAttributes;
 
-float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
+float3 GetCosHemisphereSample(inout RNG rng, float3 hitNorm)
 {
 	// Get a cosine-weighted random vector centered around a specified normal direction.
 	// Get 2 random numbers to select our sample with
-	float2 randVal = float2(NextRand(randSeed), NextRand(randSeed));
+	float2 randVal = float2(RNG_GetNext(rng), RNG_GetNext(rng));
 
 	// Cosine weighted hemisphere sample from RNG
 	float3 bitangent = GetPerpendicularVector(hitNorm);
@@ -25,13 +25,13 @@ float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 	// Get our cosine-weighted hemisphere lobe sample direction
 	return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNorm.xyz * sqrt(1 - randVal.x);
 }
-float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
+float3 GetConeSample(inout RNG rng, float3 direction, float coneAngle)
 {
 	//https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
 	float cosAngle = cos(coneAngle);
 
-	float z = NextRand(randSeed) * (1.0f - cosAngle) + cosAngle;
-	float phi = NextRand(randSeed) * 2.0f * 3.141592653589793238f;
+	float z = RNG_GetNext(rng) * (1.0f - cosAngle) + cosAngle;
+	float phi = RNG_GetNext(rng) * 2.0f * 3.141592653589793238f;
 
 	float x = sqrt(1.0f - z * z) * cos(phi);
 	float y = sqrt(1.0f - z * z) * sin(phi);
