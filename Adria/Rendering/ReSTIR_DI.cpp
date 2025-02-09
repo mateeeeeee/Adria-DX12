@@ -9,34 +9,13 @@
 
 namespace adria
 {
-	struct ReSTIR_DI_ReservoirSample
-	{
-		Vector3 position;
-		Vector3 normal;
-		Vector3 radiance;
-		Vector3 direction;
-		Float pdf;
-	};
-
 	struct ReSTIR_DI_Reservoir
 	{
-		// Light index (bits 0..30) and validity bit (31)
-		Uint32 lightData;
-
-		// Sample UV encoded in 16-bit fixed point format
-		Uint32 uvData;
-
-		// Overloaded: represents RIS weight sum during streaming,
-		// then reservoir weight (inverse PDF) after FinalizeResampling
-		float weightSum;
-
-		// Target PDF of the selected sample
-		float targetPdf;
-
-		// Number of samples considered for this reservoir (pairwise MIS makes this a float)
-		float M;
-		// Cannonical weight when using pairwise MIS (ignored except during pairwise MIS computations)
-		float canonicalWeight;
+		Uint32 light_index;
+		Uint32 uv_data;
+		Float  weight_sum;
+		Float  target_pdf;
+		Float  M;
 	};
 
 
@@ -48,13 +27,13 @@ namespace adria
 		}
 		
 		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
+		compute_pso_desc.CS = CS_ReSTIR_DI_InitialSampling;
 		initial_sampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
-		compute_pso_desc.CS = CS_ReSTIRGI_TemporalResampling;
+		compute_pso_desc.CS = CS_ReSTIR_DI_TemporalResampling;
 		temporal_resampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
-		compute_pso_desc.CS = CS_ReSTIRGI_SpatialResampling;
+		compute_pso_desc.CS = CS_ReSTIR_DI_SpatialResampling;
 		spatial_resampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		CreateBuffers();
@@ -70,7 +49,7 @@ namespace adria
 				{
 					ImGui::Checkbox("Enable", &enable);
 					static Int current_resampling_mode = static_cast<Int>(resampling_mode);
-					if (ImGui::Combo("Resampling mode", &current_resampling_mode, "None\0Temporal\0Spatial\0TemporalAndSpatial\0", 4))
+					if (ImGui::Combo("Resampling mode", &current_resampling_mode, "None\0Temporal\0Spatial\0TemporalAndSpatial\0FusedTemporalSpatial", 5))
 					{
 						resampling_mode = static_cast<ResamplingMode>(current_resampling_mode);
 					}
@@ -85,6 +64,7 @@ namespace adria
 		{
 			if (resampling_mode == ResamplingMode::Temporal || resampling_mode == ResamplingMode::TemporalAndSpatial) AddTemporalResamplingPass(rg);
 			if (resampling_mode == ResamplingMode::Spatial  || resampling_mode == ResamplingMode::TemporalAndSpatial) AddSpatialResamplingPass(rg);
+			if (resampling_mode == ResamplingMode::FusedTemporalSpatial) AddFusedTemporalSpatialResamplingPass(rg);
 		}
 	}
 
@@ -109,7 +89,7 @@ namespace adria
 				data.albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo));
 				data.reservoir = builder.WriteBuffer(RG_NAME(ReSTIR_DI_Reservoir));
 			},
-			[=](InitialSamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
+			[=](InitialSamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) 
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				GfxDescriptor src_descriptors[] =
@@ -172,7 +152,25 @@ namespace adria
 			{
 
 			},
-			[=](SpatialResamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
+			[=](SpatialResamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) 
+			{
+
+			}, RGPassType::Compute);
+	}
+
+	void ReSTIR_DI::AddFusedTemporalSpatialResamplingPass(RenderGraph& rg)
+	{
+		struct FusedTemporalSpatialResamplingPassData
+		{
+
+		};
+
+		rg.AddPass<FusedTemporalSpatialResamplingPassData>("ReSTIR DI Fused Temporal Spatial Resampling Pass",
+			[=](FusedTemporalSpatialResamplingPassData& data, RGBuilder& builder)
+			{
+
+			},
+			[=](FusedTemporalSpatialResamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) 
 			{
 
 			}, RGPassType::Compute);
@@ -182,7 +180,7 @@ namespace adria
 	{
 		if (prev_reservoir_buffer == nullptr || reservoir_buffer == nullptr)
 		{
-			GfxBufferDesc reservoir_buffer_desc = StructuredBufferDesc<ReSTIR_DI_ReservoirSample>(width * height, true, false);
+			GfxBufferDesc reservoir_buffer_desc = StructuredBufferDesc<ReSTIR_DI_Reservoir>(width * height, true, false);
 			prev_reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
 			reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
 		}

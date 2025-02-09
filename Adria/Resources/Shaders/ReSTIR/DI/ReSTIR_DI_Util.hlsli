@@ -135,3 +135,59 @@ void ReSTIR_DI_FinalizeResampling(
     float denominator = reservoir.targetPdf * normalizationDenominator;
     reservoir.weightSum = (denominator == 0.0) ? 0.0 : (reservoir.weightSum * normalizationNumerator) / denominator;
 }
+
+
+
+struct ReSTIR_DI_LightSample
+{
+    float3 position;
+    float3 normal;
+    float3 radiance;
+    float  solidAnglePdf;
+};
+ReSTIR_DI_LightSample ReSTIR_DI_EmptyLightSample()
+{
+    return (ReSTIR_DI_LightSample)0;
+}
+
+
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleLocalLights()
+{
+    return ReSTIR_DI_EmptyDIReservoir();
+}
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleInfiniteLights()
+{
+    return ReSTIR_DI_EmptyDIReservoir();
+}
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleBrdf()
+{
+    return ReSTIR_DI_EmptyDIReservoir();
+}
+
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout seed, out ReSTIR_DI_LightSample lightSample)
+{
+    lightSample = ReSTIR_DI_EmptyLightSample();
+
+    ReSTIR_DI_LightSample localSample = ReSTIR_DI_EmptyLightSample();
+    ReSTIR_DI_Reservoir localReservoir = ReSTIR_DI_SampleLocalLights();
+
+    ReSTIR_DI_LightSample infiniteSample = RAB_EmptyLightSample();  
+    ReSTIR_DI_Reservoir infiniteReservoir = ReSTIR_DI_SampleInfiniteLights();
+
+    RAB_LightSample brdfSample = RAB_EmptyLightSample();
+    RTXDI_DIReservoir brdfReservoir = ReSTIR_DI_SampleBrdf();
+
+    ReSTIR_DI_Reservoir state = ReSTIR_DI_EmptyDIReservoir();
+    ReSTIR_DI_CombineDIReservoirs(state, localReservoir, 0.5, localReservoir.targetPdf);
+
+    bool selectInfinite = ReSTIR_DI_CombineDIReservoirs(state, infiniteReservoir, NextRand(seed), infiniteReservoir.targetPdf);
+    bool selectBrdf = ReSTIR_DI_CombineDIReservoirs(state, brdfReservoir, NextRand(seed), brdfReservoir.targetPdf);
+    
+    ReSTIR_DI_FinalizeResampling(state, 1.0, 1.0);
+    state.M = 1;
+
+    if (selectBrdf) lightSample = brdfSample;
+    else if (selectInfinite) lightSample = infiniteSample;
+    else lightSample = localSample;
+    return state;
+}

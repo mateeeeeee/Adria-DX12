@@ -143,6 +143,9 @@
     <Filter Include="External\FFX\gpu\dof">
       <UniqueIdentifier>{37c1550d-f882-46be-b272-c5274b8161e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\ReSTIR\DI">
+      <UniqueIdentifier>{47d769cd-123b-43a6-a8de-eae965e46835}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -1506,9 +1509,6 @@
     <None Include="Saved\Scenes\newsponza.json">
       <Filter>Saved\Scenes</Filter>
     </None>
-    <None Include="Resources\Shaders\ReSTIR\ReSTIRUtil.hlsli">
-      <Filter>Shaders\ReSTIR</Filter>
-    </None>
     <None Include="Saved\Ini\default_cvars.ini">
       <Filter>Saved\Ini Files</Filter>
     </None>
@@ -1520,6 +1520,9 @@
     </None>
     <None Include="Saved\Scenes\pica_pica.json">
       <Filter>Saved\Scenes</Filter>
+    </None>
+    <None Include="Resources\Shaders\ReSTIR\DI\ReSTIR_DI_Util.hlsli">
+      <Filter>Shaders\ReSTIR\DI</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -1685,9 +1688,6 @@
     <FxCompile Include="Resources\Shaders\Weather\RainBlocker.hlsl">
       <Filter>Shaders\Weather</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\ReSTIR\InitialSampling.hlsl">
-      <Filter>Shaders\ReSTIR</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Lighting\VolumetricFog.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
@@ -1727,11 +1727,14 @@
     <FxCompile Include="Resources\Shaders\Other\VRSOverlay.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\ReSTIR\TemporalResampling.hlsl">
-      <Filter>Shaders\ReSTIR</Filter>
+    <FxCompile Include="Resources\Shaders\ReSTIR\DI\InitialSampling.hlsl">
+      <Filter>Shaders\ReSTIR\DI</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\ReSTIR\SpatialResampling.hlsl">
-      <Filter>Shaders\ReSTIR</Filter>
+    <FxCompile Include="Resources\Shaders\ReSTIR\DI\SpatialResampling.hlsl">
+      <Filter>Shaders\ReSTIR\DI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\ReSTIR\DI\TemporalResampling.hlsl">
+      <Filter>Shaders\ReSTIR\DI</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -13,14 +13,13 @@ namespace adria
 
 	class ReSTIR_DI
 	{
-		static constexpr Uint32 MAX_SAMPLES = 32;
-
 		enum class ResamplingMode : Uint8
 		{
 			None = 0,
 			Temporal = 1,
 			Spatial = 2,
-			TemporalAndSpatial = 3
+			TemporalAndSpatial = 3,
+			FusedTemporalSpatial = 4
 		};
 
 	public:
@@ -53,6 +52,7 @@ namespace adria
 		void AddInitialSamplingPass(RenderGraph& rg);
 		void AddTemporalResamplingPass(RenderGraph& rg);
 		void AddSpatialResamplingPass(RenderGraph& rg);
+		void AddFusedTemporalSpatialResamplingPass(RenderGraph& rg);
 
 		void CreateBuffers();
 	};
