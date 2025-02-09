@@ -6,82 +6,73 @@
 struct IntialSamplingConstants
 {
     uint depthIdx;
-    uint prevDepthIdx;
     uint normalIdx;
+    uint albedoIdx;
     uint reservoirBufferIdx;
 };
 ConstantBuffer<IntialSamplingConstants> IntialSamplingCB : register(b1);
 
-[numthreads(16, 16, 1)]
-void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
+float3 EvaluateDirectLighting(float3 worldPos, float3 worldNormal, float3 V, MaterialProperties matProps, float3 L) 
 {
-    Texture2D<float>                        depthTexture     = ResourceDescriptorHeap[IntialSamplingCB.depthIdx];
-    Texture2D<float3>                       normalTexture    = ResourceDescriptorHeap[IntialSamplingCB.normalIdx];
-    RWStructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer  = ResourceDescriptorHeap[IntialSamplingCB.reservoirBufferIdx];
-    
-    float depth = depthTexture[dispatchThreadID.xy].r;
-    float3 N = normalTexture[dispatchThreadID.xy].rgb;
-    N = 2.0f * N - 1.0f;
-	N = normalize(mul(N, (float3x3) transpose(FrameCB.view)));
-
-    if (depth == 0.0f)
+    float3 radiance = 0.0f;
+    float NoL = saturate(dot(worldNormal, L));
+    if (NoL > 0.0f) 
     {
-        outputRadiance[dispatchThreadID.xy] = 0.xxxx;
-        outputRayDirection[dispatchThreadID.xy] = 0;
+        BrdfData brdfData = GetBrdfData(matProps);
+        float3 brdf = EvaluateBRDF(brdfData, worldNormal, V, L);
+        radiance = brdf * NoL;
+    }
+    return radiance;
+}
+
+[numthreads(16, 16, 1)]
+void InitialSamplingCS( uint3 DTid : SV_DispatchThreadID )
+{
+    Texture2D<float> depthTexture   = ResourceDescriptorHeap[IntialSamplingCB.depthIdx];
+    Texture2D<float4> normalRT = ResourceDescriptorHeap[IntialSamplingCB.normalIdx];
+    Texture2D<float4> albedoRT = ResourceDescriptorHeap[IntialSamplingCB.albedoIdx];
+    RWStructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer = ResourceDescriptorHeap[IntialSamplingCB.reservoirBufferIdx];
+
+    float3 viewNormal;
+	float metallic;
+	uint  shadingExtension;
+	float4 normalRTData = normalRT[DTid.xy];
+	DecodeGBufferNormalRT(normalRTData, viewNormal, metallic, shadingExtension);
+
+    float depth = depthRT[DTid.xy].r;
+    if (depth == 0.0f) 
+    {
+        ReSTIR_DI_Reservoir emptyReservoir = (ReSTIR_DI_Reservoir)0;
+        emptyReservoir.Reset();
+        reservoirBuffer[DTid.xy] = emptyReservoir;
         return;
     }
-
-    uint randSeed = InitRand(dispatchThreadID.x + dispatchThreadID.y * 16, 0, 16);
-    float2 randFloat2 = float2(NextRand(randSeed), NextRand(randSeed));
-    float3 direction = GetCosHemisphereSample(randSeed, N);
-    float3 worldPos = GetWorldPosition(FullScreenPosition(dispatchThreadID.xy), depth);
-
-    RayDesc ray;
-    ray.Origin = worldPos + N * 0.01f;
-    ray.Direction = direction;
-    ray.TMin = 0.00001f;
-    ray.TMax = 10000.0f;
-
-    ReSTIR_DI_Reservoir reservoir;
-    reservoir.Reset();
-
-    float3 radiance = 0.0f;
-    float3 hitNormal = 0.0f;
-    float3 hitPosition = 0.0f;
-    HitInfo info = (HitInfo)0;
-    if (TraceRay(ray, info))
+    
+    viewNormal = 2.0f * viewNormal - 1.0f;
+    N = normalize(mul(viewNormal, (float3x3)FrameCB.view));
+    
+    float3 worldPos = GetWorldPosition(FullScreenPosition(DTid.xy), depth);
+    float3 V = normalize(FrameCB.cameraPosition - worldPos);
+    
+    uint randSeed = InitRand(DTid.x + DTid.y * 16, 0, 16);
+    float3 worldPos = GetWorldPosition(FullScreenPosition(DTid.xy), depth);
+    
+    ReSTIR_DI_Reservoir finalReservoir;
+    finalReservoir.Reset();
+    
+    for (uint i = 0; i < RESTIR_SAMPLES_PER_PIXEL; ++i)
     {
-        Instance instanceData = GetInstanceData(info.instanceIndex);
-		Mesh meshData = GetMeshData(instanceData.meshIndex);
-		Material materialData = GetMaterialData(instanceData.materialIdx);
+        ReSTIR_DI_ReservoirSample currentSample;
+        currentSample.Reset();
 
-		VertexData vertex = LoadVertexData(meshData, info.primitiveIndex, info.barycentricCoordinates);
-        
-        float3 worldPosition = mul(vertex.pos, info.objectToWorldMatrix).xyz;
-        float3 worldNormal = normalize(mul(vertex.nor, (float3x3) transpose(info.worldToObjectMatrix)));
-        float3 geometryNormal = normalize(worldNormal);
-        float3 V = -ray.Direction;
-        MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
-        BrdfData brdfData = GetBrdfData(matProperties);
-        
-        //#todo
-        float3 directLighting = 0.0f; 
-        float3 indirectLighting = 0.0f; //GetIndirectDiffuseLighting(info.hitPosition, matProperties);
+        //TODO        
 
-        radiance = (directLighting + indirectLighting + matProperties.emissive);
-        hitNormal = worldNormal;
-        hitPosition = worldPosition;
-    }
-    else
-    {
-        TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
-        radiance = envMap.SampleLevel(LinearWrapSampler, ray.Direction, 0).rgb;
-        hitNormal = -direction;
-        hitPosition = 0.0f;
+        float3 radiance = 0.0f;
+        float targetPdf = max(luminance(radiance), 0.001f);
+        float rand = NextRand(randSeed);
+        finalReservoir.Update(currentSample, targetPdf, rand);
     }
 
-    reservoir.sample.samplePosition = hitPosition;
-    reservoir.sample.sampleNormal = hitNormal;
-    reservoir.sample.sampleRadiance = radiance;
-    reservoirBuffer[dispatchThreadID.x] = reservoir;
+    finalReservoir.Finalize();
+    reservoirBuffer[pixelIndex] = finalReservoir;
 }

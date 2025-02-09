@@ -11,17 +11,32 @@ namespace adria
 {
 	struct ReSTIR_DI_ReservoirSample
 	{
-		Vector3 sample_position;
-		Vector3 sample_normal;
-		Vector3 sample_radiance;
+		Vector3 position;
+		Vector3 normal;
+		Vector3 radiance;
+		Vector3 direction;
+		Float pdf;
 	};
 
 	struct ReSTIR_DI_Reservoir
 	{
-		ReSTIR_DI_ReservoirSample sample;
-		Float target_function;
-		Float num_samples;
-		Float weight_sum;
+		// Light index (bits 0..30) and validity bit (31)
+		Uint32 lightData;
+
+		// Sample UV encoded in 16-bit fixed point format
+		Uint32 uvData;
+
+		// Overloaded: represents RIS weight sum during streaming,
+		// then reservoir weight (inverse PDF) after FinalizeResampling
+		float weightSum;
+
+		// Target PDF of the selected sample
+		float targetPdf;
+
+		// Number of samples considered for this reservoir (pairwise MIS makes this a float)
+		float M;
+		// Cannonical weight when using pairwise MIS (ignored except during pairwise MIS computations)
+		float canonicalWeight;
 	};
 
 
@@ -81,33 +96,18 @@ namespace adria
 		{
 			RGTextureReadOnlyId depth;
 			RGTextureReadOnlyId normal;
-			RGTextureReadOnlyId prev_depth;
-			RGTextureReadOnlyId irradiance_history;
-			RGTextureReadWriteId irradiance;
-			RGTextureReadWriteId ray_direction;
+			RGTextureReadOnlyId albedo;
+			RGBufferReadWriteId reservoir;
 		};
 
+		rg.ImportBuffer(RG_NAME(ReSTIR_DI_Reservoir), reservoir_buffer.get());
 		rg.AddPass<InitialSamplingPassData>("RESTIR DI Initial Sampling Pass",
 			[=](InitialSamplingPassData& data, RenderGraphBuilder& builder)
 			{
 				data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
 				data.normal = builder.ReadTexture(RG_NAME(GBufferNormal));
-				data.prev_depth = builder.ReadTexture(RG_NAME(DepthHistory));
-				data.irradiance_history = builder.ReadTexture(RG_NAME(ReSTIR_IrradianceHistory));
-
-				RGTextureDesc irradiance_desc{};
-				irradiance_desc.width = width;
-				irradiance_desc.height = height;
-				irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_NAME(ReSTIR_Irradiance), irradiance_desc);
-				data.irradiance = builder.WriteTexture(RG_NAME(ReSTIR_Irradiance));
-
-				RGTextureDesc ray_direction_desc{};
-				ray_direction_desc.width = width;
-				ray_direction_desc.height = height;
-				ray_direction_desc.format = GfxFormat::R32_UINT;
-				builder.DeclareTexture(RG_NAME(ReSTIR_RayDirection), irradiance_desc);
-				data.ray_direction = builder.WriteTexture(RG_NAME(ReSTIR_RayDirection));
+				data.albedo = builder.ReadTexture(RG_NAME(GBufferAlbedo));
+				data.reservoir = builder.WriteBuffer(RG_NAME(ReSTIR_DI_Reservoir));
 			},
 			[=](InitialSamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
@@ -116,9 +116,8 @@ namespace adria
 				{
 					ctx.GetReadOnlyTexture(data.depth),
 					ctx.GetReadOnlyTexture(data.normal),
-					ctx.GetReadOnlyTexture(data.irradiance_history),
-					ctx.GetReadWriteTexture(data.irradiance),
-					ctx.GetReadWriteTexture(data.ray_direction)
+					ctx.GetReadOnlyTexture(data.albedo),
+					ctx.GetReadWriteBuffer(data.reservoir),
 				};
 				Uint32 i = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors)).GetIndex();
 				gfx->CopyDescriptors(gfx->GetDescriptorGPU(i), src_descriptors);
@@ -127,16 +126,14 @@ namespace adria
 				{
 					Uint32 depth_idx;
 					Uint32 normal_idx;
-					Uint32 irradiance_history_idx;
-					Uint32 output_irradiance_idx;
-					Uint32 output_ray_direction_idx;
+					Uint32 albedo_idx;
+					Uint32 reservoir_idx;
 				} parameters = 
 				{
 					.depth_idx = i,
 					.normal_idx = i + 1,
-					.irradiance_history_idx = i + 2,
-					.output_irradiance_idx = i + 3,
-					.output_ray_direction_idx = i + 4
+					.albedo_idx = i + 2,
+					.reservoir_idx = i + 3,
 				};
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
@@ -183,11 +180,11 @@ namespace adria
 
 	void ReSTIR_DI::CreateBuffers()
 	{
-		if (staging_reservoir_buffer == nullptr || final_reservoir_buffer == nullptr)
+		if (prev_reservoir_buffer == nullptr || reservoir_buffer == nullptr)
 		{
 			GfxBufferDesc reservoir_buffer_desc = StructuredBufferDesc<ReSTIR_DI_ReservoirSample>(width * height, true, false);
-			staging_reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
-			final_reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
+			prev_reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
+			reservoir_buffer = gfx->CreateBuffer(reservoir_buffer_desc);
 		}
 	}
 

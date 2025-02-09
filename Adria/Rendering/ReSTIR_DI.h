@@ -13,6 +13,8 @@ namespace adria
 
 	class ReSTIR_DI
 	{
+		static constexpr Uint32 MAX_SAMPLES = 32;
+
 		enum class ResamplingMode : Uint8
 		{
 			None = 0,
@@ -40,8 +42,8 @@ namespace adria
 		Bool enable = false;
 		ResamplingMode resampling_mode = ResamplingMode::TemporalAndSpatial;
 
-		std::unique_ptr<GfxBuffer>  staging_reservoir_buffer;
-		std::unique_ptr<GfxBuffer>	final_reservoir_buffer;
+		std::unique_ptr<GfxBuffer>  prev_reservoir_buffer;
+		std::unique_ptr<GfxBuffer>	reservoir_buffer;
 
 		std::unique_ptr<GfxComputePipelineState> initial_sampling_pso;
 		std::unique_ptr<GfxComputePipelineState> temporal_resampling_pso;
