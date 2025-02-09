@@ -110,7 +110,7 @@ bool ReSTIR_DI_InternalSimpleResample(
 // Adds `newReservoir` into `reservoir`, returns true if the new reservoir's sample was selected.
 // Algorithm (4) from the ReSTIR paper, Combining the streams of multiple reservoirs.
 // Normalization - Equation (6) - is postponed until all reservoirs are combined.
-bool ReSTIR_DI_CombineDIReservoirs(
+bool ReSTIR_DI_CombineReservoirs(
     inout ReSTIR_DI_Reservoir reservoir,
     const ReSTIR_DI_Reservoir newReservoir,
     float random,
@@ -178,10 +178,10 @@ ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout RNG rng, out ReSTIR_D
     RTXDI_DIReservoir brdfReservoir = ReSTIR_DI_SampleBrdf();
 
     ReSTIR_DI_Reservoir state = ReSTIR_DI_EmptyDIReservoir();
-    ReSTIR_DI_CombineDIReservoirs(state, localReservoir, 0.5, localReservoir.targetPdf);
+    ReSTIR_DI_CombineReservoirs(state, localReservoir, 0.5, localReservoir.targetPdf);
 
-    bool selectInfinite = ReSTIR_DI_CombineDIReservoirs(state, infiniteReservoir, RNG_GetNext(rng), infiniteReservoir.targetPdf);
-    bool selectBrdf = ReSTIR_DI_CombineDIReservoirs(state, brdfReservoir, RNG_GetNext(rng), brdfReservoir.targetPdf);
+    bool selectInfinite = ReSTIR_DI_CombineReservoirs(state, infiniteReservoir, RNG_GetNext(rng), infiniteReservoir.targetPdf);
+    bool selectBrdf = ReSTIR_DI_CombineReservoirs(state, brdfReservoir, RNG_GetNext(rng), brdfReservoir.targetPdf);
     
     ReSTIR_DI_FinalizeResampling(state, 1.0, 1.0);
     state.M = 1;
@@ -190,4 +190,20 @@ ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout RNG rng, out ReSTIR_D
     else if (selectInfinite) lightSample = infiniteSample;
     else lightSample = localSample;
     return state;
+}
+
+void ReSTIR_DI_StoreReservoir(
+    const ReSTIR_DI_Reservoir reservoir,
+    uint2 pixelPosition, uint reservoirBufferIdx)
+{
+    uint flattenIndex = pixelPosition.x * FrameCB.renderWidth + pixelPosition.y;
+    RWStructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer = ResourceDescriptorHeap[reservoirBufferIdx];
+    reservoirBuffer[flattenIndex] = reservoir;
+}
+
+ReSTIR_DI_Reservoir ReSTIR_DI_LoadReservoir(uint2 pixelPosition, uint reservoirBufferIdx)
+{
+    uint flattenIndex = pixelPosition.x * FrameCB.renderWidth + pixelPosition.y;
+    StructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer = ResourceDescriptorHeap[reservoirBufferIdx];
+    return reservoirBuffer[flattenIndex];
 }

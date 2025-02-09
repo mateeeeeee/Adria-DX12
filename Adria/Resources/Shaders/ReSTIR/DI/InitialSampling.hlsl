@@ -18,7 +18,6 @@ void InitialSamplingCS( uint3 DTid : SV_DispatchThreadID )
     Texture2D<float> depthTexture   = ResourceDescriptorHeap[IntialSamplingCB.depthIdx];
     Texture2D<float4> normalRT = ResourceDescriptorHeap[IntialSamplingCB.normalIdx];
     Texture2D<float4> albedoRT = ResourceDescriptorHeap[IntialSamplingCB.albedoIdx];
-    RWStructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer = ResourceDescriptorHeap[IntialSamplingCB.reservoirBufferIdx];
 
     float3 viewNormal;
 	float metallic;
@@ -31,7 +30,7 @@ void InitialSamplingCS( uint3 DTid : SV_DispatchThreadID )
     {
         ReSTIR_DI_Reservoir emptyReservoir = (ReSTIR_DI_Reservoir)0;
         emptyReservoir.Reset();
-        reservoirBuffer[DTid.xy] = emptyReservoir;
+        ReSTIR_DI_StoreReservoir(emptyReservoir, DTid.xy, IntialSamplingCB.reservoirBufferIdx);
         return;
     }
     
@@ -41,11 +40,10 @@ void InitialSamplingCS( uint3 DTid : SV_DispatchThreadID )
     float3 worldPos = GetWorldPosition(FullScreenPosition(DTid.xy), depth);
     float3 V = normalize(FrameCB.cameraPosition - worldPos);
     
-    uint randSeed = InitRand(DTid.x + DTid.y * 16, 0, 16);
+    RNG rng = RNG_Initialize(DTid.x + DTid.y * 16, 0, 16);
     float3 worldPos = GetWorldPosition(FullScreenPosition(DTid.xy), depth);
     
     ReSTIR_DI_LightSample lightSample = ReSTIR_DI_EmptyLightSample();
-    ReSTIR_DI_Reservoir finalReservoir = ReSTIR_DI_SampleLightsForSurface(randSeed, lightSample);
- 
-    reservoirBuffer[pixelIndex] = finalReservoir;
+    ReSTIR_DI_Reservoir finalReservoir = ReSTIR_DI_SampleLightsForSurface(rng, lightSample);
+    ReSTIR_DI_StoreReservoir(finalReservoir, DTid.xy, IntialSamplingCB.reservoirBufferIdx);
 }
