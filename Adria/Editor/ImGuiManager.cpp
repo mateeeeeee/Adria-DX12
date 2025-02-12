@@ -1,4 +1,10 @@
 #include "ImGuiManager.h"
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx12.h"
+#include "implot.h"
+#include "Graphics/GfxDescriptor.h"
 #include "IconsFontAwesome6.h"
 #include "Core/Window.h"
 #include "Core/Paths.h"
@@ -14,6 +20,7 @@ namespace adria
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+		ImPlot::CreateContext();
 		ImGui::StyleColorsDark();
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -45,6 +52,7 @@ namespace adria
 		gfx->WaitForGPU();
 		ImGui_ImplDX12_Shutdown();
 		ImGui_ImplWin32_Shutdown();
+		ImPlot::DestroyContext();
 		ImGui::DestroyContext();
 	}
 
@@ -53,7 +61,6 @@ namespace adria
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
-
 		imgui_allocator->ReleaseCompletedFrames(frame_count);
 	}
 	void ImGuiManager::End(GfxCommandList* cmd_list) const

@@ -13,6 +13,7 @@
 #include "GfxQueryHeap.h"
 #include "GfxPipelineState.h"
 #include "GfxNsightAftermathGpuCrashTracker.h"
+#include "GfxNsightPerfManager.h"
 #include "d3dx12.h"
 #include "pix3.h"
 #include "Logging/Logger.h"
@@ -325,7 +326,7 @@ namespace adria
 		{
 			nsight_aftermath->Initialize();
 		}
-
+		
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
 		allocator_desc.pDevice = device.Get();
 		allocator_desc.pAdapter = adapter.Get();
@@ -383,6 +384,10 @@ namespace adria
 		{
 			dred = std::make_unique<DRED>(this);
 		}
+		if (!CommandLineOptions::GetDebugDevice() && vendor == GfxVendor::Nvidia)
+		{
+			nsight_perf_manager = std::make_unique<GfxNsightPerfManager>(this);
+		}
 	}
 	GfxDevice::~GfxDevice()
 	{
@@ -417,6 +422,11 @@ namespace adria
 	}
 	Uint32 GfxDevice::GetFrameIndex() const { return frame_index; }
 
+	void GfxDevice::Update()
+	{
+		if(nsight_perf_manager) nsight_perf_manager->Update();
+	}
+
 	void GfxDevice::BeginFrame()
 	{
 		if (rendering_not_started) [[unlikely]]
@@ -425,6 +435,7 @@ namespace adria
 			first_frame = true;
 			rendering_not_started = false;
 		}
+		if (nsight_perf_manager) nsight_perf_manager->BeginFrame();
 
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		gpu_descriptor_allocator->ReleaseCompletedFrames(frame_index);
@@ -444,6 +455,7 @@ namespace adria
 		graphics_queue.ExecuteCommandListPool(*graphics_cmd_list_pool[backbuffer_index]);
 		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
+		if (nsight_perf_manager) nsight_perf_manager->EndFrame();
 
 		Bool present_successful = swapchain->Present(VSync.Get());
 		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
@@ -778,6 +790,11 @@ namespace adria
 	{
 		rendering_not_started = true;
 		dynamic_allocator_on_init.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
+	}
+
+	GfxNsightPerfManager* GfxDevice::GetNsightPerfManager() const
+	{
+		return nsight_perf_manager.get();
 	}
 
 	void GfxDevice::ProcessReleaseQueue()

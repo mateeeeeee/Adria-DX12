@@ -1,0 +1,1 @@
+Taken from the nvpro samples Vulkan\nvpro-samples\shared_sources\fileformats.

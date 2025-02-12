@@ -19,6 +19,7 @@
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxProfiler.h"
+#include "Graphics/GfxNsightPerfManager.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/FilesUtil.h"
 #include "Utilities/StringUtil.h"
@@ -992,6 +993,16 @@ namespace adria
 				ImGui::TextWrapped(vram_display_string.c_str());
 				ImGui::PopStyleColor();
 			}
+
+			if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
+			{
+				static Bool display_nsight_perf = false;
+				ImGui::Checkbox("Display subunit activity (Nsight Perf)", &display_nsight_perf);
+				if (display_nsight_perf)
+				{
+					nsight_perf_manager->Render();
+				}
+			}
 		}
 		ImGui::End();
 	}
@@ -1139,6 +1150,19 @@ namespace adria
 				}
 				ImGui::TreePop();
 			}
+
+			if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
+			{
+				if (ImGui::TreeNode("Nsight Perf Report"))
+				{
+					if (ImGui::Button("Generate Report"))
+					{
+						nsight_perf_manager->GenerateReport();
+					}
+					ImGui::TreePop();
+				}
+			}
+			
 		}
 		ImGui::End();
 	}

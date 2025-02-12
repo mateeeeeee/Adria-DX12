@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ImportGroup Label="PropertySheets" />
+    <PropertyGroup Label="UserMacros">
+        <_Relative_NvPerf_host_dll Condition="'$(Platform)'=='x64'">bin/x64/nvperf_grfx_host.dll</_Relative_NvPerf_host_dll>
+        <_Relative_NvPerf_host_dll Condition="'$(Platform)'=='Win32'">bin/x86/nvperf_grfx_host32.dll</_Relative_NvPerf_host_dll>
+        <_Possible_NvPerf_Dir_0>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)../../NvPerf/'))</_Possible_NvPerf_Dir_0>
+        <_Possible_NvPerf_Dir_1>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)../../../NvPerf/'))</_Possible_NvPerf_Dir_1>
+        <NvPerfSdkPath></NvPerfSdkPath>
+        <NvPerfSdkPath Condition="'$(NvPerfSdkPath)'=='' And Exists('$(_Possible_NvPerf_Dir_0)/$(_Relative_NvPerf_host_dll)')">$(_Possible_NvPerf_Dir_0)</NvPerfSdkPath>
+        <NvPerfSdkPath Condition="'$(NvPerfSdkPath)'=='' And Exists('$(_Possible_NvPerf_Dir_1)/$(_Relative_NvPerf_host_dll)')">$(_Possible_NvPerf_Dir_1)</NvPerfSdkPath>
+        <NvPerfSdkPath Condition="'$(NvPerfSdkPath)'=='' And '$(NVPERF_SDK_PATH)' != '' And Exists('$(NVPERF_SDK_PATH)/$(_Relative_NvPerf_host_dll)')">$(NVPERF_SDK_PATH)</NvPerfSdkPath>
+        <NvPerfSdkPath Condition="'$(NvPerfSdkPath)'!=''">$([MSBuild]::NormalizePath($(NvPerfSdkPath)))</NvPerfSdkPath>
+        <NvPerfUtilityPath>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)../../NvPerfUtility/'))</NvPerfUtilityPath>
+    </PropertyGroup>
+    <ItemDefinitionGroup />
+    <ItemGroup />
+    <Target Name="PrintNvPerfLocation" BeforeTargets="ClCompile">
+        <Message
+            Condition="'$(NvPerfSdkPath)'!=''"
+            Text="NvPerf SDK found: NvPerfSdkPath = $(NvPerfSdkPath)" />
+        <Error
+            Condition="'$(NvPerfSdkPath)'==''"
+            Text="NvPerf SDK could not be found; please unzip the SDK into one of the following locations:
+    $(_Possible_NvPerf_Dir_0)
+    $(_Possible_NvPerf_Dir_1)
+  or set environment variable NVPERF_SDK_PATH" />
+    </Target>
+</Project>

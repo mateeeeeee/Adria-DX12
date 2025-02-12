@@ -23,4 +23,5 @@ namespace adria::paths
 	extern std::string const IniDir;
 	extern std::string const ScenesDir;
 	extern std::string const AftermathDir;
+	extern std::string const NsightPerfReportDir;
 }

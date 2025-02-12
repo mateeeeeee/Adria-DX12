@@ -1,0 +1,688 @@
+panels:
+  - name: GPU Active %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: GPU Active
+            metric: HOST.TriageSCG.gpu__engine_cycles_active_gr_or_ce.avg.pct_of_peak_sustained_elapsed
+            color: 0x33B2B2
+          - label: Sync Copy Engine Active
+            metric: HOST.TriageSCG.gpu__engine_cycles_active_any_syncce.avg.pct_of_peak_sustained_elapsed
+            color: 0xB2B233
+          - label: Async Copy Engine Active
+            metric: HOST.TriageSCG.gpu__engine_cycles_active_any_asyncce.avg.pct_of_peak_sustained_elapsed
+            color: 0xffa700
+          - label: GR Active
+            metric: FE_A.TriageSCG.gr__cycles_active.avg.pct_of_peak_sustained_elapsed
+            color: 0xFFFF00
+  - name: Unit Throughputs %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: Front End Throughput
+            metric: fe__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x6993b3
+          - label: RTCORE Throughput
+            metric: rtcore__cycles_executed.avg.pct_of_peak_sustained_elapsed
+            color: 0xD18841
+          - label: VAF Throughput
+            metric: TPC.TriageSCG.vaf__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0xD13341
+          - label: L2 Throughput
+            metric: LTS.TriageSCG.lts__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x00AEDB
+          - label: VRAM Throughput
+            metric: FBSP.TriageSCG.dramc__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0xF37735
+          - label: PCIe Throughput
+            metric: PCI.TriageSCG.pcie__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x3577F3
+          - label: PD Throughput
+            metric: HUB_B.TriageSCG.pda__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x00B159
+          - label: PES+VPC Throughput
+            metric: GPC_B.TriageSCG.pes__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x3fB159
+          - label: RASTER Throughput
+            metric: GPC_A.TriageSCG.raster__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x6fB159
+          - label: PROP Throughput
+            metric: GPC_A.TriageSCG.prop__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x9fB159
+          - label: ZROP Throughput
+            metric: ROP.TriageSCG.zrop__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0x854442
+          - label: CROP Throughput
+            metric: ROP.TriageSCG.crop__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0xafB159
+          - label: L1TEX Throughput
+            metric: SM_A.TriageSCG.l1tex__throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0xFFC425
+  - name: Compute In Flight %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: Sync Compute In Flight
+            metric: FE_A.TriageSCG.gr__compute_cycles_active_queue_sync.avg.pct_of_peak_sustained_elapsed
+            color: 0xFE7F9C
+          - label: Async Compute In Flight
+            metric: FE_A.TriageSCG.gr__compute_cycles_active_queue_async.avg.pct_of_peak_sustained_elapsed
+            color: 0xEEAA11
+  - name: Draw/Dispatch Start Total
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: Draw Started
+            metric: FE_A.TriageSCG.fe__draw_count.sum
+            color: 0xF0F000
+            unit: draws
+          - label: Dispatch Started
+            metric: FE_A.TriageSCG.gr__dispatch_count.sum
+            color: 0x00F0F0
+            unit: dispatches
+  - name: SM Warp Occupancy Avg Warps
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 48
+        metrics:
+          - label: Vertex/Tess/Geometry Warps
+            metric: SM_B.TriageSCG.tpc__warps_active_shader_vtg_realtime.avg.per_cycle_elapsed
+            color: 0x0057E7
+            multiplier: 0.5
+          - label: Pixel Warps
+            metric: TPC.TriageSCG.tpc__warps_active_shader_ps_realtime.avg.per_cycle_elapsed
+            color: 0x008744
+            multiplier: 0.5
+          - label: Compute Warps
+            metric: TPC.TriageSCG.tpc__warps_active_shader_cs_realtime.avg.per_cycle_elapsed
+            color: 0xffa700
+            multiplier: 0.5
+          - label: Active SM Unused Warp Slots
+            metric: TriageSCG.tpc__warps_inactive_sm_active_realtime.avg.per_cycle_elapsed
+            color: 0x696969
+            multiplier: 0.5
+  - name: SM Warp Occupancy %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: Vertex/Tess/Geometry Warps
+            metric: SM_B.TriageSCG.tpc__warps_active_shader_vtg_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x0057E7
+          - label: Pixel Warps
+            metric: TPC.TriageSCG.tpc__warps_active_shader_ps_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x008744
+          - label: Compute Warps
+            metric: TPC.TriageSCG.tpc__warps_active_shader_cs_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xffa700
+          - label: Active SM Unused Warp Slots
+            metric: TriageSCG.tpc__warps_inactive_sm_active_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x696969
+  - name: Active Threads Per Warp Coherence
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: Active Threads Per Warp
+            metric: smsp__thread_inst_executed_pred_on_per_inst_executed.pct
+            color: 0x00FF00
+  - name: Active Threads Per Warp Threads/Warp
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: Active Threads Per Warp
+            metric: smsp__thread_inst_executed_pred_on_per_inst_executed.ratio
+            color: 0x00FF00
+            unit:
+  - name: FE Stalls %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: FE Stalled Sync
+            metric: FE_A.TriageSCG.fe__cycles_stalled_cmd_wfi_queue_sync.avg.pct_of_peak_sustained_elapsed
+            color: 0xaa1111
+          - label: FE Stalled Async
+            metric: FE_A.TriageSCG.fe__cycles_stalled_cmd_wfi_queue_async.avg.pct_of_peak_sustained_elapsed
+            color: 0x11aa11
+  - name: FE Pipeline Stalling Commands Total
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: Go Idle Sync
+            metric: FE_B.TriageSCG.fe__output_ops_cmd_go_idle_queue_sync.sum
+            color: 0x11aa11
+            unit:
+          - label: Subchannel Switch Sync
+            metric: FE_B.TriageSCG.fe__output_ops_cmd_subchsw_queue_sync.sum
+            color: 0xaa11aa
+            unit:
+          - label: Go Idle Async
+            metric: FE_B.TriageSCG.fe__output_ops_cmd_go_idle_queue_async.sum
+            color: 0xaa1111
+            unit:
+          - label: Subchannel Switch Async
+            metric: FE_B.TriageSCG.fe__output_ops_cmd_subchsw_queue_async.sum
+            color: 0x1111aa
+            unit:
+          - label: Pixel Shader Barriers
+            metric: FE_A.TriageSCG.fe__pixel_shader_barriers.sum
+            color: 0x11aaaa
+            unit:
+  - name: SM Register Usage (Occupancy Limiter) Avg Registers per SM
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        metrics:
+          - label: 3D Register Allocation
+            metric: TPC.TriageSCG.tpc__sm_rf_registers_allocated_shader_3d_realtime.avg.per_cycle_elapsed
+            color: 0x008744
+            multiplier: 0.5
+          - label: CS Register Allocation
+            metric: TPC.TriageSCG.tpc__sm_rf_registers_allocated_shader_cs_realtime.avg.per_cycle_elapsed
+            color: 0xffa700
+            multiplier: 0.5
+  - name: SM Register Usage (Occupancy Limiter) Occupancy %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: 3D Register Allocation
+            metric: TPC.TriageSCG.tpc__sm_rf_registers_allocated_shader_3d_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x008744
+          - label: CS Register Allocation
+            metric: TPC.TriageSCG.tpc__sm_rf_registers_allocated_shader_cs_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xffa700
+  - name: SM Shared+ISBE Memory Usage (Occupancy Limiter) Avg Bytes
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        metrics:
+          - label: CS Shared Memory Allocated (Sync)
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_shared_allocated_compute_queue_sync_realtime.avg.per_cycle_elapsed
+            color: 0xB2B233
+          - label: CS Shared Memory Allocated (Async)
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_shared_allocated_compute_queue_async_realtime.avg.per_cycle_elapsed
+            color: 0xB233B2
+          - label: VTG ISBE Memory Allocated
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_shared_allocated_isbe_realtime.avg.per_cycle_elapsed
+            color: 0x33B2B2
+  - name: SM Shared+ISBE Memory Usage (Occupancy Limiter) %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: CS Shared Memory Allocated (Sync)
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_shared_allocated_compute_queue_sync_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xB2B233
+          - label: CS Shared Memory Allocated (Async)
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_shared_allocated_compute_queue_async_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xB233B2
+          - label: VTG ISBE Memory Allocated
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_shared_allocated_isbe_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x33B2B2
+  - name: SM TRAM Memory Usage (Occupancy Limiter) Avg Bytes
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        metrics:
+          - label: PS TRAM Memory Allocated
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_tram_allocated_realtime.avg.per_cycle_elapsed
+            color: 0x33B233
+  - name: SM TRAM Memory Usage (Occupancy Limiter) %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: PS TRAM Memory Allocated
+            metric: TPC.TriageSCG.tpc__l1tex_sram_bytes_mem_untagged_data_tram_allocated_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x33B233
+  - name: Active Thread Groups in SM (Occupancy Limiter) Avg Bytes
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        metrics:
+          - label: Active Thread Groups in SM
+            metric: SM_B.TriageSCG.sm__ctas_active.avg.per_cycle_elapsed
+            color: 0xB23333
+  - name: Active Thread Groups in SM (Occupancy Limiter) %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: Active Thread Groups in SM
+            metric: SM_B.TriageSCG.sm__ctas_active.avg.pct_of_peak_sustained_elapsed
+            color: 0xB23333
+  - name: SM Instruction Throughputs Avg Cycle/Clk per SM
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: SM Tensor Pipe Active
+            metric: sm__pipe_tensor_cycles_active_realtime.avg.per_cycle_elapsed
+            color: 0x662dcc
+            unit: instructions / cycle
+  - name: SM Instruction Throughputs Cycles
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: SM Tensor Pipe Active
+            metric: sm__pipe_tensor_cycles_active_realtime.sum
+            color: 0x662dcc
+  - name: SM Instruction Throughputs IPC
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: SM Issue Active
+            metric: SM_A.TriageSCG.sm__inst_executed_realtime.avg.per_cycle_elapsed
+            color: 0xcfcf3f
+          - label: SM ALU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_alu_realtime.avg.per_cycle_elapsed
+            color: 0xFF6F00
+          - label: SM FMA Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fma.avg.per_cycle_elapsed
+            color: 0x00cf00
+          - label: SM FMA Heavy Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fmaheavy.avg.per_cycle_elapsed
+            color: 0xcf003f
+          - label: SM SFU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_xu_realtime.avg.per_cycle_elapsed
+            color: 0x00003f
+  - name: SM Instruction Throughputs Peak Cycle/Clk per SM
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: SM Tensor Pipe Active
+            metric: sm__pipe_tensor_cycles_active_realtime.avg.peak_sustained
+            color: 0x662dcc
+            unit: instructions / cycle
+  - name: SM Instruction Throughputs Peak IPC
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: SM Issue Active
+            metric: SM_A.TriageSCG.sm__inst_executed_realtime.avg.peak_sustained
+            color: 0xcfcf3f
+          - label: SM ALU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_alu_realtime.avg.peak_sustained
+            color: 0xFF6F00
+          - label: SM FMA Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fma.avg.peak_sustained
+            color: 0x00cf00
+          - label: SM FMA Heavy Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fmaheavy.avg.peak_sustained
+            color: 0xcf003f
+          - label: SM SFU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_xu_realtime.avg.peak_sustained
+            color: 0x00003f
+  - name: SM Instruction Throughputs %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: SM Issue Active
+            metric: SM_A.TriageSCG.sm__inst_executed_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xcfcf3f
+          - label: SM ALU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_alu_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xFF6F00
+          - label: SM FMA Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fma.avg.pct_of_peak_sustained_elapsed
+            color: 0x00cf00
+          - label: SM FMA Heavy Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fmaheavy.avg.pct_of_peak_sustained_elapsed
+            color: 0xcf003f
+          - label: SM SFU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_xu_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x00003f
+          - label: SM Tensor Pipe Active
+            metric: sm__pipe_tensor_cycles_active_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x662dcc
+  - name: SM Instruction Throughputs Total
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: SM Issue Active
+            metric: SM_A.TriageSCG.sm__inst_executed_realtime.sum
+            color: 0xcfcf3f
+          - label: SM ALU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_alu_realtime.sum
+            color: 0xFF6F00
+          - label: SM FMA Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fma.sum
+            color: 0x00cf00
+          - label: SM FMA Heavy Pipe Throughput
+            metric: SM_C.TriageSCG.smsp__inst_executed_pipe_fmaheavy.sum
+            color: 0xcf003f
+          - label: SM SFU Pipe Throughput
+            metric: SM_A.TriageSCG.sm__inst_executed_pipe_xu_realtime.sum
+            color: 0x00003f
+  - name: L1TEX Throughputs %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: L1TEX LSU Data-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__data_pipe_lsu_wavefronts.avg.pct_of_peak_sustained_elapsed
+            color: 0xcfcf3f
+          - label: L1TEX Texture Data-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__data_pipe_tex_wavefronts.avg.pct_of_peak_sustained_elapsed
+            color: 0x00003f
+          - label: L1TEX LSU Writeback-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__lsu_writeback_active.avg.pct_of_peak_sustained_elapsed
+            color: 0xcf003f
+          - label: L1TEX Texture Writeback-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__tex_writeback_active.avg.pct_of_peak_sustained_elapsed
+            color: 0x33B2B2
+          - label: L1TEX Texture Filter-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__f_wavefronts_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x3f00cf
+  - name: L1TEX LSU Throughputs %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: L1TEX Local+Global Data-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__data_pipe_lsu_wavefronts_mem_lg.avg.pct_of_peak_sustained_elapsed
+            color: 0xFF6F00
+          - label: L1TEX Shared+Attribute Data-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__data_pipe_lsu_wavefronts_mem_shared_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x00cf00
+          - label: L1TEX Surface Data-Stage Throughput
+            metric: SM_A.TriageSCG.l1tex__data_pipe_lsu_wavefronts_mem_surface_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xffca18
+  - name: L1TEX Hit Rate Ratio %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: L1TEX Hit Rate
+            metric: SM_B.TriageSCG.l1tex__t_sector_hit_rate.pct
+            color: 0x551dcc
+  - name: L2 Bandwidth (Source) %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: L2 Bandwidth from L1
+            metric: LTS.TriageSCG.lts__t_sector_throughput_srcunit_tex.avg.pct_of_peak_sustained_elapsed
+            color: 0x11aa11
+          - label: L2 Bandwidth from GCC
+            metric: LTS.TriageSCG.lts__t_sector_throughput_srcunit_gcc.avg.pct_of_peak_sustained_elapsed
+            color: 0x11aaaa
+          - label: L2 Bandwidth from PE
+            metric: LTS.TriageSCG.lts__t_sector_throughput_srcunit_pe.avg.pct_of_peak_sustained_elapsed
+            color: 0xaaaa11
+          - label: L2 Bandwidth from CROP
+            metric: ROP.TriageSCG.lts__t_sector_throughput_srcunit_crop.avg.pct_of_peak_sustained_elapsed
+            color: 0xaa1111
+          - label: L2 Bandwidth from ZROP
+            metric: ROP.TriageSCG.lts__t_sector_throughput_srcunit_zrop.avg.pct_of_peak_sustained_elapsed
+            color: 0x1111aa
+          - label: L2 Bandwidth from Raster
+            metric: TriageSCG.lts__t_sector_throughput_srcunit_raster.avg.pct_of_peak_sustained_elapsed
+            color: 0xaa11aa
+          - label: L2 Bandwidth from FBP
+            metric: LTS.TriageSCG.lts__t_sector_throughput_srcnode_fbp.avg.pct_of_peak_sustained_elapsed
+            color: 0x111111
+          - label: L2 Bandwidth from HUB
+            metric: LTS.TriageSCG.lts__t_sector_throughput_srcnode_hub.avg.pct_of_peak_sustained_elapsed
+            color: 0xaaaaaa
+  - name: L2 Bandwidth (Destination) %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: L2 Bandwidth to VRAM
+            metric: LTS.TriageSCG.lts__t_sector_throughput_aperture_device.avg.pct_of_peak_sustained_elapsed
+            color: 0xaa1111
+          - label: L2 Bandwidth to PCIe+Peer
+            metric: LTS.TriageSCG.lts__t_sector_throughput_aperture_other.avg.pct_of_peak_sustained_elapsed
+            color: 0x11aa11
+  - name: L2 Hit Rates Ratio %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: L2 Hit Rate
+            metric: LTS.TriageSCG.lts__average_t_sector_hit_rate_realtime.pct
+            color: 0x88001b
+          - label: L2 Hit Rate from L1
+            metric: LTS.TriageSCG.lts__average_t_sector_hit_rate_srcunit_tex_realtime.pct
+            color: 0xffca18
+  - name: VRAM Bandwidth %
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: VRAM Read Bandwidth
+            metric: FBSP.TriageSCG.dramc__read_throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0xcccc00
+          - label: VRAM Write Bandwidth
+            metric: FBSP.TriageSCG.dramc__write_throughput.avg.pct_of_peak_sustained_elapsed
+            color: 0xcc00cc
+  - name: PCIe Bandwidth Bytes
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: PCIe Read Bandwidth
+            metric: PCI.TriageSCG.pcie__read_bytes.sum
+            color: 0xFF3D00
+          - label: PCIe Write Bandwidth
+            metric: PCI.TriageSCG.pcie__write_bytes.sum
+            color: 0x00cfcf
+  - name: PCIe Bandwidth GB/s
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: PCIe Read Bandwidth
+            metric: PCI.TriageSCG.pcie__read_bytes.sum.per_second
+            color: 0xFF3D00
+            multiplier: 1e-09
+            unit: GB/s
+          - label: PCIe Write Bandwidth
+            metric: PCI.TriageSCG.pcie__write_bytes.sum.per_second
+            color: 0x00cfcf
+            multiplier: 1e-09
+            unit: GB/s
+  - name: PCIe Bandwidth %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: PCIe Read Bandwidth
+            metric: PCI.TriageSCG.pcie__read_bytes.avg.pct_of_peak_sustained_elapsed
+            color: 0xFF3D00
+          - label: PCIe Write Bandwidth
+            metric: PCI.TriageSCG.pcie__write_bytes.avg.pct_of_peak_sustained_elapsed
+            color: 0x00cfcf
+  - name: PCIe to BAR Requests
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: PCIe Read Requests to BAR1
+            metric: pcie__rx_requests_aperture_bar1_op_read.sum
+            color: 0x87FFFF
+            unit:
+          - label: PCIe Write Requests to BAR1
+            metric: pcie__rx_requests_aperture_bar1_op_write.sum
+            color: 0x8700FF
+            unit:
+          - label: PCIe Read Requests to BAR0
+            metric: pcie__rx_requests_aperture_bar0_op_read.sum
+            color: 0xAFFF87
+            unit:
+          - label: PCIe Write Requests to BAR0
+            metric: pcie__rx_requests_aperture_bar0_op_write.sum
+            color: 0x870087
+            unit:
+          - label: PCIe Read Requests to BAR2
+            metric: pcie__rx_requests_aperture_bar2_op_read.sum
+            color: 0xAFAF00
+            unit:
+          - label: PCIe Write Requests to BAR2
+            metric: pcie__rx_requests_aperture_bar2_op_write.sum
+            color: 0x870000
+            unit:
+  - name: ZCULL %
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: ZCULL Rejected Samples
+            metric: GPC_A.TriageSCG.raster__zcull_input_samples_op_rejected_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0x663399
+          - label: ZCULL Input Samples
+            metric: GPC_A.TriageSCG.raster__zcull_input_samples_realtime.avg.pct_of_peak_sustained_elapsed
+            color: 0xCC3399
+  - name: ZCULL Total
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: ZCULL Rejected Samples
+            metric: GPC_A.TriageSCG.raster__zcull_input_samples_op_rejected_realtime.sum
+            color: 0x663399
+          - label: ZCULL Input Samples
+            metric: GPC_A.TriageSCG.raster__zcull_input_samples_realtime.sum
+            color: 0xCC3399
+  - name: Clock Frequencies Cycles
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: GPC Frequency
+            metric: gpc__cycles_elapsed.avg
+            color: 0x808000
+          - label: SYS Frequency
+            metric: sys__cycles_elapsed.avg
+            color: 0x32cd32
+          - label: L2 Frequency
+            metric: lts__cycles_elapsed.avg
+            color: 0x00FFFF
+          - label: VRAM Frequency
+            metric: dramc__cycles_elapsed.avg
+            color: 0x964B00
+  - name: Clock Frequencies GHz
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: GPC Frequency
+            metric: gpc__cycles_elapsed.avg.per_second
+            color: 0x808000
+            multiplier: 1e-09
+            unit: GHz
+          - label: SYS Frequency
+            metric: sys__cycles_elapsed.avg.per_second
+            color: 0x32cd32
+            multiplier: 1e-09
+            unit: GHz
+          - label: L2 Frequency
+            metric: lts__cycles_elapsed.avg.per_second
+            color: 0x00FFFF
+            multiplier: 1e-09
+            unit: GHz
+          - label: VRAM Frequency
+            metric: dramc__cycles_elapsed.avg.per_second
+            color: 0x964B00
+            multiplier: 1e-09
+            unit: GHz
+configurations:
+  - name: Graphics High Speed Triage
+    speed: High
+    panels:
+      - GPU Active %
+      - Unit Throughputs %
+      - Compute In Flight %
+      - Draw/Dispatch Start Total
+      - SM Warp Occupancy Avg Warps
+      - SM Warp Occupancy %
+      - Active Threads Per Warp Coherence
+      - Active Threads Per Warp Threads/Warp
+      - FE Stalls %
+      - FE Pipeline Stalling Commands Total
+      - SM Register Usage (Occupancy Limiter) Avg Registers per SM
+      - SM Register Usage (Occupancy Limiter) Occupancy %
+      - SM Shared+ISBE Memory Usage (Occupancy Limiter) Avg Bytes
+      - SM Shared+ISBE Memory Usage (Occupancy Limiter) %
+      - SM TRAM Memory Usage (Occupancy Limiter) Avg Bytes
+      - SM TRAM Memory Usage (Occupancy Limiter) %
+      - Active Thread Groups in SM (Occupancy Limiter) Avg Bytes
+      - Active Thread Groups in SM (Occupancy Limiter) %
+      - SM Instruction Throughputs Avg Cycle/Clk per SM
+      - SM Instruction Throughputs Cycles
+      - SM Instruction Throughputs IPC
+      - SM Instruction Throughputs Peak Cycle/Clk per SM
+      - SM Instruction Throughputs Peak IPC
+      - SM Instruction Throughputs %
+      - SM Instruction Throughputs Total
+      - L1TEX Throughputs %
+      - L1TEX LSU Throughputs %
+      - L1TEX Hit Rate Ratio %
+      - L2 Bandwidth (Source) %
+      - L2 Bandwidth (Destination) %
+      - L2 Hit Rates Ratio %
+      - VRAM Bandwidth %
+      - PCIe Bandwidth Bytes
+      - PCIe Bandwidth GB/s
+      - PCIe Bandwidth %
+      - PCIe to BAR Requests
+      - ZCULL %
+      - ZCULL Total
+      - Clock Frequencies Cycles
+      - Clock Frequencies GHz

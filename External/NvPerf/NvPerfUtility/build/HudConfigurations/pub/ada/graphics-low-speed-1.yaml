@@ -1,0 +1,234 @@
+panels:
+  - name: Frame Level Stats
+    widgets:
+      - type: ScalarText
+        label: Time Duration
+        metric:
+          - metric: gpu__time_duration.sum
+            multiplier: 0.000001
+            unit: ms
+      - type: ScalarText
+        label: GR Active
+        metric: FE_B.TriageAC.gr__cycles_active.avg.pct_of_peak_sustained_elapsed
+      - type: ScalarText
+        label: SM Active
+        metric: SM_A.TriageAC.sm__cycles_active.avg.pct_of_peak_sustained_elapsed
+      - type: ScalarText
+        label: PCI Throughput
+        metric: PCI.TriageAC.pcie__throughput.avg.pct_of_peak_sustained_elapsed
+      - type: ScalarText
+        label: VRAM Throughput
+        metric: FBSP.TriageAC.dramc__throughput.avg.pct_of_peak_sustained_elapsed
+  - name: Engine Active (%)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: GR Active
+            metric: FE_B.TriageAC.gr__cycles_active.avg.pct_of_peak_sustained_elapsed
+          - label: Sync CE
+            metric: gpu__engine_cycles_active_any_syncce.avg.pct_of_peak_sustained_elapsed
+          - label: Async CE
+            metric: gpu__engine_cycles_active_any_asyncce.avg.pct_of_peak_sustained_elapsed
+  - name: GPU Clock Frequencies (GHz)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: GPC
+            metric: gpc__cycles_elapsed.avg.per_second
+            multiplier: 0.000000001
+          - label: SYS
+            metric: sys__cycles_elapsed.avg.per_second
+            multiplier: 0.000000001
+          - label: L2
+            metric: lts__cycles_elapsed.avg.per_second
+            multiplier: 0.000000001
+  - name: PCI Bandwidth (GB/s)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: Read
+            metric: PCI.TriageAC.pcie__read_bytes.sum.per_second
+            multiplier: 0.000000001
+          - label: Write
+            metric: PCI.TriageAC.pcie__write_bytes.sum.per_second
+            multiplier: 0.000000001
+  - name: VRAM Throughput (%)
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: Read
+            metric: FBSP.TriageAC.dramc__read_throughput.avg.pct_of_peak_sustained_elapsed
+          - label: Write
+            metric: FBSP.TriageAC.dramc__write_throughput.avg.pct_of_peak_sustained_elapsed
+  - name: L2 Hit-Rates (%)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: Total
+            metric: LTS.TriageAC.lts__average_t_sector_hit_rate_realtime.pct
+          - label: Tex
+            metric: LTS.TriageAC.lts__average_t_sector_hit_rate_srcunit_tex_realtime.pct         
+  - name: Shader Activity (%)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          ## Doesn't fit
+          #- name: FMA-Lite Instructions
+          #  metric: sm__inst_executed_pipe_fmalite_realtime.avg.pct_of_peak_sustained_elapsed
+          - label: SM Active
+            metric: SM_A.TriageAC.sm__cycles_active.avg.pct_of_peak_sustained_elapsed
+          - label: Instructions
+            metric: SM_A.TriageAC.sm__inst_executed_realtime.avg.pct_of_peak_sustained_elapsed
+          - label: ALU Instructions
+            metric: SM_A.TriageAC.sm__inst_executed_pipe_alu_realtime.avg.pct_of_peak_sustained_elapsed
+          - label: FMA-Heavy Instructions
+            metric: sm__inst_executed_pipe_fmaheavy_realtime.avg.pct_of_peak_sustained_elapsed
+  - name: Warp Occupancy (warps)
+    widgets:
+      - type: TimePlot
+        chartType: Stacked
+        valueMin: 0
+        valueMax: 48
+        metrics:
+          - label: Unused, SM Active
+            metric: tpc__warps_inactive_sm_active_realtime.avg.per_cycle_elapsed
+            multiplier: 0.5
+          - label: Pixel
+            metric: tpc__warps_active_shader_ps_realtime.avg.per_cycle_elapsed
+            multiplier: 0.5
+          - label: Vertex/Tess/Geometry
+            metric: tpc__warps_active_shader_vtg_realtime.avg.per_cycle_elapsed
+            multiplier: 0.5
+          - label: Compute
+            metric: tpc__warps_active_shader_cs_realtime.avg.per_cycle_elapsed
+            multiplier: 0.5
+  - name: TRAM Allocation Stalls (%)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: TRAM Allocation Stalls
+            metric: tpc__pe2sm_ps_tram_allocation_cycles_stalled.avg.pct_of_peak_sustained_elapsed
+  - name: ROP Throughput (%)
+    widgets:
+      - type: TimePlot
+        chartType: Overlay
+        valueMin: 0
+        valueMax: 100
+        metrics:
+          - label: CROP Read
+            metric: crop__read_throughput.avg.pct_of_peak_sustained_elapsed
+          - label: CROP Write
+            metric: crop__write_throughput.avg.pct_of_peak_sustained_elapsed
+          - label: ZROP Read
+            metric: zrop__read_throughput.avg.pct_of_peak_sustained_elapsed
+          - label: ZROP Write
+            metric: zrop__write_throughput.avg.pct_of_peak_sustained_elapsed
+  - name: Raster Data Flow
+    widgets:
+      - type: ScalarText
+        label: ZCULL Input Pixels
+        decimalPlaces: 0
+        metric:
+          - metric: raster__zcull_input_samples_realtime.sum
+            unit:
+      - type: ScalarText
+        label: Early-Z Input Pixels
+        decimalPlaces: 0
+        metric:
+          - metric: prop__prop2zrop_pixels_stage_earlyz_realtime.sum
+            unit:
+      - type: ScalarText
+        label: Late-Z Input Pixels
+        decimalPlaces: 0
+        metric:
+          - metric: prop__prop2zrop_pixels_stage_latez_realtime.sum
+            unit:
+      - type: ScalarText
+        label: Color Pixels
+        decimalPlaces: 0
+        metric:
+          - metric: prop__prop2crop_pixels_realtime.sum
+            unit:
+      - type: TimePlot
+        chartType: Overlay
+        metrics:
+          - label: ZCULL Input Pixels per Cycle
+            metric: raster__zcull_input_samples_realtime.sum
+          - label: Early-Z Input Pixels per Cycle
+            metric: prop__prop2zrop_pixels_stage_earlyz_realtime.sum
+          - label: Late-Z Input Pixels per Cycle
+            metric: prop__prop2zrop_pixels_stage_latez_realtime.sum
+          - label: Color Pixels per Cycle
+            metric: prop__prop2crop_pixels_realtime.sum
+  - name: Workload Launches
+    widgets:
+      - type: ScalarText
+        label: Draw Calls
+        decimalPlaces: 0
+        metric:
+          - metric: FE_B.TriageAC.fe__draw_count.sum
+            unit:
+      - type: ScalarText
+        label: Primitives
+        decimalPlaces: 0
+        metric:
+          - metric: HUB_B.TriageAC.pda__input_prims_realtime.sum
+            unit:
+      - type: ScalarText
+        label: Vertices
+        decimalPlaces: 0
+        metric:
+          - metric: HUB_B.TriageAC.pda__input_verts_realtime.sum
+            unit:
+      - type: ScalarText
+        label: Compute Dispatches
+        decimalPlaces: 0
+        metric:
+          - metric: FE_A.TriageAC.gr__dispatch_count.sum
+            unit:
+      - type: ScalarText
+        label: CTA Launches
+        decimalPlaces: 0
+        metric:
+          - metric: FE_B.TriageAC.gr__ctas_launched.sum
+            unit:
+
+configurations:
+   - name: Graphics General Triage
+     speed: Low
+     panels:
+       - Frame Level Stats
+       - Engine Active (%)
+       - name: GPU Clock Frequencies (GHz)
+         defaultOpen: False
+       - PCI Bandwidth (GB/s)
+       - VRAM Throughput (%)
+       - L2 Hit-Rates (%)
+       - Shader Activity (%)
+       - name: Warp Occupancy (warps)
+         defaultOpen: False
+       - name: TRAM Allocation Stalls (%)
+         defaultOpen: False
+       - name: ROP Throughput (%)
+         defaultOpen: False
+       - name: Raster Data Flow
+         defaultOpen: False
+       - name: Workload Launches
+         defaultOpen: False

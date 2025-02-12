@@ -119,7 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\cgltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;$(SolutionDir)External\XeSS\inc;$(SolutionDir)External\DLSS\include;$(SolutionDir)External\FidelityFX-SDK\include;$(SolutionDir)External\NVIDIA_Aftermath_SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\cgltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;$(SolutionDir)External\XeSS\inc;$(SolutionDir)External\DLSS\include;$(SolutionDir)External\FidelityFX-SDK\include;$(SolutionDir)External\NVIDIA_Aftermath_SDK\include;$(SolutionDir)External\NvPerf;$(SolutionDir)External\ImPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -147,7 +147,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\cgltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;$(SolutionDir)External\XeSS\inc;$(SolutionDir)External\DLSS\include;$(SolutionDir)External\FidelityFX-SDK\include;$(SolutionDir)External\NVIDIA_Aftermath_SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\cgltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;$(SolutionDir)External\XeSS\inc;$(SolutionDir)External\DLSS\include;$(SolutionDir)External\FidelityFX-SDK\include;$(SolutionDir)External\NVIDIA_Aftermath_SDK\include;$(SolutionDir)External\NvPerf;$(SolutionDir)External\ImPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -170,13 +170,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\External\D3D12MA\D3D12MemAlloc.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_demo.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_dx12.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_tables.cpp" />
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="..\External\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="..\External\ImPlot\implot.cpp" />
+    <ClCompile Include="..\External\ImPlot\implot_demo.cpp" />
+    <ClCompile Include="..\External\ImPlot\implot_items.cpp" />
     <ClCompile Include="..\External\meshoptimizer\allocator.cpp" />
     <ClCompile Include="..\External\meshoptimizer\clusterizer.cpp" />
     <ClCompile Include="..\External\meshoptimizer\indexcodec.cpp" />
@@ -231,6 +234,7 @@
     <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\GfxTracyProfiler.cpp" />
+    <ClCompile Include="Graphics\GfxNsightPerfManager.cpp" />
     <ClCompile Include="Logging\FileLogger.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="Logging\OutputDebugStringLogger.cpp" />
@@ -409,15 +413,75 @@
     <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_util.h" />
     <ClInclude Include="..\External\FidelityFX-SDK\include\FidelityFX\host\ffx_vrs.h" />
     <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imconfig.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imgui.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_dx12.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_win32.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imgui_internal.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imstb_rectpack.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imstb_textedit.h" />
-    <ClInclude Include="..\External\ImGui\ImGui\imstb_truetype.h" />
+    <ClInclude Include="..\External\ImGui\imconfig.h" />
+    <ClInclude Include="..\External\ImGui\imgui.h" />
+    <ClInclude Include="..\External\ImGui\imgui_impl_dx12.h" />
+    <ClInclude Include="..\External\ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="..\External\ImGui\imgui_internal.h" />
+    <ClInclude Include="..\External\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="..\External\ImGui\imstb_textedit.h" />
+    <ClInclude Include="..\External\ImGui\imstb_truetype.h" />
+    <ClInclude Include="..\External\ImPlot\implot.h" />
+    <ClInclude Include="..\External\ImPlot\implot_internal.h" />
     <ClInclude Include="..\External\meshoptimizer\meshoptimizer.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCommonHtmlTemplates.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCounterConfiguration.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCounterData.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCpuMarkerTrace.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfD3D.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfD3D11.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfD3D12.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfDeviceProperties.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsAD10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGA10B.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGA10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGB10B.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGB20X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsHAL.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsTU10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsTU11X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudDataModel.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudImPlotRenderer.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudRenderer.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudTextRenderer.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfInit.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsAD10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsGA10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsGB20X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsHAL.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsTU10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricsConfigBuilder.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricsConfigLoader.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricsEvaluator.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMiniTrace.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMiniTraceD3D12.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfPeriodicSamplerCommon.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfPeriodicSamplerD3D12.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfPeriodicSamplerGpu.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfRangeProfiler.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfRangeProfilerD3D12.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinition.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionAD10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGA10B.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGA10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGB10B.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGB20X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionHAL.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionTU10X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionTU11X.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportGenerator.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportGeneratorD3D12.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfScopeExitGuard.h" />
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfUtilities.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_common.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_d3d12_host.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_d3d12_target.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_device_host.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_device_target.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_host.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_host_impl.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_target.h" />
+    <ClInclude Include="..\External\NvPerf\nvperf_versions_target.h" />
     <ClInclude Include="..\External\SimpleMath\SimpleMath.h" />
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp" />
     <ClInclude Include="..\External\tracy\tracy\TracyD3D12.hpp" />
@@ -479,6 +543,7 @@
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\GfxTracyProfiler.h" />
     <ClInclude Include="Graphics\GfxVertexFormat.h" />
+    <ClInclude Include="Graphics\GfxNsightPerfManager.h" />
     <ClInclude Include="Logging\FileLogger.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Logging\OutputDebugStringLogger.h" />
@@ -622,6 +687,9 @@
   <ItemGroup>
     <None Include="..\.gitignore" />
     <None Include="..\External\cgltf\LICENSE" />
+    <None Include="..\External\ImPlot\LICENSE" />
+    <None Include="..\External\ImPlot\README.md" />
+    <None Include="..\External\ImPlot\TODO.md" />
     <None Include="..\External\SimpleMath\SimpleMath.inl" />
     <None Include="..\README.md" />
     <None Include="packages.config" />
@@ -995,6 +1063,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\External\FidelityFX-SDK\include\FidelityFX\host\backends\dx12\license.txt" />
+    <Text Include="..\External\ImPlot\provenance.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

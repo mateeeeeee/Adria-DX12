@@ -39,7 +39,7 @@ Graphics engine written in C++ using DirectX12.
     - Shader hot reloading
     - Render graph graphviz visualization
     - Shader debug printf
-    - Nsight Aftermath SDK
+    - Nsight Aftermath SDK, Nsight Perf SDK
     - Debug Outputs: Diffuse, Normal, Depth, Roughness, Metallic, Emissive, AO, GI, \
       Custom, Shading Extension, View Mipmaps, Triangle Overdraw
 
@@ -99,8 +99,12 @@ Graphics engine written in C++ using DirectX12.
 |---|---|
 |  ![](Adria/Saved/Screenshots/ssao.png) | ![](Adria/Saved/Screenshots/rtao.png) |
 
+### Nsight Perf HUD
+![](Adria/Saved/Screenshots/nsightperf.png "Nsight Perf HUD") 
+
 ### Render Graph Visualization
 ![](Adria/Saved/RenderGraph/rendergraph.svg "Render graph visualization") 
+
 
 
 

@@ -6,6 +6,7 @@
 #include "Graphics/GfxRenderPass.h"
 #include "Graphics/GfxProfiler.h"
 #include "Graphics/GfxTracyProfiler.h"
+#include "Graphics/GfxNsightPerfManager.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
@@ -1077,6 +1078,7 @@ namespace adria
 
 				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
 				AdriaGfxProfileScope(cmd_list, pass->name.c_str());
+				NsightPerfGfxRangeScope(cmd_list, pass->name.c_str());
 				TracyGfxProfileScope(cmd_list->GetNative(), pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Graphics);
 				cmd_list->BeginRenderPass(render_pass_desc);
@@ -1087,6 +1089,7 @@ namespace adria
 			{
 				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
 				AdriaGfxProfileScope(cmd_list, pass->name.c_str());
+				NsightPerfGfxRangeScope(cmd_list, pass->name.c_str());
 				TracyGfxProfileScope(cmd_list->GetNative(), pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Compute);
 				pass->Execute(rg_resources, cmd_list);

@@ -37,6 +37,8 @@ namespace adria
 
 	std::string const paths::AftermathDir = SavedDir + "Aftermath/";
 
+	std::string const paths::NsightPerfReportDir = SavedDir + "NsightPerfReport/";
+
 	std::string const paths::PixCapturesDir = SavedDir + "PixCaptures/";
 }
 

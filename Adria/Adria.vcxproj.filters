@@ -146,6 +146,15 @@
     <Filter Include="Shaders\ReSTIR\DI">
       <UniqueIdentifier>{47d769cd-123b-43a6-a8de-eae965e46835}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\NvPerf">
+      <UniqueIdentifier>{aa22c4ac-2552-45d1-b97e-a983a3c066a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\NvPerf\Utility">
+      <UniqueIdentifier>{14d04b56-e3ae-4941-a931-96c1c1215883}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\ImPlot">
+      <UniqueIdentifier>{cadfcff4-f3ad-4fcb-aab0-5b61c7f672f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -363,27 +372,6 @@
     <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp">
       <Filter>External\meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_demo.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_draw.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_dx12.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_win32.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_tables.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\ImGui\ImGui\imgui_widgets.cpp">
-      <Filter>External\ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="Logging\OutputStreamLogger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
@@ -572,6 +560,39 @@
     </ClCompile>
     <ClCompile Include="Graphics\GfxCommandSignature.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxNsightPerfManager.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_demo.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_draw.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_impl_dx12.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_impl_win32.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_tables.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\imgui_widgets.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImPlot\implot.cpp">
+      <Filter>External\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImPlot\implot_demo.cpp">
+      <Filter>External\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImPlot\implot_items.cpp">
+      <Filter>External\ImPlot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -932,30 +953,6 @@
     </ClInclude>
     <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h">
       <Filter>External\FontAwesome</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imconfig.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imgui.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_dx12.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_win32.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imgui_internal.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imstb_rectpack.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imstb_textedit.h">
-      <Filter>External\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\ImGui\ImGui\imstb_truetype.h">
-      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Logging\OutputStreamLogger.h">
       <Filter>Logging</Filter>
@@ -1404,6 +1401,213 @@
     <ClInclude Include="Core\CommandLineOptions.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxNsightPerfManager.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_common.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_d3d12_host.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_d3d12_target.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_device_host.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_device_target.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_host.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_host_impl.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_target.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\nvperf_versions_target.h">
+      <Filter>External\NvPerf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCommonHtmlTemplates.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCounterConfiguration.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCounterData.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfCpuMarkerTrace.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfD3D.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfD3D11.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfD3D12.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfDeviceProperties.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsAD10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGA10B.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGA10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGB10B.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsGB20X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsHAL.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsTU10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudConfigurationsTU11X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudDataModel.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudImPlotRenderer.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudRenderer.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfHudTextRenderer.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfInit.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsAD10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsGA10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsGB20X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsHAL.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricConfigurationsTU10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricsConfigBuilder.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricsConfigLoader.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMetricsEvaluator.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMiniTrace.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfMiniTraceD3D12.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfPeriodicSamplerCommon.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfPeriodicSamplerD3D12.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfPeriodicSamplerGpu.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfRangeProfiler.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfRangeProfilerD3D12.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinition.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionAD10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGA10B.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGA10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGB10B.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionGB20X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionHAL.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionTU10X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportDefinitionTU11X.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportGenerator.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfReportGeneratorD3D12.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfScopeExitGuard.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\NvPerf\NvPerfUtility\include\NvPerfUtilities.h">
+      <Filter>External\NvPerf\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imconfig.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui_impl_dx12.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui_impl_win32.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imgui_internal.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imstb_rectpack.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imstb_textedit.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\imstb_truetype.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImPlot\implot.h">
+      <Filter>External\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImPlot\implot_internal.h">
+      <Filter>External\ImPlot</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1523,6 +1727,15 @@
     </None>
     <None Include="Resources\Shaders\ReSTIR\DI\ReSTIR_DI_Util.hlsli">
       <Filter>Shaders\ReSTIR\DI</Filter>
+    </None>
+    <None Include="..\External\ImPlot\LICENSE">
+      <Filter>External\ImPlot</Filter>
+    </None>
+    <None Include="..\External\ImPlot\README.md">
+      <Filter>External\ImPlot</Filter>
+    </None>
+    <None Include="..\External\ImPlot\TODO.md">
+      <Filter>External\ImPlot</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -1740,6 +1953,9 @@
   <ItemGroup>
     <Text Include="..\External\FidelityFX-SDK\include\FidelityFX\host\backends\dx12\license.txt">
       <Filter>External\FFX\host\backends\dx12</Filter>
+    </Text>
+    <Text Include="..\External\ImPlot\provenance.txt">
+      <Filter>External\ImPlot</Filter>
     </Text>
   </ItemGroup>
 </Project>

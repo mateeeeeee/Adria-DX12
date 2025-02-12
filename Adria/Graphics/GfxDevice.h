@@ -68,6 +68,7 @@ namespace adria
 	class GfxRingDescriptorAllocator;
 
 	class GfxNsightAftermathGpuCrashTracker;
+	class GfxNsightPerfManager;
 #if GFX_MULTITHREADED
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;
 #else
@@ -104,6 +105,7 @@ namespace adria
 		Uint32 GetBackbufferIndex() const;
 		Uint32 GetFrameIndex() const;
 
+		void Update();
 		void BeginFrame();
 		void EndFrame();
 		void TakePixCapture(Char const* capture_name, Uint32 num_frames);
@@ -193,6 +195,8 @@ namespace adria
 		void SetRenderingNotStarted();
 		Bool IsFirstFrame() const { return first_frame; }
 
+		GfxNsightPerfManager* GetNsightPerfManager() const;
+
 		static constexpr Uint32 GetBackbufferCount()
 		{
 			return GFX_BACKBUFFER_COUNT;
@@ -271,6 +275,7 @@ namespace adria
 		Bool pix_dll_loaded = false;
 
 		std::unique_ptr<GfxNsightAftermathGpuCrashTracker> nsight_aftermath;
+		std::unique_ptr<GfxNsightPerfManager> nsight_perf_manager;
 
 	private:
 		void SetupOptions(Uint32& dxgi_factory_flags);

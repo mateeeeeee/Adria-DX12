@@ -96,6 +96,8 @@ namespace adria
 		camera->Update(dt);
 		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
+		gfx->Update();
+		
 	}
 	void Engine::Render()
 	{
