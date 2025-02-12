@@ -1,1 +1,0 @@
-Taken from https://github.com/glfw/glfw/releases/tag/3.3.10.
