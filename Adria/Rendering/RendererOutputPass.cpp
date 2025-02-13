@@ -74,12 +74,12 @@ namespace adria
 					Uint32 custom_idx;
 					Uint32 ao_idx;
 					Uint32 output_idx;
-					Uint32 triangle_overdraw_scale;
+					Float  triangle_overdraw_scale;
 				} constants =
 				{
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, 
 					.custom_idx = i + 4, .ao_idx = i + 5, .output_idx = i + 6,
-					.triangle_overdraw_scale = (Uint32)triangle_overdraw_scale
+					.triangle_overdraw_scale = (Float)triangle_overdraw_scale
 				};
 
 				static std::array<Char const*, (Uint32)RendererOutput::Count> OutputDefines =
@@ -113,7 +113,7 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Renderer Output Settings", ImGuiTreeNodeFlags_None))
 				{
-					ImGui::SliderInt("Triangle Overdraw Scale", &triangle_overdraw_scale, 1, 5);
+					ImGui::SliderFloat("Triangle Overdraw Scale", &triangle_overdraw_scale, 0.1f, 10.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}

@@ -1737,6 +1737,12 @@
     <None Include="..\External\ImPlot\TODO.md">
       <Filter>External\ImPlot</Filter>
     </None>
+    <None Include="Resources\Shaders\Surface.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\LightInfo.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">

@@ -62,7 +62,6 @@ namespace adria
 
 		initialized = true;
 	}
-
 	GfxNsightPerfManager::~GfxNsightPerfManager()
 	{
 		if (!initialized) return;
@@ -142,7 +141,6 @@ namespace adria
 			nsight_perf_manager->PushRange(cmd_list, name.c_str());
 		}
 	}
-
 	GfxNsightPerfRangeScope::~GfxNsightPerfRangeScope()
 	{
 		if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())

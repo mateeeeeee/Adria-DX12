@@ -42,7 +42,7 @@ namespace adria
 		Uint32 width;
 		Uint32 height;
 		std::unique_ptr<GfxComputePipelineStatePermutations> renderer_output_psos;
-		Int triangle_overdraw_scale = 1;
+		Float triangle_overdraw_scale = 1.0f;
 
 	private:
 		void CreatePSOs();

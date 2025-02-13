@@ -4,7 +4,6 @@
 
 #define BLOCK_SIZE 16
 
-
 struct RendererOutputConstants
 {
 	uint normalMetallicIdx;
@@ -14,9 +13,32 @@ struct RendererOutputConstants
 	uint customIdx;
 	uint aoIdx;
 	uint outputIdx;
-	uint triangleOverdrawScale;
+	float triangleOverdrawScale;
 };
 ConstantBuffer<RendererOutputConstants> RendererOutputPassCB : register(b1);
+
+
+float3 TurboColormap(float x)
+{
+	static const float4 RED_COEFFS_4   = float4(0.13572138, 4.61539260, -42.66032258, 132.13108234);
+	static const float4 GREEN_COEFFS_4 = float4(0.09140261, 2.19418839, 4.84296658, -14.18503333);
+	static const float4 BLUE_COEFFS_4  = float4(0.10667330, 12.64194608, -60.58204836, 110.36276771);
+	static const float2 RED_COEFFS_2   = float2(-152.94239396, 59.28637943);
+	static const float2 GREEN_COEFFS_2 = float2(4.27729857, 2.82956604);
+	static const float2 BLUE_COEFFS_2  = float2(-89.90310912, 27.34824973);
+
+    x = clamp(x, 0.0f, 1.0f); 
+    //polynomial basis
+    float4 basis_4 = float4(1.0f, x, x * x, x * x * x);
+    float2 basis_2 = basis_4.zw * basis_4.z;
+
+    float3 overdrawColor = float3(
+        dot(basis_4, RED_COEFFS_4)   + dot(basis_2, RED_COEFFS_2),
+        dot(basis_4, GREEN_COEFFS_4) + dot(basis_2, GREEN_COEFFS_2),
+        dot(basis_4, BLUE_COEFFS_4)  + dot(basis_2, BLUE_COEFFS_2)
+    );
+    return overdrawColor;
+}
 
 struct CSInput
 {
@@ -115,17 +137,8 @@ void RendererOutputCS(CSInput input)
 	RWTexture2D<uint> triangleOverdrawTexture = ResourceDescriptorHeap[FrameCB.triangleOverdrawIdx];
 	uint2 texCoords = uint2(uv * FrameCB.renderResolution);
 	uint overdrawCount = triangleOverdrawTexture.Load(texCoords);
-	overdrawCount = min(overdrawCount / RendererOutputPassCB.triangleOverdrawScale, 4);
-    
-    static const float3 overdrawColors[] = 
-{
-        float3(0.0f, 1.0f, 0.0f),  // Green
-        float3(1.0f, 1.0f, 0.0f),  // Yellow
-        float3(1.0f, 0.5f, 0.0f),  // Orange
-        float3(1.0f, 0.0f, 0.0f),  // Red
-        float3(0.5f, 0.0f, 0.0f)   // Dark Red
-    };
-    outputTexture[input.DispatchThreadId.xy] = float4(overdrawColors[overdrawCount], 1.0f);
+	float overdrawRatio = overdrawCount / (10 * RendererOutputPassCB.triangleOverdrawScale);
+    outputTexture[input.DispatchThreadId.xy] = float4(TurboColormap(overdrawRatio), 1.0f);
 #else 
 	outputTexture[input.DispatchThreadId.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f); 
 #endif

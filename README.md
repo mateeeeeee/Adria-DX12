@@ -99,6 +99,9 @@ Graphics engine written in C++ using DirectX12.
 |---|---|
 |  ![](Adria/Saved/Screenshots/ssao.png) | ![](Adria/Saved/Screenshots/rtao.png) |
 
+### Triangle Overdraw Debug View
+![](Adria/Saved/Screenshots/bistrooverdraw.png "Bistro Triangle Overdraw") 
+
 ### Nsight Perf HUD
 ![](Adria/Saved/Screenshots/nsightperf.png "Nsight Perf HUD") 
 
