@@ -69,6 +69,9 @@ Graphics engine written in C++ using DirectX12.
 ### Bistro
 ![](Adria/Saved/Screenshots/bistro.png "Rainy Bistro") 
 
+### New Sponza
+![](Adria/Saved/Screenshots/newsponza.png "New Sponza") 
+
 ### Sun Temple
 ![](Adria/Saved/Screenshots/suntemple.png "Sun Temple") 
 
@@ -81,9 +84,6 @@ Graphics engine written in C++ using DirectX12.
 ### Path Tracer
 ![](Adria/Saved/Screenshots/pathtracing1.png "Path traced Sponza") 
 ![](Adria/Saved/Screenshots/arcade.png "Path traced Arcade") 
-
-### Editor
-![](Adria/Saved/Screenshots/editor.png "Editor") 
 
 ### Ray Tracing Features
 
@@ -101,6 +101,9 @@ Graphics engine written in C++ using DirectX12.
 
 ### Triangle Overdraw Debug View
 ![](Adria/Saved/Screenshots/bistrooverdraw.png "Bistro Triangle Overdraw") 
+
+### Editor
+![](Adria/Saved/Screenshots/editor.png "Editor") 
 
 ### Nsight Perf HUD
 ![](Adria/Saved/Screenshots/nsightperf.png "Nsight Perf HUD") 

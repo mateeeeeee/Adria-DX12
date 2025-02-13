@@ -23,6 +23,18 @@
       "scale": [ 6.0, 6.0, -6.0 ],
       "use_ccw": true,
       "force_alpha_mask": false
+    },
+    {
+      "path": "Resources/Models/SponzaNew/ivy/NewSponza_IvyGrowth_glTF.gltf",
+      "scale": [ 6.0, 6.0, -6.0 ],
+      "use_ccw": true,
+      "force_alpha_mask": false
+    },
+    {
+      "path": "Resources/Models/SponzaNew/trees/NewSponza_CypressTree_glTF.gltf",
+      "scale": [ 6.0, 6.0, -6.0 ],
+      "use_ccw": true,
+      "force_alpha_mask": false
     }
   ],
   "lights": [
