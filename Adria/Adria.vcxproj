@@ -701,6 +701,7 @@
     <None Include="Resources\Shaders\DDGI\DDGICommon.hlsli" />
     <None Include="Resources\Shaders\DebugPrint.hlsli" />
     <None Include="Resources\Shaders\DitherUtil.hlsli" />
+    <None Include="Resources\Shaders\LightInfo.hlsli" />
     <None Include="Resources\Shaders\Lighting.hlsli" />
     <None Include="Resources\Shaders\Meshlets\GpuDrivenRendering.hlsli" />
     <None Include="Resources\Shaders\Noise.hlsli" />
@@ -713,6 +714,7 @@
     <None Include="Resources\Shaders\Reflections.hlsli" />
     <None Include="Resources\Shaders\ReSTIR\DI\ReSTIR_DI_Util.hlsli" />
     <None Include="Resources\Shaders\Scene.hlsli" />
+    <None Include="Resources\Shaders\Surface.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />
     <None Include="Saved\Ini\default_cvars.ini" />

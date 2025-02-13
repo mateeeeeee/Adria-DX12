@@ -76,6 +76,11 @@ float3 F_Schlick(float3 V, float3 H, float3 F0)
     float VdotH = saturate(dot(V, H) + 1e-5);
     return F0 + (1.0 - F0) * pow(1.0 - VdotH, 5.0);
 }
+float F_Schlick(float VdotH, float F0)
+{
+    return F0 + (1 - F0) * pow(max(1 - VdotH, 0), 5);
+}
+
 float3 SpecularBRDF(float3 N, float3 V, float3 L, float3 specular, float roughness, out float3 F)
 {
     roughness = max(roughness, MIN_ROUGHNESS);

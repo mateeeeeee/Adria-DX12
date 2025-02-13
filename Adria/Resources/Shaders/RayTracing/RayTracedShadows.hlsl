@@ -1,4 +1,4 @@
-#include "Lighting.hlsli"
+#include "LightInfo.hlsli"
 #include "RayTracingUtil.hlsli"
 
 struct RayTracedShadowsConstants
