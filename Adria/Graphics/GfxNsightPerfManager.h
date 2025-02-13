@@ -43,6 +43,7 @@ namespace adria
 		nv::perf::ClockInfo clock_info; 
 		Bool generate_report = false;
 		AutoConsoleCommand generate_report_command;
+		Bool initialized = false;
 #endif
 	};
 

@@ -15,14 +15,21 @@ namespace adria
 #if defined(GFX_ENABLE_NV_PERF)
 
 	GfxNsightPerfManager::GfxNsightPerfManager(GfxDevice* gfx) 
-		: gfx(gfx),
-		  generate_report_command("nsight.perf.report", "Generate Nsight Perf HTML report", ConsoleCommandDelegate::CreateMember(&GfxNsightPerfManager::GenerateReport, *this))
+		: gfx(gfx), generate_report_command("nsight.perf.report", "Generate Nsight Perf HTML report", ConsoleCommandDelegate::CreateMember(&GfxNsightPerfManager::GenerateReport, *this))
 	{
-		periodic_sampler.Initialize(gfx->GetDevice());
+		if (!periodic_sampler.Initialize(gfx->GetDevice()))
+		{
+			ADRIA_WARNING("NsightPerf Periodic Sampler Initalization failed, check the VS Output View for NVPERF logs");
+			return;
+		}
 		const nv::perf::DeviceIdentifiers device_identifiers = periodic_sampler.GetGpuDeviceIdentifiers();
 		static constexpr Uint32 SamplingIntervalInNanoSeconds = 1000 * 1000 * 1000 / SamplingFrequency;
-		static constexpr Uint32 MaxDecodeLatencyInNanoSeconds = 1000 * 1000 * 1000; // tolerate stutter frame up to 1 second
-		periodic_sampler.BeginSession(gfx->GetCommandQueue(GfxCommandListType::Graphics), SamplingIntervalInNanoSeconds, MaxDecodeLatencyInNanoSeconds, GFX_BACKBUFFER_COUNT);
+		static constexpr Uint32 MaxDecodeLatencyInNanoSeconds = 1000 * 1000 * 1000; 
+        if (!periodic_sampler.BeginSession(gfx->GetCommandQueue(GfxCommandListType::Graphics), SamplingIntervalInNanoSeconds, MaxDecodeLatencyInNanoSeconds, GFX_BACKBUFFER_COUNT))
+        {
+            ADRIA_WARNING("NsightPerf Periodic Sampler BeginSession failed, check the VS Output View for NVPERF logs");
+            return;
+        }
 
 		nv::perf::hud::HudPresets hud_presets;
 		hud_presets.Initialize(device_identifiers.pChipName);
@@ -37,11 +44,13 @@ namespace adria
 		hud_data_model.Initialize(1.0 / (Float64)SamplingFrequency, PlotTimeWidthInSeconds, metric_config_object);
 		periodic_sampler.SetConfig(&hud_data_model.GetCounterConfiguration());
 		hud_data_model.PrepareSampleProcessing(periodic_sampler.GetCounterData());
-
-		nv::perf::hud::HudImPlotRenderer::SetStyle();
 		hud_renderer.Initialize(hud_data_model);
 
-		report_generator.InitializeReportGenerator(gfx->GetDevice());
+		if (!report_generator.InitializeReportGenerator(gfx->GetDevice()))
+		{
+            ADRIA_WARNING("NsightPerf Report Generator Initalization failed, check the VS Output View for NVPERF logs");
+            return;
+		}
 		report_generator.SetFrameLevelRangeName("Frame");
 		report_generator.SetNumNestingLevels(2);
 		report_generator.SetMaxNumRanges(128);
@@ -50,15 +59,21 @@ namespace adria
 
 		clock_info = nv::perf::D3D12GetDeviceClockState(gfx->GetDevice());
 		nv::perf::D3D12SetDeviceClockState(gfx->GetDevice(), NVPW_DEVICE_CLOCK_SETTING_DEFAULT);
+
+		initialized = true;
 	}
 
 	GfxNsightPerfManager::~GfxNsightPerfManager()
 	{
+		if (!initialized) return;
+
 		report_generator.Reset();
 		periodic_sampler.Reset();
 	}
 	void GfxNsightPerfManager::Update()
 	{
+		if (!initialized) return;
+
 		periodic_sampler.DecodeCounters();
 		periodic_sampler.ConsumeSamples([&](const uint8_t* pCounterDataImage, size_t counterDataImageSize, uint32_t rangeIndex, bool& stop)
 		{
@@ -73,6 +88,8 @@ namespace adria
 	}
 	void GfxNsightPerfManager::BeginFrame()
 	{
+		if (!initialized) return;
+
 		if (generate_report)
 		{
 			report_generator.StartCollectionOnNextFrame();
@@ -82,10 +99,14 @@ namespace adria
 	}
 	void GfxNsightPerfManager::Render()
 	{
+		if (!initialized) return;
+
 		hud_renderer.Render();
 	}
 	void GfxNsightPerfManager::EndFrame()
 	{
+		if (!initialized) return;
+
 		periodic_sampler.OnFrameEnd();
 		if (report_generator.IsCollectingReport())
 		{
@@ -99,10 +120,14 @@ namespace adria
 	}
 	void GfxNsightPerfManager::PushRange(GfxCommandList* cmd_list, Char const* name)
 	{
+		if (!initialized) return;
+
 		report_generator.rangeCommands.PushRange(cmd_list->GetNative(), name);
 	}
 	void GfxNsightPerfManager::PopRange(GfxCommandList* cmd_list)
 	{
+		if (!initialized) return;
+
 		report_generator.rangeCommands.PopRange(cmd_list->GetNative());
 	}
 	void GfxNsightPerfManager::GenerateReport()
