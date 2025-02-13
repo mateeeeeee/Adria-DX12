@@ -11,6 +11,7 @@
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
 #include "DDGIPass.h"
+#include "ReSTIR_DI.h"
 #include "GPUDebugPrinter.h"
 #include "HelperPasses.h"
 #include "PickingPass.h"
@@ -130,6 +131,7 @@ namespace adria
 		ShadowRenderer shadow_renderer;
 		PostProcessor postprocessor;
 		DDGIPass		  ddgi;
+		ReSTIR_DI		  restir_di;
 		PathTracingPass path_tracer;
 		RendererOutputPass renderer_output_pass;
 		GPUDebugPrinter gpu_debug_printer;

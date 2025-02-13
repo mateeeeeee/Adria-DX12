@@ -20,7 +20,6 @@ void InitialSamplingCS( uint3 DTid : SV_DispatchThreadID )
     if (surface.depth == 0.0f) 
     {
         ReSTIR_DI_Reservoir emptyReservoir = (ReSTIR_DI_Reservoir)0;
-        emptyReservoir.Reset();
         ReSTIR_DI_StoreReservoir(emptyReservoir, DTid.xy, IntialSamplingCB.reservoirBufferIdx);
         return;
     }

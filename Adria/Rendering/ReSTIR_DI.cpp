@@ -36,6 +36,8 @@ namespace adria
 		compute_pso_desc.CS = CS_ReSTIR_DI_SpatialResampling;
 		spatial_resampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
+		return;
+
 		CreateBuffers();
 		supported = true;
 	}

@@ -30,15 +30,15 @@ float GetSurfaceDiffuseProbability(Surface surface)
 {
     BrdfData brdfData = surface.brdfData;
     float diffuseWeight = CalculateLuminance(brdfData.Diffuse);
-    float specularWeight = CalculateLuminance(F_Schlick(dot(surface.viewDir, surface.normal), brdfData.Specular));
+    float specularWeight = CalculateLuminance(F_Schlick(dot(surface.viewDir, surface.worldNormal), brdfData.Specular.x));
     float sumWeights = diffuseWeight + specularWeight;
     return sumWeights < 1e-7f ? 1.f : (diffuseWeight / sumWeights);
 }
 
-Surface GetSurface(uint2 pixelCoords, uint albedoIndex, uint normalIndex, uint depthIndex)
+Surface GetSurface(uint2 pixelCoords, uint albedoIdx, uint normalIdx, uint depthIdx)
 {
     Surface surface = GetEmptySurface();
-    Texture2D<float> depthTexture = ResourceDescriptorHeap[depthIdx];
+    Texture2D<float>  depthRT = ResourceDescriptorHeap[depthIdx];
     Texture2D<float4> normalRT = ResourceDescriptorHeap[normalIdx];
     Texture2D<float4> albedoRT = ResourceDescriptorHeap[albedoIdx];
 
@@ -56,10 +56,10 @@ Surface GetSurface(uint2 pixelCoords, uint albedoIndex, uint normalIndex, uint d
 
     viewNormal = 2.0f * viewNormal - 1.0f;
     surface.worldNormal = normalize(mul(viewNormal, (float3x3)FrameCB.view));
-    surface.worldPos = GetWorldPosition(FullScreenPosition(pixelCoords), depth);
-    surface.viewDir = normalize(FrameCB.cameraPosition - worldPos);
+    surface.worldPos = GetWorldPosition(FullScreenPosition(pixelCoords), surface.depth);
+    surface.viewDir = normalize(FrameCB.cameraPosition.xyz - surface.worldPos);
 
-    float4 albedoRoughness = albedoRT.Sample(LinearWrapSampler, uv);
+    float4 albedoRoughness = albedoRT[pixelCoords];
 	float3 albedo = albedoRoughness.rgb; float  roughness = albedoRoughness.a;
     surface.brdfData = GetBrdfData(albedo, metallic, roughness);
     surface.diffuseProbability = GetSurfaceDiffuseProbability(surface);

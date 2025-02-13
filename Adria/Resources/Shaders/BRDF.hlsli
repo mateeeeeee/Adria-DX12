@@ -2,6 +2,7 @@
 #define  _BRDF_
 
 #include "Constants.hlsli"
+#include "CommonResources.hlsli"
 
 //add reference 
 

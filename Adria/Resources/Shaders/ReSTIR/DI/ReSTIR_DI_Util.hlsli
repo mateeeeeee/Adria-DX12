@@ -66,7 +66,7 @@ bool ReSTIR_DI_StreamSample(
     // New samples don't have visibility or age information, we can skip that.
     if (selectSample)
     {
-        reservoir.lightData = lightIndex;
+        reservoir.lightIndex = lightIndex;
         reservoir.uvData = uint(saturate(uv.x) * 0xffff) | (uint(saturate(uv.y) * 0xffff) << 16);
         reservoir.targetPdf = targetPdf;
     }
@@ -83,7 +83,7 @@ bool ReSTIR_DI_InternalSimpleResample(
     float random,
     float targetPdf = 1.0f,             // Usually closely related to the sample normalization, 
     float sampleNormalization = 1.0f,   // typically off by some multiplicative factor 
-    float sampleM = 1.0f,               // In its most basic form, should be newReservoir.M
+    float sampleM = 1.0f                // In its most basic form, should be newReservoir.M
 )
 {
     // What's the current weight (times any prior-step RIS normalization factor)
@@ -152,16 +152,18 @@ ReSTIR_DI_LightSample ReSTIR_DI_EmptyLightSample()
 }
 
 void ReSTIR_DI_SelectNextLocalLight(
-    inout RAB_RandomSamplerState rng,
+    inout RNG rng,
     uint lightCount,
     out Light lightInfo,
     out uint lightIndex,
     out float invSourcePdf)
 {
-    float rnd = RNG_GetNext(rng);
-    invSourcePdf = float(region.numLights);
-    lightIndex = region.firstLightIndex + min(uint(floor(rnd * region.numLights)), region.numLights - 1);
-    lightInfo = RAB_LoadLightInfo(lightIndex, false);
+    lightIndex = 0;
+    invSourcePdf = 0.0f;
+    //float rnd = RNG_GetNext(rng);
+    //invSourcePdf = float(region.numLights);
+    //lightIndex = region.firstLightIndex + min(uint(floor(rnd * region.numLights)), region.numLights - 1);
+    //lightInfo = RAB_LoadLightInfo(lightIndex, false);
 }
 
 ReSTIR_DI_Reservoir ReSTIR_DI_SampleLocalLights(inout RNG rng, Surface surface, out ReSTIR_DI_LightSample lightSample)
@@ -177,12 +179,12 @@ ReSTIR_DI_Reservoir ReSTIR_DI_SampleLocalLights(inout RNG rng, Surface surface, 
         uint lightIndex;
         Light lightInfo;
         float invSourcePdf;
-        ReSTIR_DI_SelectNextLocalLight(rng, lightCount, lightInfo, lightIndex, invSourcePdf);
-        float2 uv = ReSTIR_DI_RandomlySelectLocalLightUV(rng);
-        ReSTIR_DI_StreamLocalLightAtUVIntoReservoir(rng, sampleParams, surface, lightIndex, uv, invSourcePdf, lightInfo, state, o_selectedSample);
+        ReSTIR_DI_SelectNextLocalLight(rng, FrameCB.lightCount - 1, lightInfo, lightIndex, invSourcePdf);
+        //float2 uv = ReSTIR_DI_RandomlySelectLocalLightUV(rng);
+        //ReSTIR_DI_StreamLocalLightAtUVIntoReservoir(rng, sampleParams, surface, lightIndex, uv, invSourcePdf, lightInfo, state, o_selectedSample);
     }
 
-    ReSTIR_DI_FinalizeResampling(state, 1.0, sampleParams.numMisSamples);
+    ReSTIR_DI_FinalizeResampling(state, 1.0, 1); // sampleParams.numMisSamples
     state.M = 1;
     return state;
 }
@@ -202,11 +204,11 @@ ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout RNG rng, Surface surf
     ReSTIR_DI_LightSample localSample = ReSTIR_DI_EmptyLightSample();
     ReSTIR_DI_Reservoir localReservoir = ReSTIR_DI_SampleLocalLights(rng, surface, lightSample);
 
-    ReSTIR_DI_LightSample infiniteSample = RAB_EmptyLightSample();  
+    ReSTIR_DI_LightSample infiniteSample = ReSTIR_DI_EmptyLightSample();  
     ReSTIR_DI_Reservoir infiniteReservoir = ReSTIR_DI_SampleInfiniteLights(rng, surface, lightSample);
 
-    RAB_LightSample brdfSample = RAB_EmptyLightSample();
-    RTXDI_DIReservoir brdfReservoir = ReSTIR_DI_SampleBrdf(rng, surface, lightSample);
+    ReSTIR_DI_LightSample brdfSample = ReSTIR_DI_EmptyLightSample();
+    ReSTIR_DI_Reservoir brdfReservoir = ReSTIR_DI_SampleBrdf(rng, surface, lightSample);
 
     ReSTIR_DI_Reservoir state = ReSTIR_DI_EmptyDIReservoir();
     ReSTIR_DI_CombineReservoirs(state, localReservoir, 0.5, localReservoir.targetPdf);
@@ -227,14 +229,14 @@ void ReSTIR_DI_StoreReservoir(
     const ReSTIR_DI_Reservoir reservoir,
     uint2 pixelPosition, uint reservoirBufferIdx)
 {
-    uint flattenIndex = pixelPosition.x * FrameCB.renderWidth + pixelPosition.y;
+    uint flattenIndex = pixelPosition.x * FrameCB.renderResolution.x + pixelPosition.y;
     RWStructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer = ResourceDescriptorHeap[reservoirBufferIdx];
     reservoirBuffer[flattenIndex] = reservoir;
 }
 
 ReSTIR_DI_Reservoir ReSTIR_DI_LoadReservoir(uint2 pixelPosition, uint reservoirBufferIdx)
 {
-    uint flattenIndex = pixelPosition.x * FrameCB.renderWidth + pixelPosition.y;
+    uint flattenIndex = pixelPosition.x * FrameCB.renderResolution.x + pixelPosition.y;
     StructuredBuffer<ReSTIR_DI_Reservoir> reservoirBuffer = ResourceDescriptorHeap[reservoirBufferIdx];
     return reservoirBuffer[flattenIndex];
 }
