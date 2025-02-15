@@ -1743,6 +1743,9 @@
     <None Include="Resources\Shaders\LightInfo.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Resources\Shaders\ReSTIR\ReSTIR_Util.hlsli">
+      <Filter>Shaders\ReSTIR</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">

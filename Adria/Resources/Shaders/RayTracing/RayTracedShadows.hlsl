@@ -18,9 +18,9 @@ void RTS_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTexture = ResourceDescriptorHeap[RayTracedShadowsPassCB.depthIdx];
-	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	Light light = lightBuffer[RayTracedShadowsPassCB.lightIdx];
-	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[light.shadowMaskIndex];
+	
+	LightInfo lightInfo = LoadLightInfo(RayTracedShadowsPassCB.lightIdx);
+	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[lightInfo.shadowMaskIndex];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
@@ -29,25 +29,25 @@ void RTS_RayGen()
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float3 worldPos = GetWorldPosition(texCoords, depth);
 
-	light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
-	light.position = mul(float4(light.position.xyz, 1.0f), FrameCB.inverseView);
-	light.position.xyz /= light.position.w;
+	lightInfo.direction.xyz = mul(lightInfo.direction.xyz, (float3x3) FrameCB.inverseView);
+	lightInfo.position = mul(float4(lightInfo.position.xyz, 1.0f), FrameCB.inverseView);
+	lightInfo.position.xyz /= lightInfo.position.w;
 
 	float3 direction;
     float maxT;
-	switch (light.type)
+	switch (lightInfo.type)
 	{
 	case DIRECTIONAL_LIGHT:
-		direction = -light.direction.xyz;
+		direction = -lightInfo.direction.xyz;
 		maxT = FLT_MAX;
 		break;
 	case POINT_LIGHT:
-		direction = light.position.xyz - worldPos;
+		direction = lightInfo.position.xyz - worldPos;
 		maxT = length(direction);
 		break;
 	case SPOT_LIGHT:
-		direction = -light.direction.xyz;
-		maxT = length(light.position.xyz - worldPos);
+		direction = -lightInfo.direction.xyz;
+		maxT = length(lightInfo.position.xyz - worldPos);
 		break;
 	}
 

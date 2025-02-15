@@ -25,10 +25,9 @@ struct VSToPS
 
 VSToPS ShadowVS(uint VertexId : SV_VertexID)
 {
-	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
-	Light light = lightBuffer[ShadowPassCB.lightIndex];
-	float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + ShadowPassCB.matrixIndex];
+	LightInfo lightInfo = LoadLightInfo(ShadowPassCB.lightIndex);
+	float4x4 lightViewProjection = lightViewProjections[lightInfo.shadowMatrixIndex + ShadowPassCB.matrixIndex];
 
 	VSToPS output = (VSToPS)0;
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);

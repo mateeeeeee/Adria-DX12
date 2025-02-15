@@ -31,7 +31,7 @@ struct ClusterCullingConstants
 };
 ConstantBuffer<ClusterCullingConstants> ClusterCullingPassCB : register(b1);
 
-bool LightIntersectsCluster(Light light, ClusterAABB cluster)
+bool LightIntersectsCluster(LightInfo light, ClusterAABB cluster)
 {
 	if (light.type == DIRECTIONAL_LIGHT) return true;
 	float3 closest = max(cluster.minPoint, min(light.position, cluster.maxPoint)).xyz;
@@ -47,13 +47,12 @@ struct CSInput
 	uint  GroupIndex : SV_GroupIndex;
 };
 
-groupshared Light SharedLights[GROUP_SIZE];
+groupshared LightInfo SharedLights[GROUP_SIZE];
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ClusterCullingCS(CSInput input)
 {
 	StructuredBuffer<ClusterAABB> clusterBuffer		 = ResourceDescriptorHeap[ClusterCullingPassCB.clustersIdx];
-	StructuredBuffer<Light> lightBuffer				 = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	RWStructuredBuffer<uint> lightIndexList			 = ResourceDescriptorHeap[ClusterCullingPassCB.lightIndexListIdx];
 	RWStructuredBuffer<uint> lightIndexCounter		 = ResourceDescriptorHeap[ClusterCullingPassCB.lightIndexCounterIdx];
 	RWStructuredBuffer<LightGrid> lightGridBuffer    = ResourceDescriptorHeap[ClusterCullingPassCB.lightGridIdx];
@@ -78,15 +77,15 @@ void ClusterCullingCS(CSInput input)
 		if (input.GroupIndex < batchSize)
 		{
 			uint lightIndex = lightOffset + input.GroupIndex;
-			Light light = lightBuffer[lightIndex];
-			SharedLights[input.GroupIndex] = light;
+			LightInfo lightInfo = LoadLightInfo(lightIndex);
+			SharedLights[input.GroupIndex] = lightInfo;
 		}
 		GroupMemoryBarrierWithGroupSync();
 		for (uint i = 0; i < batchSize; i++)
 		{
-			Light light = lightBuffer[i];
-			if (!light.active) continue;
-			if (visibleLightCount < MAX_CLUSTER_LIGHTS && LightIntersectsCluster(light, cluster))
+			LightInfo lightInfo = LoadLightInfo(i);
+			if (!lightInfo.active) continue;
+			if (visibleLightCount < MAX_CLUSTER_LIGHTS && LightIntersectsCluster(lightInfo, cluster))
 			{
 				visibleLightIndices[visibleLightCount] = lightOffset + i;
 				visibleLightCount++;

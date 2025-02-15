@@ -12,7 +12,6 @@ ConstantBuffer<PathTracingConstants> PathTracingPassCB : register(b1);
 [shader("raygeneration")]
 void PT_RayGen()
 {
-    StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
     RWTexture2D<float4> accumulationTexture = ResourceDescriptorHeap[PathTracingPassCB.accumIdx];
 
     float2 pixel = float2(DispatchRaysIndex().xy);
@@ -65,12 +64,12 @@ void PT_RayGen()
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
             if (SampleLightRIS(rng, worldPosition, worldNormal, lightIndex, lightWeight))
             {
-                  Light light = lightBuffer[lightIndex];
-			      float visibility = TraceShadowRay(light, worldPosition.xyz);
-                  float3 wi = normalize(-light.direction.xyz);
+                  LightInfo lightInfo = LoadLightInfo(lightIndex); 
+			      float visibility = TraceShadowRay(lightInfo, worldPosition.xyz);
+                  float3 wi = normalize(-lightInfo.direction.xyz);
 			      float NdotL = saturate(dot(worldNormal, wi));
 
-                  float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
+                  float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * lightInfo.color.rgb * NdotL;
                   radiance += lightWeight * (directLighting + matProperties.emissive) * throughput / pdf;
             }
 

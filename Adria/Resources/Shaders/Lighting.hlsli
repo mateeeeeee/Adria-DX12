@@ -1,7 +1,6 @@
 #ifndef _LIGHTING_
 #define _LIGHTING_
 
-#include "CommonResources.hlsli"
 #include "Common.hlsli"
 #include "Constants.hlsli"
 #include "BRDF.hlsli"
@@ -12,8 +11,8 @@
 
 ///Lighting
 
-float GetShadowMapFactor(Light light, float3 viewPosition);
-float GetRayTracedShadowsFactor(Light light, float2 uv);
+float GetShadowMapFactor(LightInfo light, float3 viewPosition);
+float GetRayTracedShadowsFactor(LightInfo light, float2 uv);
 
 float DoAttenuation(float distance, float range)
 {
@@ -21,7 +20,7 @@ float DoAttenuation(float distance, float range)
 	return att * att;
 }
 
-float GetLightAttenuation(Light light, float3 P, out float3 L)
+float GetLightAttenuation(LightInfo light, float3 P, out float3 L)
 {
 	L = normalize(light.position.xyz - P);
 	float attenuation = 1.0f;
@@ -45,7 +44,7 @@ float GetLightAttenuation(Light light, float3 P, out float3 L)
 	return attenuation;
 }
 
-float GetAttenuation(Light light, float3 P, float2 uv, out float3 L)
+float GetAttenuation(LightInfo light, float3 P, float2 uv, out float3 L)
 {
 	float attenuation = GetLightAttenuation(light, P, L);
 	if(attenuation <= 0.0f) return 0.0f;
@@ -54,7 +53,7 @@ float GetAttenuation(Light light, float3 P, float2 uv, out float3 L)
 	return attenuation;
 }
 
-float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
+float3 DoLightNoShadows_Default(LightInfo light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
 {
 	float3 L;
 	float attenuation = GetLightAttenuation(light, P, L);
@@ -68,7 +67,7 @@ float3 DoLightNoShadows_Default(Light light, float3 P, float3 N, float3 V, float
 	return brdf * NdotL * light.color.rgb * attenuation;
 }
 
-float3 DoLight_Sheen(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 sheenData)
+float3 DoLight_Sheen(LightInfo light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 sheenData)
 {
 	float3 L;
 	float attenuation = GetAttenuation(light, P, uv, L);
@@ -88,7 +87,7 @@ float3 DoLight_Sheen(Light light, BrdfData brdfData, float3 P, float3 N, float3 
     return brdf * light.color.rgb * NdotL * attenuation;
 }
 
-float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float clearCoat, float clearCoatRoughness, float3 clearCoatNormal)
+float3 DoLight_ClearCoat(LightInfo light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float clearCoat, float clearCoatRoughness, float3 clearCoatNormal)
 {
 	float3 L;
 	float attenuation = GetAttenuation(light, P, uv, L);
@@ -106,7 +105,7 @@ float3 DoLight_ClearCoat(Light light, BrdfData brdfData, float3 P, float3 N, flo
     return brdf * light.color.rgb * attenuation;
 }
 
-float3 DoLight_Anisotropy(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
+float3 DoLight_Anisotropy(LightInfo light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
 {
 	float3 L;
     float attenuation = GetAttenuation(light, P, uv, L);
@@ -136,7 +135,7 @@ float3 DoLight_Anisotropy(Light light, BrdfData brdfData, float3 P, float3 N, fl
     return brdf * light.color.rgb * NdotL * attenuation;
 }
 
-float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
+float3 DoLight_Default(LightInfo light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
 {
 	float3 L;
 	float attenuation = GetAttenuation(light, P, uv, L);
@@ -149,7 +148,7 @@ float3 DoLight_Default(Light light, BrdfData brdfData, float3 P, float3 N, float
 	return brdf * NdotL * attenuation * light.color.rgb;
 }
 
-float3 DoLight(uint extension, Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
+float3 DoLight(uint extension, LightInfo light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv, float4 customData)
 {
 	float3 result = 0.0f;
 	switch(extension)
@@ -250,7 +249,7 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
     return percentLit;
 }
 
-float GetShadowMapFactorWS(Light light, float3 worldPosition)
+float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	bool castsShadows = light.shadowTextureIndex >= 0;
@@ -322,7 +321,7 @@ float GetShadowMapFactorWS(Light light, float3 worldPosition)
 	return shadowFactor;
 }
 
-float GetShadowMapFactor(Light light, float3 viewPosition)
+float GetShadowMapFactor(LightInfo light, float3 viewPosition)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	bool castsShadows = light.shadowTextureIndex >= 0;
@@ -402,7 +401,7 @@ float GetShadowMapFactor(Light light, float3 viewPosition)
 }
 
 
-float GetRayTracedShadowsFactor(Light light, float2 uv)
+float GetRayTracedShadowsFactor(LightInfo light, float2 uv)
 {
 	bool rayTracedShadows = light.shadowMaskIndex >= 0;
 	if(rayTracedShadows)

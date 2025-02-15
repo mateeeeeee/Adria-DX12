@@ -43,8 +43,6 @@ void SampleSourceLight(in int lightCount, inout RNG rng, out int lightIndex, out
 }
 bool SampleLightRIS(inout RNG rng, float3 position, float3 N, out int lightIndex, out float sampleWeight)
 {
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-
     uint M = min(RIS_CANDIDATES_LIGHTS, FrameCB.lightCount);
     lightIndex = -1;
     sampleWeight = 0.0f;
@@ -56,22 +54,22 @@ bool SampleLightRIS(inout RNG rng, float3 position, float3 N, out int lightIndex
         float sourcePdf = 1.0f;
         SampleSourceLight(FrameCB.lightCount, rng, lightIndex, sourcePdf);
 
-        Light light = lights[lightIndex];
-        float3 positionDifference = light.position.xyz - position;
+        LightInfo lightInfo = LoadLightInfo(lightIndex); 
+        float3 positionDifference = lightInfo.position.xyz - position;
         float distance = length(positionDifference);
         float3 L = positionDifference / distance;
-        if (light.type == DIRECTIONAL_LIGHT)
+        if (lightInfo.type == DIRECTIONAL_LIGHT)
         {
-            L = -normalize(light.direction.xyz);
+            L = -normalize(lightInfo.direction.xyz);
         }
         if (dot(N, L) < 0.0f)
         {
             continue;
         }
-        float targetPdf = Luminance(DoAttenuation(distance, light.range) * light.color.rgb);
-        if (light.type == DIRECTIONAL_LIGHT)
+        float targetPdf = Luminance(DoAttenuation(distance, lightInfo.range) * lightInfo.color.rgb);
+        if (lightInfo.type == DIRECTIONAL_LIGHT)
         {
-            targetPdf = Luminance(light.color.rgb);
+            targetPdf = Luminance(lightInfo.color.rgb);
         }
         float risWeight = targetPdf / sourcePdf;
         

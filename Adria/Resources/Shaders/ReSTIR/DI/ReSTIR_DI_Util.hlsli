@@ -1,12 +1,6 @@
-#include "Random.hlsli"
-#include "Tonemapping.hlsli"
-#include "Surface.hlsli"
-#include "LightInfo.hlsli"
-
-#define RIS_CANDIDATES_LIGHTS 8
+#include "ReSTIR/ReSTIR_Util.hlsli"
 
 //reference: https://github.com/NVIDIA-RTX/RTXDI-Library/blob/main/Include/Rtxdi/DI/Reservoir.hlsli
-
 
 // This structure represents a single light reservoir that stores the weights, the sample ref, sample count (M)
 struct ReSTIR_DI_Reservoir
@@ -137,77 +131,91 @@ void ReSTIR_DI_FinalizeResampling(
     reservoir.weightSum = (denominator == 0.0) ? 0.0 : (reservoir.weightSum * normalizationNumerator) / denominator;
 }
 
-
-
-struct ReSTIR_DI_LightSample
-{
-    float3 position;
-    float3 normal;
-    float3 radiance;
-    float  solidAnglePdf;
-};
-ReSTIR_DI_LightSample ReSTIR_DI_EmptyLightSample()
-{
-    return (ReSTIR_DI_LightSample)0;
-}
-
 void ReSTIR_DI_SelectNextLocalLight(
     inout RNG rng,
     uint lightCount,
-    out Light lightInfo,
+    out LightInfo lightInfo,
     out uint lightIndex,
     out float invSourcePdf)
 {
     lightIndex = 0;
     invSourcePdf = 0.0f;
-    //float rnd = RNG_GetNext(rng);
-    //invSourcePdf = float(region.numLights);
-    //lightIndex = region.firstLightIndex + min(uint(floor(rnd * region.numLights)), region.numLights - 1);
-    //lightInfo = RAB_LoadLightInfo(lightIndex, false);
+    float rnd = RNG_GetNext(rng);
+    invSourcePdf = float(lightCount);
+    lightIndex = 1 + min(uint(floor(rnd * lightCount)), lightCount - 1);
+    lightInfo = LoadLightInfo(lightIndex);
 }
 
-ReSTIR_DI_Reservoir ReSTIR_DI_SampleLocalLights(inout RNG rng, Surface surface, out ReSTIR_DI_LightSample lightSample)
+bool ReSTIR_DI_StreamLocalLightAtUVIntoReservoir(
+    inout RNG rng,
+    Surface surface,
+    uint lightIndex,
+    float2 uv,
+    float invSourcePdf,
+    LightInfo lightInfo,
+    inout ReSTIR_DI_Reservoir state,
+    inout LightSample selectedSample)
+{
+    LightSample candidateSample = ReSTIR_SampleLight(lightInfo, surface, uv);
+    float blendedSourcePdf = 0.5f; //LightBrdfMisWeight();
+    float targetPdf = ReSTIR_GetLightSampleTargetPdfForSurface(candidateSample, surface);
+    float risRnd = RNG_GetNext(rng);
+    if (blendedSourcePdf == 0)
+    {
+        return false;
+    }
+    bool selected = ReSTIR_DI_StreamSample(state, lightIndex, uv, risRnd, targetPdf, 1.0 / blendedSourcePdf);
+    if (selected) 
+    {
+        selectedSample = candidateSample;
+    }
+    return true;
+}
+
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleLocalLights(inout RNG rng, Surface surface, out LightSample lightSample)
 {
     if (FrameCB.lightCount <= 1) //we assume that the only directional light is at 0, and all others are locals
     {
         return ReSTIR_DI_EmptyDIReservoir();
     }
+    const uint localLightCount = FrameCB.lightCount - 1;
+
     ReSTIR_DI_Reservoir state = ReSTIR_DI_EmptyDIReservoir();
     const uint localLightSamples = 1;
     for (uint i = 0; i < localLightSamples; i++)
     {
         uint lightIndex;
-        Light lightInfo;
+        LightInfo lightInfo;
         float invSourcePdf;
-        ReSTIR_DI_SelectNextLocalLight(rng, FrameCB.lightCount - 1, lightInfo, lightIndex, invSourcePdf);
-        //float2 uv = ReSTIR_DI_RandomlySelectLocalLightUV(rng);
-        //ReSTIR_DI_StreamLocalLightAtUVIntoReservoir(rng, sampleParams, surface, lightIndex, uv, invSourcePdf, lightInfo, state, o_selectedSample);
+        ReSTIR_DI_SelectNextLocalLight(rng, localLightCount, lightInfo, lightIndex, invSourcePdf);
+        float2 uv = ReSTIR_RandomlySelectLocalLightUV(rng);
+        ReSTIR_DI_StreamLocalLightAtUVIntoReservoir(rng, surface, lightIndex, uv, invSourcePdf, lightInfo, state, lightSample);
     }
 
     ReSTIR_DI_FinalizeResampling(state, 1.0, 1); // sampleParams.numMisSamples
     state.M = 1;
     return state;
 }
-ReSTIR_DI_Reservoir ReSTIR_DI_SampleInfiniteLights(inout RNG rng, Surface surface, out ReSTIR_DI_LightSample lightSample)
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleInfiniteLights(inout RNG rng, Surface surface, out LightSample lightSample)
 {
     return ReSTIR_DI_EmptyDIReservoir();
 }
-ReSTIR_DI_Reservoir ReSTIR_DI_SampleBrdf(inout RNG rng, Surface surface, out ReSTIR_DI_LightSample lightSample)
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleBrdf(inout RNG rng, Surface surface, out LightSample lightSample)
 {
     return ReSTIR_DI_EmptyDIReservoir();
 }
 
-ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout RNG rng, Surface surface, out ReSTIR_DI_LightSample lightSample)
+ReSTIR_DI_Reservoir ReSTIR_DI_SampleLightsForSurface(inout RNG rng, Surface surface, out LightSample lightSample)
 {
-    lightSample = ReSTIR_DI_EmptyLightSample();
+    lightSample = EmptyLightSample();
 
-    ReSTIR_DI_LightSample localSample = ReSTIR_DI_EmptyLightSample();
+    LightSample localSample = EmptyLightSample();
     ReSTIR_DI_Reservoir localReservoir = ReSTIR_DI_SampleLocalLights(rng, surface, lightSample);
 
-    ReSTIR_DI_LightSample infiniteSample = ReSTIR_DI_EmptyLightSample();  
+    LightSample infiniteSample = EmptyLightSample();  
     ReSTIR_DI_Reservoir infiniteReservoir = ReSTIR_DI_SampleInfiniteLights(rng, surface, lightSample);
 
-    ReSTIR_DI_LightSample brdfSample = ReSTIR_DI_EmptyLightSample();
+    LightSample brdfSample = EmptyLightSample();
     ReSTIR_DI_Reservoir brdfReservoir = ReSTIR_DI_SampleBrdf(rng, surface, lightSample);
 
     ReSTIR_DI_Reservoir state = ReSTIR_DI_EmptyDIReservoir();

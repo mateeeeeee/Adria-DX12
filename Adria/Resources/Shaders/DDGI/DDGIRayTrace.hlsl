@@ -58,7 +58,6 @@ void DDGI_Miss(inout DDGIPayload payload)
 void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 {
 	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	Instance instanceData = GetInstanceData(InstanceIndex());
@@ -78,15 +77,15 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	float3 radiance = 0.0f;
 	for(uint lightIndex = 0; lightIndex < FrameCB.lightCount; ++lightIndex)
 	{
-		Light light = lights[lightIndex];
+		LightInfo lightInfo = LoadLightInfo(lightIndex);
 
-		bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
+		bool visibility = TraceShadowRay(lightInfo, worldPosition.xyz, FrameCB.inverseView);
 		if(!visibility) continue;
 
-		float3 L = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
+		float3 L = mul(lightInfo.direction.xyz, (float3x3) FrameCB.inverseView);
 		L = normalize(-L);
 		float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
-		radiance += diffuse * light.color.rgb;
+		radiance += diffuse * lightInfo.color.rgb;
 	}
 
 	radiance += matProperties.emissive;

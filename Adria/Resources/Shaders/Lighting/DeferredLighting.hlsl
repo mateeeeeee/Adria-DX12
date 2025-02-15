@@ -32,8 +32,7 @@ void DeferredLightingCS(CSInput input)
 	Texture2D               customRT			  = ResourceDescriptorHeap[DeferredLightingPassCB.customIdx];
 	Texture2D<float>        depthTexture		  = ResourceDescriptorHeap[DeferredLightingPassCB.depthIdx];
 	Texture2D<float>		ambientOcclusionTexture = ResourceDescriptorHeap[DeferredLightingPassCB.aoIdx];
-	StructuredBuffer<Light> lightBuffer		      = ResourceDescriptorHeap[FrameCB.lightsIdx];
-
+	
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	float3 viewNormal;
@@ -55,9 +54,9 @@ void DeferredLightingCS(CSInput input)
 	float3 directLighting = 0.0f;
 	for (uint i = 0; i < FrameCB.lightCount; ++i)
 	{
-		Light light = lightBuffer[i];
-		if (!light.active) continue;
-        directLighting += DoLight(shadingExtension, light, brdfData, viewPosition, viewNormal, V, uv, customData);
+		LightInfo lightInfo = LoadLightInfo(i); 
+		if (!lightInfo.active) continue;
+        directLighting += DoLight(shadingExtension, lightInfo, brdfData, viewPosition, viewNormal, V, uv, customData);
     }
 
 	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);

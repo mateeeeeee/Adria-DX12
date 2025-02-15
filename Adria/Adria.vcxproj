@@ -713,6 +713,7 @@
     <None Include="Resources\Shaders\RayTracing\RayTracingUtil.hlsli" />
     <None Include="Resources\Shaders\Reflections.hlsli" />
     <None Include="Resources\Shaders\ReSTIR\DI\ReSTIR_DI_Util.hlsli" />
+    <None Include="Resources\Shaders\ReSTIR\ReSTIR_Util.hlsli" />
     <None Include="Resources\Shaders\Scene.hlsli" />
     <None Include="Resources\Shaders\Surface.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />

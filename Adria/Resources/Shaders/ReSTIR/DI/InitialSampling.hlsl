@@ -3,7 +3,6 @@
 #include "ReSTIR_DI_Util.hlsli"
 #include "RayTracing/RayTracingUtil.hlsli"
 
-
 struct IntialSamplingConstants
 {
     uint depthIdx;
@@ -25,7 +24,7 @@ void InitialSamplingCS( uint3 DTid : SV_DispatchThreadID )
     }
     RNG rng = RNG_Initialize(DTid.x + DTid.y * 16, 0, 16);
     
-    ReSTIR_DI_LightSample lightSample = ReSTIR_DI_EmptyLightSample();
+    LightSample lightSample = EmptyLightSample();
     ReSTIR_DI_Reservoir finalReservoir = ReSTIR_DI_SampleLightsForSurface(rng, surface, lightSample);
     //check visibility of a light sample
     ReSTIR_DI_StoreReservoir(finalReservoir, DTid.xy, IntialSamplingCB.reservoirBufferIdx);

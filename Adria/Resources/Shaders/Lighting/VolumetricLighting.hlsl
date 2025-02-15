@@ -13,7 +13,7 @@ struct VolumetricLightingConstants
 };
 ConstantBuffer<VolumetricLightingConstants> VolumetricLightingPassCB : register(b1);
 
-float GetAttenuation(Light light, float3 P);
+float GetAttenuation(LightInfo light, float3 P);
 
 struct CSInput
 {
@@ -26,7 +26,6 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void VolumetricLightingCS(CSInput input)
 {
-	StructuredBuffer<Light> lightBuffer	= ResourceDescriptorHeap[FrameCB.lightsIdx];
 	Texture2D<float>        depthTexture = ResourceDescriptorHeap[VolumetricLightingPassCB.depthIdx];
 	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[VolumetricLightingPassCB.outputIdx];
 
@@ -48,8 +47,8 @@ void VolumetricLightingCS(CSInput input)
 	float3 totalAccumulation = 0.0f;
 	for (int i = 0; i < FrameCB.lightCount; ++i)
 	{
-		Light light = lightBuffer[i];
-		if (!light.active || !light.volumetric) continue;
+		LightInfo lightInfo = LoadLightInfo(i);
+		if (!lightInfo.active || !lightInfo.volumetric) continue;
 
 		float3 P = viewPosition;
 		float3 lightAccumulation = 0.0f;
@@ -57,20 +56,20 @@ void VolumetricLightingCS(CSInput input)
 
 		for (uint j = 0; j < sampleCount; ++j)
 		{
-			lightAccumulation += GetAttenuation(light, P);
+			lightAccumulation += GetAttenuation(lightInfo, P);
 			marchedDistance += stepSize;
 			P = P + V * stepSize;
         }
 
 		lightAccumulation /= sampleCount;
-		totalAccumulation += lightAccumulation * light.color.rgb * light.volumetricStrength;
+		totalAccumulation += lightAccumulation * lightInfo.color.rgb * lightInfo.volumetricStrength;
 	}
 
 	outputTexture[input.DispatchThreadId.xy] = float4(totalAccumulation, 1.0f);
 }
 
 
-float GetAttenuation(Light light, float3 P)
+float GetAttenuation(LightInfo light, float3 P)
 {
 	float3 L;
 	float attenuation = GetLightAttenuation(light, P, L);

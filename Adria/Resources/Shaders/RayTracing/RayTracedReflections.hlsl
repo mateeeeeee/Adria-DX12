@@ -93,15 +93,13 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float metallic = materialProperties.metallic;
 
 	float3 radiance = 0.0f;
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	for (int i = 0; i < FrameCB.lightCount; ++i)
 	{
-		Light light = lights[i];
-		bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
+		LightInfo lightInfo = LoadLightInfo(i);
+		bool visibility = TraceShadowRay(lightInfo, worldPosition.xyz, FrameCB.inverseView);
 		if(!visibility) continue;
 
-		
-		float3 directLighting = DoLightNoShadows_Default(light, worldPosition.xyz, normalize(worldNormal), V, albedoColor.xyz, metallic, roughness);
+		float3 directLighting = DoLightNoShadows_Default(lightInfo, worldPosition.xyz, normalize(worldNormal), V, albedoColor.xyz, metallic, roughness);
 		radiance += directLighting;
 	}
 	radiance += materialProperties.emissive;

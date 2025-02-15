@@ -39,9 +39,6 @@ void TiledDeferredLightingCS(CSInput input)
 	Texture2D               customRT	 = ResourceDescriptorHeap[TiledLightingPassCB.customIdx];
 	Texture2D<float>        depthTexture = ResourceDescriptorHeap[TiledLightingPassCB.depthIdx];
 
-	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	uint totalLights, _unused;
-	lightBuffer.GetDimensions(totalLights, _unused);
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	float nearPlane = min(FrameCB.cameraNear, FrameCB.cameraFar);
@@ -103,18 +100,18 @@ void TiledDeferredLightingCS(CSInput input)
 		frustumPlanes[i] *= rcp(length(frustumPlanes[i].xyz));
 	}
 
-	for (uint lightIndex = input.GroupIndex; lightIndex < totalLights; lightIndex += BLOCK_SIZE * BLOCK_SIZE)
+	for (uint lightIndex = input.GroupIndex; lightIndex < FrameCB.lightCount; lightIndex += BLOCK_SIZE * BLOCK_SIZE)
 	{
-		Light light = lightBuffer[lightIndex];
-		if (!light.active) continue;
+		LightInfo lightInfo = LoadLightInfo(lightIndex);
+		if (!lightInfo.active) continue;
 		bool inFrustum = true;
-		if (light.type != DIRECTIONAL_LIGHT)
+		if (lightInfo.type != DIRECTIONAL_LIGHT)
 		{
 			[unroll]
 			for (uint i = 0; i < 6; ++i)
 			{
-				float d = dot(frustumPlanes[i], float4(light.position.xyz, 1.0f));
-				inFrustum = inFrustum && (d >= -light.range);
+				float d = dot(frustumPlanes[i], float4(lightInfo.position.xyz, 1.0f));
+				inFrustum = inFrustum && (d >= -lightInfo.range);
 			}
 		}
 
@@ -149,9 +146,9 @@ void TiledDeferredLightingCS(CSInput input)
 	{
 		for (int i = 0; i < TileNumLights; ++i)
 		{
-			Light light = lightBuffer[TileLightIndices[i]];
-			if (!light.active) continue;
-            directLighting += DoLight(shadingExtension, light, brdfData, viewPosition, viewNormal, V, uv, customData);
+			LightInfo lightInfo = lightBuffer[TileLightIndices[i]];
+			if (!lightInfo.active) continue;
+            directLighting += DoLight(shadingExtension, lightInfo, brdfData, viewPosition, viewNormal, V, uv, customData);
         }
 	}
 

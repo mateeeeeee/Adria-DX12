@@ -107,22 +107,21 @@ void LightInjectionCS(CSInput input)
 
 	if(any(inScattering > 0.0f))
 	{
-		StructuredBuffer<Light> lights	= ResourceDescriptorHeap[FrameCB.lightsIdx];
 		for (int i = 0; i < FrameCB.lightCount; ++i)
 		{
-			Light light = lights[i];
-			if (!light.active || !light.volumetric) continue;
+			LightInfo lightInfo = LoadLightInfo(i);
+			if (!lightInfo.active || !lightInfo.volumetric) continue;
 
 			float3 L;
-			float attenuation = GetLightAttenuation(light, worldPosition, L);
+			float attenuation = GetLightAttenuation(lightInfo, worldPosition, L);
 			if(attenuation <= 0.0f) continue;
 
-			float shadowFactor = GetShadowMapFactorWS(light, worldPosition);
+			float shadowFactor = GetShadowMapFactorWS(lightInfo, worldPosition);
 			attenuation *= shadowFactor;
 			if(attenuation <= 0.0f) continue;
 
 			float VdotL = dot(viewDirection, L);
-			totalLighting += attenuation * light.color.rgb * saturate(HenyeyGreensteinPhase(VdotL, 0.3f));
+			totalLighting += attenuation * lightInfo.color.rgb * saturate(HenyeyGreensteinPhase(VdotL, 0.3f));
 		}
 	}
 

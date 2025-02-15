@@ -143,7 +143,7 @@ bool TraceShadowRay(RayDesc ray)
     return q.CommittedStatus() != COMMITTED_TRIANGLE_HIT;
 }
 
-bool TraceShadowRay(Light light, float3 worldPos)
+bool TraceShadowRay(LightInfo light, float3 worldPos)
 {
 	float3 direction;
 	float maxT;
@@ -172,7 +172,7 @@ bool TraceShadowRay(Light light, float3 worldPos)
 	return TraceShadowRay(ray);
 }
 
-bool TraceShadowRay(Light light, float3 worldPos, float4x4 inverseView)
+bool TraceShadowRay(LightInfo light, float3 worldPos, float4x4 inverseView)
 {
 	light.direction.xyz = mul(light.direction.xyz, (float3x3) inverseView);
 	light.position = mul(float4(light.position.xyz, 1.0f), inverseView);

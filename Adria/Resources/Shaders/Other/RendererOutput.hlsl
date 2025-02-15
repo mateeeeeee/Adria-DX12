@@ -54,7 +54,6 @@ void RendererOutputCS(CSInput input)
 	Texture2D               normalRT		= ResourceDescriptorHeap[RendererOutputPassCB.normalMetallicIdx];
 	Texture2D               diffuseRT		= ResourceDescriptorHeap[RendererOutputPassCB.diffuseIdx];
 	Texture2D<float>        depthTexture	= ResourceDescriptorHeap[RendererOutputPassCB.depthIdx];
-	StructuredBuffer<Light> lightBuffer		= ResourceDescriptorHeap[FrameCB.lightsIdx];
 	RWTexture2D<float4> outputTexture		= ResourceDescriptorHeap[RendererOutputPassCB.outputIdx];
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);

@@ -40,10 +40,9 @@ void ClusteredDeferredLightingCS(CSInput input)
 	Texture2D<float>        depthTexture	 = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.depthIdx];
 
 	uint2 lightBufferData = UnpackTwoUint16FromUint32(ClusteredDeferredLightingPassCB.lightBufferDataPacked);
-	
 	StructuredBuffer<uint>  lightIndexList		= ResourceDescriptorHeap[lightBufferData.x];
 	StructuredBuffer<LightGrid> lightGridBuffer	= ResourceDescriptorHeap[lightBufferData.y];
-	StructuredBuffer<Light> lightBuffer			= ResourceDescriptorHeap[FrameCB.lightsIdx];
+	StructuredBuffer<LightInfo> lightBuffer			= ResourceDescriptorHeap[FrameCB.lightsIdx];
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
@@ -80,9 +79,9 @@ void ClusteredDeferredLightingCS(CSInput input)
 	for (uint i = 0; i < lightCount; i++)
 	{
 		uint lightIndex = lightIndexList[lightOffset + i];
-		Light light = lightBuffer[lightIndex];
-		if (!light.active) continue;
-        directLighting += DoLight(shadingExtension, light, brdfData, viewPosition, viewNormal, V, uv, customData);
+		LightInfo lightInfo = LoadLightInfo(lightIndex);
+		if (!lightInfo.active) continue;
+        directLighting += DoLight(shadingExtension, lightInfo, brdfData, viewPosition, viewNormal, V, uv, customData);
     }
 
 	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[ClusteredDeferredLightingPassCB.aoIdx];

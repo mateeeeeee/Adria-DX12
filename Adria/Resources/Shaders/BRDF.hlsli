@@ -8,6 +8,10 @@
 
 #define MIN_ROUGHNESS (0.03)
 
+float Lambert(float3 normal, float3 lightIncident)
+{
+    return max(0, dot(normal, lightIncident)) * M_PI_INV;
+}
 float3 DiffuseBRDF(float3 diffuse)
 {
     return diffuse * M_PI_INV;
