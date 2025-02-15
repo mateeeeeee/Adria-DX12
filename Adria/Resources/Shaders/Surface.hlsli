@@ -1,7 +1,8 @@
 #ifndef  _SURFACE_
 #define  _SURFACE_
 #include "BRDF.hlsli"
-#include "CommonResources.hlsli"
+#include "Common.hlsli"
+#include "Random.hlsli"
 
 struct Surface
 {
@@ -67,6 +68,27 @@ Surface GetSurface(uint2 pixelCoords, uint albedoIdx, uint normalIdx, uint depth
 }
 
 
+// Output an importanced sampled reflection direction from the BRDF given the view
+// Return true if the returned direction is above the surface
+bool GetSurfaceBrdfSample(Surface surface, inout RNG rng, out float3 dir)
+{
+    float3 rand;
+    rand.x = RNG_GetNext(rng);
+    rand.y = RNG_GetNext(rng);
+    rand.z = RNG_GetNext(rng);
+    if (rand.x < surface.diffuseProbability)
+    {
+        float pdf;
+        float3 h = SampleCosHemisphere(rand.yz, pdf);
+        dir = TangentToWorld(h, surface.worldNormal);
+    }
+    else
+    {
+        float4 hPdf = ImportanceSampleGGX(rand.yz, max(surface.brdfData.Roughness, MIN_ROUGHNESS));
+        dir = reflect(-surface.viewDir, TangentToWorld(hPdf.xyz, surface.worldNormal));
+    }
+    return dot(surface.worldNormal, dir) > 0.f;
+}
 
 
 

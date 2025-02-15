@@ -3,7 +3,16 @@
 #include "Surface.hlsli"
 #include "LightInfo.hlsli"
 
+static const uint ReSTIR_InvalidLightIndex = uint(-1);
 
+
+float2 ReSTIR_RandomlySelectInfiniteLightUV(inout RNG rng)
+{
+    float2 uv;
+    uv.x = RNG_GetNext(rng);
+    uv.y = RNG_GetNext(rng);
+    return uv;
+}
 
 float2 ReSTIR_RandomlySelectLocalLightUV(inout RNG rng)
 {

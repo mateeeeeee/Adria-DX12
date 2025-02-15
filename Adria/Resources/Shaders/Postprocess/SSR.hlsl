@@ -1,6 +1,6 @@
 #include "CommonResources.hlsli"
 #include "Random.hlsli"
-#include "Reflections.hlsli"
+#include "BRDF.hlsli"
 #include "Packing.hlsli"
 
 #define USE_GGX 0

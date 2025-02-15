@@ -1661,9 +1661,6 @@
     <None Include="Resources\Shaders\Random.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\Shaders\Reflections.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Resources\Shaders\Scene.hlsli">
       <Filter>Shaders</Filter>
     </None>

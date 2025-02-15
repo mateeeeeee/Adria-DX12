@@ -711,7 +711,6 @@
     <None Include="Resources\Shaders\Random.hlsli" />
     <None Include="Resources\Shaders\RayTracing\PathTracing.hlsli" />
     <None Include="Resources\Shaders\RayTracing\RayTracingUtil.hlsli" />
-    <None Include="Resources\Shaders\Reflections.hlsli" />
     <None Include="Resources\Shaders\ReSTIR\DI\ReSTIR_DI_Util.hlsli" />
     <None Include="Resources\Shaders\ReSTIR\ReSTIR_Util.hlsli" />
     <None Include="Resources\Shaders\Scene.hlsli" />
