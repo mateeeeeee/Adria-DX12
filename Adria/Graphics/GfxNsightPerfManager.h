@@ -13,16 +13,18 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxCommandList;
+	class GfxNsightPerfReporter;
+	class GfxNsightPerfHUD;
 
+	enum class GfxNsightPerfMode
+	{
+		HTMLReport,
+		HUD
+	};
 	class GfxNsightPerfManager
 	{
-#ifdef _DEBUG
-		static constexpr Uint32 SamplingFrequency = 30;
-#else
-		static constexpr Uint32 SamplingFrequency = 60;
-#endif
 	public:
-		GfxNsightPerfManager(GfxDevice* gfx, Bool html_report);
+		GfxNsightPerfManager(GfxDevice* gfx, GfxNsightPerfMode perf_mode);
 		~GfxNsightPerfManager();
 
 		void Update();
@@ -35,16 +37,8 @@ namespace adria
 
 	private:
 #if defined(GFX_ENABLE_NV_PERF)
-		GfxDevice* gfx;
-		Bool html_report = false;
-		nv::perf::sampler::PeriodicSamplerTimeHistoryD3D12 periodic_sampler;
-		nv::perf::hud::HudDataModel hud_data_model;
-		nv::perf::hud::HudImPlotRenderer hud_renderer;
-		nv::perf::profiler::ReportGeneratorD3D12 report_generator;
-		nv::perf::ClockInfo clock_info; 
-		Bool generate_report = false;
-		AutoConsoleCommand generate_report_command;
-		Bool initialized = false;
+		std::unique_ptr<GfxNsightPerfReporter> perf_reporter;
+		std::unique_ptr<GfxNsightPerfHUD>      perf_hud;
 #endif
 	};
 

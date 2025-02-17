@@ -19,6 +19,7 @@ namespace adria::CommandLineOptions
 		Bool gpu_validation = false;
 		Bool pix = false;
 		Bool aftermath = false;
+		Bool perf_report = false;
 
 		void RegisterOptions(CLIParser& cli_parser)
 		{
@@ -37,6 +38,7 @@ namespace adria::CommandLineOptions
 			cli_parser.AddArg(false, "-gpuvalidation");
 			cli_parser.AddArg(false, "-pix");
 			cli_parser.AddArg(false, "-aftermath");
+			cli_parser.AddArg(false, "-report");
 		}
 	}
 
@@ -44,22 +46,23 @@ namespace adria::CommandLineOptions
 	{
 		CLIParser cli_parser{};
 		RegisterOptions(cli_parser);
-		CLIParseResult cli_result = cli_parser.Parse(cmd_line);
+		CLIParseResult parse_result = cli_parser.Parse(cmd_line);
 		
-		log_file = cli_result["-log"].AsStringOr("adria.log");
-		log_level = cli_result["-loglvl"].AsIntOr(0);
-		window_title = cli_result["-title"].AsStringOr("Adria");
-		window_width = cli_result["-w"].AsIntOr(1280);
-		window_height = cli_result["-h"].AsIntOr(1024);
-		maximize_window = cli_result["-max"];
-		scene_file = cli_result["-scene"].AsStringOr("sponza.json");
-		vsync = cli_result["-vsync"];
-		debug_device = cli_result["-debugdevice"];
-		shader_debug = cli_result["-shaderdebug"];
-		dred = cli_result["-dred"];
-		gpu_validation = cli_result["-gpuvalidation"];
-		pix = cli_result["-pix"];
-		aftermath = cli_result["-aftermath"];
+		log_file = parse_result["-log"].AsStringOr("adria.log");
+		log_level = parse_result["-loglvl"].AsIntOr(0);
+		window_title = parse_result["-title"].AsStringOr("Adria");
+		window_width = parse_result["-w"].AsIntOr(1280);
+		window_height = parse_result["-h"].AsIntOr(1024);
+		maximize_window = parse_result["-max"];
+		scene_file = parse_result["-scene"].AsStringOr("sponza.json");
+		vsync = parse_result["-vsync"];
+		debug_device = parse_result["-debugdevice"];
+		shader_debug = parse_result["-shaderdebug"];
+		dred = parse_result["-dred"];
+		gpu_validation = parse_result["-gpuvalidation"];
+		pix = parse_result["-pix"];
+		aftermath = parse_result["-aftermath"];
+		perf_report = parse_result["-report"];
 	}
 
 	std::string const& GetLogFile()
@@ -130,6 +133,11 @@ namespace adria::CommandLineOptions
 	Bool GetAftermath()
 	{
 		return aftermath;
+	}
+
+	Bool GetPerfReport()
+	{
+		return perf_report;
 	}
 
 }
