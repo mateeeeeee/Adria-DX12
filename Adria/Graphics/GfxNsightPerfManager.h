@@ -22,7 +22,7 @@ namespace adria
 		static constexpr Uint32 SamplingFrequency = 60;
 #endif
 	public:
-		explicit GfxNsightPerfManager(GfxDevice* gfx);
+		GfxNsightPerfManager(GfxDevice* gfx, Bool html_report);
 		~GfxNsightPerfManager();
 
 		void Update();
@@ -36,6 +36,7 @@ namespace adria
 	private:
 #if defined(GFX_ENABLE_NV_PERF)
 		GfxDevice* gfx;
+		Bool html_report = false;
 		nv::perf::sampler::PeriodicSamplerTimeHistoryD3D12 periodic_sampler;
 		nv::perf::hud::HudDataModel hud_data_model;
 		nv::perf::hud::HudImPlotRenderer hud_renderer;

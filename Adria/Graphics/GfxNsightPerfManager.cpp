@@ -14,51 +14,57 @@ namespace adria
 {
 #if defined(GFX_ENABLE_NV_PERF)
 
-	GfxNsightPerfManager::GfxNsightPerfManager(GfxDevice* gfx) 
-		: gfx(gfx), generate_report_command("nsight.perf.report", "Generate Nsight Perf HTML report", ConsoleCommandDelegate::CreateMember(&GfxNsightPerfManager::GenerateReport, *this))
+	GfxNsightPerfManager::GfxNsightPerfManager(GfxDevice* gfx, Bool html_report)
+		: gfx(gfx), html_report(html_report), generate_report_command("nsight.perf.report", "Generate Nsight Perf HTML report", ConsoleCommandDelegate::CreateMember(&GfxNsightPerfManager::GenerateReport, *this))
 	{
-		if (!periodic_sampler.Initialize(gfx->GetDevice()))
+		if (!html_report)
 		{
-			ADRIA_WARNING("NsightPerf Periodic Sampler Initalization failed, check the VS Output View for NVPERF logs");
-			return;
-		}
-		const nv::perf::DeviceIdentifiers device_identifiers = periodic_sampler.GetGpuDeviceIdentifiers();
-		static constexpr Uint32 SamplingIntervalInNanoSeconds = 1000 * 1000 * 1000 / SamplingFrequency;
-		static constexpr Uint32 MaxDecodeLatencyInNanoSeconds = 1000 * 1000 * 1000; 
-        if (!periodic_sampler.BeginSession(gfx->GetCommandQueue(GfxCommandListType::Graphics), SamplingIntervalInNanoSeconds, MaxDecodeLatencyInNanoSeconds, GFX_BACKBUFFER_COUNT))
-        {
-            ADRIA_WARNING("NsightPerf Periodic Sampler BeginSession failed, check the VS Output View for NVPERF logs");
-            return;
-        }
+			if (!periodic_sampler.Initialize(gfx->GetDevice()))
+			{
+				ADRIA_WARNING("NsightPerf Periodic Sampler Initalization failed, check the VS Output View for NVPERF logs");
+				return;
+			}
+			const nv::perf::DeviceIdentifiers device_identifiers = periodic_sampler.GetGpuDeviceIdentifiers();
+			static constexpr Uint32 SamplingIntervalInNanoSeconds = 1000 * 1000 * 1000 / SamplingFrequency;
+			static constexpr Uint32 MaxDecodeLatencyInNanoSeconds = 1000 * 1000 * 1000;
+			if (!periodic_sampler.BeginSession(gfx->GetCommandQueue(GfxCommandListType::Graphics), SamplingIntervalInNanoSeconds, MaxDecodeLatencyInNanoSeconds, GFX_BACKBUFFER_COUNT))
+			{
+				ADRIA_WARNING("NsightPerf Periodic Sampler BeginSession failed, check the VS Output View for NVPERF logs");
+				return;
+			}
 
-		nv::perf::hud::HudPresets hud_presets;
-		hud_presets.Initialize(device_identifiers.pChipName);
-		static constexpr Float PlotTimeWidthInSeconds = 4.0;
-		hud_data_model.Load(hud_presets.GetPreset("Graphics General Triage"));
-		std::string metric_config_name;
-		nv::perf::MetricConfigObject metric_config_object;
-		if (nv::perf::MetricConfigurations::GetMetricConfigNameBasedOnHudConfigurationName(metric_config_name, device_identifiers.pChipName, "Graphics General Triage"))
+			nv::perf::hud::HudPresets hud_presets;
+			hud_presets.Initialize(device_identifiers.pChipName);
+			static constexpr Float PlotTimeWidthInSeconds = 4.0;
+			hud_data_model.Load(hud_presets.GetPreset("Graphics General Triage"));
+			std::string metric_config_name;
+			nv::perf::MetricConfigObject metric_config_object;
+			if (nv::perf::MetricConfigurations::GetMetricConfigNameBasedOnHudConfigurationName(metric_config_name, device_identifiers.pChipName, "Graphics General Triage"))
+			{
+				nv::perf::MetricConfigurations::LoadMetricConfigObject(metric_config_object, device_identifiers.pChipName, metric_config_name);
+			}
+			hud_data_model.Initialize(1.0 / (Float64)SamplingFrequency, PlotTimeWidthInSeconds, metric_config_object);
+			periodic_sampler.SetConfig(&hud_data_model.GetCounterConfiguration());
+			hud_data_model.PrepareSampleProcessing(periodic_sampler.GetCounterData());
+			hud_renderer.Initialize(hud_data_model);
+
+		}
+		else
 		{
-			nv::perf::MetricConfigurations::LoadMetricConfigObject(metric_config_object, device_identifiers.pChipName, metric_config_name);
-		}
-		hud_data_model.Initialize(1.0 / (Float64)SamplingFrequency, PlotTimeWidthInSeconds, metric_config_object);
-		periodic_sampler.SetConfig(&hud_data_model.GetCounterConfiguration());
-		hud_data_model.PrepareSampleProcessing(periodic_sampler.GetCounterData());
-		hud_renderer.Initialize(hud_data_model);
+			if (!report_generator.InitializeReportGenerator(gfx->GetDevice()))
+			{
+				ADRIA_WARNING("NsightPerf Report Generator Initalization failed, check the VS Output View for NVPERF logs");
+				return;
+			}
+			report_generator.SetFrameLevelRangeName("Frame");
+			report_generator.SetNumNestingLevels(2);
+			report_generator.SetMaxNumRanges(128);
+			report_generator.outputOptions.directoryName = paths::NsightPerfReportDir;
+			std::filesystem::create_directory(paths::NsightPerfReportDir);
 
-		if (!report_generator.InitializeReportGenerator(gfx->GetDevice()))
-		{
-            ADRIA_WARNING("NsightPerf Report Generator Initalization failed, check the VS Output View for NVPERF logs");
-            return;
+			clock_info = nv::perf::D3D12GetDeviceClockState(gfx->GetDevice());
+			nv::perf::D3D12SetDeviceClockState(gfx->GetDevice(), NVPW_DEVICE_CLOCK_SETTING_DEFAULT);
 		}
-		report_generator.SetFrameLevelRangeName("Frame");
-		report_generator.SetNumNestingLevels(2);
-		report_generator.SetMaxNumRanges(128);
-		report_generator.outputOptions.directoryName = paths::NsightPerfReportDir;
-		std::filesystem::create_directory(paths::NsightPerfReportDir);
-
-		clock_info = nv::perf::D3D12GetDeviceClockState(gfx->GetDevice());
-		nv::perf::D3D12SetDeviceClockState(gfx->GetDevice(), NVPW_DEVICE_CLOCK_SETTING_DEFAULT);
 
 		initialized = true;
 	}
@@ -73,59 +79,68 @@ namespace adria
 	{
 		if (!initialized) return;
 
-		periodic_sampler.DecodeCounters();
-		periodic_sampler.ConsumeSamples([&](const uint8_t* pCounterDataImage, size_t counterDataImageSize, uint32_t rangeIndex, bool& stop)
+		if (!html_report)
 		{
-			stop = false;
-			return hud_data_model.AddSample(pCounterDataImage, counterDataImageSize, rangeIndex);
-		});
+			periodic_sampler.DecodeCounters();
+			periodic_sampler.ConsumeSamples([&](const uint8_t* pCounterDataImage, size_t counterDataImageSize, uint32_t rangeIndex, bool& stop)
+				{
+					stop = false;
+					return hud_data_model.AddSample(pCounterDataImage, counterDataImageSize, rangeIndex);
+				});
 
-		for (auto& frame_delimeter : periodic_sampler.GetFrameDelimiters())
+			for (auto& frame_delimeter : periodic_sampler.GetFrameDelimiters())
+			{
+				hud_data_model.AddFrameDelimiter(frame_delimeter.frameEndTime);
+			}
+		}
+		else if (generate_report)
 		{
-			hud_data_model.AddFrameDelimiter(frame_delimeter.frameEndTime);
+			if (!report_generator.StartCollectionOnNextFrame())
+			{
+				ADRIA_WARNING("Nsight Perf: Report Generator Start Collection failed. Please check the logs.");
+			}
+			generate_report = false;
 		}
 	}
 	void GfxNsightPerfManager::BeginFrame()
 	{
 		if (!initialized) return;
-
-		if (generate_report)
-		{
-			report_generator.StartCollectionOnNextFrame();
-			generate_report = false;
-		}
-		report_generator.OnFrameStart(gfx->GetCommandQueue(GfxCommandListType::Graphics));
+		if(html_report) report_generator.OnFrameStart(gfx->GetCommandQueue(GfxCommandListType::Graphics));
 	}
 	void GfxNsightPerfManager::Render()
 	{
-		if (!initialized) return;
-
+		if (!initialized || html_report) return;
 		hud_renderer.Render();
 	}
 	void GfxNsightPerfManager::EndFrame()
 	{
 		if (!initialized) return;
 
-		periodic_sampler.OnFrameEnd();
-		if (report_generator.IsCollectingReport())
+		if (!html_report)
 		{
-			ADRIA_INFO("Nsight Perf: Currently profiling the frame. HTML Report will be written to: %s", paths::NsightPerfReportDir.c_str());
+			periodic_sampler.OnFrameEnd();
+			if (report_generator.IsCollectingReport())
+			{
+				ADRIA_INFO("Nsight Perf: Currently profiling the frame. HTML Report will be written to: %s", paths::NsightPerfReportDir.c_str());
+			}
+			if (report_generator.GetInitStatus() != nv::perf::profiler::ReportGeneratorInitStatus::Succeeded)
+			{
+				ADRIA_WARNING("Nsight Perf: Initialization failed. Please check the logs.");
+			}
 		}
-		if (report_generator.GetInitStatus() != nv::perf::profiler::ReportGeneratorInitStatus::Succeeded)
+		else
 		{
-			ADRIA_WARNING("Nsight Perf: Initialization failed. Please check the logs.");
+			report_generator.OnFrameEnd();
 		}
-		report_generator.OnFrameEnd();
 	}
 	void GfxNsightPerfManager::PushRange(GfxCommandList* cmd_list, Char const* name)
 	{
-		if (!initialized) return;
-
+		if (!initialized || !html_report) return;
 		report_generator.rangeCommands.PushRange(cmd_list->GetNative(), name);
 	}
 	void GfxNsightPerfManager::PopRange(GfxCommandList* cmd_list)
 	{
-		if (!initialized) return;
+		if (!initialized || !html_report) return;
 
 		report_generator.rangeCommands.PopRange(cmd_list->GetNative());
 	}
