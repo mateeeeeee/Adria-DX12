@@ -58,7 +58,7 @@ namespace adria
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
-		rg.AddPass<void>("Debug Pass",
+		rg.AddPass<void>("Debug Renderer Pass",
 			[=](RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(RG_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);

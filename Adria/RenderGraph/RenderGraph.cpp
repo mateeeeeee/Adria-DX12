@@ -4,14 +4,11 @@
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRenderPass.h"
-#include "Graphics/GfxProfiler.h"
-#include "Graphics/GfxTracyProfiler.h"
-#include "Graphics/GfxNsightPerfManager.h"
+#include "Graphics/GfxScope.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
 #include "Logging/Logger.h"
-#include "pix3.h"
 
 #if GFX_MULTITHREADED
 #define RG_MULTITHREADED 1
@@ -1076,10 +1073,7 @@ namespace adria
 				render_pass_desc.height = pass->viewport_height;
 				render_pass_desc.legacy = pass->UseLegacyRenderPasses();
 
-				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
-				AdriaGfxProfileScope(cmd_list, pass->name.c_str());
-				NsightPerfGfxRangeScope(cmd_list, pass->name.c_str());
-				TracyGfxProfileScope(cmd_list->GetNative(), pass->name.c_str());
+				GFX_SCOPE(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Graphics);
 				cmd_list->BeginRenderPass(render_pass_desc);
 				pass->Execute(rg_resources,cmd_list);
@@ -1087,10 +1081,7 @@ namespace adria
 			}
 			else
 			{
-				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
-				AdriaGfxProfileScope(cmd_list, pass->name.c_str());
-				NsightPerfGfxRangeScope(cmd_list, pass->name.c_str());
-				TracyGfxProfileScope(cmd_list->GetNative(), pass->name.c_str());
+				GFX_SCOPE(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Compute);
 				pass->Execute(rg_resources, cmd_list);
 			}

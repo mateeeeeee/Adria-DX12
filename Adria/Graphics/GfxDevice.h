@@ -121,6 +121,9 @@ namespace adria
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 
 		GfxCommandList* GetCommandList() const;
+		GfxCommandList* GetLatestCommandList() const;
+		GfxCommandList* AllocateCommandList() const;
+		void			FreeCommandList(GfxCommandList*);
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
 		GfxCommandList* GetLatestCommandList(GfxCommandListType type) const;
 		GfxCommandList* AllocateCommandList(GfxCommandListType type) const;

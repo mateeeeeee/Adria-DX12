@@ -28,7 +28,7 @@ namespace adria
 					return;
 				}
 				report_generator.SetFrameLevelRangeName("Frame");
-				report_generator.SetNumNestingLevels(2);
+				report_generator.SetNumNestingLevels(3);
 				report_generator.SetMaxNumRanges(128);
 				report_generator.outputOptions.directoryName = paths::NsightPerfReportDir;
 				std::filesystem::create_directory(paths::NsightPerfReportDir);

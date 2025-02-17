@@ -1608,6 +1608,7 @@
     <ClInclude Include="..\External\ImPlot\implot_internal.h">
       <Filter>External\ImPlot</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxScope.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

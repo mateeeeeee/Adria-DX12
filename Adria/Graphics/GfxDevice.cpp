@@ -568,6 +568,12 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
+
+	GfxCommandList* GfxDevice::GetLatestCommandList() const
+	{
+		return GetLatestCommandList(GfxCommandListType::Graphics);
+	}
+
 	GfxCommandList* GfxDevice::AllocateCommandList(GfxCommandListType type) const
 	{
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -584,6 +590,12 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
+
+	GfxCommandList* GfxDevice::AllocateCommandList() const
+	{
+		return AllocateCommandList(GfxCommandListType::Graphics);
+	}
+
 	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list, GfxCommandListType type)
 	{
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -599,6 +611,11 @@ namespace adria
 			return graphics_cmd_list_pool[backbuffer_index]->FreeCmdList(cmd_list);
 		}
 		ADRIA_UNREACHABLE();
+	}
+
+	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list)
+	{
+		FreeCommandList(cmd_list, GfxCommandListType::Graphics);
 	}
 
 	void GfxDevice::CopyDescriptors(Uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
