@@ -594,6 +594,9 @@
     <ClCompile Include="..\External\ImPlot\implot_items.cpp">
       <Filter>External\ImPlot</Filter>
     </ClCompile>
+    <ClCompile Include="RenderGraph\RenderGraphEvent.cpp">
+      <Filter>RenderGraph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1609,6 +1612,9 @@
       <Filter>External\ImPlot</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxScope.h" />
+    <ClInclude Include="RenderGraph\RenderGraphEvent.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

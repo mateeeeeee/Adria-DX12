@@ -27,8 +27,7 @@ namespace adria
 	public:
 		SkyPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h);
 
-		void AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir);
-		void AddDrawSkyPass(RenderGraph& rg);
+		void AddPasses(RenderGraph& rg, Vector3 const& dir);
 
 		void OnResize(Uint32 w, Uint32 h);
 		void OnSceneInitialized();
@@ -61,5 +60,8 @@ namespace adria
 	private:
 		void CreatePSOs();
 		void CreateCubeBuffers();
+
+		void AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir);
+		void AddDrawSkyPass(RenderGraph& rg);
 	};
 }

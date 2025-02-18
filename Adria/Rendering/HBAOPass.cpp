@@ -19,6 +19,8 @@ namespace adria
 
 	void HBAOPass::AddPass(RenderGraph& rendergraph)
 	{
+		RG_SCOPE(rendergraph, "HBAO");
+
 		struct HBAOPassData
 		{
 			RGTextureReadOnlyId gbuffer_normal_srv;

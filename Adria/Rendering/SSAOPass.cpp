@@ -41,6 +41,8 @@ namespace adria
 	}
 	void SSAOPass::AddPass(RenderGraph& rendergraph)
 	{
+		RG_SCOPE(rendergraph, "SSAO");
+
 		struct SSAOPassData
 		{
 			RGTextureReadOnlyId gbuffer_normal;

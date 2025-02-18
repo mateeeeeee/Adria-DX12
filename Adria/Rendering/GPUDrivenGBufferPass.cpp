@@ -61,7 +61,7 @@ namespace adria
 	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
 	{
 		if (!IsSupported()) return;
-
+		RG_SCOPE(rg, "GBuffer - Meshlets");
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);

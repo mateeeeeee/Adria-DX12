@@ -286,6 +286,8 @@ namespace adria
 
 	void FFXCACAOPass::AddPass(RenderGraph& rg)
 	{
+		RG_SCOPE(rg, "CACAO");
+
 		struct FFXCACAOPassData
 		{
 			RGTextureReadOnlyId gbuffer_normal;

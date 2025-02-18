@@ -24,6 +24,8 @@ namespace adria
 
 	void PickingPass::AddPass(RenderGraph& rg)
 	{
+		RG_SCOPE(rg, "Picking");
+
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct PickingPassDispatchData

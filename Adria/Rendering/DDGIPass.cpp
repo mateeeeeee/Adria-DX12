@@ -95,6 +95,7 @@ namespace adria
 	void DDGIPass::AddPasses(RenderGraph& rg)
 	{
 		ADRIA_ASSERT(IsSupported());
+		RG_SCOPE(rg, "DDGI");
 
 		Uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 		RealRandomGenerator rng(0.0f, 1.0f);

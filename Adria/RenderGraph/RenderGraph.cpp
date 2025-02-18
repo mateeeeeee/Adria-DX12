@@ -8,6 +8,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
+#include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
 
 #if GFX_MULTITHREADED
@@ -19,6 +20,9 @@
 namespace adria
 {
 	extern Bool dump_render_graph = false;
+
+	static TAutoConsoleVariable<Bool> RGCullPasses("rg.CullPasses", true, "Determines if the render graph should cull unused passes or not");
+	static TAutoConsoleVariable<Bool> RGUseDependencyLevels("rg.UseDependencyLevels", false, "If the render graph should split passes to dependency levels");
 
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
@@ -116,12 +120,30 @@ namespace adria
 
 	void RenderGraph::Build()
 	{
-		BuildAdjacencyLists();
-		TopologicalSort();
-		BuildDependencyLevels();
-		CullPasses();
+		if (RGUseDependencyLevels.Get())
+		{
+			BuildAdjacencyLists();
+			TopologicalSort();
+			BuildDependencyLevels();
+		}
+		else
+		{
+			dependency_levels.resize(passes.size(), DependencyLevel(*this));
+			for (Uint64 i = 0; i < passes.size(); ++i)
+			{
+				dependency_levels[i].AddPass(passes[i].get());
+			}
+		}
+		if (RGCullPasses.Get())
+		{
+			CullPasses();
+		}
+		ResolveEvents();
 		CalculateResourcesLifetime();
-		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
+		for (DependencyLevel& dependency_level : dependency_levels)
+		{
+			dependency_level.Setup();
+		}
 		if (dump_render_graph) Dump("rendergraph.gv");
 	}
 
@@ -389,7 +411,6 @@ namespace adria
 			zero_ref_resources.pop();
 			auto* writer = unreferenced_resource->writer;
 			if (writer == nullptr || !writer->CanBeCulled()) continue;
-
 			if (--writer->ref_count == 0)
 			{
 				for (auto id : writer->texture_reads)
@@ -461,6 +482,36 @@ namespace adria
 			if (!visited[j]) DepthFirstSearch(j, visited, topologically_sorted_passes);
 		}
 		topologically_sorted_passes.push_back(i);
+	}
+
+	void RenderGraph::ResolveEvents()
+	{
+		std::vector<Uint32> events_to_start;
+		Uint32 events_to_add = 0;
+		RGPassBase* last_active_pass = nullptr;
+		for (auto const& pass : passes)
+		{
+			if (pass->IsCulled())
+			{
+				while (pass->num_events_to_end > 0 && pass->events_to_start.size() > 0)
+				{
+					pass->num_events_to_end--;
+					pass->events_to_start.pop_back();
+				}
+				for (Uint32 event_idx : pass->events_to_start) events_to_start.push_back(event_idx);
+				events_to_add += pass->num_events_to_end;
+			}
+			else
+			{
+				for (Uint32 eventIndex : events_to_start) pass->events_to_start.push_back(eventIndex);
+				pass->num_events_to_end += events_to_add;
+				events_to_start.clear();
+				events_to_add = 0;
+				last_active_pass = pass.get();
+			}
+		}
+		if (last_active_pass) last_active_pass->num_events_to_end += events_to_add;
+		ADRIA_ASSERT(events_to_start.empty());
 	}
 
 	RGTexture* RenderGraph::GetRGTexture(RGTextureId handle) const
@@ -927,6 +978,17 @@ namespace adria
 		for (auto& pass : passes)
 		{
 			if (pass->IsCulled()) continue;
+			
+			for (Uint32 event_idx : pass->events_to_start)
+			{
+				PIXBeginEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, rg.events[event_idx].name);
+				//g_GfxProfiler.BeginProfileScope(cmd_list, rg.events[event_idx].name);
+				if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
+				{
+					nsight_perf_manager->PushRange(cmd_list, rg.events[event_idx].name);
+				}
+			}
+
 			RenderGraphContext rg_resources(rg, *pass);
 			if (pass->type == RGPassType::Graphics)
 			{
@@ -1084,6 +1146,16 @@ namespace adria
 				GFX_SCOPE(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Compute);
 				pass->Execute(rg_resources, cmd_list);
+			}
+
+			for (Uint32 i = 0; i < pass->num_events_to_end; ++i)
+			{
+				if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
+				{
+					nsight_perf_manager->PopRange(cmd_list);
+				}
+				//g_GfxProfiler.EndProfileScope(cmd_list);
+				PIXEndEvent(cmd_list->GetNative());
 			}
 		}
 	}
@@ -1309,6 +1381,25 @@ namespace adria
 			render_graph_data += std::format("Buffer: id = {}, name = {}, last used by: {} \n", buffer->id, buffer->name, buffer->last_used_by->name);
 		}
 		ADRIA_LOG(DEBUG, "[RenderGraph]\n%s", render_graph_data.c_str());
+	}
+
+	void RenderGraph::PushEvent(Char const* name)
+	{
+		if (RGUseDependencyLevels.Get()) return; 
+		pending_events.push_back(AddEvent(name));
+	}
+
+	void RenderGraph::PopEvent()
+	{
+		if (RGUseDependencyLevels.Get()) return;
+		if (!pending_events.empty())
+		{
+			pending_events.pop_back();
+		}
+		else
+		{
+			passes.back()->num_events_to_end++;
+		}
 	}
 
 }

@@ -130,6 +130,9 @@ namespace adria
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;
 		Uint32 viewport_width = 0, viewport_height = 0;
+
+		std::vector<Uint32>				events_to_start;
+		Uint32							num_events_to_end = 0;
 	};
 	using RGPassBase = RenderGraphPassBase;
 

@@ -22,6 +22,13 @@ namespace adria
 		CreatePSOs();
 	}
 
+	void SkyPass::AddPasses(RenderGraph& rg, Vector3 const& dir)
+	{
+		RG_SCOPE(rg, "Sky");
+		AddComputeSkyPass(rg, dir);
+		AddDrawSkyPass(rg);
+	}
+
 	void SkyPass::AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir)
 	{
 		if (sky_type == SkyType::Skybox)

@@ -113,6 +113,8 @@ namespace adria
 	void Renderer::Render()
 	{
 		RenderGraph render_graph(resource_pool);
+		RG_SCOPE(render_graph, "Frame");
+
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 		FrameBlackboardData frame_data{};
 		{
@@ -511,38 +513,44 @@ namespace adria
 			ClearTriangleOverdrawTexture(render_graph);
 		}
 		if (rain_pass.IsEnabled()) rain_pass.AddBlockerPass(render_graph);
+		
 		if (gpu_driven_renderer.IsEnabled()) gpu_driven_renderer.AddPasses(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
 
 		if(ddgi.IsEnabled()) ddgi.AddPasses(render_graph);
-
 		decals_pass.AddPass(render_graph);
 		postprocessor.AddAmbientOcclusionPass(render_graph);
-		shadow_renderer.AddShadowMapPasses(render_graph);
-		shadow_renderer.AddRayTracingShadowPasses(render_graph);
+		{
+			RG_SCOPE(render_graph, "Shadows");
+			shadow_renderer.AddShadowMapPasses(render_graph);
+			shadow_renderer.AddRayTracingShadowPasses(render_graph);
+		}
 
 		if (renderer_output == RendererOutput::Final)
 		{
-			switch (lighting_path)
 			{
-			case LightingPathType::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
-			case LightingPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
-			case LightingPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
-			}
-
-			if (volumetric_lights > 0)
-			{
-				switch (volumetric_path)
+				RG_SCOPE(render_graph, "Lighting");
+				switch (lighting_path)
 				{
-				case VolumetricPathType::Raymarching:	volumetric_lighting_pass.AddPass(render_graph); break;
-				case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+				case LightingPathType::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
+				case LightingPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
+				case LightingPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
+				}
+
+				if (volumetric_lights > 0)
+				{
+					switch (volumetric_path)
+					{
+					case VolumetricPathType::Raymarching:	volumetric_lighting_pass.AddPass(render_graph); break;
+					case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+					}
 				}
 			}
 
 			if (ddgi.IsEnabled() && ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
+
 			ocean_renderer.AddPasses(render_graph);
-			sky_pass.AddComputeSkyPass(render_graph, sun_direction);
-			sky_pass.AddDrawSkyPass(render_graph);
+			sky_pass.AddPasses(render_graph, sun_direction);
 			picking_pass.AddPass(render_graph);
 			if (rain_pass.IsEnabled()) rain_pass.AddPass(render_graph);
 			postprocessor.AddPasses(render_graph);

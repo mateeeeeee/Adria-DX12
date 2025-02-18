@@ -29,6 +29,7 @@ namespace adria
 		void NewFrame();
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name);
 		void EndProfileScope(Char const* name);
+		void EndProfileScope(GfxCommandList* cmd_list);
 		std::vector<GfxTimestamp> GetResults();
 
 	private:

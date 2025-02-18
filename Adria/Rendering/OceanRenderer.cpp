@@ -31,6 +31,8 @@ namespace adria
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
 		if (reg.view<Ocean>().size() == 0) return;
+
+		RG_SCOPE(rendergraph, "Ocean");
 		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
 		if (ocean_color_changed)

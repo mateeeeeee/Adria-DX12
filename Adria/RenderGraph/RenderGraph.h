@@ -1,8 +1,8 @@
 #pragma once
-#include <array>
 #include "RenderGraphBlackboard.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
+#include "RenderGraphEvent.h"
 #include "Graphics/GfxDevice.h"
 
 namespace adria
@@ -56,6 +56,8 @@ namespace adria
 			std::unique_ptr<RGPassBase>& pass = passes.back(); pass->id = passes.size() - 1;
 			RenderGraphBuilder builder(*this, *pass);
 			pass->Setup(builder);
+			for (Uint32 event_idx : pending_events) pass->events_to_start.push_back(event_idx);
+			pending_events.clear();
 			return *dynamic_cast<RenderGraphPass<PassData>*>(pass.get());
 		}
 
@@ -71,6 +73,9 @@ namespace adria
 		void Dump(Char const* graph_file_name);
 		void DumpDebugData();
 
+		void PushEvent(Char const* name);
+		void PopEvent();
+
 	private:
 		RGResourcePool& pool;
 		GfxDevice* gfx;
@@ -79,6 +84,9 @@ namespace adria
 		std::vector<std::unique_ptr<RGPassBase>> passes;
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
+
+		std::vector<RGEvent> events;
+		std::vector<Uint32> pending_events;
 
 		std::vector<std::vector<Uint64>> adjacency_lists;
 		std::vector<Uint64> topologically_sorted_passes;
@@ -102,6 +110,12 @@ namespace adria
 		void CullPasses();
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(Uint64 i, std::vector<Bool>& visited, std::vector<Uint64>& sort);
+		void ResolveEvents();
+		Uint32 AddEvent(Char const* name)
+		{
+			events.emplace_back(name);
+			return static_cast<Uint32>(events.size() - 1);
+		}
 		
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);

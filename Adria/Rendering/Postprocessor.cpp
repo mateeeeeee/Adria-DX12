@@ -78,6 +78,7 @@ namespace adria
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
 	{
+		RG_SCOPE(rg, "Postprocessing");
 		final_resource = RG_NAME(HDR_RenderTarget);
 		for (Uint32 i = 0; i < PostEffectType_Count; ++i)
 		{

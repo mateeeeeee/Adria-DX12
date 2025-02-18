@@ -106,6 +106,24 @@ namespace adria
 			profile_data.cmd_list->EndQuery(*query_heap, end_query_index);
 			profile_data.query_finished = true;
 		}
+		void EndProfileScope(GfxCommandList* cmd_list)
+		{
+			Int32 index = scope_counter;
+			while (index >= 0)
+			{
+				QueryData& profile_data = query_data[index];
+				if (profile_data.cmd_list == cmd_list && !profile_data.query_finished)
+				{
+					ADRIA_ASSERT(profile_data.query_started == true);
+					Uint32 begin_query_index = Uint32(index * 2);
+					Uint32 end_query_index = Uint32(index * 2 + 1);
+					profile_data.cmd_list->EndQuery(*query_heap, end_query_index);
+					profile_data.query_finished = true;
+					return;
+				}
+				index--;
+			}
+		}
 		std::vector<GfxTimestamp> GetResults()
 		{
 			Uint64 gpu_frequency = 0;
@@ -173,6 +191,11 @@ namespace adria
 	void GfxProfiler::EndProfileScope(Char const* name)
 	{
 		pimpl->EndProfileScope(name);
+	}
+
+	void GfxProfiler::EndProfileScope(GfxCommandList* cmd_list)
+	{
+		pimpl->EndProfileScope(cmd_list);
 	}
 
 	std::vector<GfxTimestamp> GfxProfiler::GetResults()

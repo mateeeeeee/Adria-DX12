@@ -28,6 +28,7 @@ namespace adria
 	void RayTracedAmbientOcclusionPass::AddPass(RenderGraph& rg)
 	{
 		if (!IsSupported()) return;
+		RG_SCOPE(rg, "RTAO");
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct RayTracedAmbientOcclusionPassData
