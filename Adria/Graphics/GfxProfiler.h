@@ -1,17 +1,11 @@
 #pragma once
-#include <memory>
 #include "GfxMacros.h"
 #include "Utilities/Singleton.h"
-
+#include "Utilities/Tree.h"
+#include "Utilities/LinearAllocator.h"
 
 namespace adria
 {
-	struct GfxTimestamp
-	{
-		Float time_in_ms;
-		std::string name;
-	};
-
 	class GfxDevice;
 	class GfxBuffer;
 	class GfxQueryHeap;
@@ -21,6 +15,19 @@ namespace adria
 	{
 		friend class Singleton<GfxProfiler>;
 		struct Impl;
+		static constexpr Uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
+		static constexpr Uint64 MAX_PROFILES = 256;
+
+	public:
+		struct TreeNodeData
+		{
+			GfxCommandList* cmd_list;
+			Uint32 index;
+			Float64 time;
+		};
+		using TreeAllocator = LinearAllocator<TreeNodeData, MAX_PROFILES * sizeof(TreeNodeData)>;
+		using Tree = Tree<TreeNodeData, TreeAllocator>;
+		using TreeNode = TreeNode<TreeNodeData, TreeAllocator>;
 
 	public:
 		void Initialize(GfxDevice* gfx);
@@ -28,9 +35,8 @@ namespace adria
 
 		void NewFrame();
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name);
-		void EndProfileScope(Char const* name);
 		void EndProfileScope(GfxCommandList* cmd_list);
-		std::vector<GfxTimestamp> GetResults();
+		GfxProfiler::Tree const* GetProfilerTree() const;
 
 	private:
 		std::unique_ptr<Impl> pimpl;
@@ -46,23 +52,22 @@ namespace adria
 	struct GfxProfileScope
 	{
 		GfxProfileScope(GfxCommandList* _cmd_list, Char const* _name, Bool active = true)
-			: name{ _name }, cmd_list{ _cmd_list }, active{ active }, color{ 0xffffffff }
+			: cmd_list{ _cmd_list }, active{ active }, color{ 0xffffffff }
 		{
-			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, name.c_str());
+			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, _name);
 		}
 		GfxProfileScope(GfxCommandList* _cmd_list, Char const* _name, Uint32 color, Bool active)
-			: name{ _name }, cmd_list{ _cmd_list }, color{ color }, active{ active }
+			: cmd_list{ _cmd_list }, color{ color }, active{ active }
 		{
-			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, name.c_str());
+			if (active) g_GfxProfiler.BeginProfileScope(cmd_list, _name);
 		}
 
 		~GfxProfileScope()
 		{
-			if (active) g_GfxProfiler.EndProfileScope(name.c_str());
+			if (active) g_GfxProfiler.EndProfileScope(cmd_list);
 		}
 
 		GfxCommandList* cmd_list;
-		std::string name;
 		Bool const active;
 		Uint32 color;
 	};

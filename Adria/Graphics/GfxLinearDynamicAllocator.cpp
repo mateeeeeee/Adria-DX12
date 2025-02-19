@@ -18,7 +18,7 @@ namespace adria
 		GfxAllocationPage& last_page = alloc_pages[current_page];
 		{
 			std::lock_guard<std::mutex> guard(alloc_mutex);
-			offset = last_page.linear_allocator.Allocate(size_in_bytes, alignment);
+			offset = last_page.linear_offset_allocator.Allocate(size_in_bytes, alignment);
 		}
 
 		if (offset != INVALID_ALLOC_OFFSET)
@@ -43,7 +43,7 @@ namespace adria
 	{
 		{
 			std::lock_guard<std::mutex> guard(alloc_mutex);
-			for (auto& page : alloc_pages) page.linear_allocator.Clear();
+			for (auto& page : alloc_pages) page.linear_offset_allocator.Clear();
 		}
 		
 		Uint32 i = gfx->GetFrameIndex() % PAGE_COUNT_HISTORY_SIZE;
@@ -58,7 +58,7 @@ namespace adria
 		current_page = 0;
 	}
 
-	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxDevice* gfx, Uint64 page_size) : linear_allocator(page_size)
+	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxDevice* gfx, Uint64 page_size) : linear_offset_allocator(page_size)
 	{
 		GfxBufferDesc desc{};
 		desc.size = page_size;

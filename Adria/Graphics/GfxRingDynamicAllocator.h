@@ -1,6 +1,6 @@
 #pragma once
 #include "GfxDynamicAllocation.h"
-#include "Utilities/RingAllocator.h"
+#include "Utilities/RingOffsetAllocator.h"
 #include <mutex>
 
 namespace adria
@@ -23,7 +23,7 @@ namespace adria
 		void ReleaseCompletedFrames(Uint64 completed_frame);
 
 	private:
-		RingAllocator ring_allocator;
+		RingOffsetAllocator ring_allocator;
 		std::mutex alloc_mutex;
 		std::unique_ptr<GfxBuffer> buffer;
 		void* cpu_address;

@@ -656,10 +656,10 @@
     <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\RingAllocator.h">
+    <ClInclude Include="Utilities\RingOffsetAllocator.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\LinearAllocator.h">
+    <ClInclude Include="Utilities\LinearOffsetAllocator.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\AllocatorUtil.h">
@@ -1614,6 +1614,12 @@
     <ClInclude Include="Graphics\GfxScope.h" />
     <ClInclude Include="RenderGraph\RenderGraphEvent.h">
       <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Tree.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\LinearAllocator.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

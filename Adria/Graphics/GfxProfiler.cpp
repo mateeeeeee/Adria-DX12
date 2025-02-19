@@ -1,45 +1,30 @@
-#include <vector>
-#include <memory>
-#include <array>
-#include <string>
 #if GFX_MULTITHREADED
 #include <mutex>
 #endif
-
 #include "GfxProfiler.h"
 #include "GfxDevice.h"
 #include "GfxCommandList.h"
 #include "GfxQueryHeap.h"
 #include "GfxBuffer.h"
 
-
 namespace adria
 {
 	struct GfxProfiler::Impl
 	{
-		static constexpr Uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
-		static constexpr Uint64 MAX_PROFILES = 256;
-
-		struct QueryData
-		{
-			Bool query_started = false;
-			Bool query_finished = false;
-			GfxCommandList* cmd_list = nullptr;
-		};
-
 		GfxDevice* gfx = nullptr;
 		std::unique_ptr<GfxQueryHeap> query_heap;
 		std::unique_ptr<GfxBuffer> query_readback_buffer;
-
-		std::array<QueryData, MAX_PROFILES> query_data;
-		std::unordered_map<std::string, Uint32> name_to_index_map;
-
 #if GFX_MULTITHREADED
-		mutable std::mutex map_mutex;
-		std::atomic_uint scope_counter = 0;
-#else
-		Uint32 scope_counter = 0;
+		std::mutex stack_mutex;
 #endif
+		GfxProfiler::TreeAllocator profile_allocators[FRAME_COUNT];
+		GfxProfiler::Tree profiler_tree;
+		struct QueryData
+		{
+			GfxCommandList* cmd_list = nullptr;
+			GfxProfiler::TreeNode* tree_node = nullptr;
+		};
+		std::stack<QueryData> query_data;
 
 		void Init(GfxDevice* _gfx)
 		{
@@ -59,110 +44,77 @@ namespace adria
 		}
 		void NewFrame()
 		{
-			for (auto& profile_data : query_data)
-			{
-				profile_data.query_started = profile_data.query_finished = false;
-				profile_data.cmd_list = nullptr;
-			}
-			name_to_index_map.clear();
-			scope_counter = 0;
+			ADRIA_ASSERT(query_data.empty());
+			profiler_tree.Clear();
+			profile_allocators[gfx->GetBackbufferIndex()].Reset();
 		}
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
 		{
-			Uint32 profile_index = scope_counter++;
 #if GFX_MULTITHREADED
-			{
-				std::scoped_lock(map_mutex);
-				name_to_index_map[name] = profile_index;
-			}
-#else
-			name_to_index_map[name] = profile_index;
+			std::lock_guard lock(stack_mutex);
 #endif
-			QueryData& profile_data = query_data[profile_index];
-			ADRIA_ASSERT(profile_data.query_started == false);
-			ADRIA_ASSERT(profile_data.query_finished == false);
-			Uint32 begin_query_index = Uint32(profile_index * 2);
+			Uint32 profile_index = (Uint32)query_data.size();
+			QueryData& scope_data = query_data.emplace(cmd_list, name, false);
+			Uint32 begin_query_index = profile_index * 2;
 			cmd_list->BeginQuery(*query_heap, begin_query_index);
-			profile_data.query_started = true;
-			profile_data.cmd_list = cmd_list;
-		}
-		void EndProfileScope(Char const* name)
-		{
-			Uint32 profile_index = -1;
-#if GFX_MULTITHREADED
+
+			if (!query_data.empty())
 			{
-				std::scoped_lock(map_mutex);
-				profile_index = name_to_index_map[name];
+				QueryData& parent_data = query_data.top();
+				scope_data.tree_node = parent_data.tree_node->EmplaceChild(name, cmd_list, profile_index, 0.0f);
 			}
-#else
-			profile_index = name_to_index_map[name];
-#endif
-			ADRIA_ASSERT(profile_index != Uint32(-1));
-			QueryData& profile_data = query_data[profile_index];
-			ADRIA_ASSERT(profile_data.query_started == true);
-			ADRIA_ASSERT(profile_data.query_finished == false);
-			Uint32 begin_query_index = Uint32(profile_index * 2);
-			Uint32 end_query_index = Uint32(profile_index * 2 + 1);
-			profile_data.cmd_list->EndQuery(*query_heap, end_query_index);
-			profile_data.query_finished = true;
+			else
+			{
+				ADRIA_ASSERT(profiler_tree.GetRoot() == nullptr);
+				profiler_tree.EmplaceRoot(name, cmd_list, profile_index, 0.0f);
+				scope_data.tree_node = profiler_tree.GetRoot();
+			}
 		}
 		void EndProfileScope(GfxCommandList* cmd_list)
 		{
-			Int32 index = scope_counter;
-			while (index >= 0)
-			{
-				QueryData& profile_data = query_data[index];
-				if (profile_data.cmd_list == cmd_list && !profile_data.query_finished)
-				{
-					ADRIA_ASSERT(profile_data.query_started == true);
-					Uint32 begin_query_index = Uint32(index * 2);
-					Uint32 end_query_index = Uint32(index * 2 + 1);
-					profile_data.cmd_list->EndQuery(*query_heap, end_query_index);
-					profile_data.query_finished = true;
-					return;
-				}
-				index--;
-			}
+			ADRIA_ASSERT(!query_data.empty());
+#if GFX_MULTITHREADED
+			std::lock_guard lock(stack_mutex);
+#endif
+			QueryData& scope_data = query_data.top();
+			ADRIA_ASSERT(scope_data.cmd_list == cmd_list);
+			query_data.pop();
+
+			Uint32 profile_index = (Uint32)query_data.size();
+			Uint32 end_query_index = profile_index * 2 + 1;
+			cmd_list->EndQuery(*query_heap, end_query_index);
 		}
-		std::vector<GfxTimestamp> GetResults()
+		GfxProfiler::Tree const* GetProfilerTree() const
 		{
 			Uint64 gpu_frequency = 0;
 			gfx->GetTimestampFrequency(gpu_frequency);
 			Uint64 current_backbuffer_index = gfx->GetBackbufferIndex();
-			for (auto const& [_, index] : name_to_index_map)
+
+			profiler_tree.TraversePreOrder([this, current_backbuffer_index](GfxProfiler::TreeNode* node)
 			{
-				ADRIA_ASSERT(index < MAX_PROFILES);
-				QueryData& profile_data = query_data[index];
-				if (profile_data.query_started && profile_data.query_finished)
-				{
-					Uint32 begin_query_index = Uint32(index * 2);
-					Uint32 end_query_index = Uint32(index * 2 + 1);
+					Uint32 const index = node->GetData().index;
+					GfxCommandList* cmd_list = node->GetData().cmd_list;
+					ADRIA_ASSERT(index < MAX_PROFILES);
+					ADRIA_ASSERT(cmd_list);
+					Uint32 const begin_query_index = index * 2;
+					Uint32 const end_query_index = index * 2 + 1;
 					Uint64 readback_offset = ((current_backbuffer_index * MAX_PROFILES * 2) + begin_query_index) * sizeof(Uint64);
-					ADRIA_ASSERT(profile_data.cmd_list);
-					profile_data.cmd_list->ResolveQueryData(*query_heap, begin_query_index, 2, *query_readback_buffer, readback_offset);
-				}
-			}
+					cmd_list->ResolveQueryData(*query_heap, begin_query_index, 2, *query_readback_buffer, readback_offset);
+			});
+
 			Uint64 const* query_timestamps = query_readback_buffer->GetMappedData<Uint64>();
 			Uint64 const* frame_query_timestamps = query_timestamps + (current_backbuffer_index * MAX_PROFILES * 2);
 
-			std::vector<GfxTimestamp> results{};
-			results.reserve(name_to_index_map.size());
-			for (auto const& [name, index] : name_to_index_map)
-			{
-				ADRIA_ASSERT(index < MAX_PROFILES);
-				QueryData& profile_data = query_data[index];
-				if (profile_data.query_started && profile_data.query_finished)
+			profiler_tree.TraversePreOrder([this, gpu_frequency, frame_query_timestamps](GfxProfiler::TreeNode* node)
 				{
+					Uint32 const index = node->GetData().index;
 					Uint64 start_time = frame_query_timestamps[index * 2 + 0];
 					Uint64 end_time = frame_query_timestamps[index * 2 + 1];
-
 					Uint64 delta = end_time - start_time;
 					Float frequency = Float(gpu_frequency);
-					Float time_ms = (delta / frequency) * 1000.0f;
-					results.emplace_back(time_ms, name);
-				}
-			}
-			return results;
+					node->GetData().time = (delta / frequency) * 1000.0f;
+				});
+			return &profiler_tree;
 		}
 	};
 
@@ -188,20 +140,20 @@ namespace adria
 		pimpl->BeginProfileScope(cmd_list, name);
 	}
 
-	void GfxProfiler::EndProfileScope(Char const* name)
-	{
-		pimpl->EndProfileScope(name);
-	}
-
 	void GfxProfiler::EndProfileScope(GfxCommandList* cmd_list)
 	{
 		pimpl->EndProfileScope(cmd_list);
 	}
 
-	std::vector<GfxTimestamp> GfxProfiler::GetResults()
+	GfxProfiler::Tree const* GfxProfiler::GetProfilerTree() const
 	{
-		return pimpl->GetResults();
+		return pimpl->GetProfilerTree();
 	}
+
+	//std::vector<GfxTimestamp> GfxProfiler::GetResults()
+	//{
+	//	return pimpl->GetResults();
+	//}
 
 	GfxProfiler::GfxProfiler() {}
 	GfxProfiler::~GfxProfiler() {}

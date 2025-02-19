@@ -655,6 +655,7 @@
     <ClInclude Include="Resources\Shaders\SPD\ffx_a.h" />
     <ClInclude Include="Resources\Shaders\SPD\ffx_spd.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\Ref.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\Delegate.h" />
@@ -666,9 +667,9 @@
     <ClInclude Include="Utilities\hwbp.h" />
     <ClInclude Include="Utilities\ImageWrite.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
-    <ClInclude Include="Utilities\LinearAllocator.h" />
+    <ClInclude Include="Utilities\LinearOffsetAllocator.h" />
     <ClInclude Include="Utilities\Releasable.h" />
-    <ClInclude Include="Utilities\RingAllocator.h" />
+    <ClInclude Include="Utilities\RingOffsetAllocator.h" />
     <ClInclude Include="Utilities\RingBuffer.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />
     <ClInclude Include="Utilities\HashUtil.h" />
@@ -680,6 +681,7 @@
     <ClInclude Include="Utilities\TemplatesUtil.h" />
     <ClInclude Include="Utilities\ThreadPool.h" />
     <ClInclude Include="Utilities\Timer.h" />
+    <ClInclude Include="Utilities\Tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc" />

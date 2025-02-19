@@ -1,7 +1,7 @@
 #pragma once
 #include <mutex>
 #include "GfxDynamicAllocation.h"
-#include "Utilities/LinearAllocator.h"
+#include "Utilities/LinearOffsetAllocator.h"
 
 namespace adria
 {
@@ -16,7 +16,7 @@ namespace adria
 		struct GfxAllocationPage
 		{
 			std::unique_ptr<GfxBuffer> buffer;
-			LinearAllocator linear_allocator;
+			LinearOffsetAllocator linear_offset_allocator;
 			void* cpu_address;
 
 			GfxAllocationPage(GfxDevice* gfx, Uint64 page_size);

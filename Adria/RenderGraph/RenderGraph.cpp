@@ -982,7 +982,7 @@ namespace adria
 			for (Uint32 event_idx : pass->events_to_start)
 			{
 				PIXBeginEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, rg.events[event_idx].name);
-				//g_GfxProfiler.BeginProfileScope(cmd_list, rg.events[event_idx].name);
+				g_GfxProfiler.BeginProfileScope(cmd_list, rg.events[event_idx].name);
 				if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
 				{
 					nsight_perf_manager->PushRange(cmd_list, rg.events[event_idx].name);
@@ -1154,7 +1154,7 @@ namespace adria
 				{
 					nsight_perf_manager->PopRange(cmd_list);
 				}
-				//g_GfxProfiler.EndProfileScope(cmd_list);
+				g_GfxProfiler.EndProfileScope(cmd_list);
 				PIXEndEvent(cmd_list->GetNative());
 			}
 		}

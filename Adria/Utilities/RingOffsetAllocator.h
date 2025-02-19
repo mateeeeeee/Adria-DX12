@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	class RingAllocator
+	class RingOffsetAllocator
 	{
 	public:
 
@@ -22,7 +22,7 @@ namespace adria
 
 	public:
 
-		RingAllocator(Uint64 max_size, Uint64 reserve = 0) noexcept :
+		RingOffsetAllocator(Uint64 max_size, Uint64 reserve = 0) noexcept :
 			completed_frames{},
 			reserve{ reserve },
 			max_size{ max_size - reserve },
@@ -31,8 +31,8 @@ namespace adria
 			used_size{ reserve }
 		{}
 
-		ADRIA_DEFAULT_COPYABLE_MOVABLE(RingAllocator)
-		~RingAllocator() = default;
+		ADRIA_DEFAULT_COPYABLE_MOVABLE(RingOffsetAllocator)
+		~RingOffsetAllocator() = default;
 
 		Uint64 Allocate(Uint64 size, Uint64 align = 0)
 		{

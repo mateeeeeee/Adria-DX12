@@ -881,7 +881,8 @@ namespace adria
 				static Float FrameTimeGraphMaxValues[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (Uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				std::vector<GfxTimestamp> time_stamps = g_GfxProfiler.GetResults();
+				auto* profiler_tree = g_GfxProfiler.GetProfilerTree();
+				Uint32 const profiler_tree_size = profiler_tree->Size();
 				FrameTimeArray[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (Uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
 				RecentHighestFrameTime = std::max(RecentHighestFrameTime, FrameTimeArray[NUM_FRAMES - 1]);
@@ -934,11 +935,11 @@ namespace adria
 						reset_accumulating_state = true;
 					}
 
-					reset_accumulating_state |= (state.accumulating_timestamps.size() != time_stamps.size());
+					reset_accumulating_state |= (state.accumulating_timestamps.size() != profiler_tree_size);
 					if (reset_accumulating_state)
 					{
 						state.accumulating_timestamps.resize(0);
-						state.accumulating_timestamps.resize(time_stamps.size());
+						state.accumulating_timestamps.resize(profiler_tree_size);
 						state.last_reset_time = current_time;
 						state.accumulating_frame_count = 0;
 					}
@@ -947,34 +948,37 @@ namespace adria
 					ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
 					ImGui::TableSetupColumn("Pass");
 					ImGui::TableSetupColumn("Time");
-					for (Uint64 i = 0; i < time_stamps.size(); i++)
+
+					profiler_tree->TraversePreOrder([&](GfxProfiler::TreeNode* node)
 					{
 						ImGui::TableNextRow();
-
+						std::string_view node_name = node->GetName();
+						Float node_time = node->GetData().time;
+						Uint32 i = node->GetData().index;
 						ImGui::TableSetColumnIndex(0);
-						ImGui::Text("%s", time_stamps[i].name.c_str());
+						ImGui::Text("%s", node_name.data());
 						ImGui::TableSetColumnIndex(1);
-						ImGui::Text("%.2f ms", time_stamps[i].time_in_ms);
-						
+						ImGui::Text("%.2f ms", node_time);
+
 						if (state.show_average)
 						{
-							if (state.displayed_timestamps.size() == time_stamps.size())
+							if (state.displayed_timestamps.size() == profiler_tree_size)
 							{
 								ImGui::SameLine();
 								ImGui::Text("  avg: %.2f ms", state.displayed_timestamps[i].sum);
-								ImGui::SameLine();	 
+								ImGui::SameLine();
 								ImGui::Text("  min: %.2f ms", state.displayed_timestamps[i].minimum);
-								ImGui::SameLine();	 
+								ImGui::SameLine();
 								ImGui::Text("  max: %.2f ms", state.displayed_timestamps[i].maximum);
 							}
-						
+
 							ProfilerState::AccumulatedTimeStamp* accumulating_timestamp = &state.accumulating_timestamps[i];
-							accumulating_timestamp->sum += time_stamps[i].time_in_ms;
-							accumulating_timestamp->minimum = std::min<Float>(accumulating_timestamp->minimum, time_stamps[i].time_in_ms);
-							accumulating_timestamp->maximum = std::max<Float>(accumulating_timestamp->maximum, time_stamps[i].time_in_ms);
+							accumulating_timestamp->sum += node_time;
+							accumulating_timestamp->minimum = std::min<Float>(accumulating_timestamp->minimum, node_time);
+							accumulating_timestamp->maximum = std::max<Float>(accumulating_timestamp->maximum, node_time);
 						}
-						total_time_ms += time_stamps[i].time_in_ms;
-					}
+						total_time_ms += node_time;
+					});
 					ImGui::EndTable();
 					ImGui::Text("Total: %7.2f %s", total_time_ms, "ms");
 					state.accumulating_frame_count++;
