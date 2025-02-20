@@ -992,9 +992,9 @@ namespace adria
 								return;
 							}
 							GfxProfilerTreeNode* parent = node->GetParent();
-							Bool parentVisible = visible_nodes[parent];
-							Bool parentExpanded = s_ProfilerNodeState.IsNodeOpen(parent->GetName().data());
-							visible_nodes[node] = parentVisible && parentExpanded;
+							Bool parent_visible = visible_nodes[parent];
+							Bool parent_expanded = s_ProfilerNodeState.IsNodeOpen(parent->GetName().data());
+							visible_nodes[node] = parent_visible && parent_expanded;
 						});
 
 					profiler_tree->TraversePreOrder([&](GfxProfilerTreeNode* node)

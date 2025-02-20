@@ -1611,7 +1611,6 @@
     <ClInclude Include="..\External\ImPlot\implot_internal.h">
       <Filter>External\ImPlot</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxScope.h" />
     <ClInclude Include="RenderGraph\RenderGraphEvent.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
@@ -1620,6 +1619,15 @@
     </ClInclude>
     <ClInclude Include="Utilities\LinearAllocator.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphAllocator.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxScope.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxProfilerFwd.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

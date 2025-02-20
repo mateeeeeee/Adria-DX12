@@ -308,7 +308,7 @@ namespace adria
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 #else
-	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) : gfx(gfx) {}
+	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) {}
 	Int32 GPUDebugPrinter::GetPrintfBufferIndex() { return -1; }
 	void GPUDebugPrinter::AddClearPass(RenderGraph& rg) {}
 	void GPUDebugPrinter::AddPrintPass(RenderGraph& rg) {}
