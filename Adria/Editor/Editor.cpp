@@ -1,4 +1,4 @@
-#include <filesystem>
+﻿#include <filesystem>
 #include "nfd.h"
 #include "Editor.h"
 #include "ImGuiManager.h"
@@ -950,43 +950,113 @@ namespace adria
 						state.accumulating_frame_count = 0;
 					}
 
-					Float total_time_ms = 0.0f;
+					struct ProfilerNodeState 
+					{
+						std::unordered_map<std::string, Bool> open_states;
+						std::unordered_map<std::string, Uint64> node_ids;
+
+						void* GetNodeId(Char const* name)
+						{
+							static Uint64 id = 0;
+							if (!node_ids.contains(name))
+							{
+								node_ids[name] = id++;
+							}
+							return reinterpret_cast<void*>(node_ids[name]);
+						}
+
+						Bool IsNodeOpen(Char const* name) 
+						{
+							auto it = open_states.find(name);
+							return it == open_states.end() ? true : it->second;
+						}
+
+						void ToggleNodeState(Char const* name)
+						{
+							open_states[name] = !IsNodeOpen(name);
+						}
+					};
+					static ProfilerNodeState s_ProfilerNodeState;
+
 					ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
 					ImGui::TableSetupColumn("Pass");
 					ImGui::TableSetupColumn("Time");
+					ImGui::TableHeadersRow();
+
+					std::unordered_map<GfxProfilerTreeNode*, Bool> visible_nodes;
+					profiler_tree->TraversePreOrder([&](GfxProfilerTreeNode* node)
+						{
+							if (node->GetParent() == nullptr) 
+							{
+								visible_nodes[node] = true;
+								return;
+							}
+							GfxProfilerTreeNode* parent = node->GetParent();
+							Bool parentVisible = visible_nodes[parent];
+							Bool parentExpanded = s_ProfilerNodeState.IsNodeOpen(parent->GetName().data());
+							visible_nodes[node] = parentVisible && parentExpanded;
+						});
 
 					profiler_tree->TraversePreOrder([&](GfxProfilerTreeNode* node)
-					{
-						ImGui::TableNextRow();
-						std::string_view node_name = node->GetName();
-						Float node_time = (Float)node->GetData().time;
-						Uint32 i = node->GetData().index;
-						ImGui::TableSetColumnIndex(0);
-						ImGui::Text("%s", node_name.data());
-						ImGui::TableSetColumnIndex(1);
-						ImGui::Text("%.2f ms", node_time);
-
-						if (state.show_average)
 						{
-							if (state.displayed_timestamps.size() == profiler_tree_size)
+							if (!visible_nodes[node]) 
 							{
-								ImGui::SameLine();
-								ImGui::Text("  avg: %.2f ms", state.displayed_timestamps[i].sum);
-								ImGui::SameLine();
-								ImGui::Text("  min: %.2f ms", state.displayed_timestamps[i].minimum);
-								ImGui::SameLine();
-								ImGui::Text("  max: %.2f ms", state.displayed_timestamps[i].maximum);
+								return;
+							}
+							std::string_view node_name = node->GetName();
+							Float node_time = (Float)node->GetData().time;
+							Uint32 i = node->GetData().index;
+
+							Uint32 node_depth = node->GetDepth();
+							ImGui::TableNextRow();
+							ImGui::TableSetColumnIndex(0);
+
+							if (node_depth > 0) ImGui::Indent(node_depth * 16.0f);
+							Bool is_open = s_ProfilerNodeState.IsNodeOpen(node_name.data());
+
+							ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
+							if (node->GetChildren().empty()) 
+							{
+								flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+							}
+							if (is_open) 
+							{
+								flags |= ImGuiTreeNodeFlags_DefaultOpen;
 							}
 
-							ProfilerState::AccumulatedTimeStamp* accumulating_timestamp = &state.accumulating_timestamps[i];
-							accumulating_timestamp->sum += node_time;
-							accumulating_timestamp->minimum = std::min<Float>(accumulating_timestamp->minimum, node_time);
-							accumulating_timestamp->maximum = std::max<Float>(accumulating_timestamp->maximum, node_time);
-						}
-						total_time_ms += node_time;
-					});
+							void* node_id = s_ProfilerNodeState.GetNodeId(node_name.data());
+							ImGui::PushID(node_id);
+							Bool node_opened = ImGui::TreeNodeEx(node_name.data(), flags);
+							if (ImGui::IsItemClicked() && !node->GetChildren().empty())
+							{
+								s_ProfilerNodeState.ToggleNodeState(node_name.data());
+							}
+							ImGui::PopID();
+
+							ImGui::TableSetColumnIndex(1);
+							ImGui::Text("%.2f ms", node_time);
+							if (state.show_average) 
+							{
+								if (state.displayed_timestamps.size() == profiler_tree_size) {
+									ImGui::SameLine();
+									ImGui::Text("  avg: %.2f ms", state.displayed_timestamps[i].sum);
+									ImGui::SameLine();
+									ImGui::Text("  min: %.2f ms", state.displayed_timestamps[i].minimum);
+									ImGui::SameLine();
+									ImGui::Text("  max: %.2f ms", state.displayed_timestamps[i].maximum);
+								}
+								ProfilerState::AccumulatedTimeStamp* accumulating_timestamp = &state.accumulating_timestamps[i];
+								accumulating_timestamp->sum += node_time;
+								accumulating_timestamp->minimum = std::min<Float>(accumulating_timestamp->minimum, node_time);
+								accumulating_timestamp->maximum = std::max<Float>(accumulating_timestamp->maximum, node_time);
+							}
+							if (node_depth > 0) ImGui::Unindent(node_depth * 16.0f);
+							if (node_opened && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
+							{
+								ImGui::TreePop();
+							}
+						});
 					ImGui::EndTable();
-					ImGui::Text("Total: %7.2f %s", total_time_ms, "ms");
 					state.accumulating_frame_count++;
 				}
 			}
