@@ -3,6 +3,7 @@
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
 #include "RenderGraphEvent.h"
+#include "RenderGraphAllocator.h"
 #include "Graphics/GfxDevice.h"
 
 namespace adria
@@ -40,25 +41,24 @@ namespace adria
 		};
 
 	public:
-
-		RenderGraph(RGResourcePool& pool) : pool(pool), gfx(pool.GetDevice()) {}
+		RenderGraph(RGResourcePool& pool) : pool(pool), allocator(1024 * 1024), gfx(pool.GetDevice()) {}
 		ADRIA_NONCOPYABLE(RenderGraph)
 		ADRIA_DEFAULT_MOVABLE(RenderGraph)
 		~RenderGraph();
 
-		void Build();
+		void Compile();
 		void Execute();
 
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
 		ADRIA_MAYBE_UNUSED decltype(auto) AddPass(Args&&... args)
 		{
-			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
-			std::unique_ptr<RGPassBase>& pass = passes.back(); pass->id = passes.size() - 1;
+			passes.emplace_back(allocator.AllocateObject<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
+			RGPassBase*& pass = passes.back(); pass->id = passes.size() - 1;
 			RenderGraphBuilder builder(*this, *pass);
 			pass->Setup(builder);
 			for (Uint32 event_idx : pending_events) pass->events_to_start.push_back(event_idx);
 			pending_events.clear();
-			return *dynamic_cast<RenderGraphPass<PassData>*>(pass.get());
+			return *dynamic_cast<RenderGraphPass<PassData>*>(pass);
 		}
 
 		void ImportTexture(RGResourceName name, GfxTexture* texture);
@@ -79,9 +79,10 @@ namespace adria
 	private:
 		RGResourcePool& pool;
 		GfxDevice* gfx;
+		RGAllocator allocator;
 		RGBlackboard blackboard;
 
-		std::vector<std::unique_ptr<RGPassBase>> passes;
+		std::vector<RGPassBase*> passes;
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
 

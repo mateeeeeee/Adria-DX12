@@ -149,7 +149,7 @@ namespace adria
 			if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 			else g_Editor.AddRenderPass(render_graph);
 		}
-		render_graph.Build();
+		render_graph.Compile();
 		render_graph.Execute();
 		GUI();
 	}

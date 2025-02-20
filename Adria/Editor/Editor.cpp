@@ -953,7 +953,7 @@ namespace adria
 					{
 						ImGui::TableNextRow();
 						std::string_view node_name = node->GetName();
-						Float node_time = node->GetData().time;
+						Float node_time = (Float)node->GetData().time;
 						Uint32 i = node->GetData().index;
 						ImGui::TableSetColumnIndex(0);
 						ImGui::Text("%s", node_name.data());

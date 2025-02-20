@@ -118,7 +118,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::Build()
+	void RenderGraph::Compile()
 	{
 		if (RGUseDependencyLevels.Get())
 		{
@@ -131,7 +131,7 @@ namespace adria
 			dependency_levels.resize(passes.size(), DependencyLevel(*this));
 			for (Uint64 i = 0; i < passes.size(); ++i)
 			{
-				dependency_levels[i].AddPass(passes[i].get());
+				dependency_levels[i].AddPass(passes[i]);
 			}
 		}
 		if (RGCullPasses.Get())
@@ -369,7 +369,7 @@ namespace adria
 		for (Uint64 i = 0; i < passes.size(); ++i)
 		{
 			Uint64 level = distances[i];
-			dependency_levels[level].AddPass(passes[i].get());
+			dependency_levels[level].AddPass(passes[i]);
 		}
 	}
 
@@ -392,12 +392,12 @@ namespace adria
 			for (auto id : pass->texture_writes)
 			{
 				auto* written = GetRGTexture(id);
-				written->writer = pass.get();
+				written->writer = pass;
 			}
 			for (auto id : pass->buffer_writes)
 			{
 				auto* written = GetRGBuffer(id);
-				written->writer = pass.get();
+				written->writer = pass;
 			}
 		}
 
@@ -507,7 +507,7 @@ namespace adria
 				pass->num_events_to_end += events_to_add;
 				events_to_start.clear();
 				events_to_add = 0;
-				last_active_pass = pass.get();
+				last_active_pass = pass;
 			}
 		}
 		if (last_active_pass) last_active_pass->num_events_to_end += events_to_add;
