@@ -513,6 +513,7 @@
     <ClInclude Include="Graphics\GfxDescriptor.h" />
     <ClInclude Include="Graphics\GfxDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxDescriptorAllocatorBase.h" />
+    <ClInclude Include="Graphics\GfxProfilerFwd.h" />
     <ClInclude Include="Graphics\GfxScope.h" />
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />

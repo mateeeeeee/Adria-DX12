@@ -1386,15 +1386,15 @@ namespace adria
 	void RenderGraph::PushEvent(Char const* name)
 	{
 		if (RGUseDependencyLevels.Get()) return; 
-		pending_events.push_back(AddEvent(name));
+		pending_event_indices.push_back(AddEvent(name));
 	}
 
 	void RenderGraph::PopEvent()
 	{
 		if (RGUseDependencyLevels.Get()) return;
-		if (!pending_events.empty())
+		if (!pending_event_indices.empty())
 		{
-			pending_events.pop_back();
+			pending_event_indices.pop_back();
 		}
 		else
 		{

@@ -113,45 +113,10 @@ namespace adria
 	void Renderer::Render()
 	{
 		RenderGraph render_graph(resource_pool);
-		{
-			RG_SCOPE(render_graph, "Frame");
-			RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
-			FrameBlackboardData frame_data{};
-			{
-				Vector3 cam_pos = camera->Position();
-				frame_data.camera_position[0] = cam_pos.x;
-				frame_data.camera_position[1] = cam_pos.y;
-				frame_data.camera_position[2] = cam_pos.z;
-				frame_data.camera_position[3] = 1.0f;
-				frame_data.camera_view = camera->View();
-				frame_data.camera_proj = camera->Proj();
-				frame_data.camera_viewproj = camera->ViewProj();
-				frame_data.camera_fov = camera->Fov();
-				frame_data.camera_aspect_ratio = camera->AspectRatio();
-				frame_data.camera_near = camera->Near();
-				frame_data.camera_far = camera->Far();
-				frame_data.camera_jitter_x = camera_jitter.x;
-				frame_data.camera_jitter_y = camera_jitter.y;
-				frame_data.delta_time = frame_cbuf_data.delta_time;
-				frame_data.frame_cbuffer_address = frame_cbuffer.GetGpuAddress(backbuffer_index);
-			}
-			rg_blackboard.Add<FrameBlackboardData>(std::move(frame_data));
-			render_graph.ImportTexture(RG_NAME(Backbuffer), gfx->GetBackbuffer());
-			render_graph.ImportTexture(RG_NAME(FinalTexture), final_texture.get());
-			postprocessor.ImportHistoryResources(render_graph);
-
-			gpu_debug_printer.AddClearPass(render_graph);
-			if (lighting_path == LightingPathType::PathTracing) Render_PathTracing(render_graph);
-			else Render_Deferred(render_graph);
-			if (take_screenshot) TakeScreenshot(render_graph);
-			gpu_debug_printer.AddPrintPass(render_graph);
-
-			if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
-			else g_Editor.AddRenderPass(render_graph);
-		}
+		RenderImpl(render_graph);
 		render_graph.Compile();
 		render_graph.Execute();
-		GUI();
+		g_Editor.EndFrame();
 	}
 
 	void Renderer::OnResize(Uint32 w, Uint32 h)
@@ -499,6 +464,50 @@ namespace adria
 		}
 	}
 
+	void Renderer::RenderImpl(RenderGraph& render_graph)
+	{
+		RG_SCOPE(render_graph, "Frame");
+		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
+		FrameBlackboardData frame_data{};
+		{
+			Vector3 cam_pos = camera->Position();
+			frame_data.camera_position[0] = cam_pos.x;
+			frame_data.camera_position[1] = cam_pos.y;
+			frame_data.camera_position[2] = cam_pos.z;
+			frame_data.camera_position[3] = 1.0f;
+			frame_data.camera_view = camera->View();
+			frame_data.camera_proj = camera->Proj();
+			frame_data.camera_viewproj = camera->ViewProj();
+			frame_data.camera_fov = camera->Fov();
+			frame_data.camera_aspect_ratio = camera->AspectRatio();
+			frame_data.camera_near = camera->Near();
+			frame_data.camera_far = camera->Far();
+			frame_data.camera_jitter_x = camera_jitter.x;
+			frame_data.camera_jitter_y = camera_jitter.y;
+			frame_data.delta_time = frame_cbuf_data.delta_time;
+			frame_data.frame_cbuffer_address = frame_cbuffer.GetGpuAddress(backbuffer_index);
+		}
+		rg_blackboard.Add<FrameBlackboardData>(std::move(frame_data));
+		render_graph.ImportTexture(RG_NAME(Backbuffer), gfx->GetBackbuffer());
+		render_graph.ImportTexture(RG_NAME(FinalTexture), final_texture.get());
+		postprocessor.ImportHistoryResources(render_graph);
+
+		gpu_debug_printer.AddClearPass(render_graph);
+		if (lighting_path == LightingPathType::PathTracing) Render_PathTracing(render_graph);
+		else Render_Deferred(render_graph);
+		if (take_screenshot) TakeScreenshot(render_graph);
+		gpu_debug_printer.AddPrintPass(render_graph);
+		if (!g_Editor.IsActive())
+		{
+			CopyToBackbuffer(render_graph);
+		}
+		else 
+		{
+			g_Editor.AddRenderPass(render_graph);
+		}
+
+		GUI();
+	}
 	void Renderer::Render_Deferred(RenderGraph& render_graph)
 	{
 		if (update_picking_data)

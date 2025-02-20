@@ -81,6 +81,7 @@ namespace adria
 		engine->OnWindowEvent(msg_data);
 		gui->OnWindowEvent(msg_data);
 	}
+
 	void Editor::Run()
 	{
 		HandleInput();
@@ -96,6 +97,12 @@ namespace adria
 			reload_shaders = false;
 		}
 	}
+
+	void Editor::EndFrame()
+	{
+		profiler_tree = g_GfxProfiler.GetProfilerTree();
+	}
+
 	Bool Editor::IsActive() const
 	{
 		return gui->IsVisible();
@@ -881,7 +888,6 @@ namespace adria
 				static Float FrameTimeGraphMaxValues[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (Uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				auto* profiler_tree = g_GfxProfiler.GetProfilerTree();
 				Uint32 const profiler_tree_size = (Uint32)profiler_tree->Size();
 				FrameTimeArray[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (Uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
@@ -949,7 +955,7 @@ namespace adria
 					ImGui::TableSetupColumn("Pass");
 					ImGui::TableSetupColumn("Time");
 
-					profiler_tree->TraversePreOrder([&](GfxProfiler::TreeNode* node)
+					profiler_tree->TraversePreOrder([&](GfxProfilerTreeNode* node)
 					{
 						ImGui::TableNextRow();
 						std::string_view node_name = node->GetName();

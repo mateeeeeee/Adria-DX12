@@ -41,7 +41,7 @@ namespace adria
 		};
 
 	public:
-		RenderGraph(RGResourcePool& pool) : pool(pool), allocator(1024 * 1024), gfx(pool.GetDevice()) {}
+		RenderGraph(RGResourcePool& pool) : pool(pool), allocator(128 * 1024), gfx(pool.GetDevice()) {}
 		ADRIA_NONCOPYABLE(RenderGraph)
 		ADRIA_DEFAULT_MOVABLE(RenderGraph)
 		~RenderGraph();
@@ -56,8 +56,8 @@ namespace adria
 			RGPassBase*& pass = passes.back(); pass->id = passes.size() - 1;
 			RenderGraphBuilder builder(*this, *pass);
 			pass->Setup(builder);
-			for (Uint32 event_idx : pending_events) pass->events_to_start.push_back(event_idx);
-			pending_events.clear();
+			for (Uint32 event_idx : pending_event_indices) pass->events_to_start.push_back(event_idx);
+			pending_event_indices.clear();
 			return *dynamic_cast<RenderGraphPass<PassData>*>(pass);
 		}
 
@@ -87,7 +87,7 @@ namespace adria
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
 
 		std::vector<RGEvent> events;
-		std::vector<Uint32> pending_events;
+		std::vector<Uint32>  pending_event_indices;
 
 		std::vector<std::vector<Uint64>> adjacency_lists;
 		std::vector<Uint64> topologically_sorted_passes;

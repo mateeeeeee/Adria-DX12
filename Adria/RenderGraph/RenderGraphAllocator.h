@@ -13,7 +13,7 @@ namespace adria
 			virtual ~AllocatedObject() = default;
 		};
 		template<typename T> requires (!std::is_trivial_v<T>)
-			struct NonTrivialAllocatedObject : public AllocatedObject
+		struct NonTrivialAllocatedObject : public AllocatedObject
 		{
 			template<typename... Args>
 			NonTrivialAllocatedObject(Args&&... args) : object(std::forward<Args>(args)...)

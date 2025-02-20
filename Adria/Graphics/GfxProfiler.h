@@ -1,6 +1,7 @@
 #pragma once
 #include "GfxMacros.h"
 #include "Utilities/Singleton.h"
+#include "GfxProfilerFwd.h"
 #include "Utilities/Tree.h"
 #include "Utilities/LinearAllocator.h"
 
@@ -9,7 +10,7 @@ namespace adria
 	class GfxDevice;
 	class GfxBuffer;
 	class GfxQueryHeap;
-	class GfxCommandList;
+	using GfxProfilerTreeNode = typename GfxProfilerTree::NodeType;
 
 	class GfxProfiler : public Singleton<GfxProfiler>
 	{
@@ -19,24 +20,13 @@ namespace adria
 		static constexpr Uint64 MAX_PROFILES = 256;
 
 	public:
-		struct TreeNodeData
-		{
-			GfxCommandList* cmd_list;
-			Uint32 index;
-			Float64 time;
-		};
-		using TreeAllocator = LinearAllocator<4096>;
-		using Tree = Tree<TreeNodeData, TreeAllocator>;//using TreeNode = Tree::NodeType;
-		using TreeNode = Tree::NodeType;
-
-	public:
 		void Initialize(GfxDevice* gfx);
 		void Destroy();
 
 		void NewFrame();
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name);
 		void EndProfileScope(GfxCommandList* cmd_list);
-		GfxProfiler::Tree const* GetProfilerTree() const;
+		GfxProfilerTree const* GetProfilerTree() const;
 
 	private:
 		std::unique_ptr<Impl> pimpl;

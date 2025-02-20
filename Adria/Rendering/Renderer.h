@@ -183,6 +183,7 @@ namespace adria
 		void UpdateFrameConstants(Float dt);
 		void CameraFrustumCulling();
 
+		void RenderImpl(RenderGraph& rg);
 		void Render_Deferred(RenderGraph& rg);
 		void Render_PathTracing(RenderGraph& rg);
 

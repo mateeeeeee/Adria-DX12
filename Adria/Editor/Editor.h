@@ -3,6 +3,7 @@
 #include <queue>
 #include "GUICommand.h"
 #include "EditorEvents.h"
+#include "Graphics/GfxProfilerFwd.h"
 #include "Rendering/ViewportData.h"
 #include "Utilities/Singleton.h"
 #include "entt/entity/fwd.hpp"
@@ -49,6 +50,7 @@ namespace adria
 
 		void OnWindowEvent(WindowEventInfo const& msg_data);
 		void Run();
+		void EndFrame();
 		Bool IsActive() const;
 
 		void AddCommand(GUICommand&& command);
@@ -77,6 +79,8 @@ namespace adria
 		EditorEvents editor_events;
 		ViewportData viewport_data;
 		Bool show_basic_console = false;
+
+		GfxProfilerTree const* profiler_tree = nullptr;
 
 	private:
 		Editor();

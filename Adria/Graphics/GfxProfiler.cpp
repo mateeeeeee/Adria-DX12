@@ -8,6 +8,8 @@
 #include "GfxBuffer.h"
 #include "Logging/Logger.h"
 
+
+
 namespace adria
 {
 	struct GfxProfiler::Impl
@@ -18,17 +20,20 @@ namespace adria
 #if GFX_MULTITHREADED
 		std::mutex stack_mutex;
 #endif
-		GfxProfiler::TreeAllocator profile_allocator;
-		GfxProfiler::Tree profiler_tree;
+		GfxProfilerTreeAllocator profile_allocators[FRAME_COUNT];
+		GfxProfilerTree profiler_trees[FRAME_COUNT];
+		GfxProfilerTree* current_profiler_tree = nullptr;
+
 		struct QueryData
 		{
 			GfxCommandList* cmd_list = nullptr;
-			GfxProfiler::TreeNode* tree_node = nullptr;
+			GfxProfilerTreeNode* tree_node = nullptr;
 		};
 		std::stack<QueryData> query_data;
 		Uint32 scope_counter = 0;
 
-		GfxProfiler::Impl() : profiler_tree(profile_allocator)
+		GfxProfiler::Impl() 
+			: profiler_trees{ GfxProfilerTree(profile_allocators[0]), GfxProfilerTree(profile_allocators[1]), GfxProfilerTree(profile_allocators[2]) }
 		{
 		}
 
@@ -51,8 +56,9 @@ namespace adria
 		void NewFrame()
 		{
 			ADRIA_ASSERT(query_data.empty()); 
-			profiler_tree.Clear();
-			profile_allocator.Reset();
+			current_profiler_tree = &profiler_trees[gfx->GetBackbufferIndex()];
+			current_profiler_tree->Clear();
+			profile_allocators[gfx->GetBackbufferIndex()].Reset();
 			scope_counter = 0;
 		}
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
@@ -61,7 +67,7 @@ namespace adria
 			std::lock_guard lock(stack_mutex);
 #endif
 			Uint32 profile_index = scope_counter++;
-			TreeNode* tree_node = nullptr;
+			GfxProfilerTreeNode* tree_node = nullptr;
 			if (!query_data.empty())
 			{
 				QueryData& parent_data = query_data.top();
@@ -69,9 +75,9 @@ namespace adria
 			}
 			else
 			{
-				ADRIA_ASSERT(profiler_tree.GetRoot() == nullptr);
-				profiler_tree.EmplaceRoot(name, cmd_list, profile_index, 0.0f);
-				tree_node = profiler_tree.GetRoot();
+				ADRIA_ASSERT(current_profiler_tree->GetRoot() == nullptr);
+				current_profiler_tree->EmplaceRoot(name, cmd_list, profile_index, 0.0f);
+				tree_node = current_profiler_tree->GetRoot();
 			}
 			QueryData& scope_data = query_data.emplace(cmd_list, tree_node);
 			Uint32 begin_query_index = profile_index * 2;
@@ -91,13 +97,13 @@ namespace adria
 			Uint32 end_query_index = profile_index * 2 + 1;
 			cmd_list->EndQuery(*query_heap, end_query_index);
 		}
-		GfxProfiler::Tree const* GetProfilerTree() const
+		GfxProfilerTree const* GetProfilerTree() const
 		{
 			Uint64 gpu_frequency = 0;
 			gfx->GetTimestampFrequency(gpu_frequency);
 			Uint64 current_backbuffer_index = gfx->GetBackbufferIndex();
 
-			profiler_tree.TraversePreOrder([this, current_backbuffer_index](GfxProfiler::TreeNode* node)
+			current_profiler_tree->TraversePreOrder([this, current_backbuffer_index](GfxProfilerTreeNode* node)
 			{
 					Uint32 const index = node->GetData().index;
 					GfxCommandList* cmd_list = node->GetData().cmd_list;
@@ -112,7 +118,7 @@ namespace adria
 			Uint64 const* query_timestamps = query_readback_buffer->GetMappedData<Uint64>();
 			Uint64 const* frame_query_timestamps = query_timestamps + (current_backbuffer_index * MAX_PROFILES * 2);
 
-			profiler_tree.TraversePreOrder([this, gpu_frequency, frame_query_timestamps](GfxProfiler::TreeNode* node)
+			current_profiler_tree->TraversePreOrder([this, gpu_frequency, frame_query_timestamps](GfxProfilerTreeNode* node)
 				{
 					Uint32 const index = node->GetData().index;
 					Uint64 start_time = frame_query_timestamps[index * 2 + 0];
@@ -120,12 +126,8 @@ namespace adria
 					Uint64 delta = end_time - start_time;
 					Float frequency = Float(gpu_frequency);
 					node->GetData().time = (delta / frequency) * 1000.0f;
-					if (node->GetName() == "Editor Pass")
-					{
-						ADRIA_LOG(DEBUG, "Time start and end for Frame: %ull, %ull", start_time, end_time);
-					}
 				});
-			return &profiler_tree;
+			return current_profiler_tree;
 		}
 	};
 
@@ -156,7 +158,7 @@ namespace adria
 		pimpl->EndProfileScope(cmd_list);
 	}
 
-	GfxProfiler::Tree const* GfxProfiler::GetProfilerTree() const
+	GfxProfilerTree const* GfxProfiler::GetProfilerTree() const
 	{
 		return pimpl->GetProfilerTree();
 	}
