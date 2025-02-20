@@ -882,7 +882,7 @@ namespace adria
 				for (Uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
 				auto* profiler_tree = g_GfxProfiler.GetProfilerTree();
-				Uint32 const profiler_tree_size = profiler_tree->Size();
+				Uint32 const profiler_tree_size = (Uint32)profiler_tree->Size();
 				FrameTimeArray[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (Uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
 				RecentHighestFrameTime = std::max(RecentHighestFrameTime, FrameTimeArray[NUM_FRAMES - 1]);

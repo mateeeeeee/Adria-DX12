@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	template<typename T, Uint64 BlockSize = 4096>
+	template<Uint64 BlockSize>
 	class LinearAllocator
 	{
 	private:
@@ -23,26 +23,11 @@ namespace adria
 				delete[] buffer;
 			}
 		};
-
 		MemoryBlock* current_block;
 		MemoryBlock* first_block;
 		Uint64 block_size;
 
 	public:
-		using value_type = T;
-		using pointer = T*;
-		using const_pointer = T const*;
-		using reference = T&;
-		using const_reference = T const&;
-		using size_type = std::size_t;
-		using difference_type = std::ptrdiff_t;
-
-		template<typename U>
-		struct rebind 
-		{
-			using other = LinearAllocator<U, BlockSize>;
-		};
-
 		LinearAllocator()
 			: current_block(nullptr), first_block(nullptr), block_size(BlockSize) {
 			first_block = new MemoryBlock(block_size);
@@ -53,9 +38,7 @@ namespace adria
 		{
 			Free();
 		}
-
 		ADRIA_NONCOPYABLE(LinearAllocator)
-
 		LinearAllocator(LinearAllocator&& other) noexcept
 			: current_block(other.current_block),
 			first_block(other.first_block),
@@ -65,9 +48,9 @@ namespace adria
 			other.first_block = nullptr;
 		}
 
-		T* allocate(Uint64 n) 
+		void* Allocate(Uint64 size, Uint64 align) 
 		{
-			Uint64 bytes_needed = n * sizeof(T);
+			Uint64 bytes_needed = size;
 
 			// Check if we have enough space in the current block
 			if (current_block->used + bytes_needed > current_block->capacity) 
@@ -81,7 +64,7 @@ namespace adria
 			void* result = current_block->buffer + current_block->used;
 			current_block->used += bytes_needed;
 
-			Uint64 alignment = alignof(T);
+			Uint64 alignment = align; // alignof(T);
 			Uint64 misalignment = reinterpret_cast<Uintptr>(result) % alignment;
 			if (misalignment != 0) 
 			{
@@ -89,10 +72,16 @@ namespace adria
 				result = static_cast<Uint8*>(result) + padding;
 				current_block->used += padding;
 			}
-			return reinterpret_cast<T*>(result);
+			return result;
 		}
 
-		void deallocate(T* p, Uint64 n) noexcept 
+		template<typename T>
+		T* Allocate(Uint64 n)
+		{
+			return static_cast<T*>(Allocate(n * sizeof(T), alignof(T)));
+		}
+
+		void Deallocate(void* p, Uint64 n) noexcept 
 		{
 		}
 
@@ -106,7 +95,6 @@ namespace adria
 			}
 			current_block = first_block;
 		}
-
 		void Free()
 		{
 			MemoryBlock* block = first_block;
@@ -121,13 +109,12 @@ namespace adria
 		}
 
 		template<typename U, typename... Args>
-		void construct(U* p, Args&&... args) 
+		void Construct(U* p, Args&&... args) 
 		{
 			new (p) U(std::forward<Args>(args)...);
 		}
-
 		template<typename U>
-		void destroy(U* p) 
+		void Destroy(U* p) 
 		{
 			p->~U();
 		}

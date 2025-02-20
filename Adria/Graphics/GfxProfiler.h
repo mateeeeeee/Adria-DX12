@@ -25,9 +25,9 @@ namespace adria
 			Uint32 index;
 			Float64 time;
 		};
-		using TreeAllocator = LinearAllocator<TreeNodeData, MAX_PROFILES * sizeof(TreeNodeData)>;
-		using Tree = Tree<TreeNodeData, TreeAllocator>;
-		using TreeNode = TreeNode<TreeNodeData, TreeAllocator>;
+		using TreeAllocator = LinearAllocator<4096>;
+		using Tree = Tree<TreeNodeData, TreeAllocator>;//using TreeNode = Tree::NodeType;
+		using TreeNode = Tree::NodeType;
 
 	public:
 		void Initialize(GfxDevice* gfx);

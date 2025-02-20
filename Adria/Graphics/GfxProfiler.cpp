@@ -17,7 +17,7 @@ namespace adria
 #if GFX_MULTITHREADED
 		std::mutex stack_mutex;
 #endif
-		GfxProfiler::TreeAllocator profile_allocators[FRAME_COUNT];
+		GfxProfiler::TreeAllocator profile_allocator;
 		GfxProfiler::Tree profiler_tree;
 		struct QueryData
 		{
@@ -25,6 +25,10 @@ namespace adria
 			GfxProfiler::TreeNode* tree_node = nullptr;
 		};
 		std::stack<QueryData> query_data;
+
+		GfxProfiler::Impl() : profiler_tree(profile_allocator)
+		{
+		}
 
 		void Init(GfxDevice* _gfx)
 		{
@@ -44,9 +48,10 @@ namespace adria
 		}
 		void NewFrame()
 		{
-			ADRIA_ASSERT(query_data.empty());
+			while (!query_data.empty()) query_data.pop();
+			//ADRIA_ASSERT(query_data.empty());
 			profiler_tree.Clear();
-			profile_allocators[gfx->GetBackbufferIndex()].Reset();
+			profile_allocator.Reset();
 		}
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
 		{
@@ -54,21 +59,22 @@ namespace adria
 			std::lock_guard lock(stack_mutex);
 #endif
 			Uint32 profile_index = (Uint32)query_data.size();
-			QueryData& scope_data = query_data.emplace(cmd_list, name, false);
-			Uint32 begin_query_index = profile_index * 2;
-			cmd_list->BeginQuery(*query_heap, begin_query_index);
-
+			TreeNode* tree_node = nullptr;
 			if (!query_data.empty())
 			{
 				QueryData& parent_data = query_data.top();
-				scope_data.tree_node = parent_data.tree_node->EmplaceChild(name, cmd_list, profile_index, 0.0f);
+				tree_node = parent_data.tree_node->EmplaceChild(name, cmd_list, profile_index, 0.0f);
 			}
 			else
 			{
 				ADRIA_ASSERT(profiler_tree.GetRoot() == nullptr);
 				profiler_tree.EmplaceRoot(name, cmd_list, profile_index, 0.0f);
-				scope_data.tree_node = profiler_tree.GetRoot();
+				tree_node = profiler_tree.GetRoot();
 			}
+			QueryData& scope_data = query_data.emplace(cmd_list, tree_node);
+			Uint32 begin_query_index = profile_index * 2;
+			cmd_list->BeginQuery(*query_heap, begin_query_index);
+
 		}
 		void EndProfileScope(GfxCommandList* cmd_list)
 		{
