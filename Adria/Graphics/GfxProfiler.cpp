@@ -6,6 +6,7 @@
 #include "GfxCommandList.h"
 #include "GfxQueryHeap.h"
 #include "GfxBuffer.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {
@@ -25,6 +26,7 @@ namespace adria
 			GfxProfiler::TreeNode* tree_node = nullptr;
 		};
 		std::stack<QueryData> query_data;
+		Uint32 scope_counter = 0;
 
 		GfxProfiler::Impl() : profiler_tree(profile_allocator)
 		{
@@ -48,17 +50,17 @@ namespace adria
 		}
 		void NewFrame()
 		{
-			while (!query_data.empty()) query_data.pop();
-			//ADRIA_ASSERT(query_data.empty());
+			ADRIA_ASSERT(query_data.empty()); 
 			profiler_tree.Clear();
 			profile_allocator.Reset();
+			scope_counter = 0;
 		}
 		void BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
 		{
 #if GFX_MULTITHREADED
 			std::lock_guard lock(stack_mutex);
 #endif
-			Uint32 profile_index = (Uint32)query_data.size();
+			Uint32 profile_index = scope_counter++;
 			TreeNode* tree_node = nullptr;
 			if (!query_data.empty())
 			{
@@ -74,7 +76,6 @@ namespace adria
 			QueryData& scope_data = query_data.emplace(cmd_list, tree_node);
 			Uint32 begin_query_index = profile_index * 2;
 			cmd_list->BeginQuery(*query_heap, begin_query_index);
-
 		}
 		void EndProfileScope(GfxCommandList* cmd_list)
 		{
@@ -86,7 +87,7 @@ namespace adria
 			ADRIA_ASSERT(scope_data.cmd_list == cmd_list);
 			query_data.pop();
 
-			Uint32 profile_index = (Uint32)query_data.size();
+			Uint32 profile_index = scope_data.tree_node->GetData().index;
 			Uint32 end_query_index = profile_index * 2 + 1;
 			cmd_list->EndQuery(*query_heap, end_query_index);
 		}
@@ -119,6 +120,10 @@ namespace adria
 					Uint64 delta = end_time - start_time;
 					Float frequency = Float(gpu_frequency);
 					node->GetData().time = (delta / frequency) * 1000.0f;
+					if (node->GetName() == "Editor Pass")
+					{
+						ADRIA_LOG(DEBUG, "Time start and end for Frame: %ull, %ull", start_time, end_time);
+					}
 				});
 			return &profiler_tree;
 		}
