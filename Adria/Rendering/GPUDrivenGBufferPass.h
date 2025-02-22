@@ -28,7 +28,6 @@ namespace adria
 			Uint32 phase2_visible_meshlets;
 		};
 
-
 	public:
 		GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height);
 		~GPUDrivenGBufferPass();
@@ -50,9 +49,9 @@ namespace adria
 			rain_active = enabled;
 		}
 		void OnRendererOutputChanged(RendererOutput renderer_output);
-		void SkipAlphaBlended(Bool skip)
+		void OnTransparentChanged(Bool transparent)
 		{
-			skip_alpha_blended = skip;
+			skip_alpha_blended = transparent;
 		}
 
 	private:

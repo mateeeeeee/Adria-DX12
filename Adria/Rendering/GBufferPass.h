@@ -23,7 +23,7 @@ namespace adria
 			raining = enabled;
 		}
 		void OnRendererOutputChanged(RendererOutput renderer_output);
-		void SkipAlphaBlended(Bool skip)
+		void OnTransparentChanged(Bool skip)
 		{
 			skip_alpha_blended = skip;
 		}

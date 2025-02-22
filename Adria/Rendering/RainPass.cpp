@@ -137,7 +137,10 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Rain Settings", 0))
 				{
-					if (ImGui::Checkbox("Enable", Rain.GetPtr())) OnRainEnabled(Rain.Get());
+					if (ImGui::Checkbox("Enable", Rain.GetPtr()))
+					{
+						OnRainEnabled(Rain.Get());
+					}
 					if (Rain.Get())
 					{
 						ImGui::Checkbox("Pause simulation", &pause_simulation);

@@ -137,7 +137,7 @@ namespace adria
 		RendererOutputPass renderer_output_pass;
 		GPUDebugPrinter gpu_debug_printer;
 		TransparentPass transparent_pass;
-		Bool enable_transparent_pass = false;
+
 		//ray tracing
 		Bool ray_tracing_supported = false;
 		AccelerationStructure accel_structure;
@@ -176,6 +176,7 @@ namespace adria
 		ViewportData			 viewport_data;
 
 	private:
+		void RegisterEventListeners();
 		void CreateDisplaySizeDependentResources();
 		void CreateRenderSizeDependentResources();
 		void CreateAS();

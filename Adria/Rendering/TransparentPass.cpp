@@ -7,32 +7,43 @@
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleManager.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
+#include "entt/entity/entity.hpp"
 
 
 namespace adria
 {
+	static TAutoConsoleVariable<Bool> EnableTransparent("r.Transparent.Enable", false, "Enables or disables transparent pass");
+	static TAutoConsoleVariable<Bool> EnableTransparentReflections("r.Transparent.Reflections", false, "Enables or disables reflections for transparent objects");
 
 	TransparentPass::TransparentPass(entt::registry& reg, GfxDevice* gfx, Uint32 w, Uint32 h)
 		: reg { reg }, gfx{ gfx }, width{ w }, height{ h }
 	{
 		CreatePSOs();
+		EnableTransparent->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { transparent_changed.Broadcast(EnableTransparent.Get()); }));
 	}
 
-	TransparentPass::~TransparentPass()
-	{
-
-	}
+	TransparentPass::~TransparentPass() {}
 
 	void TransparentPass::AddPass(RenderGraph& rg)
 	{
+		if (!EnableTransparent.Get()) return;
+
+		RG_SCOPE(rg, "Transparent");
+
+		if (EnableTransparentReflections.Get())
+		{
+			//copy scene texture for reflection to be sampled
+		}
+
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.AddPass<void>("Transparent Pass",
 			[=](RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.ReadDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
@@ -74,6 +85,20 @@ namespace adria
 	void TransparentPass::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void TransparentPass::GUI()
+	{
+		QueueGUI([&]() 
+		{
+		if (ImGui::TreeNode("Transparent Settings"))
+		{
+			if (ImGui::Checkbox("Enable Transparent Pass", EnableTransparent.GetPtr()))
+			{
+				transparent_changed.Broadcast(EnableTransparent.Get());
+			}
+			ImGui::TreePop();
+		}}, GUICommandGroup_Renderer);
 	}
 
 	void TransparentPass::CreatePSOs()

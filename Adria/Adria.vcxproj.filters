@@ -1770,6 +1770,9 @@
     <None Include="Resources\Shaders\ReSTIR\ReSTIR_Util.hlsli">
       <Filter>Shaders\ReSTIR</Filter>
     </None>
+    <None Include="Resources\Shaders\Postprocess\SSRCommon.hlsli">
+      <Filter>Shaders\Postprocess</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">

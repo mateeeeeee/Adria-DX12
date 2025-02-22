@@ -716,6 +716,7 @@
     <None Include="Resources\Shaders\Noise.hlsli" />
     <None Include="Resources\Shaders\Packing.hlsli" />
     <None Include="Resources\Shaders\Postprocess\AutoExposure\ExposureUtil.hlsli" />
+    <None Include="Resources\Shaders\Postprocess\SSRCommon.hlsli" />
     <None Include="Resources\Shaders\Primitives.hlsli" />
     <None Include="Resources\Shaders\Random.hlsli" />
     <None Include="Resources\Shaders\RayTracing\PathTracing.hlsli" />

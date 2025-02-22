@@ -1,6 +1,9 @@
 
 #include "Scene.hlsli"
 #include "Packing.hlsli"
+#if USE_SSR
+#include "Postprocess/SSRCommon.hlsli"
+#endif
 //#if RAIN
 //#include "Weather/RainUtil.hlsli"
 //#endif
@@ -8,6 +11,7 @@
 struct TransparentConstants
 {
     uint instanceId;
+	uint sceneIdx;
 };
 ConstantBuffer<TransparentConstants> TransparentPassCB : register(b1);
 
@@ -53,5 +57,22 @@ float4 TransparentPS(VSToPS input) : SV_TARGET
     Material materialData = GetMaterialData(instanceData.materialIdx);
 	Texture2D albedoTexture = ResourceDescriptorHeap[materialData.diffuseIdx];
 	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 0.5f);
+#if USE_SSR
+	Texture2D sceneTexture = ResourceDescriptorHeap[TransparentPassCB.sceneIdx];
+	float4 sceneColor = sceneTexture.SampleLevel(LinearClampSampler, uv, 0);
+
+	float3 reflectDir = normalize(reflect(viewPosition, viewNormal));
+    float4 coords = SSRRayMarch(depthTexture, reflectDir, SSRPassCB.ssrRayStep, SSRPassCB.ssrRayHitThreshold, viewPosition);
+    float2 coordsEdgeFactors = float2(1, 1) - pow(saturate(abs(coords.xy - float2(0.5f, 0.5f)) * 2), 8);
+    float  screenEdgeFactor = saturate(min(coordsEdgeFactors.x, coordsEdgeFactors.y));
+
+    float3 hitColor = sceneTexture.SampleLevel(LinearClampSampler, coords.xy, 0).rgb;
+    float roughnessMask = saturate(1.0f - (roughness / 0.7f));
+    roughnessMask *= roughnessMask;
+    float4 fresnel = clamp(pow(1 - dot(normalize(viewPosition), viewNormal), 1), 0, 1);
+
+    float4 reflectionColor = float4(saturate(hitColor.xyz * screenEdgeFactor * roughnessMask), 1.0f);
+    outputTexture[input.DispatchThreadId.xy] = sceneColor + fresnel * max(0, reflectionColor);
+#endif
 	return albedoColor;
 }
