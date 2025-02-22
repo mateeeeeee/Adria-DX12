@@ -465,6 +465,11 @@ namespace adria
 		ProcessReleaseQueue();
 		if (nsight_perf_manager) nsight_perf_manager->EndFrame();
 
+		backbuffer_index = swapchain->GetBackbufferIndex();
+		frame_fence_values[backbuffer_index] = frame_fence_value;
+		graphics_queue.Signal(frame_fence, frame_fence_value);
+		++frame_fence_value;
+
 		Bool present_successful = swapchain->Present(VSync.Get());
 		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
 		{
@@ -472,11 +477,6 @@ namespace adria
 			MessageBoxA(nullptr, "Swapchain present failed!", "GPU Crash", MB_OK);
 			std::exit(1);
 		}
-
-		backbuffer_index = swapchain->GetBackbufferIndex();
-		frame_fence_values[backbuffer_index] = frame_fence_value;
-		graphics_queue.Signal(frame_fence, frame_fence_value);
-		++frame_fence_value;
 
 		backbuffer_index = swapchain->GetBackbufferIndex();
 		frame_fence.Wait(frame_fence_values[backbuffer_index]);
@@ -846,7 +846,8 @@ namespace adria
 			D3D12_MESSAGE_ID DenyIds[] =
 			{
 				D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
-				D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC
+				D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC,
+				D3D12_MESSAGE_ID_RENDER_TARGET_OR_DEPTH_STENCIL_RESOUCE_NOT_INITIALIZED
 			};
 
 			D3D12_INFO_QUEUE_FILTER NewFilter{};
