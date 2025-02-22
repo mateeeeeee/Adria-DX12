@@ -28,6 +28,8 @@ namespace adria
 		VS_Sun,
 		VS_Simple,
 		PS_Texture,
+		VS_Transparent,
+		PS_Transparent,
 		PS_Solid,
 		VS_Debug,
 		PS_Debug,

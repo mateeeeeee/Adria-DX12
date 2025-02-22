@@ -26,7 +26,6 @@ struct PSOutput
 	float4 DiffuseRT : SV_TARGET1;
 	float4 EmissiveRT : SV_TARGET2;
 	float4 CustomRT	 : SV_TARGET3;
-
 };
 
 VSToPS GBufferVS(uint vertexId : SV_VertexID)

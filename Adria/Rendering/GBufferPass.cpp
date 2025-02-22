@@ -60,7 +60,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto GetPSO = [this](ShadingExtension extension, MaterialAlphaMode alpha_mode)
 				{
 					using enum GfxShaderStage;
@@ -85,7 +84,6 @@ namespace adria
 				};
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-
 				GfxShadingRateInfo const& vrs = gfx->GetVRSInfo();
 				cmd_list->BeginVRS(vrs);
 
@@ -103,7 +101,8 @@ namespace adria
 				for (auto batch_entity : batch_view)
 				{
 					Batch& batch = batch_view.get<Batch>(batch_entity);
-					if (!batch.camera_visibility) continue;
+					if (!batch.camera_visibility || (skip_alpha_blended && batch.alpha_mode == MaterialAlphaMode::Blend)) 
+						continue;
 
 					GfxPipelineState* pso = GetPSO(batch.shading_extension, batch.alpha_mode);
 					cmd_list->SetPipelineState(pso);

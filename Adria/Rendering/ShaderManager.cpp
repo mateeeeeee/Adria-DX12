@@ -57,9 +57,11 @@ namespace adria
 			case VS_DDGIVisualize:
 			case VS_Rain:
 			case VS_RainBlocker:
+			case VS_Transparent:
 				return GfxShaderStage::VS;
 			case PS_Sky:
 			case PS_Texture:
+			case PS_Transparent:
 			case PS_Solid:
 			case PS_Decals:
 			case PS_GBuffer:
@@ -182,6 +184,9 @@ namespace adria
 			case PS_Texture:
 			case PS_Solid:
 				return "Other/Simple.hlsl";
+			case VS_Transparent:
+			case PS_Transparent:
+				return "Other/Transparent.hlsl";
 			case VS_Debug:
 			case PS_Debug:
 				return "Other/Debug.hlsl";
@@ -478,6 +483,10 @@ namespace adria
 				return "SunVS";
 			case PS_Texture:
 				return "TexturePS";
+			case VS_Transparent:
+				return "TransparentVS";
+			case PS_Transparent:
+				return "TransparentPS";
 			case PS_Solid:
 				return "SolidPS";
 			case VS_Decals:

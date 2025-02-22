@@ -22,6 +22,10 @@ namespace adria
 			raining = enabled;
 		}
 		void OnRendererOutputChanged(RendererOutput renderer_output);
+		void SkipAlphaBlended(Bool skip)
+		{
+			skip_alpha_blended = skip;
+		}
 
 	private:
 		entt::registry& reg;
@@ -30,6 +34,7 @@ namespace adria
 		Bool raining = false;
 		Bool debug_mipmaps = false;
 		Bool triangle_overdraw = false;
+		Bool skip_alpha_blended = false;
 		std::unique_ptr<GfxGraphicsPipelineStatePermutations> gbuffer_psos;
 
 	private:

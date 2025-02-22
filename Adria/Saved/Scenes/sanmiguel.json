@@ -28,9 +28,9 @@
 	  "lights" : [
 		{
 			"type": "directional",
-			"temperature" :  3500.0,
-			"elevation": 45.0,
-			"azimuth" :  180.0,
+			"temperature" :  4500.0,
+			"elevation": 65.0,
+			"azimuth" :  270.0,
 			"intensity": 5.0,
 			"shadows": true,
 			"cascades": true,

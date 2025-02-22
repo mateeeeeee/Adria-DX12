@@ -22,7 +22,6 @@ using namespace DirectX;
 
 namespace adria
 {
-
 	std::vector<entt::entity> SceneLoader::LoadGrid(GridParameters const& params)
 	{
 		if (params.heightmap)

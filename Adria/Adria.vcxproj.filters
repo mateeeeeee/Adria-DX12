@@ -597,6 +597,9 @@
     <ClCompile Include="RenderGraph\RenderGraphEvent.cpp">
       <Filter>RenderGraph</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\TransparentPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1629,6 +1632,9 @@
     <ClInclude Include="Graphics\GfxProfilerFwd.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\TransparentPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1895,9 +1901,6 @@
     <FxCompile Include="Resources\Shaders\Other\Picking.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Other\Simple.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Ocean\FFT.hlsl">
       <Filter>Shaders\Ocean</Filter>
     </FxCompile>
@@ -1975,6 +1978,12 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\ReSTIR\DI\TemporalResampling.hlsl">
       <Filter>Shaders\ReSTIR\DI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\Simple.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\Transparent.hlsl">
+      <Filter>Shaders\Other</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

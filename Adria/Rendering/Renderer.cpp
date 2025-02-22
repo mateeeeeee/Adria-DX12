@@ -25,7 +25,6 @@
 #include "Core/ConsoleManager.h"
 #include "entt/entity/registry.hpp"
 
-
 using namespace DirectX;
 
 namespace adria
@@ -45,7 +44,8 @@ namespace adria
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
 		decals_pass(reg, gfx, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, gfx, width, height),
 		shadow_renderer(reg, gfx, width, height), renderer_output_pass(gfx, width, height),
-		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), restir_di(gfx, width, height), gpu_debug_printer(gfx)
+		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), restir_di(gfx, width, height), gpu_debug_printer(gfx),
+		transparent_pass(reg, gfx, width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 
@@ -140,6 +140,7 @@ namespace adria
 
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
+			transparent_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			deferred_lighting_pass.OnResize(w, h);
 			volumetric_lighting_pass.OnResize(w, h);
@@ -554,12 +555,21 @@ namespace adria
 				}
 			}
 
-			if (ddgi.IsEnabled() && ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
-
-			ocean_renderer.AddPasses(render_graph);
-			sky_pass.AddPasses(render_graph, sun_direction);
-			picking_pass.AddPass(render_graph);
-			if (rain_pass.IsEnabled()) rain_pass.AddPass(render_graph);
+			if (ddgi.IsEnabled() && ddgi.Visualize())
+			{
+				ddgi.AddVisualizePass(render_graph);
+			}
+			{
+				RG_SCOPE(render_graph, "Forward");
+				ocean_renderer.AddPasses(render_graph);
+				sky_pass.AddPasses(render_graph, sun_direction);
+				if (enable_transparent_pass)
+				{
+					transparent_pass.AddPass(render_graph);
+				}
+				picking_pass.AddPass(render_graph);
+				if (rain_pass.IsEnabled()) rain_pass.AddPass(render_graph);
+			}
 			postprocessor.AddPasses(render_graph);
 			g_DebugRenderer.Render(render_graph);
 		}
@@ -634,7 +644,14 @@ namespace adria
 						}
 						ImGui::TreePop();
 					}
-
+					if (!gpu_driven_renderer.IsEnabled() && ImGui::TreeNode("Transparent"))
+					{
+						if (ImGui::Checkbox("Enable Transparent Pass", &enable_transparent_pass))
+						{
+							gbuffer_pass.SkipAlphaBlended(enable_transparent_pass);
+						}
+						ImGui::TreePop();
+					}
 					static Int current_volumetric_path = (Int)volumetric_path;
 					if (ImGui::TreeNode("Misc"))
 					{

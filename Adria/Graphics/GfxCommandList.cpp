@@ -486,7 +486,6 @@ namespace adria
 	{
 		GfxTextureDesc const& desc = src.GetDesc();
 
-
 		D3D12_TEXTURE_COPY_LOCATION dst_texture;
 		dst_texture.pResource = dst.GetNative();
 		dst_texture.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;

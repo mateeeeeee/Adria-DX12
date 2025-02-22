@@ -8,12 +8,6 @@
 #define MAX_STEPS 16
 #define BINARY_SEARCH_STEPS 16
 
-
-bool NeedReflection(float roughness, float roughness_cutoff)
-{
-	return roughness < roughness_cutoff;
-}
-
 struct SSRConstants
 {
     float ssrRayStep;

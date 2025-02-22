@@ -21,6 +21,7 @@
 #include "AccelerationStructure.h"
 #include "ShadowRenderer.h"
 #include "PathTracingPass.h"
+#include "TransparentPass.h"
 #include "RendererOutputPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
@@ -135,7 +136,8 @@ namespace adria
 		PathTracingPass path_tracer;
 		RendererOutputPass renderer_output_pass;
 		GPUDebugPrinter gpu_debug_printer;
-
+		TransparentPass transparent_pass;
+		Bool enable_transparent_pass = false;
 		//ray tracing
 		Bool ray_tracing_supported = false;
 		AccelerationStructure accel_structure;
