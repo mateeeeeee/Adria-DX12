@@ -233,7 +233,7 @@ namespace adria
 		}
 	}
 #else
-	GfxNsightPerfManager::GfxNsightPerfManager(GfxDevice* gfx) {}
+	GfxNsightPerfManager::GfxNsightPerfManager(GfxDevice* gfx, GfxNsightPerfMode perf_mode) {}
 	GfxNsightPerfManager::~GfxNsightPerfManager() {}
 	void GfxNsightPerfManager::Update() {}
 	void GfxNsightPerfManager::BeginFrame() {}
