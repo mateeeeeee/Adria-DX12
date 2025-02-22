@@ -13,7 +13,7 @@ namespace adria
 	class GfxComputePipelineState;
 	class GfxGraphicsPipelineState;
 
-	class VolumetricFogPass
+	class FogVolumesPass
 	{
 		struct FogVolumeGPU
 		{
@@ -33,7 +33,9 @@ namespace adria
 		static constexpr Uint32 BLUE_NOISE_TEXTURE_COUNT = 16;
 	public:
 
-		VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h);
+		FogVolumesPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h);
+		~FogVolumesPass();
+
 		void AddPasses(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h)
 		{

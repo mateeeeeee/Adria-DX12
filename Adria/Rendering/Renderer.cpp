@@ -31,22 +31,21 @@ using namespace DirectX;
 namespace adria
 {
 	static TAutoConsoleVariable<Int>  LightingPath("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
-	static TAutoConsoleVariable<Int>  VolumetricPath("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, gfx, width, height),
-		sky_pass(reg, gfx, width, height), deferred_lighting_pass(gfx, width, height), 
-		volumetric_lighting_pass(gfx, width, height), volumetric_fog_pass(gfx, reg, width, height),
+		sky_pass(reg, gfx, width, height), deferred_lighting_pass(gfx, width, height),
 		tiled_deferred_lighting_pass(reg, gfx, width, height) , copy_to_texture_pass(gfx, width, height), add_textures_pass(gfx, width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
 		decals_pass(reg, gfx, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, gfx, width, height),
 		shadow_renderer(reg, gfx, width, height), renderer_output_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), restir_di(gfx, width, height), gpu_debug_printer(gfx),
-		transparent_pass(reg, gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
+		transparent_pass(reg, gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing()),
+		volumetric_fog_manager(gfx, reg, width, height)
 	{
 		g_DebugRenderer.Initialize(gfx, width, height);
 		g_GfxProfiler.Initialize(gfx);
@@ -132,8 +131,6 @@ namespace adria
 			transparent_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			deferred_lighting_pass.OnResize(w, h);
-			volumetric_lighting_pass.OnResize(w, h);
-			volumetric_fog_pass.OnResize(w, h);
 			tiled_deferred_lighting_pass.OnResize(w, h);
 			clustered_deferred_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
@@ -145,6 +142,7 @@ namespace adria
 			ddgi.OnResize(w, h);
 			restir_di.OnResize(w, h);
 			rain_pass.OnResize(w, h);
+			volumetric_fog_manager.OnResize(w, h);
 		}
 	}
 
@@ -157,7 +155,7 @@ namespace adria
 		postprocessor.OnSceneInitialized();
 		ocean_renderer.OnSceneInitialized();
 		ddgi.OnSceneInitialized();
-		volumetric_fog_pass.OnSceneInitialized();
+		volumetric_fog_manager.OnSceneInitialized();
 		CreateAS();
 
 		gfxcommon::Initialize(gfx);
@@ -188,7 +186,7 @@ namespace adria
 	{
 		postprocessor.AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate::CreateMember(&Renderer::OnRenderResolutionChanged, *this));
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
-		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&VolumetricLightingPass::OnShadowTextureRendered, volumetric_lighting_pass);
+		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&VolumetricFogManager::OnShadowTextureRendered, volumetric_fog_manager);
 
 		rain_pass.GetRainEvent().AddMember(&PostProcessor::OnRainEvent, postprocessor);
 		rain_pass.GetRainEvent().AddMember(&GPUDrivenGBufferPass::OnRainEvent, gpu_driven_renderer);
@@ -198,7 +196,6 @@ namespace adria
 		transparent_pass.GetTransparentChangedEvent().AddMember(&GBufferPass::OnTransparentChanged, gbuffer_pass);
 
 		LightingPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPathType>(cvar->GetInt()); }));
-		VolumetricPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { volumetric_path = static_cast<VolumetricPathType>(cvar->GetInt()); }));
 	}
 
 	void Renderer::CreateDisplaySizeDependentResources()
@@ -558,14 +555,9 @@ namespace adria
 				case LightingPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
 				case LightingPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 				}
-
 				if (volumetric_lights > 0)
 				{
-					switch (volumetric_path)
-					{
-					case VolumetricPathType::Raymarching:	volumetric_lighting_pass.AddPass(render_graph); break;
-					case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
-					}
+					volumetric_fog_manager.AddPass(render_graph);
 				}
 			}
 
@@ -613,15 +605,11 @@ namespace adria
 				tiled_deferred_lighting_pass.GUI();
 			}
 			shadow_renderer.GUI();
-			switch (volumetric_path)
-			{
-			case VolumetricPathType::Raymarching:	volumetric_lighting_pass.GUI(); break;
-			case VolumetricPathType::FogVolume:		volumetric_fog_pass.GUI();		break;
-			}
 			ocean_renderer.GUI();
 			sky_pass.GUI();
 			rain_pass.GUI();
 			transparent_pass.GUI();
+			volumetric_fog_manager.GUI();
 			QueueGUI([&]()
 				{
 					if (ImGui::TreeNode("Sun Settings"))
@@ -665,15 +653,8 @@ namespace adria
 						}
 						ImGui::TreePop();
 					}
-					static Int current_volumetric_path = (Int)volumetric_path;
 					if (ImGui::TreeNode("Misc"))
 					{
-						if (ImGui::Combo("Volumetric Fog", &current_volumetric_path, "None\0 Raymarching\0Fog Volume\0", 3))
-						{
-							VolumetricPath->Set(current_volumetric_path);
-						}
-						volumetric_path = static_cast<VolumetricPathType>(current_volumetric_path);
-
 						if (!ddgi.IsEnabled())
 						{
 							ImGui::ColorEdit3("Ambient Color", ambient_color);

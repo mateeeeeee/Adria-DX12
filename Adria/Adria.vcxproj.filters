@@ -236,7 +236,7 @@
     <ClCompile Include="Rendering\DeferredLightingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\VolumetricLightingPass.cpp">
+    <ClCompile Include="Rendering\RayMarchedVolumetricFog.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp">
@@ -447,7 +447,7 @@
     <ClCompile Include="Graphics\GfxRayTracingShaderTable.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\VolumetricFogPass.cpp">
+    <ClCompile Include="Rendering\FogVolumesPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxShaderKey.cpp">
@@ -599,6 +599,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\TransparentPass.cpp">
       <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\VolumetricFogManager.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -806,7 +809,7 @@
     <ClInclude Include="Rendering\DeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\VolumetricLightingPass.h">
+    <ClInclude Include="Rendering\RayMarchedVolumetricFog.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RayTracedShadowsPass.h">
@@ -1053,7 +1056,7 @@
     <ClInclude Include="Rendering\ReSTIR_DI.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\VolumetricFogPass.h">
+    <ClInclude Include="Rendering\FogVolumesPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Math\NormalsUtil.h">
@@ -1634,6 +1637,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\TransparentPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\VolumetricFogManager.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

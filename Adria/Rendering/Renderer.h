@@ -6,8 +6,8 @@
 #include "GPUDrivenGBufferPass.h"
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
-#include "VolumetricLightingPass.h"
-#include "VolumetricFogPass.h"
+#include "RayMarchedVolumetricFog.h"
+#include "FogVolumesPass.h"
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
 #include "DDGIPass.h"
@@ -22,6 +22,7 @@
 #include "ShadowRenderer.h"
 #include "PathTracingPass.h"
 #include "TransparentPass.h"
+#include "VolumetricFogManager.h"
 #include "RendererOutputPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
@@ -45,13 +46,6 @@ namespace adria
 
 	class Renderer
 	{
-		enum class VolumetricPathType : Uint8
-		{
-			None,
-			Raymarching,
-			FogVolume
-		};
-
 	public:
 
 		Renderer(entt::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height);
@@ -119,8 +113,7 @@ namespace adria
 		GPUDrivenGBufferPass gpu_driven_renderer;
 		SkyPass		 sky_pass;
 		DeferredLightingPass deferred_lighting_pass;
-		VolumetricLightingPass volumetric_lighting_pass;
-		VolumetricFogPass volumetric_fog_pass;
+		
 		TiledDeferredLightingPass tiled_deferred_lighting_pass;
 		ClusteredDeferredLightingPass clustered_deferred_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -137,6 +130,7 @@ namespace adria
 		RendererOutputPass renderer_output_pass;
 		GPUDebugPrinter gpu_debug_printer;
 		TransparentPass transparent_pass;
+		VolumetricFogManager volumetric_fog_manager;
 
 		//ray tracing
 		Bool ray_tracing_supported = false;
@@ -171,7 +165,6 @@ namespace adria
 
 		//volumetric
 		Uint32			         volumetric_lights = 0;
-		VolumetricPathType		 volumetric_path = VolumetricPathType::Raymarching;
 		//misc
 		ViewportData			 viewport_data;
 

@@ -1,4 +1,4 @@
-#include "VolumetricFogPass.h"
+#include "FogVolumesPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
 #include "Components.h"
@@ -6,7 +6,6 @@
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Editor/GUICommand.h"
 #include "Core/Paths.h"
 
 namespace adria
@@ -15,14 +14,18 @@ namespace adria
 	static constexpr Uint32 VOXEL_TEXEL_SIZE_Y = 8;
 	static constexpr Uint32 VOXEL_GRID_SIZE_Z  = 128;
 
-	VolumetricFogPass::VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
+	FogVolumesPass::FogVolumesPass(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
 		CreatePSOs();
 		CreateLightInjectionHistoryTexture();
 		blue_noise_handles.fill(INVALID_TEXTURE_HANDLE);
 	}
 
-	void VolumetricFogPass::OnSceneInitialized()
+	FogVolumesPass::~FogVolumesPass()
+	{
+	}
+
+	void FogVolumesPass::OnSceneInitialized()
 	{
 		if (std::any_of(std::begin(blue_noise_handles), std::end(blue_noise_handles),
 			[](TextureHandle texture_handle) { return texture_handle == INVALID_TEXTURE_HANDLE;}))
@@ -56,33 +59,30 @@ namespace adria
 		CreateFogVolumeBuffer();
 	}
 
-	void VolumetricFogPass::GUI()
+	void FogVolumesPass::GUI()
 	{
-		QueueGUI([&]()
+		if (fog_volumes.empty()) return;
+
+		FogVolume& fog_volume = fog_volumes[0];
+		if (ImGui::TreeNode("Volumetric Fog"))
+		{
+			Bool update_fog_volume_buffer = false;
+			update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 0.02f);
+			update_fog_volume_buffer |= ImGui::SliderFloat("Density Change", &fog_volume.density_change, 0.0f, 0.05f);
+			Vector3 fog_color = fog_volume.color.ToVector3();
+			update_fog_volume_buffer |= ImGui::ColorEdit3("Fog Color", (Float*)&fog_color);
+			fog_volume.color = Color(fog_color);
+
+			if (update_fog_volume_buffer)
 			{
-				if (fog_volumes.empty()) return;
+				CreateFogVolumeBuffer();
+			}
 
-				FogVolume& fog_volume = fog_volumes[0];
-				if (ImGui::TreeNode("Volumetric Fog"))
-				{
-					Bool update_fog_volume_buffer = false;
-					update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 0.02f);
-					update_fog_volume_buffer |= ImGui::SliderFloat("Density Change", &fog_volume.density_change, 0.0f, 0.05f);
-					Vector3 fog_color = fog_volume.color.ToVector3();
-					update_fog_volume_buffer |= ImGui::ColorEdit3("Fog Color", (Float*)&fog_color);
-					fog_volume.color = Color(fog_color);
-
-					if (update_fog_volume_buffer)
-					{
-						CreateFogVolumeBuffer();
-					}
-
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_Renderer);
+			ImGui::TreePop();
+		}
 	}
 
-	void VolumetricFogPass::AddPasses(RenderGraph& rg)
+	void FogVolumesPass::AddPasses(RenderGraph& rg)
 	{
 		GfxDescriptor fog_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, fog_volume_buffer_srv_gpu, fog_volume_buffer_srv);
@@ -93,7 +93,7 @@ namespace adria
 		AddCombineFogPass(rg);
 	}
 
-	void VolumetricFogPass::AddLightInjectionPass(RenderGraph& rg)
+	void FogVolumesPass::AddLightInjectionPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -160,7 +160,7 @@ namespace adria
 		rg.ExportTexture(RG_NAME(FogLightInjectionTarget), light_injection_target_history.get());
 	}
 
-	void VolumetricFogPass::AddScatteringIntegrationPass(RenderGraph& rg)
+	void FogVolumesPass::AddScatteringIntegrationPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -217,7 +217,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
-	void VolumetricFogPass::AddCombineFogPass(RenderGraph& rg)
+	void FogVolumesPass::AddCombineFogPass(RenderGraph& rg)
 	{
 		struct CombinePassData
 		{
@@ -250,7 +250,7 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void VolumetricFogPass::CreatePSOs()
+	void FogVolumesPass::CreatePSOs()
 	{
 		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
@@ -277,7 +277,7 @@ namespace adria
 		scattering_integration_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
-	void VolumetricFogPass::CreateLightInjectionHistoryTexture()
+	void FogVolumesPass::CreateLightInjectionHistoryTexture()
 	{
 		Uint32 const voxel_grid_width = DivideAndRoundUp(width, VOXEL_TEXEL_SIZE_X);
 		Uint32 const voxel_grid_height = DivideAndRoundUp(height, VOXEL_TEXEL_SIZE_Y);
@@ -300,7 +300,7 @@ namespace adria
 		light_injection_target_history_srv = gfx->CreateTextureSRV(light_injection_target_history.get());
 	}
 
-	void VolumetricFogPass::CreateFogVolumeBuffer()
+	void FogVolumesPass::CreateFogVolumeBuffer()
 	{
 		if (!fog_volume_buffer || fog_volume_buffer->GetCount() < fog_volumes.size())
 		{

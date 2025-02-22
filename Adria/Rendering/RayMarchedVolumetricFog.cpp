@@ -1,10 +1,9 @@
-#include "VolumetricLightingPass.h"
+#include "RayMarchedVolumetricFog.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h" 
 #include "Graphics/GfxPipelineState.h"
-#include "Editor/GUICommand.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 
@@ -14,12 +13,16 @@ using namespace DirectX;
 namespace adria
 {
 
-	VolumetricLightingPass::VolumetricLightingPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
+	RayMarchedVolumetricFog::RayMarchedVolumetricFog(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
 	{
 		CreatePSOs();
 	}
 
-	void VolumetricLightingPass::AddPass(RenderGraph& rendergraph)
+	RayMarchedVolumetricFog::~RayMarchedVolumetricFog()
+	{
+	}
+
+	void RayMarchedVolumetricFog::AddPass(RenderGraph& rendergraph)
 	{
 		struct LightingPassData
 		{
@@ -73,26 +76,22 @@ namespace adria
 		shadow_textures.clear();
 	}
 
-	void VolumetricLightingPass::GUI()
+	void RayMarchedVolumetricFog::GUI()
 	{
-		QueueGUI([&]()
+		if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_None))
+		{
+			static Int _resolution = (Int)resolution;
+			if (ImGui::Combo("Volumetric Lighting Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 			{
-				if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_None))
-				{
-					static Int _resolution = (Int)resolution;
-					if (ImGui::Combo("Volumetric Lighting Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
-					{
-						resolution = (VolumetricLightingResolution)_resolution;
-						OnResize(width, height);
-					}
-
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-			}, GUICommandGroup_Renderer);
+				resolution = (VolumetricLightingResolution)_resolution;
+				OnResize(width, height);
+			}
+			ImGui::TreePop();
+			ImGui::Separator();
+		}
 	}
 
-	void VolumetricLightingPass::CreatePSOs()
+	void RayMarchedVolumetricFog::CreatePSOs()
 	{
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_VolumetricLighting;
