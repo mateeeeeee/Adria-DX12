@@ -20,6 +20,8 @@
 #include "Core/Window.h"
 #include "Core/ConsoleManager.h"
 #include "Core/CommandLineOptions.h"
+#include "tracy/Tracy.hpp"
+
 
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
@@ -400,9 +402,11 @@ namespace adria
 
 	void GfxDevice::WaitForGPU()
 	{
+		ZoneScopedN("GfxDevice::WaitForGPU");
 		graphics_queue.Signal(wait_fence, wait_fence_value);
-		copy_queue.Signal(wait_fence, wait_fence_value);
 		wait_fence.Wait(wait_fence_value);
+		wait_fence_value++;
+		copy_queue.Signal(wait_fence, wait_fence_value);
 		wait_fence.Wait(wait_fence_value);
 		wait_fence_value++;
 	}
@@ -431,6 +435,7 @@ namespace adria
 
 	void GfxDevice::BeginFrame()
 	{
+		ZoneScopedN("GfxDevice::BeginFrame");
 		if (rendering_not_started) [[unlikely]]
 		{
 			dynamic_allocator_on_init.reset();
@@ -448,6 +453,7 @@ namespace adria
 	}
 	void GfxDevice::EndFrame()
 	{
+		ZoneScopedN("GfxDevice::EndFrame");
 		if (first_frame) [[unlikely]] first_frame = false;
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 

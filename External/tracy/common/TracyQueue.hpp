@@ -70,6 +70,7 @@ enum class QueueType : uint8_t
     KeepAlive,
     ThreadContext,
     GpuCalibration,
+    GpuTimeSync,
     Crash,
     CrashReport,
     ZoneValidation,
@@ -90,6 +91,7 @@ enum class QueueType : uint8_t
     GpuNewContext,
     CallstackFrame,
     SysTimeReport,
+    SysPowerReport,
     TidToPid,
     HwSampleCpuCycle,
     HwSampleInstructionRetired,
@@ -106,6 +108,7 @@ enum class QueueType : uint8_t
     SingleStringData,
     SecondStringData,
     MemNamePayload,
+    ThreadGroupHint,
     StringData,
     ThreadName,
     PlotName,
@@ -257,6 +260,7 @@ struct QueueFiberEnter
     int64_t time;
     uint64_t fiber;     // ptr
     uint32_t thread;
+    int32_t groupHint;
 };
 
 struct QueueFiberLeave
@@ -452,6 +456,13 @@ struct QueueGpuCalibration
     uint8_t context;
 };
 
+struct QueueGpuTimeSync
+{
+    int64_t gpuTime;
+    int64_t cpuTime;
+    uint8_t context;
+};
+    
 struct QueueGpuContextName
 {
     uint8_t context;
@@ -466,6 +477,12 @@ struct QueueGpuContextNameFat : public QueueGpuContextName
 struct QueueMemNamePayload
 {
     uint64_t name;
+};
+
+struct QueueThreadGroupHint
+{
+    uint32_t thread;
+    int32_t groupHint;
 };
 
 struct QueueMemAlloc
@@ -563,6 +580,13 @@ struct QueueSysTime
     float sysTime;
 };
 
+struct QueueSysPower
+{
+    int64_t time;
+    uint64_t delta;
+    uint64_t name;  // ptr
+};
+
 struct QueueContextSwitch
 {
     int64_t time;
@@ -623,6 +647,7 @@ struct QueueSourceCodeNotAvailable
 struct QueueCpuTopology
 {
     uint32_t package;
+    uint32_t die;
     uint32_t core;
     uint32_t thread;
 };
@@ -710,11 +735,13 @@ struct QueueItem
         QueueGpuZoneEnd gpuZoneEnd;
         QueueGpuTime gpuTime;
         QueueGpuCalibration gpuCalibration;
+        QueueGpuTimeSync gpuTimeSync;
         QueueGpuContextName gpuContextName;
         QueueGpuContextNameFat gpuContextNameFat;
         QueueMemAlloc memAlloc;
         QueueMemFree memFree;
         QueueMemNamePayload memName;
+        QueueThreadGroupHint threadGroupHint;
         QueueCallstackFat callstackFat;
         QueueCallstackFatThread callstackFatThread;
         QueueCallstackAllocFat callstackAllocFat;
@@ -729,6 +756,7 @@ struct QueueItem
         QueueCrashReport crashReport;
         QueueCrashReportThread crashReportThread;
         QueueSysTime sysTime;
+        QueueSysPower sysPower;
         QueueContextSwitch contextSwitch;
         QueueThreadWakeup threadWakeup;
         QueueTidToPid tidToPid;
@@ -812,6 +840,7 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ),                                  // keep alive
     sizeof( QueueHeader ) + sizeof( QueueThreadContext ),
     sizeof( QueueHeader ) + sizeof( QueueGpuCalibration ),
+    sizeof( QueueHeader ) + sizeof( QueueGpuTimeSync ),
     sizeof( QueueHeader ),                                  // crash
     sizeof( QueueHeader ) + sizeof( QueueCrashReport ),
     sizeof( QueueHeader ) + sizeof( QueueZoneValidation ),
@@ -832,6 +861,7 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ) + sizeof( QueueGpuNewContext ),
     sizeof( QueueHeader ) + sizeof( QueueCallstackFrame ),
     sizeof( QueueHeader ) + sizeof( QueueSysTime ),
+    sizeof( QueueHeader ) + sizeof( QueueSysPower ),
     sizeof( QueueHeader ) + sizeof( QueueTidToPid ),
     sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // cpu cycle
     sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // instruction retired
@@ -848,6 +878,7 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ),                                  // single string data
     sizeof( QueueHeader ),                                  // second string data
     sizeof( QueueHeader ) + sizeof( QueueMemNamePayload ),
+    sizeof( QueueHeader ) + sizeof( QueueThreadGroupHint ),
     // keep all QueueStringTransfer below
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // string data
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // thread name

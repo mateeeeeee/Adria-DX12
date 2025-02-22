@@ -1,6 +1,7 @@
 #pragma once
 #include "GfxMacros.h"
 #include "tracy/TracyD3D12.hpp"
+#include "tracy/TracyC.h"
 
 namespace adria
 {

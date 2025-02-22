@@ -173,10 +173,10 @@ static tracy_force_inline void SendLuaCallstack( lua_State* L, uint32_t depth )
     {
         const uint32_t line = dbg[i].currentline;
         memcpy( dst, &line, 4 ); dst += 4;
-        assert( fsz[i] <= std::numeric_limits<uint16_t>::max() );
+        assert( fsz[i] <= (std::numeric_limits<uint16_t>::max)() );
         memcpy( dst, fsz+i, 2 ); dst += 2;
         memcpy( dst, func[i], fsz[i] ); dst += fsz[i];
-        assert( ssz[i] <= std::numeric_limits<uint16_t>::max() );
+        assert( ssz[i] <= (std::numeric_limits<uint16_t>::max)() );
         memcpy( dst, ssz+i, 2 ); dst += 2;
         memcpy( dst, dbg[i].source, ssz[i] ), dst += ssz[i];
     }
@@ -186,6 +186,13 @@ static tracy_force_inline void SendLuaCallstack( lua_State* L, uint32_t depth )
     MemWrite( &item->callstackAllocFat.ptr, (uint64_t)ptr );
     MemWrite( &item->callstackAllocFat.nativePtr, (uint64_t)Callstack( depth ) );
     TracyQueueCommit( callstackAllocFatThread );
+}
+
+static inline void LuaShortenSrc( char* dst, const char* src )
+{
+    size_t l = std::min( (size_t)255, strlen( src ) );
+    memcpy( dst, src, l );
+    dst[l] = 0;
 }
 
 static inline int LuaZoneBeginS( lua_State* L )
@@ -207,7 +214,9 @@ static inline int LuaZoneBeginS( lua_State* L )
     lua_Debug dbg;
     lua_getstack( L, 1, &dbg );
     lua_getinfo( L, "Snl", &dbg );
-    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, dbg.source, dbg.name ? dbg.name : dbg.short_src );
+    char src[256];
+    LuaShortenSrc( src, dbg.source );
+    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, src, dbg.name ? dbg.name : dbg.short_src );
 
     TracyQueuePrepare( QueueType::ZoneBeginAllocSrcLocCallstack );
     MemWrite( &item->zoneBegin.time, Profiler::GetTime() );
@@ -237,8 +246,10 @@ static inline int LuaZoneBeginNS( lua_State* L )
     lua_getstack( L, 1, &dbg );
     lua_getinfo( L, "Snl", &dbg );
     size_t nsz;
+    char src[256];
+    LuaShortenSrc( src, dbg.source );
     const auto name = lua_tolstring( L, 1, &nsz );
-    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, dbg.source, dbg.name ? dbg.name : dbg.short_src, name, nsz );
+    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, src, dbg.name ? dbg.name : dbg.short_src, name, nsz );
 
     TracyQueuePrepare( QueueType::ZoneBeginAllocSrcLocCallstack );
     MemWrite( &item->zoneBegin.time, Profiler::GetTime() );
@@ -264,7 +275,9 @@ static inline int LuaZoneBegin( lua_State* L )
     lua_Debug dbg;
     lua_getstack( L, 1, &dbg );
     lua_getinfo( L, "Snl", &dbg );
-    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, dbg.source, dbg.name ? dbg.name : dbg.short_src );
+    char src[256];
+    LuaShortenSrc( src, dbg.source );
+    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, src, dbg.name ? dbg.name : dbg.short_src );
 
     TracyQueuePrepare( QueueType::ZoneBeginAllocSrcLoc );
     MemWrite( &item->zoneBegin.time, Profiler::GetTime() );
@@ -290,8 +303,10 @@ static inline int LuaZoneBeginN( lua_State* L )
     lua_getstack( L, 1, &dbg );
     lua_getinfo( L, "Snl", &dbg );
     size_t nsz;
+    char src[256];
+    LuaShortenSrc( src, dbg.source );
     const auto name = lua_tolstring( L, 1, &nsz );
-    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, dbg.source, dbg.name ? dbg.name : dbg.short_src, name, nsz );
+    const auto srcloc = Profiler::AllocSourceLocation( dbg.currentline, src, dbg.name ? dbg.name : dbg.short_src, name, nsz );
 
     TracyQueuePrepare( QueueType::ZoneBeginAllocSrcLoc );
     MemWrite( &item->zoneBegin.time, Profiler::GetTime() );
@@ -333,7 +348,7 @@ static inline int LuaZoneText( lua_State* L )
 
     auto txt = lua_tostring( L, 1 );
     const auto size = strlen( txt );
-    assert( size < std::numeric_limits<uint16_t>::max() );
+    assert( size < (std::numeric_limits<uint16_t>::max)() );
 
     auto ptr = (char*)tracy_malloc( size );
     memcpy( ptr, txt, size );
@@ -358,7 +373,7 @@ static inline int LuaZoneName( lua_State* L )
 
     auto txt = lua_tostring( L, 1 );
     const auto size = strlen( txt );
-    assert( size < std::numeric_limits<uint16_t>::max() );
+    assert( size < (std::numeric_limits<uint16_t>::max)() );
 
     auto ptr = (char*)tracy_malloc( size );
     memcpy( ptr, txt, size );
@@ -378,7 +393,7 @@ static inline int LuaMessage( lua_State* L )
 
     auto txt = lua_tostring( L, 1 );
     const auto size = strlen( txt );
-    assert( size < std::numeric_limits<uint16_t>::max() );
+    assert( size < (std::numeric_limits<uint16_t>::max)() );
 
     auto ptr = (char*)tracy_malloc( size );
     memcpy( ptr, txt, size );

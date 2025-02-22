@@ -24,6 +24,7 @@
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
 #include "entt/entity/registry.hpp"
+#include "tracy/Tracy.hpp"
 
 using namespace DirectX;
 
@@ -99,6 +100,7 @@ namespace adria
 	}
 	void Renderer::Render()
 	{
+		ZoneScopedN("Renderer::Render");
 		RenderGraph render_graph(resource_pool);
 		RenderImpl(render_graph);
 		render_graph.Compile();
@@ -477,6 +479,7 @@ namespace adria
 
 	void Renderer::RenderImpl(RenderGraph& render_graph)
 	{
+		ZoneScopedN("Renderer::RenderImpl");
 		RG_SCOPE(render_graph, "Frame");
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 		FrameBlackboardData frame_data{};
@@ -521,6 +524,7 @@ namespace adria
 	}
 	void Renderer::Render_Deferred(RenderGraph& render_graph)
 	{
+		ZoneScopedN("Renderer::Render_Deferred");
 		if (update_picking_data)
 		{
 			picking_data = picking_pass.GetPickingData();
@@ -587,6 +591,7 @@ namespace adria
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
+		ZoneScopedN("Renderer::Render_PathTracing");
 		path_tracer.AddPass(render_graph);
 		postprocessor.AddTonemapPass(render_graph, RG_NAME(PT_Output));
 	}

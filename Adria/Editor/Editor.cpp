@@ -872,7 +872,7 @@ namespace adria
 #if GFX_PROFILING_USE_TRACY
 			if (ImGui::Button("Run Tracy"))
 			{
-				system("start ..\\External\\tracy\\Tracy-0.9.1\\Tracy.exe");
+				system("start ..\\External\\tracy\\Tracy-0.11.1\\tracy-profiler.exe");
 			}
 #endif
 			static Bool show_profiling = true;

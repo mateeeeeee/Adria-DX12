@@ -10,6 +10,8 @@
 #include "tracy_concurrentqueue.h"
 #include "tracy_SPSCQueue.h"
 #include "TracyCallstack.hpp"
+#include "TracyKCore.hpp"
+#include "TracySysPower.hpp"
 #include "TracySysTime.hpp"
 #include "TracyFastVector.hpp"
 #include "../common/TracyQueue.hpp"
@@ -26,7 +28,7 @@
 #  include <mach/mach_time.h>
 #endif
 
-#if ( defined _WIN32 || ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 ) || ( defined TARGET_OS_IOS && TARGET_OS_IOS == 1 ) )
+#if ( (defined _WIN32 && !(defined _M_ARM64 || defined _M_ARM)) || ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 ) || ( defined TARGET_OS_IOS && TARGET_OS_IOS == 1 ) )
 #  define TRACY_HW_TIMER
 #endif
 
@@ -50,6 +52,10 @@ namespace tracy
 #if defined(TRACY_DELAYED_INIT) && defined(TRACY_MANUAL_LIFETIME)
 TRACY_API void StartupProfiler();
 TRACY_API void ShutdownProfiler();
+TRACY_API bool IsProfilerStarted();
+#  define TracyIsStarted tracy::IsProfilerStarted()
+#else
+#  define TracyIsStarted true
 #endif
 
 class GpuCtx;
@@ -208,7 +214,22 @@ public:
         if( HardwareSupportsInvariantTSC() )
         {
             uint64_t rax, rdx;
+#ifdef TRACY_PATCHABLE_NOPSLEDS
+            // Some external tooling (such as rr) wants to patch our rdtsc and replace it by a
+            // branch to control the external input seen by a program. This kind of patching is
+            // not generally possible depending on the surrounding code and can lead to significant
+            // slowdowns if the compiler generated unlucky code and rr and tracy are used together.
+            // To avoid this, use the rr-safe `nopl 0(%rax, %rax, 1); rdtsc` instruction sequence,
+            // which rr promises will be patchable independent of the surrounding code.
+            asm volatile (
+                    // This is nopl 0(%rax, %rax, 1), but assemblers are inconsistent about whether
+                    // they emit that as a 4 or 5 byte sequence and we need to be guaranteed to use
+                    // the 5 byte one.
+                    ".byte 0x0f, 0x1f, 0x44, 0x00, 0x00\n\t"
+                    "rdtsc" : "=a" (rax), "=d" (rdx) );
+#else
             asm volatile ( "rdtsc" : "=a" (rax), "=d" (rdx) );
+#endif
             return (int64_t)(( rdx << 32 ) + rax);
         }
 #  else
@@ -288,7 +309,7 @@ public:
     {
 #ifndef TRACY_NO_FRAME_IMAGE
         auto& profiler = GetProfiler();
-        assert( profiler.m_frameCount.load( std::memory_order_relaxed ) < std::numeric_limits<uint32_t>::max() );
+        assert( profiler.m_frameCount.load( std::memory_order_relaxed ) < (std::numeric_limits<uint32_t>::max)() );
 #  ifdef TRACY_ON_DEMAND
         if( !profiler.IsConnected() ) return;
 #  endif
@@ -305,6 +326,12 @@ public:
         fi->flip = flip;
         profiler.m_fiQueue.commit_next();
         profiler.m_fiLock.unlock();
+#else
+        static_cast<void>(image); // unused
+        static_cast<void>(w); // unused
+        static_cast<void>(h); // unused
+        static_cast<void>(offset); // unused
+        static_cast<void>(flip); // unused
 #endif
     }
 
@@ -362,7 +389,7 @@ public:
 
     static tracy_force_inline void Message( const char* txt, size_t size, int callstack )
     {
-        assert( size < std::numeric_limits<uint16_t>::max() );
+        assert( size < (std::numeric_limits<uint16_t>::max)() );
 #ifdef TRACY_ON_DEMAND
         if( !GetProfiler().IsConnected() ) return;
 #endif
@@ -399,7 +426,7 @@ public:
 
     static tracy_force_inline void MessageColor( const char* txt, size_t size, uint32_t color, int callstack )
     {
-        assert( size < std::numeric_limits<uint16_t>::max() );
+        assert( size < (std::numeric_limits<uint16_t>::max)() );
 #ifdef TRACY_ON_DEMAND
         if( !GetProfiler().IsConnected() ) return;
 #endif
@@ -442,7 +469,7 @@ public:
 
     static tracy_force_inline void MessageAppInfo( const char* txt, size_t size )
     {
-        assert( size < std::numeric_limits<uint16_t>::max() );
+        assert( size < (std::numeric_limits<uint16_t>::max)() );
         auto ptr = (char*)tracy_malloc( size );
         memcpy( ptr, txt, size );
         TracyLfqPrepare( QueueType::MessageAppInfo );
@@ -579,8 +606,7 @@ public:
         profiler.m_serialLock.unlock();
 #else
         static_cast<void>(depth); // unused
-        static_cast<void>(name); // unused
-        MemAlloc( ptr, size, secure );
+        MemAllocNamed( ptr, size, secure, name );
 #endif
     }
 
@@ -603,8 +629,7 @@ public:
         profiler.m_serialLock.unlock();
 #else
         static_cast<void>(depth); // unused
-        static_cast<void>(name); // unused
-        MemFree( ptr, secure );
+        MemFreeNamed( ptr, secure, name );
 #endif
     }
 
@@ -650,11 +675,12 @@ public:
     }
 
 #ifdef TRACY_FIBERS
-    static tracy_force_inline void EnterFiber( const char* fiber )
+    static tracy_force_inline void EnterFiber( const char* fiber, int32_t groupHint )
     {
         TracyQueuePrepare( QueueType::FiberEnter );
         MemWrite( &item->fiberEnter.time, GetTime() );
         MemWrite( &item->fiberEnter.fiber, (uint64_t)fiber );
+        MemWrite( &item->fiberEnter.groupHint, groupHint );
         TracyQueueCommit( fiberEnter );
     }
 
@@ -674,6 +700,13 @@ public:
     tracy_force_inline bool IsConnected() const
     {
         return m_isConnected.load( std::memory_order_acquire );
+    }
+
+    tracy_force_inline void SetProgramName( const char* name )
+    {
+        m_programNameLock.lock();
+        m_programName = name;
+        m_programNameLock.unlock();
     }
 
 #ifdef TRACY_ON_DEMAND
@@ -712,29 +745,29 @@ public:
     //  1b  null terminator
     //  nsz zone name (optional)
 
-    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, const char* function )
+    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, const char* function, uint32_t color = 0 )
     {
-        return AllocSourceLocation( line, source, function, nullptr, 0 );
+        return AllocSourceLocation( line, source, function, nullptr, 0, color );
     }
 
-    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, const char* function, const char* name, size_t nameSz )
+    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, const char* function, const char* name, size_t nameSz, uint32_t color = 0 )
     {
-        return AllocSourceLocation( line, source, strlen(source), function, strlen(function), name, nameSz );
+        return AllocSourceLocation( line, source, strlen(source), function, strlen(function), name, nameSz, color );
     }
 
-    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz )
+    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, uint32_t color = 0 )
     {
-        return AllocSourceLocation( line, source, sourceSz, function, functionSz, nullptr, 0 );
+        return AllocSourceLocation( line, source, sourceSz, function, functionSz, nullptr, 0, color );
     }
 
-    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, const char* name, size_t nameSz )
+    static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, const char* name, size_t nameSz, uint32_t color = 0 )
     {
         const auto sz32 = uint32_t( 2 + 4 + 4 + functionSz + 1 + sourceSz + 1 + nameSz );
-        assert( sz32 <= std::numeric_limits<uint16_t>::max() );
+        assert( sz32 <= (std::numeric_limits<uint16_t>::max)() );
         const auto sz = uint16_t( sz32 );
         auto ptr = (char*)tracy_malloc( sz );
         memcpy( ptr, &sz, 2 );
-        memset( ptr + 2, 0, 4 );
+        memcpy( ptr + 2, &color, 4 );
         memcpy( ptr + 6, &line, 4 );
         memcpy( ptr + 10, function, functionSz );
         ptr[10 + functionSz] = '\0';
@@ -765,6 +798,9 @@ private:
     void HandleSymbolQueueItem( const SymbolQueueItem& si );
 #endif
 
+    void InstallCrashHandler();
+    void RemoveCrashHandler();
+    
     void ClearQueues( tracy::moodycamel::ConsumerToken& token );
     void ClearSerial();
     DequeueStatus Dequeue( tracy::moodycamel::ConsumerToken& token );
@@ -941,6 +977,10 @@ private:
     void ProcessSysTime() {}
 #endif
 
+#ifdef TRACY_HAS_SYSPOWER
+    SysPower m_sysPower;
+#endif
+
     ParameterCallback m_paramCallback;
     void* m_paramCallbackData;
     SourceContentsCallback m_sourceCallback;
@@ -957,8 +997,12 @@ private:
     struct {
         struct sigaction pwr, ill, fpe, segv, pipe, bus, abrt;
     } m_prevSignal;
+    KCore* m_kcore;
 #endif
     bool m_crashHandlerInstalled;
+
+    const char* m_programName;
+    TracyMutex m_programNameLock;
 };
 
 }

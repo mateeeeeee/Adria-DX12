@@ -10,6 +10,7 @@
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
 #include "Logging/Logger.h"
+#include "tracy/Tracy.hpp"
 
 #if GFX_MULTITHREADED
 #define RG_MULTITHREADED 1
@@ -120,6 +121,7 @@ namespace adria
 
 	void RenderGraph::Compile()
 	{
+		ZoneScopedN("RenderGraph::Compile");
 		if (RGUseDependencyLevels.Get())
 		{
 			BuildAdjacencyLists();
@@ -149,6 +151,7 @@ namespace adria
 
 	void RenderGraph::Execute()
 	{
+		ZoneScopedN("RenderGraph::Execute");
 #if RG_MULTITHREADED
 		Execute_Multithreaded();
 #else
@@ -978,7 +981,7 @@ namespace adria
 		for (auto& pass : passes)
 		{
 			if (pass->IsCulled()) continue;
-			
+
 			for (Uint32 event_idx : pass->events_to_start)
 			{
 				PIXBeginEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, rg.events[event_idx].name);

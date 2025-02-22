@@ -10,4 +10,5 @@
     PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, name); \
     AdriaGfxProfileScope(cmd_list, name); \
     NsightPerfGfxRangeScope(cmd_list, name); \
-    TracyGfxProfileScope(cmd_list->GetNative(), name)
+    TracyGfxProfileScope(cmd_list->GetNative(), name); \
+    ZoneTransientN(__tracy, name, true)
