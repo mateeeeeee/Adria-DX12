@@ -30,23 +30,53 @@ namespace adria
 	void TransparentPass::AddPass(RenderGraph& rg)
 	{
 		if (!EnableTransparent.Get()) return;
-
 		RG_SCOPE(rg, "Transparent");
 
-		if (EnableTransparentReflections.Get())
+		Bool const reflections_enabled = EnableTransparentReflections.Get();
+		if (reflections_enabled)
 		{
-			//copy scene texture for reflection to be sampled
+			struct SceneTextureCopyPassData
+			{
+				RGTextureCopySrcId src;
+				RGTextureCopyDstId dst;
+			};
+
+			rg.AddPass<SceneTextureCopyPassData>("Transparent Scene Texture Copy Pass",
+				[=](SceneTextureCopyPassData& data, RenderGraphBuilder& builder)
+				{
+					RGTextureDesc tex_desc = builder.GetTextureDesc(RG_NAME(HDR_RenderTarget));
+					builder.DeclareTexture(RG_NAME(HDR_RenderTarget_Copy), tex_desc);
+					data.src = builder.ReadCopySrcTexture(RG_NAME(HDR_RenderTarget));
+					data.dst = builder.WriteCopyDstTexture(RG_NAME(HDR_RenderTarget_Copy));
+				},
+				[=](SceneTextureCopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+				{
+					GfxTexture const& src_texture = context.GetCopySrcTexture(data.src);
+					GfxTexture& dst_texture = context.GetCopyDstTexture(data.dst);
+					cmd_list->CopyTexture(dst_texture, src_texture);
+				}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 		}
 
+		struct TransparentPassData
+		{
+			RGTextureReadOnlyId scene;
+			RGTextureReadOnlyId depth;
+		};
+
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.AddPass<void>("Transparent Pass",
-			[=](RenderGraphBuilder& builder)
+		rg.AddPass<TransparentPassData>("Transparent Pass",
+			[=](TransparentPassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.ReadDepthStencil(RG_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				if (reflections_enabled)
+				{
+					data.scene = builder.ReadTexture(RG_NAME(HDR_RenderTarget_Copy));
+					data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
+				}
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=](TransparentPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
@@ -59,19 +89,35 @@ namespace adria
 						return lhs_distance > rhs_distance;
 					});
 
+				transparent_psos->AddDefine("USE_SSR", reflections_enabled ? "1" : "0");
+				GfxPipelineState* pso = transparent_psos->Get();
+				cmd_list->SetPipelineState(pso);
+
 				auto batch_view = reg.view<Batch, Transparent>();
 				for (auto batch_entity : batch_view)
 				{
 					Batch& batch = batch_view.get<Batch>(batch_entity);
 					if (!batch.camera_visibility) continue;
 
-					GfxPipelineState* pso = transparent_psos->Get();
-					cmd_list->SetPipelineState(pso);
-
 					struct TransparentConstants
 					{
 						Uint32 instance_id;
-					} constants{ .instance_id = batch.instance_id };
+						Uint32 scene_idx;
+						Uint32 depth_idx;
+					} constants{ .instance_id = batch.instance_id, .scene_idx = 0, .depth_idx = 0 };
+					if (reflections_enabled)
+					{
+						GfxDescriptor src_descriptors[] =
+						{
+							context.GetReadOnlyTexture(data.scene),
+							context.GetReadOnlyTexture(data.depth)
+						};
+						GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+						gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+						Uint32 const i = dst_descriptor.GetIndex();
+						constants.scene_idx = i;
+						constants.depth_idx = i + 1;
+					}
 					cmd_list->SetRootConstants(1, constants);
 
 					GfxIndexBufferView ibv(batch.submesh->buffer_address + batch.submesh->indices_offset, batch.submesh->indices_count);
@@ -97,6 +143,10 @@ namespace adria
 			{
 				transparent_changed.Broadcast(EnableTransparent.Get());
 			}
+			if (EnableTransparent.Get())
+			{
+				ImGui::Checkbox("Enable Reflections", EnableTransparentReflections.GetPtr());
+			}
 			ImGui::TreePop();
 		}}, GUICommandGroup_Renderer);
 	}
@@ -111,6 +161,7 @@ namespace adria
 		transparent_pso_desc.depth_state.depth_enable = true;
 		transparent_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::Zero;
 		transparent_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
+		transparent_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 		transparent_pso_desc.num_render_targets = 1u;
 		transparent_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 		transparent_pso_desc.dsv_format = GfxFormat::D32_FLOAT;

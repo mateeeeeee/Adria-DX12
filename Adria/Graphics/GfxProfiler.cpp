@@ -9,7 +9,6 @@
 #include "Logging/Logger.h"
 
 
-
 namespace adria
 {
 	struct GfxProfiler::Impl

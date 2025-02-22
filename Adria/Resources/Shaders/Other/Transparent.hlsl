@@ -12,6 +12,7 @@ struct TransparentConstants
 {
     uint instanceId;
 	uint sceneIdx;
+	uint depthIdx;
 };
 ConstantBuffer<TransparentConstants> TransparentPassCB : register(b1);
 
@@ -56,23 +57,38 @@ float4 TransparentPS(VSToPS input) : SV_TARGET
 	Instance instanceData = GetInstanceData(TransparentPassCB.instanceId);
     Material materialData = GetMaterialData(instanceData.materialIdx);
 	Texture2D albedoTexture = ResourceDescriptorHeap[materialData.diffuseIdx];
-	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 0.5f);
+	Texture2D normalTexture = ResourceDescriptorHeap[materialData.normalIdx];
+	float4 color = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 #if USE_SSR
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[TransparentPassCB.depthIdx];
 	Texture2D sceneTexture = ResourceDescriptorHeap[TransparentPassCB.sceneIdx];
-	float4 sceneColor = sceneTexture.SampleLevel(LinearClampSampler, uv, 0);
 
-	float3 reflectDir = normalize(reflect(viewPosition, viewNormal));
-    float4 coords = SSRRayMarch(depthTexture, reflectDir, SSRPassCB.ssrRayStep, SSRPassCB.ssrRayHitThreshold, viewPosition);
+	float3 position = input.PositionWS;
+	float3 normal = normalize(input.NormalWS);
+	float3 tangent = normalize(input.TangentWS);
+	float3 bitangent = normalize(input.BitangentWS);
+    float3 normalTS = normalize(normalTexture.Sample(LinearWrapSampler, input.Uvs).xyz * 2.0f - 1.0f);
+    float3x3 TBN = float3x3(tangent, bitangent, normal); 
+    normal = normalize(mul(normalTS, TBN));
+	//Add normal map
+	float roughness = materialData.roughnessFactor;
+
+	float4 viewPosition = mul(float4(position, 1.0f), FrameCB.view); viewPosition /= viewPosition.w;
+	float3 viewNormal = normalize(mul(normal, (float3x3) FrameCB.view));		
+
+	float3 reflectDir = normalize(reflect(viewPosition.xyz, viewNormal));
+    float4 coords = SSRRayMarch(depthTexture, reflectDir, 1.6f, 2.0f, viewPosition.xyz);
+
     float2 coordsEdgeFactors = float2(1, 1) - pow(saturate(abs(coords.xy - float2(0.5f, 0.5f)) * 2), 8);
     float  screenEdgeFactor = saturate(min(coordsEdgeFactors.x, coordsEdgeFactors.y));
 
     float3 hitColor = sceneTexture.SampleLevel(LinearClampSampler, coords.xy, 0).rgb;
     float roughnessMask = saturate(1.0f - (roughness / 0.7f));
     roughnessMask *= roughnessMask;
-    float4 fresnel = clamp(pow(1 - dot(normalize(viewPosition), viewNormal), 1), 0, 1);
+    float4 fresnel = clamp(pow(1 - dot(normalize(viewPosition.xyz), viewNormal), 1), 0, 1);
 
-    float4 reflectionColor = float4(saturate(hitColor.xyz * screenEdgeFactor * roughnessMask), 1.0f);
-    outputTexture[input.DispatchThreadId.xy] = sceneColor + fresnel * max(0, reflectionColor);
+    float4 reflectionColor = float4(saturate(hitColor.rgb * screenEdgeFactor * roughnessMask), 1.0f);
+	color += fresnel * max(0, reflectionColor);
 #endif
-	return albedoColor;
+	return float4(color.rgb, 0.5f);
 }
