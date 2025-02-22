@@ -64,7 +64,7 @@ namespace adria
 		if (fog_volumes.empty()) return;
 
 		FogVolume& fog_volume = fog_volumes[0];
-		if (ImGui::TreeNode("Volumetric Fog"))
+		if (ImGui::TreeNode("Fog Volumes"))
 		{
 			Bool update_fog_volume_buffer = false;
 			update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 0.02f);
@@ -106,7 +106,7 @@ namespace adria
 			RGBufferReadOnlyId   fog_volume_buffer;
 		};
 
-		rg.AddPass<LightInjectionPassData>("Volumetric Fog Light Injection Pass",
+		rg.AddPass<LightInjectionPassData>("Fog Volumes Light Injection Pass",
 			[=](LightInjectionPassData& data, RenderGraphBuilder& builder)
 			{
 				Uint32 const voxel_grid_width = DivideAndRoundUp(width, VOXEL_TEXEL_SIZE_X);
@@ -170,7 +170,7 @@ namespace adria
 			RGTextureReadOnlyId injected_light;
 		};
 
-		rg.AddPass<ScatteringIntegrationPassData>("Volumetric Fog Scattering Integration Pass",
+		rg.AddPass<ScatteringIntegrationPassData>("Fog Volumes Scattering Integration Pass",
 			[=](ScatteringIntegrationPassData& data, RenderGraphBuilder& builder)
 			{
 				Uint32 const voxel_grid_width = DivideAndRoundUp(width, VOXEL_TEXEL_SIZE_X);
@@ -225,7 +225,7 @@ namespace adria
 			RGTextureReadOnlyId depth;
 		};
 
-		rg.AddPass<CombinePassData>("Volumetric Fog Combine Pass",
+		rg.AddPass<CombinePassData>("Fog Volumes Combine Pass",
 			[=](CombinePassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(RG_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);

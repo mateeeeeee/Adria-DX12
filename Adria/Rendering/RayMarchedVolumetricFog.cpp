@@ -31,7 +31,7 @@ namespace adria
 		};
 
 		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
-		rendergraph.AddPass<LightingPassData>("Volumetric Lighting Pass",
+		rendergraph.AddPass<LightingPassData>("Ray Marched Volumetric Fog Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc volumetric_output_desc{};
@@ -78,10 +78,10 @@ namespace adria
 
 	void RayMarchedVolumetricFog::GUI()
 	{
-		if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_None))
+		if (ImGui::TreeNodeEx("Ray Marched Volumetric Fog ", ImGuiTreeNodeFlags_None))
 		{
 			static Int _resolution = (Int)resolution;
-			if (ImGui::Combo("Volumetric Lighting Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
+			if (ImGui::Combo("Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 			{
 				resolution = (VolumetricLightingResolution)_resolution;
 				OnResize(width, height);
