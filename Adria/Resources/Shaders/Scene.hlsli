@@ -36,6 +36,7 @@ struct Material
 	uint	emissiveIdx;
 	float	emissiveFactor;
 	float	alphaCutoff;
+	bool    alphaBlended;
 
 	int		anisotropyIdx;
 	float	anisotropyStrength;

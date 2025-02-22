@@ -38,21 +38,21 @@ namespace adria
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				reg.sort<Batch>([&frame_data](Batch const& lhs, Batch const& rhs)
+
+				Vector3 camera_position(frame_data.camera_position);
+				reg.sort<Batch>([&camera_position](Batch const& lhs, Batch const& rhs)
 					{
-						Vector3 camera_position(frame_data.camera_position);
 						Float lhs_distance = Vector3::DistanceSquared(camera_position, lhs.bounding_box.Center);
 						Float rhs_distance = Vector3::DistanceSquared(camera_position, rhs.bounding_box.Center);
 						return lhs_distance > rhs_distance;
 					});
 
-				auto batch_view = reg.view<Batch>();
+				auto batch_view = reg.view<Batch, Transparent>();
 				for (auto batch_entity : batch_view)
 				{
 					Batch& batch = batch_view.get<Batch>(batch_entity);
-					if (!batch.camera_visibility || batch.alpha_mode != MaterialAlphaMode::Blend) continue;
+					if (!batch.camera_visibility) continue;
 
 					GfxPipelineState* pso = transparent_psos->Get();
 					cmd_list->SetPipelineState(pso);

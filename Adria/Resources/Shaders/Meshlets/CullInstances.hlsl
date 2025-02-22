@@ -46,6 +46,14 @@ void CullInstancesCS(uint ThreadId : SV_DispatchThreadID)
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
+#if SKIP_ALPHA_BLENDED
+	Material material = GetMaterialData(instance.materialIdx);
+	if (material.alphaBlended)
+	{
+		isVisible = false;
+	}
+#endif
+
 #if OCCLUSION_CULL
 	if (isVisible)
 	{
@@ -70,6 +78,7 @@ void CullInstancesCS(uint ThreadId : SV_DispatchThreadID)
 #endif
 	}
 #endif
+
 
 	if (isVisible && !wasOccluded)
 	{

@@ -154,7 +154,7 @@ namespace adria
 
 	struct COMPONENT RayTracing {};
 	struct COMPONENT Ocean {};
-	struct COMPONENT Deferred {};
+	struct COMPONENT Transparent {};
 
 	struct SubMeshGPU
 	{

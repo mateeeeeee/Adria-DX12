@@ -288,6 +288,10 @@ namespace adria
 				submesh.buffer_address = mesh_buffer->GetGpuAddress();
 
 				entt::entity batch_entity = reg.create();
+				if (material.alpha_mode == MaterialAlphaMode::Blend)
+				{
+					reg.emplace<Transparent>(batch_entity);
+				}
 				Batch& batch = reg.emplace<Batch>(batch_entity);
 				batch.instance_id = instanceID;
 				batch.alpha_mode = material.alpha_mode;
@@ -295,6 +299,7 @@ namespace adria
 				batch.submesh = &submesh;
 				batch.world_transform = instance.world_transform;
 				submesh.bounding_box.Transform(batch.bounding_box, batch.world_transform);
+				
 
 				InstanceGPU& instance_gpu = instances.emplace_back();
 				instance_gpu.instance_id = instanceID;
@@ -337,6 +342,7 @@ namespace adria
 				material_gpu.emissive_idx = (Uint32)material.emissive_texture;
 				material_gpu.emissive_factor = material.emissive_factor;
 				material_gpu.alpha_cutoff = material.alpha_cutoff;
+				material_gpu.alpha_blended = material.alpha_mode == MaterialAlphaMode::Blend;
 
 				material_gpu.anisotropy_idx = (Int32)material.anisotropy_texture;
 				material_gpu.anisotropy_strength = material.anisotropy_strength;
@@ -590,7 +596,10 @@ namespace adria
 		if (ddgi.IsSupported()) ddgi.GUI();
 		if (renderer_output == RendererOutput::Final)
 		{
-			if (lighting_path == LightingPathType::TiledDeferred) tiled_deferred_lighting_pass.GUI();
+			if (lighting_path == LightingPathType::TiledDeferred)
+			{
+				tiled_deferred_lighting_pass.GUI();
+			}
 			shadow_renderer.GUI();
 			switch (volumetric_path)
 			{
@@ -644,11 +653,12 @@ namespace adria
 						}
 						ImGui::TreePop();
 					}
-					if (!gpu_driven_renderer.IsEnabled() && ImGui::TreeNode("Transparent"))
+					if (ImGui::TreeNode("Transparent"))
 					{
 						if (ImGui::Checkbox("Enable Transparent Pass", &enable_transparent_pass))
 						{
 							gbuffer_pass.SkipAlphaBlended(enable_transparent_pass);
+							gpu_driven_renderer.SkipAlphaBlended(enable_transparent_pass);
 						}
 						ImGui::TreePop();
 					}

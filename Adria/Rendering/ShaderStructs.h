@@ -114,6 +114,7 @@ namespace adria
 		Uint32  emissive_idx;
 		Float   emissive_factor;
 		Float   alpha_cutoff;
+		Bool32  alpha_blended;
 
 		Int32	anisotropy_idx;
 		Float	anisotropy_strength;

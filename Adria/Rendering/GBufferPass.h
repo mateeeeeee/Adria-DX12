@@ -6,6 +6,7 @@
 namespace adria
 {
 	class GfxDevice;
+	class GfxCommandList;
 	class RenderGraph;
 	enum class RendererOutput : Uint32;
 
@@ -39,5 +40,7 @@ namespace adria
 
 	private:
 		void CreatePSOs();
+		template<typename View>
+		void ProcessBatches(View view, GfxCommandList* cmd_list);
 	};
 }
