@@ -236,7 +236,7 @@
     <ClCompile Include="Rendering\DeferredLightingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RayMarchedVolumetricFog.cpp">
+    <ClCompile Include="Rendering\RayMarchedVolumetricFogPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp">
@@ -809,7 +809,7 @@
     <ClInclude Include="Rendering\DeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RayMarchedVolumetricFog.h">
+    <ClInclude Include="Rendering\RayMarchedVolumetricFogPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RayTracedShadowsPass.h">

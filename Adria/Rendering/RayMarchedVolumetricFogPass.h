@@ -8,7 +8,7 @@ namespace adria
 	class GfxComputePipelineState;
 	class RenderGraph;
 
-	class RayMarchedVolumetricFog
+	class RayMarchedVolumetricFogPass
 	{
 		enum VolumetricLightingResolution
 		{
@@ -18,8 +18,8 @@ namespace adria
 		};
 
 	public:
-		RayMarchedVolumetricFog(GfxDevice* gfx, Uint32 w, Uint32 h);
-		~RayMarchedVolumetricFog();
+		RayMarchedVolumetricFogPass(GfxDevice* gfx, Uint32 w, Uint32 h);
+		~RayMarchedVolumetricFogPass();
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h)
 		{

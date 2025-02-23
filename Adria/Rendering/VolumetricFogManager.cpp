@@ -6,7 +6,7 @@ namespace adria
 {
 	static TAutoConsoleVariable<Int>  VolumetricFogPath("r.VolumetricPath", 1, "0 - None, 1 - 2D Raymarching, 2 - Fog Volume");
 
-	VolumetricFogManager::VolumetricFogManager(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h) : volumetric_lighting_pass(gfx, w, h), volumetric_fog_pass(gfx, reg, w, h)
+	VolumetricFogManager::VolumetricFogManager(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h) : ray_marched_volumetric_fog_pass(gfx, w, h), fog_volumes_pass(gfx, reg, w, h)
 	{
 		volumetric_fog_type = static_cast<VolumetricFogType>(VolumetricFogPath.Get());
 		VolumetricFogPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { volumetric_fog_type = static_cast<VolumetricFogType>(cvar->GetInt()); }));
@@ -28,8 +28,8 @@ namespace adria
 			}
 			switch (volumetric_fog_type)
 			{
-			case VolumetricFogType::Raymarching: volumetric_lighting_pass.GUI(); break;
-			case VolumetricFogType::FogVolume:	 volumetric_fog_pass.GUI();		 break;
+			case VolumetricFogType::Raymarching: ray_marched_volumetric_fog_pass.GUI(); break;
+			case VolumetricFogType::FogVolume:	 fog_volumes_pass.GUI();		 break;
 			}
 			ImGui::TreePop();
 		}

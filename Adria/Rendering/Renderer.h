@@ -6,7 +6,7 @@
 #include "GPUDrivenGBufferPass.h"
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
-#include "RayMarchedVolumetricFog.h"
+#include "RayMarchedVolumetricFogPass.h"
 #include "FogVolumesPass.h"
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"

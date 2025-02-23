@@ -1,4 +1,4 @@
-#include "RayMarchedVolumetricFog.h"
+#include "RayMarchedVolumetricFogPass.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -13,16 +13,16 @@ using namespace DirectX;
 namespace adria
 {
 
-	RayMarchedVolumetricFog::RayMarchedVolumetricFog(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
+	RayMarchedVolumetricFogPass::RayMarchedVolumetricFogPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
 	{
 		CreatePSOs();
 	}
 
-	RayMarchedVolumetricFog::~RayMarchedVolumetricFog()
+	RayMarchedVolumetricFogPass::~RayMarchedVolumetricFogPass()
 	{
 	}
 
-	void RayMarchedVolumetricFog::AddPass(RenderGraph& rendergraph)
+	void RayMarchedVolumetricFogPass::AddPass(RenderGraph& rendergraph)
 	{
 		struct LightingPassData
 		{
@@ -76,7 +76,7 @@ namespace adria
 		shadow_textures.clear();
 	}
 
-	void RayMarchedVolumetricFog::GUI()
+	void RayMarchedVolumetricFogPass::GUI()
 	{
 		if (ImGui::TreeNodeEx("Ray Marched Volumetric Fog ", ImGuiTreeNodeFlags_None))
 		{
@@ -91,7 +91,7 @@ namespace adria
 		}
 	}
 
-	void RayMarchedVolumetricFog::CreatePSOs()
+	void RayMarchedVolumetricFogPass::CreatePSOs()
 	{
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_VolumetricLighting;

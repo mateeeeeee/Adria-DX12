@@ -1,6 +1,6 @@
 #pragma once
 #include "FogVolumesPass.h"
-#include "RayMarchedVolumetricFog.h"
+#include "RayMarchedVolumetricFogPass.h"
 
 namespace adria
 {
@@ -20,32 +20,32 @@ namespace adria
 		{
 			if (volumetric_fog_type == VolumetricFogType::FogVolume)
 			{
-				volumetric_fog_pass.AddPasses(rg);
+				fog_volumes_pass.AddPasses(rg);
 			}
 			else if (volumetric_fog_type == VolumetricFogType::Raymarching)
 			{
-				volumetric_lighting_pass.AddPass(rg);
+				ray_marched_volumetric_fog_pass.AddPass(rg);
 			}
 		}
 		void OnResize(Uint32 w, Uint32 h)
 		{
-			volumetric_lighting_pass.OnResize(w, h);
-			volumetric_fog_pass.OnResize(w, h);
+			ray_marched_volumetric_fog_pass.OnResize(w, h);
+			fog_volumes_pass.OnResize(w, h);
 		}
 		void OnSceneInitialized()
 		{
-			volumetric_fog_pass.OnSceneInitialized();
+			fog_volumes_pass.OnSceneInitialized();
 		}
 		void OnShadowTextureRendered(RGResourceName name)
 		{
-			volumetric_lighting_pass.OnShadowTextureRendered(name);
+			ray_marched_volumetric_fog_pass.OnShadowTextureRendered(name);
 		}
 		void GUI();
 
 	private:
 		VolumetricFogType volumetric_fog_type;
-		RayMarchedVolumetricFog volumetric_lighting_pass;
-		FogVolumesPass volumetric_fog_pass;
+		RayMarchedVolumetricFogPass ray_marched_volumetric_fog_pass;
+		FogVolumesPass fog_volumes_pass;
 	};
 }
 

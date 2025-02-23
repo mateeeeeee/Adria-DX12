@@ -404,7 +404,7 @@
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
     <ClCompile Include="Rendering\VolumetricFogManager.cpp" />
     <ClCompile Include="Rendering\FogVolumesPass.cpp" />
-    <ClCompile Include="Rendering\RayMarchedVolumetricFog.cpp" />
+    <ClCompile Include="Rendering\RayMarchedVolumetricFogPass.cpp" />
     <ClCompile Include="Rendering\XeSSPass.cpp" />
     <ClCompile Include="Utilities\CLIParser.cpp" />
     <ClCompile Include="Utilities\FilesUtil.cpp" />
@@ -743,7 +743,7 @@
     <ClInclude Include="Rendering\VolumetricCloudsPass.h" />
     <ClInclude Include="Rendering\VolumetricFogManager.h" />
     <ClInclude Include="Rendering\FogVolumesPass.h" />
-    <ClInclude Include="Rendering\RayMarchedVolumetricFog.h" />
+    <ClInclude Include="Rendering\RayMarchedVolumetricFogPass.h" />
     <ClInclude Include="Rendering\XeSSPass.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Resources\Shaders\SPD\ffx_a.h" />
