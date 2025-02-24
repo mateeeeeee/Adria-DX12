@@ -13,6 +13,8 @@ Global
 		Profile|x86 = Profile|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		RelWithDebInfo|x64 = RelWithDebInfo|x64
+		RelWithDebInfo|x86 = RelWithDebInfo|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.Debug|x64.ActiveCfg = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.Release|x64.Build.0 = Release|x64
 		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.Release|x86.ActiveCfg = Release|Win32
 		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.Release|x86.Build.0 = Release|Win32
+		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
+		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
+		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|Win32
+		{42857581-D6E9-4F2F-B239-0AB76D90D29F}.RelWithDebInfo|x86.Build.0 = RelWithDebInfo|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

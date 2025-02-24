@@ -130,6 +130,7 @@ namespace adria
 		}
 	};
 
+#if GFX_PROFILING
 	void GfxProfiler::Initialize(GfxDevice* _gfx)
 	{
 		pimpl = std::make_unique<Impl>();
@@ -161,11 +162,32 @@ namespace adria
 	{
 		return pimpl->GetProfilerTree();
 	}
+#else
+	void GfxProfiler::Initialize(GfxDevice* _gfx)
+	{
+	}
 
-	//std::vector<GfxTimestamp> GfxProfiler::GetResults()
-	//{
-	//	return pimpl->GetResults();
-	//}
+	void GfxProfiler::Destroy()
+	{
+	}
+
+	void GfxProfiler::NewFrame()
+	{
+	}
+
+	void GfxProfiler::BeginProfileScope(GfxCommandList* cmd_list, Char const* name)
+	{
+	}
+
+	void GfxProfiler::EndProfileScope(GfxCommandList* cmd_list)
+	{
+	}
+
+	GfxProfilerTree const* GfxProfiler::GetProfilerTree() const
+	{
+		return nullptr;
+	}
+#endif
 
 	GfxProfiler::GfxProfiler() {}
 	GfxProfiler::~GfxProfiler() {}

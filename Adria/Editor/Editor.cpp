@@ -868,6 +868,7 @@ namespace adria
 		if (!visibility_flags[Flag_Profiler]) return;
 		if (ImGui::Begin(ICON_FA_CLOCK" Profiling", &visibility_flags[Flag_Profiler]))
 		{
+#if GFX_PROFILING
 			ImGuiIO io = ImGui::GetIO();
 #if GFX_PROFILING_USE_TRACY
 			if (ImGui::Button("Run Tracy"))
@@ -1060,6 +1061,17 @@ namespace adria
 					state.accumulating_frame_count++;
 				}
 			}
+			if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
+			{
+				static Bool display_nsight_perf = false;
+				ImGui::Checkbox("Display subunit activity (Nsight Perf)", &display_nsight_perf);
+				if (display_nsight_perf)
+				{
+					nsight_perf_manager->Render();
+				}
+			}
+
+#endif
 			static Bool display_vram_usage = false;
 			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);
 			if (display_vram_usage)
@@ -1072,16 +1084,6 @@ namespace adria
 				else ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
 				ImGui::TextWrapped(vram_display_string.c_str());
 				ImGui::PopStyleColor();
-			}
-
-			if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
-			{
-				static Bool display_nsight_perf = false;
-				ImGui::Checkbox("Display subunit activity (Nsight Perf)", &display_nsight_perf);
-				if (display_nsight_perf)
-				{
-					nsight_perf_manager->Render();
-				}
 			}
 		}
 		ImGui::End();

@@ -12,6 +12,7 @@
 #define ADRIA_DEBUGBREAK()			__debugbreak()
 #define ADRIA_UNREACHABLE()			__assume(false)
 #define ADRIA_FORCEINLINE			__forceinline
+#define ADRIA_NOINLINE			    __declspec(noinline)
 #define ADRIA_NODISCARD				[[nodiscard]]
 #define ADRIA_NORETURN				[[noreturn]]
 #define ADRIA_DEPRECATED			[[deprecated]]
