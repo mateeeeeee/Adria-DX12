@@ -868,7 +868,6 @@ namespace adria
 		if (!visibility_flags[Flag_Profiler]) return;
 		if (ImGui::Begin(ICON_FA_CLOCK" Profiling", &visibility_flags[Flag_Profiler]))
 		{
-#if GFX_PROFILING
 			ImGuiIO io = ImGui::GetIO();
 #if GFX_PROFILING_USE_TRACY
 			if (ImGui::Button("Run Tracy"))
@@ -889,7 +888,6 @@ namespace adria
 				static Float FrameTimeGraphMaxValues[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (Uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				Uint32 const profiler_tree_size = (Uint32)profiler_tree->Size();
 				FrameTimeArray[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (Uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
 				RecentHighestFrameTime = std::max(RecentHighestFrameTime, FrameTimeArray[NUM_FRAMES - 1]);
@@ -897,6 +895,8 @@ namespace adria
 				Float frame_time_ms = FrameTimeArray[NUM_FRAMES - 1];
 				Int32 const fps = static_cast<Int32>(1000.0f / frame_time_ms);
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
+#if GFX_PROFILING
+				Uint32 const profiler_tree_size = (Uint32)profiler_tree->Size();
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Checkbox("Show Avg/Min/Max", &state.show_average);
@@ -1060,7 +1060,9 @@ namespace adria
 					ImGui::EndTable();
 					state.accumulating_frame_count++;
 				}
+#endif
 			}
+#if defined(GFX_ENABLE_NV_PERF)
 			if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
 			{
 				static Bool display_nsight_perf = false;
@@ -1070,7 +1072,6 @@ namespace adria
 					nsight_perf_manager->Render();
 				}
 			}
-
 #endif
 			static Bool display_vram_usage = false;
 			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);
