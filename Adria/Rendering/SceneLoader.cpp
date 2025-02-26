@@ -366,6 +366,31 @@ namespace adria
 		return decal_entity;
 	}
 
+	entt::entity SceneLoader::LoadModel(ModelParameters const& params)
+	{
+		enum class ModelFormat : Uint8
+		{
+			OBJ,
+			GLTF,
+			Unknown
+		};
+		auto GetModelFormat = [](std::string_view model_file)
+		{
+			if (model_file.ends_with(".obj")) return ModelFormat::OBJ;
+			else if (model_file.ends_with(".gltf")) return ModelFormat::GLTF;
+			else return ModelFormat::Unknown;
+		};
+
+		ModelFormat format = GetModelFormat(params.model_path);
+		switch (format)
+		{
+		case ModelFormat::GLTF: return LoadModel_GLTF(params);
+		case ModelFormat::OBJ:  return LoadModel_OBJ(params);
+		case ModelFormat::Unknown: ADRIA_ASSERT_MSG(false, "Unknown model format!");
+		}
+		return entt::null;
+	}
+
 	entt::entity SceneLoader::LoadModel_GLTF(ModelParameters const& params)
 	{
 		cgltf_options options{};

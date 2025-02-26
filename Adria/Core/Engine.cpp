@@ -144,7 +144,7 @@ namespace adria
 		camera->SetAspectRatio((Float)window->Width() / window->Height());
 		scene_loader->LoadSkybox(config.skybox_params);
 
-		for (auto const& model : config.scene_models) scene_loader->LoadModel_GLTF(model);
+		for (auto const& model : config.scene_models) scene_loader->LoadModel(model);
 		for (auto const& light : config.scene_lights) scene_loader->LoadLight(light);
 
 		auto ray_tracing_view = reg.view<Mesh, RayTracing>();

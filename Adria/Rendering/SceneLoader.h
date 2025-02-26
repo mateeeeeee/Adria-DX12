@@ -73,7 +73,6 @@ namespace adria
  
 	class SceneLoader
 	{
-		ADRIA_NODISCARD std::vector<entt::entity> LoadGrid(GridParameters const&);
 	public:
         
         SceneLoader(entt::registry& reg, GfxDevice* device);
@@ -83,12 +82,15 @@ namespace adria
         ADRIA_MAYBE_UNUSED entt::entity LoadLight(LightParameters const&);
 		ADRIA_MAYBE_UNUSED std::vector<entt::entity> LoadOcean(OceanParameters const&);
 		ADRIA_MAYBE_UNUSED entt::entity LoadDecal(DecalParameters const&);
-		ADRIA_MAYBE_UNUSED entt::entity LoadModel_GLTF(ModelParameters const&);
-		ADRIA_MAYBE_UNUSED entt::entity LoadModel_OBJ(ModelParameters const&);
-
+		ADRIA_MAYBE_UNUSED entt::entity LoadModel(ModelParameters const&);
 	private:
         entt::registry& reg;
         GfxDevice* gfx;
+
+	private:
+		ADRIA_NODISCARD std::vector<entt::entity> LoadGrid(GridParameters const&);
+		ADRIA_MAYBE_UNUSED entt::entity LoadModel_GLTF(ModelParameters const&);
+		ADRIA_MAYBE_UNUSED entt::entity LoadModel_OBJ(ModelParameters const&);
 	};
 }
 
