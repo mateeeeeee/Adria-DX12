@@ -184,123 +184,6 @@ namespace adria
 		return chunks;
 	}
 
-	std::vector<entt::entity> SceneLoader::LoadObjMesh(std::string const& model_path)
-	{
-		tinyobj::ObjReaderConfig reader_config{};
-		tinyobj::ObjReader reader;
-		std::string model_name = GetFilename(model_path);
-		if (!reader.ParseFromFile(model_path, reader_config))
-		{
-			if (!reader.Error().empty())
-			{
-				ADRIA_LOG(ERROR, reader.Error().c_str());
-			}
-			return {};
-		}
-		if (!reader.Warning().empty())
-		{
-			ADRIA_LOG(WARNING, reader.Warning().c_str());
-		}
-
-		tinyobj::attrib_t const& attrib = reader.GetAttrib();
-		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
-
-		// Loop over shapes
-		std::vector<TexturedNormalVertex> vertices{};
-		std::vector<Uint32> indices{};
-		std::vector<entt::entity> entities{};
-
-		for (Uint64 s = 0; s < shapes.size(); s++)
-		{
-			entt::entity e = reg.create();
-			entities.push_back(e);
-
-			SubMesh mesh_component{};
-			mesh_component.start_index_location = static_cast<Uint32>(indices.size());
-			mesh_component.base_vertex_location = static_cast<Uint32>(vertices.size());
-
-			// Loop over faces(polygon)
-			Uint64 index_offset = 0;
-			for (Uint64 f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
-			{
-				Uint64 fv = Uint64(shapes[s].mesh.num_face_vertices[f]);
-
-				// Loop over vertices in the face.
-				for (Uint64 v = 0; v < fv; v++)
-				{
-					// access to vertex
-					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-					indices.push_back((Uint32)(index_offset + v));
-
-					TexturedNormalVertex vertex{};
-					tinyobj::real_t vx = attrib.vertices[3 * Uint64(idx.vertex_index) + 0];
-					tinyobj::real_t vy = attrib.vertices[3 * Uint64(idx.vertex_index) + 1];
-					tinyobj::real_t vz = attrib.vertices[3 * Uint64(idx.vertex_index) + 2];
-
-					vertex.position.x = vx;
-					vertex.position.y = vy;
-					vertex.position.z = vz;
-
-					// Check if `normal_index` is zero or positive. negative = no normal data
-					if (idx.normal_index >= 0)
-					{
-						tinyobj::real_t nx = attrib.normals[3 * Uint64(idx.normal_index) + 0];
-						tinyobj::real_t ny = attrib.normals[3 * Uint64(idx.normal_index) + 1];
-						tinyobj::real_t nz = attrib.normals[3 * Uint64(idx.normal_index) + 2];
-
-						vertex.normal.x = nx;
-						vertex.normal.y = ny;
-						vertex.normal.z = nz;
-					}
-
-					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
-					if (idx.texcoord_index >= 0)
-					{
-						tinyobj::real_t tx = attrib.texcoords[2 * Uint64(idx.texcoord_index) + 0];
-						tinyobj::real_t ty = attrib.texcoords[2 * Uint64(idx.texcoord_index) + 1];
-
-						vertex.uv.x = tx;
-						vertex.uv.y = ty;
-					}
-
-					vertices.push_back(vertex);
-				}
-				index_offset += fv;
-
-				// per-face material
-				//shapes[s].mesh.material_ids[f];
-			}
-			mesh_component.indices_count = static_cast<Uint32>(index_offset);
-		}
-
-		GfxBufferDesc vb_desc{
-			.size = vertices.size() * sizeof(CompleteVertex),
-			.bind_flags = GfxBindFlag::None,
-			.stride = sizeof(CompleteVertex)
-		};
-
-		GfxBufferDesc ib_desc{
-			.size = indices.size() * sizeof(Uint32),
-			.bind_flags = GfxBindFlag::None,
-			.stride = sizeof(Uint32),
-			.format = GfxFormat::R32_UINT
-		};
-
-		std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
-		std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
-
-		for (entt::entity e : entities)
-		{
-			auto& mesh = reg.get<SubMesh>(e);
-			mesh.vertex_buffer = vb;
-			mesh.index_buffer = ib;
-			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
-		}
-
-		ADRIA_LOG(INFO, "OBJ Mesh %s successfully loaded!", model_path.c_str());
-		return entities;
-	}
-
 	SceneLoader::SceneLoader(entt::registry& reg, GfxDevice* gfx)
         : reg(reg), gfx(gfx)
     {
@@ -928,4 +811,268 @@ namespace adria
 		cgltf_free(gltf_data);
 		return mesh_entity;
 	}
+
+	entt::entity SceneLoader::LoadModel_OBJ(ModelParameters const& params)
+	{
+		tinyobj::ObjReaderConfig reader_config{};
+		tinyobj::ObjReader reader;
+		if (!reader.ParseFromFile(params.model_path, reader_config))
+		{
+			if (!reader.Error().empty())
+			{
+				ADRIA_LOG(ERROR, "TinyOBJ error: %s", reader.Error().c_str());
+			}
+			return entt::null;
+		}
+		if (!reader.Warning().empty())
+		{
+			ADRIA_LOG(WARNING, "TinyOBJ warning: %s", reader.Warning().c_str());
+		}
+		tinyobj::attrib_t const& attrib = reader.GetAttrib();
+		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
+		std::vector<tinyobj::material_t> const& obj_materials = reader.GetMaterials();
+
+		std::string model_name = GetFilename(params.model_path);
+		entt::entity mesh_entity = reg.create();
+		Mesh mesh;
+		mesh.materials.reserve(obj_materials.size());
+		for (auto const& obj_material : obj_materials)
+		{
+			Material material{};
+			memcpy(material.albedo_color, obj_material.diffuse, sizeof(material.albedo_color));
+			material.emissive_factor = (obj_material.emission[0] + obj_material.emission[1] + obj_material.emission[2]) / 3;
+			material.roughness_factor = Clamp(1.0f - (obj_material.shininess / 1000.0f), 0.0f, 1.0f);
+			material.metallic_factor = obj_material.metallic;
+			material.sheen_color[0] = obj_material.sheen;
+			material.sheen_color[1] = obj_material.sheen;
+			material.sheen_color[2] = obj_material.sheen;
+			material.clear_coat = obj_material.clearcoat_thickness;
+			material.clear_coat_roughness = obj_material.clearcoat_roughness;
+			material.anisotropy_strength = obj_material.anisotropy;
+			material.anisotropy_rotation = obj_material.anisotropy_rotation;
+
+			if (!obj_material.diffuse_texname.empty())
+			{
+				std::string diffuse_texture = params.textures_path + obj_material.diffuse_texname;
+				material.albedo_texture = g_TextureManager.LoadTexture(diffuse_texture, true);
+			}
+			if (!obj_material.normal_texname.empty())
+			{
+				std::string normal_texture = params.textures_path + obj_material.normal_texname;
+				material.normal_texture = g_TextureManager.LoadTexture(normal_texture, false);
+			}
+			if (!obj_material.emissive_texname.empty())
+			{
+				std::string emissive_texture = params.textures_path + obj_material.emissive_texname;
+				material.emissive_texture = g_TextureManager.LoadTexture(emissive_texture, false);
+			}
+			mesh.materials.push_back(material);
+		}
+
+		struct MeshData
+		{
+			DirectX::BoundingBox bounding_box;
+			Int32 material_index = -1;
+			GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
+
+			std::vector<Vector3> positions_stream;
+			std::vector<Vector3> normals_stream;
+			std::vector<Vector4> tangents_stream;
+			std::vector<Vector2> uvs_stream;
+			std::vector<Uint32>  indices;
+
+			std::vector<Meshlet>		 meshlets;
+			std::vector<Uint32>			 meshlet_vertices;
+			std::vector<MeshletTriangle> meshlet_triangles;
+		};
+		std::vector<MeshData> mesh_datas{};
+		mesh.submeshes.reserve(shapes.size());
+		for (Uint64 s = 0; s < shapes.size(); s++)
+		{
+			tinyobj::mesh_t const& obj_mesh = shapes[s].mesh;
+			MeshData& mesh_data = mesh_datas.emplace_back();
+			mesh_data.material_index = obj_mesh.material_ids[0];
+			
+			Uint32 index_offset = 0;
+			for (Uint64 f = 0; f < obj_mesh.num_face_vertices.size(); ++f)
+			{
+				ADRIA_ASSERT(obj_mesh.num_face_vertices[f] == 3);
+				for (Uint64 v = 0; v < 3; v++)
+				{
+					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+					tinyobj::real_t vx = attrib.vertices[3 * Uint64(idx.vertex_index) + 0];
+					tinyobj::real_t vy = attrib.vertices[3 * Uint64(idx.vertex_index) + 1];
+					tinyobj::real_t vz = attrib.vertices[3 * Uint64(idx.vertex_index) + 2] * -1.0f;
+
+					mesh_data.positions_stream.emplace_back(vx, vy, vz);
+					if (idx.normal_index >= 0)
+					{
+						tinyobj::real_t nx = attrib.normals[3 * Uint64(idx.normal_index) + 0];
+						tinyobj::real_t ny = attrib.normals[3 * Uint64(idx.normal_index) + 1];
+						tinyobj::real_t nz = attrib.normals[3 * Uint64(idx.normal_index) + 2];
+						mesh_data.normals_stream.emplace_back(nx, ny, nz);
+					}
+
+					if (idx.texcoord_index >= 0)
+					{
+						tinyobj::real_t tx = attrib.texcoords[2 * Uint64(idx.texcoord_index) + 0];
+						tinyobj::real_t ty = attrib.texcoords[2 * Uint64(idx.texcoord_index) + 1];
+						mesh_data.uvs_stream.emplace_back(tx, ty);
+					}
+				}
+				mesh_data.indices.push_back(index_offset); 
+				mesh_data.indices.push_back(index_offset + 1);
+				mesh_data.indices.push_back(index_offset + 2);
+				index_offset += 3;
+			}
+		}
+
+		//move this meshlet related stuff to common function?
+		//#todo disable all meshlet stuff if device doesnt support meshlets
+		Uint64 total_buffer_size = 0;
+		for (auto& mesh_data : mesh_datas)
+		{
+			std::vector<Uint32> const& indices = mesh_data.indices;
+			Uint64 vertex_count = mesh_data.positions_stream.size();
+
+			Bool has_tangents = !mesh_data.tangents_stream.empty();
+			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
+			if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
+			if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
+
+			if (!has_tangents)
+			{
+				ComputeTangentFrame(mesh_data.indices.data(), mesh_data.indices.size(), mesh_data.positions_stream.data(),
+					mesh_data.normals_stream.data(), mesh_data.uvs_stream.data(), vertex_count, mesh_data.tangents_stream.data());
+			}
+
+			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
+			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(Vector3), 1.05f);
+			std::vector<Uint32> remap(vertex_count);
+			meshopt_optimizeVertexFetchRemap(&remap[0], mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
+			meshopt_remapIndexBuffer(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(Vector3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(Vector3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(Vector4), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(Vector2), &remap[0]);
+
+			Uint64 const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
+			mesh_data.meshlets.resize(max_meshlets);
+			mesh_data.meshlet_vertices.resize(max_meshlets * MESHLET_MAX_VERTICES);
+
+			std::vector<Uchar> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
+			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
+
+			Uint64 meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
+				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(Vector3),
+				MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES, 0);
+
+			meshopt_Meshlet const& last = meshlets[meshlet_count - 1];
+			meshlet_triangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
+			meshlets.resize(meshlet_count);
+
+			mesh_data.meshlets.resize(meshlet_count);
+			mesh_data.meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
+			mesh_data.meshlet_triangles.resize(meshlet_triangles.size() / 3);
+
+			Uint32 triangle_offset = 0;
+			for (Uint64 i = 0; i < meshlet_count; ++i)
+			{
+				meshopt_Meshlet const& m = meshlets[i];
+				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
+					m.triangle_count, reinterpret_cast<Float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
+
+				Uchar* src_triangles = meshlet_triangles.data() + m.triangle_offset;
+				for (Uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
+				{
+					MeshletTriangle& tri = mesh_data.meshlet_triangles[triangle_idx + triangle_offset];
+					tri.V0 = *src_triangles++;
+					tri.V1 = *src_triangles++;
+					tri.V2 = *src_triangles++;
+				}
+
+				Meshlet& meshlet = mesh_data.meshlets[i];
+				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(Float) * 3);
+
+				meshlet.radius = meshopt_bounds.radius;
+				meshlet.vertex_count = m.vertex_count;
+				meshlet.triangle_count = m.triangle_count;
+				meshlet.vertex_offset = m.vertex_offset;
+				meshlet.triangle_offset = triangle_offset;
+				triangle_offset += m.triangle_count;
+
+			}
+			mesh_data.meshlet_triangles.resize(triangle_offset);
+			total_buffer_size += Align(mesh_data.indices.size() * sizeof(Uint32), 16);
+			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(Vector3), 16);
+			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(Vector2), 16);
+			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(Vector3), 16);
+			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(Vector4), 16);
+			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
+			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(Uint32), 16);
+			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
+			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
+		}
+
+		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
+
+		Uint32 current_offset = 0;
+		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)
+		{
+			Uint64 current_copy_size = _data.size() * sizeof(T);
+			staging_buffer.Update(_data.data(), current_copy_size, current_offset);
+			current_offset += (Uint32)Align(current_copy_size, 16);
+		};
+
+		mesh.submeshes.reserve(mesh_datas.size());
+		mesh.instances.reserve(mesh_datas.size());
+		for (Uint32 i = 0; i < mesh_datas.size(); ++i)
+		{
+			auto const& mesh_data = mesh_datas[i];
+			SubMeshGPU& submesh = mesh.submeshes.emplace_back();
+
+			submesh.indices_offset = current_offset;
+			submesh.indices_count = (Uint32)mesh_data.indices.size();
+			CopyData(mesh_data.indices);
+
+			submesh.vertices_count = (Uint32)mesh_data.positions_stream.size();
+			submesh.positions_offset = current_offset;
+			CopyData(mesh_data.positions_stream);
+
+			submesh.uvs_offset = current_offset;
+			CopyData(mesh_data.uvs_stream);
+
+			submesh.normals_offset = current_offset;
+			CopyData(mesh_data.normals_stream);
+
+			submesh.tangents_offset = current_offset;
+			CopyData(mesh_data.tangents_stream);
+
+			submesh.meshlet_offset = current_offset;
+			CopyData(mesh_data.meshlets);
+
+			submesh.meshlet_vertices_offset = current_offset;
+			CopyData(mesh_data.meshlet_vertices);
+
+			submesh.meshlet_triangles_offset = current_offset;
+			CopyData(mesh_data.meshlet_triangles);
+
+			submesh.meshlet_count = (Uint32)mesh_data.meshlets.size();
+
+			submesh.bounding_box = mesh_data.bounding_box;
+			submesh.topology = mesh_data.topology;
+			submesh.material_index = mesh_data.material_index;
+
+			mesh.instances.emplace_back(mesh_entity, i, Matrix::Identity);
+		}
+		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
+
+		reg.emplace<Mesh>(mesh_entity, mesh);
+		reg.emplace<Tag>(mesh_entity, model_name + " mesh");
+		if (gfx->GetCapabilities().SupportsRayTracing()) reg.emplace<RayTracing>(mesh_entity);
+
+		ADRIA_LOG(INFO, "GLTF Model %s successfully loaded!", params.model_path.c_str());
+		return mesh_entity;
+	}
+
 }
