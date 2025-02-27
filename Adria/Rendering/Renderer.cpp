@@ -30,7 +30,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	static TAutoConsoleVariable<Int>  LightingPath("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
+	static TAutoConsoleVariable<Int>  LightingPathType("r.LightingPath", 0, "0 - Deferred, 1 - Tiled Deferred, 2 - Clustered Deferred, 3 - Path Tracing");
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
@@ -72,10 +72,10 @@ namespace adria
 		gpu_driven_renderer.OnRendererOutputChanged(type);
 	}
 
-	void Renderer::SetLightingPath(LightingPathType path)
+	void Renderer::SetLightingPath(LightingPath path)
 	{
 		lighting_path = path;
-		LightingPath->Set((Int)path);
+		LightingPathType->Set((Int)path);
 	}
 
 	void Renderer::SetViewportData(ViewportData const& vp)
@@ -195,7 +195,7 @@ namespace adria
 		transparent_pass.GetTransparentChangedEvent().AddMember(&GPUDrivenGBufferPass::OnTransparentChanged, gpu_driven_renderer);
 		transparent_pass.GetTransparentChangedEvent().AddMember(&GBufferPass::OnTransparentChanged, gbuffer_pass);
 
-		LightingPath->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPathType>(cvar->GetInt()); }));
+		LightingPathType->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPath>(cvar->GetInt()); }));
 	}
 
 	void Renderer::CreateDisplaySizeDependentResources()
@@ -244,7 +244,7 @@ namespace adria
 
 		std::vector<LightGPU> hlsl_lights{};
 		Uint32 light_index = 0;
-		Matrix light_transform = lighting_path == LightingPathType::PathTracing ? Matrix::Identity : camera->View();
+		Matrix light_transform = lighting_path == LightingPath::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -504,7 +504,7 @@ namespace adria
 		postprocessor.ImportHistoryResources(render_graph);
 
 		gpu_debug_printer.AddClearPass(render_graph);
-		if (lighting_path == LightingPathType::PathTracing) Render_PathTracing(render_graph);
+		if (lighting_path == LightingPath::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 		if (take_screenshot) TakeScreenshot(render_graph);
 		gpu_debug_printer.AddPrintPass(render_graph);
@@ -551,9 +551,9 @@ namespace adria
 				RG_SCOPE(render_graph, "Lighting");
 				switch (lighting_path)
 				{
-				case LightingPathType::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
-				case LightingPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
-				case LightingPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
+				case LightingPath::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
+				case LightingPath::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
+				case LightingPath::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 				}
 				if (volumetric_lights > 0)
 				{
@@ -585,7 +585,7 @@ namespace adria
 	{
 		ZoneScopedN("Renderer::Render_PathTracing");
 		path_tracer.AddPass(render_graph);
-		postprocessor.AddTonemapPass(render_graph, RG_NAME(PT_Output));
+		postprocessor.AddTonemapPass(render_graph, path_tracer.GetFinalOutput());
 	}
 
 	void Renderer::GUI()
@@ -600,9 +600,13 @@ namespace adria
 		}
 		if (renderer_output == RendererOutput::Final)
 		{
-			if (lighting_path == LightingPathType::TiledDeferred)
+			if (lighting_path == LightingPath::TiledDeferred)
 			{
 				tiled_deferred_lighting_pass.GUI();
+			}
+			else if (lighting_path == LightingPath::PathTracing)
+			{
+				path_tracer.GUI();
 			}
 			shadow_renderer.GUI();
 			ocean_renderer.GUI();

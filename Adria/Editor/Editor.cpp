@@ -735,12 +735,12 @@ namespace adria
 			{
 				if (ImGui::BeginMenu("Lighting Path"))
 				{
-					LightingPathType current_path = engine->renderer->GetLightingPath();
-					auto AddMenuItem = [&](LightingPathType lighting_path, Char const* item_name)
+					LightingPath current_path = engine->renderer->GetLightingPath();
+					auto AddMenuItem = [&](LightingPath lighting_path, Char const* item_name)
 					{
 						if (ImGui::MenuItem(item_name, nullptr, lighting_path == current_path)) { engine->renderer->SetLightingPath(lighting_path); }
 					};
-					#define AddLightingPathMenuItem(name) AddMenuItem(LightingPathType::##name, #name)
+					#define AddLightingPathMenuItem(name) AddMenuItem(LightingPath::##name, #name)
 					AddLightingPathMenuItem(Deferred);
 					AddLightingPathMenuItem(TiledDeferred);
 					AddLightingPathMenuItem(ClusteredDeferred);

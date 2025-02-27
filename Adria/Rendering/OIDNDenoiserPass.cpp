@@ -71,7 +71,7 @@ namespace adria
 		rg.AddPass<OIDNDenoiserPassData>("OIDN Denoiser Pass",
 			[=](OIDNDenoiserPassData& data, RenderGraphBuilder& builder)
 			{
-				data.color = builder.WriteTexture(RG_NAME(DenoisedOutput));
+				data.color = builder.WriteTexture(RG_NAME(PT_DenoisedOutput));
 				data.albedo = builder.ReadTexture(RG_NAME(PT_Albedo));
 				data.normal = builder.ReadTexture(RG_NAME(PT_Normal));
 			},

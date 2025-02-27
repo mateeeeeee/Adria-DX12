@@ -47,7 +47,6 @@ namespace adria
 	class GeometryBufferCache : public Singleton<GeometryBufferCache>
 	{
 		friend class Singleton<GeometryBufferCache>;
-
 	public:
 
 		void Initialize(GfxDevice* _gfx);

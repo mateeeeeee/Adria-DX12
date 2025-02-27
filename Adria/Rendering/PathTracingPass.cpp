@@ -7,9 +7,11 @@
 #include "Graphics/GfxStateObject.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<Int> Denoiser("r.PathTracing.Denoiser", DenoiserType_None, "What denoiser will path tracer use: 0 - None, 1 - OIDN, 2 - SVGF");
 
 	PathTracingPass::PathTracingPass(GfxDevice* gfx, Uint32 width, Uint32 height)
 		: gfx(gfx), width(width), height(height)
@@ -20,7 +22,7 @@ namespace adria
 			CreateStateObject();
 			OnResize(width, height);
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
-			//oidn_denoiser_pass = std::make_unique<OIDNDenoiserPass>(gfx);
+			denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
 		}
 	}
 	PathTracingPass::~PathTracingPass() = default;
@@ -29,6 +31,7 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
+		Bool const denoiser_active = denoiser_pass->GetType() != DenoiserType_None;
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct PathTracingPassData
 		{
@@ -82,18 +85,11 @@ namespace adria
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
+		if (denoiser_active)
+		{
+			denoiser_pass->AddPass(rg);
+		}
 		++accumulated_frames;
-		QueueGUI([&]()
-			{
-				if (ImGui::TreeNodeEx("Path tracing", ImGuiTreeNodeFlags_None))
-				{
-					ImGui::SliderInt("Max bounces", &max_bounces, 1, 8);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-			}
-		);
-
 	}
 
 	void PathTracingPass::OnResize(Uint32 w, Uint32 h)
@@ -119,12 +115,46 @@ namespace adria
 	void PathTracingPass::Reset()
 	{
 		accumulated_frames = 0;
+		denoiser_pass->Reset();
+	}
+
+	void PathTracingPass::GUI()
+	{
+		QueueGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Path tracing", ImGuiTreeNodeFlags_None))
+				{
+					if (ImGui::Combo("Denoiser Type", Denoiser.GetPtr(), "None\0OIDN\0SVGF\0", 3))
+					{
+						denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
+					}
+					ImGui::SliderInt("Max bounces", &max_bounces, 1, 8);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}, GUICommandGroup_Renderer
+		);
+	}
+
+	RGResourceName PathTracingPass::GetFinalOutput() const
+	{
+		return Denoiser.Get() != DenoiserType_None ? RG_NAME(PT_DenoisedOutput) : RG_NAME(PT_Output);
 	}
 
 	void PathTracingPass::CreateStateObject()
 	{
-		GfxShader const& pt_blob = GetGfxShader(LIB_PathTracing);
+		GfxShaderKey pt_shader_key(LIB_PathTracing);
+		GfxShader const& pt_blob = GetGfxShader(pt_shader_key);
+		path_tracing_so.reset(CreateStateObjectCommon(pt_shader_key));
 
+		pt_shader_key.AddDefine("WRITE_GBUFFER", "1");
+		GfxShader const& pt_blob_write_gbuffer = GetGfxShader(pt_shader_key);
+		path_tracing_so_write_gbuffer.reset(CreateStateObjectCommon(pt_shader_key));
+	}
+
+	GfxStateObject* PathTracingPass::CreateStateObjectCommon(GfxShaderKey const& shader_key)
+	{
+		GfxShader const& pt_blob = GetGfxShader(shader_key);
 		GfxStateObjectBuilder pt_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
@@ -146,14 +176,8 @@ namespace adria
 			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 3;
 			pt_state_object_builder.AddSubObject(pipeline_config);
-
-			//D3D12_HIT_GROUP_DESC closesthit_group{};
-			//closesthit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-			//closesthit_group.ClosestHitShaderImport = L"PT_ClosestHit";
-			//closesthit_group.HitGroupExport = L"PT_HitGroup";
-			//pt_state_object_builder.AddSubObject(closesthit_group);
 		}
-		path_tracing_so.reset(pt_state_object_builder.CreateStateObject(gfx));
+		return pt_state_object_builder.CreateStateObject(gfx);
 	}
 
 	void PathTracingPass::OnLibraryRecompiled(GfxShaderKey const& key)

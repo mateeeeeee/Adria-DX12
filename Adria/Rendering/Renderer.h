@@ -36,7 +36,7 @@ namespace adria
 	class GfxTexture;
 	struct Light;
 
-	enum class LightingPathType : Uint8
+	enum class LightingPath : Uint8
 	{
 		Deferred,
 		TiledDeferred,
@@ -66,9 +66,9 @@ namespace adria
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
 
 		RendererOutput GetRendererOutput() const { return renderer_output; }
-		LightingPathType GetLightingPath() const { return lighting_path; }
+		LightingPath GetLightingPath() const { return lighting_path; }
 		void SetRendererOutput(RendererOutput type);
-		void SetLightingPath(LightingPathType path);
+		void SetLightingPath(LightingPath path);
 		void SetViewportData(ViewportData const& vp);
 
 	private:
@@ -141,7 +141,7 @@ namespace adria
 		Bool update_picking_data = false;
 		PickingData picking_data;
 
-		LightingPathType	 lighting_path = LightingPathType::Deferred;
+		LightingPath	 lighting_path = LightingPath::Deferred;
 		RendererOutput		 renderer_output = RendererOutput::Final;
 
 		std::unique_ptr<GfxTexture> overdraw_texture = nullptr;

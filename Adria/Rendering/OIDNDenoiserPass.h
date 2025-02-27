@@ -1,6 +1,7 @@
 #pragma once
 #include "OpenImageDenoise/oidn.h"
 #include "Graphics/GfxFence.h"
+#include "IDenoiserPass.h"
 
 namespace adria
 {
@@ -8,18 +9,17 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxCommandList;
-	class RenderGraph;
 
-	class OIDNDenoiserPass
+	class OIDNDenoiserPass : public IDenoiserPass
 	{
 	public:
 		explicit OIDNDenoiserPass(GfxDevice* gfx);
 		~OIDNDenoiserPass();
 
-		Bool IsSupported() const { return supported; }
-
-		void AddPass(RenderGraph& rendergraph);
-		void Reset();
+		virtual Bool IsSupported() const override { return supported; }
+		virtual void AddPass(RenderGraph& rendergraph) override;
+		virtual void Reset() override;
+		virtual DenoiserType GetType() const override { return DenoiserType_OIDN; }
 
 	private:
 		GfxDevice* gfx;
