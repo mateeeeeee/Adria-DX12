@@ -1641,6 +1641,9 @@
     <ClInclude Include="Rendering\VolumetricFogManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\OIDNDenoiser.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

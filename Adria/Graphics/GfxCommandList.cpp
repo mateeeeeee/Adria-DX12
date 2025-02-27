@@ -505,6 +505,33 @@ namespace adria
 		++command_count;
 	}
 
+	void GfxCommandList::CopyBufferToTexture(GfxTexture& dst_texture, Uint32 mip_level, Uint32 array_slice, GfxBuffer const& src_buffer, Uint32 offset)
+	{
+		GfxTextureDesc const& desc = dst_texture.GetDesc();
+
+		Uint32 min_width = GetGfxFormatBlockSize(desc.format);
+		Uint32 min_height = GetGfxFormatBlockSize(desc.format);
+		Uint32 w = std::max(desc.width >> mip_level, min_width);
+		Uint32 h = std::max(desc.height >> mip_level, min_height);
+		Uint32 d = std::max(desc.depth >> mip_level, 1u);
+
+		D3D12_TEXTURE_COPY_LOCATION copy_dst{};
+		copy_dst.pResource = dst_texture.GetNative();
+		copy_dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		copy_dst.SubresourceIndex = mip_level + desc.mip_levels * array_slice; 
+
+		D3D12_TEXTURE_COPY_LOCATION copy_src = {};
+		copy_src.pResource = src_buffer.GetNative();
+		copy_src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		copy_src.PlacedFootprint.Offset = offset;
+		copy_src.PlacedFootprint.Footprint.Format = ConvertGfxFormat(desc.format);
+		copy_src.PlacedFootprint.Footprint.Width = w;
+		copy_src.PlacedFootprint.Footprint.Height = h;
+		copy_src.PlacedFootprint.Footprint.Depth = d;
+		copy_src.PlacedFootprint.Footprint.RowPitch = dst_texture.GetRowPitch(mip_level);
+		cmd_list->CopyTextureRegion(&copy_dst, 0, 0, 0, &copy_src, nullptr);
+	}
+
 	void GfxCommandList::ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const Float* clear_value)
 	{
 		cmd_list->ClearUnorderedAccessViewFloat(uav, uav_cpu, resource.GetNative(), clear_value, 0, nullptr);

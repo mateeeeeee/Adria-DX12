@@ -1,6 +1,7 @@
 #include "PathTracingPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
+#include "OIDNDenoiserPass.h"
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
@@ -19,6 +20,7 @@ namespace adria
 			CreateStateObject();
 			OnResize(width, height);
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
+			//oidn_denoiser_pass = std::make_unique<OIDNDenoiserPass>(gfx);
 		}
 	}
 	PathTracingPass::~PathTracingPass() = default;

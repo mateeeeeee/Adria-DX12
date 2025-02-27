@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
@@ -10,6 +9,7 @@ namespace adria
 	class GfxDevice;
 	class GfxShaderKey;
 	class GfxStateObject;
+	class OIDNDenoiserPass;
 
 	class PathTracingPass
 	{
@@ -29,6 +29,8 @@ namespace adria
 		std::unique_ptr<GfxTexture> accumulation_texture = nullptr;
 		Int32 accumulated_frames = 1;
 		Int32 max_bounces = 3;
+
+		std::unique_ptr<OIDNDenoiserPass> oidn_denoiser_pass;
 
 	private:
 		void CreateStateObject();

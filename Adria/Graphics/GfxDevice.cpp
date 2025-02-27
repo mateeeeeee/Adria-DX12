@@ -791,10 +791,23 @@ namespace adria
 
 	Uint64 GfxDevice::GetLinearBufferSize(GfxTexture const* texture) const
 	{
+		ADRIA_ASSERT(texture);
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT texture_footprint{};
+		GfxTextureDesc const& desc = texture->GetDesc();
 		D3D12_RESOURCE_DESC d3d12_texture_desc = texture->GetNative()->GetDesc();
-		device->GetCopyableFootprints(&d3d12_texture_desc, 0, 1, 0, &texture_footprint, nullptr, nullptr, nullptr);
+		Uint32 subresource_count = desc.mip_levels * desc.array_size;
+		device->GetCopyableFootprints(&d3d12_texture_desc, 0, subresource_count, 0, &texture_footprint, nullptr, nullptr, nullptr);
 		return texture_footprint.Footprint.RowPitch * texture_footprint.Footprint.Height;
+	}
+
+	Uint64 GfxDevice::GetLinearBufferSize(GfxBuffer const* buffer) const
+	{
+		ADRIA_ASSERT(buffer);
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT buffer_footprint{};
+		GfxBufferDesc const& desc = buffer->GetDesc();
+		D3D12_RESOURCE_DESC d3d12_texture_desc = buffer->GetNative()->GetDesc();
+		device->GetCopyableFootprints(&d3d12_texture_desc, 0, 1, 0, &buffer_footprint, nullptr, nullptr, nullptr);
+		return buffer_footprint.Footprint.RowPitch * buffer_footprint.Footprint.Height;
 	}
 
 	void GfxDevice::GetTimestampFrequency(Uint64& frequency) const

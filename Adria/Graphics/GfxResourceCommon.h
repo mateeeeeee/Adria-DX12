@@ -137,7 +137,8 @@ namespace adria
 	{
 		None = 0,
 		TextureCube = 1 << 0,
-		SRGB = 1 << 1
+		SRGB = 1 << 1,
+		Shared = 1 << 2
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
 
@@ -150,7 +151,8 @@ namespace adria
 		ConstantBuffer = 1 << 3,
 		VertexBuffer = 1 << 4,
 		IndexBuffer = 1 << 5,
-		AccelStruct = 1 << 6
+		AccelStruct = 1 << 6,
+		Shared = 1 << 7
 	};
 	ENABLE_ENUM_BIT_OPERATORS(GfxBufferMiscFlag);
 

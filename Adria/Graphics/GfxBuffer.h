@@ -45,6 +45,7 @@ namespace adria
 		Uint32 GetStride() const;
 		Uint32 GetCount() const;
 		GfxFormat GetFormat() const;
+		void* GetSharedHandle() const;
 
 		Bool IsMapped() const;
 		void* GetMappedData() const;
@@ -64,6 +65,7 @@ namespace adria
 		GfxBufferDesc desc;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		void* mapped_data = nullptr;
+		HANDLE shared_handle = nullptr;
 	};
 
 	template<typename T>

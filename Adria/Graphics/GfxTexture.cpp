@@ -24,20 +24,20 @@ namespace adria
 		resource_desc.SampleDesc.Quality = 0;
 		resource_desc.Alignment = 0;
 		resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-		if (HasAllFlags(desc.bind_flags, GfxBindFlag::DepthStencil))
+		if (HasFlag(desc.bind_flags, GfxBindFlag::DepthStencil))
 		{
 			resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-			if (!HasAllFlags(desc.bind_flags, GfxBindFlag::ShaderResource))
+			if (!HasFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
 			{
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 			}
 		}
-		if (HasAllFlags(desc.bind_flags, GfxBindFlag::RenderTarget))
+		if (HasFlag(desc.bind_flags, GfxBindFlag::RenderTarget))
 		{
 			resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		}
-		if (HasAllFlags(desc.bind_flags, GfxBindFlag::UnorderedAccess))
+		if (HasFlag(desc.bind_flags, GfxBindFlag::UnorderedAccess))
 		{
 			resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		}
@@ -60,7 +60,7 @@ namespace adria
 		}
 		D3D12_CLEAR_VALUE* clear_value_ptr = nullptr;
 		D3D12_CLEAR_VALUE clear_value{};
-		if (HasAnyFlag(desc.bind_flags, GfxBindFlag::DepthStencil) && desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil)
+		if (HasFlag(desc.bind_flags, GfxBindFlag::DepthStencil) && desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil)
 		{
 			clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
 			clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
@@ -84,7 +84,7 @@ namespace adria
 			}
 			clear_value_ptr = &clear_value;
 		}
-		else if (HasAnyFlag(desc.bind_flags, GfxBindFlag::RenderTarget) && desc.clear_value.active_member == GfxClearValue::GfxActiveMember::Color)
+		else if (HasFlag(desc.bind_flags, GfxBindFlag::RenderTarget) && desc.clear_value.active_member == GfxClearValue::GfxActiveMember::Color)
 		{
 			clear_value.Color[0] = desc.clear_value.color.color[0];
 			clear_value.Color[1] = desc.clear_value.color.color[1];
@@ -141,6 +141,13 @@ namespace adria
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 				initial_state = GfxResourceState::GenericRead;
 			}
+
+			if (HasFlag(desc.misc_flags, GfxTextureMiscFlag::Shared))
+			{
+				resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER;
+				allocation_desc.ExtraHeapFlags |= D3D12_HEAP_FLAG_SHARED | D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER;
+			}
 		}
 		auto allocator = gfx->GetAllocator();
 
@@ -170,6 +177,12 @@ namespace adria
 		}
 		GFX_CHECK_HR(hr);
 		allocation.reset(alloc);
+
+		if (HasFlag(desc.misc_flags, GfxTextureMiscFlag::Shared))
+		{
+			hr = gfx->GetDevice()->CreateSharedHandle(resource.Get(), nullptr, GENERIC_ALL, nullptr, &shared_handle);
+			GFX_CHECK_HR(hr);
+		}
 
 		if (desc.heap_type == GfxResourceUsage::Readback)
 		{
@@ -236,6 +249,16 @@ namespace adria
 			gfx->AddToReleaseQueue(resource.Detach());
 			gfx->AddToReleaseQueue(allocation.release());
 		}
+	}
+
+	Uint32 GfxTexture::GetRowPitch(Uint32 mip_level) const
+	{
+		ADRIA_ASSERT(mip_level < desc.mip_levels);
+		ID3D12Device* d3d12_device = gfx->GetDevice();
+		D3D12_RESOURCE_DESC d3d12_desc = resource->GetDesc();
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+		d3d12_device->GetCopyableFootprints(&d3d12_desc, mip_level, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		return footprint.Footprint.RowPitch;
 	}
 
 	Uint64 GfxTexture::GetGpuAddress() const

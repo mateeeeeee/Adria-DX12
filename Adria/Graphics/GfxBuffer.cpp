@@ -11,8 +11,10 @@ namespace adria
 	GfxBuffer::GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferData initial_data) : gfx(gfx), desc(desc)
 	{
 		Uint64 buffer_size = desc.size;
-		if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::ConstantBuffer))
+		if (HasFlag(desc.misc_flags, GfxBufferMiscFlag::ConstantBuffer))
+		{
 			buffer_size = Align(buffer_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+		}
 
 		D3D12_RESOURCE_DESC resource_desc{};
 		resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -27,15 +29,21 @@ namespace adria
 		resource_desc.SampleDesc.Count = 1;
 		resource_desc.SampleDesc.Quality = 0;
 
-		if (HasAllFlags(desc.bind_flags, GfxBindFlag::UnorderedAccess))
+		if (HasFlag(desc.bind_flags, GfxBindFlag::UnorderedAccess))
+		{
 			resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		}
 
-		if (!HasAllFlags(desc.bind_flags, GfxBindFlag::ShaderResource))
+		if (!HasFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
+		{
 			resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+		}
 
 		D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_COMMON;
-		if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
+		if (HasFlag(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
+		{
 			resource_state = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+		}
 
 		D3D12MA::ALLOCATION_DESC allocation_desc{};
 		allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
@@ -49,6 +57,11 @@ namespace adria
 		{
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 			resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
+		}
+
+		if (HasFlag(desc.misc_flags, GfxBufferMiscFlag::Shared))
+		{
+			allocation_desc.ExtraHeapFlags |= D3D12_HEAP_FLAG_SHARED;
 		}
 
 		auto device = gfx->GetDevice();
@@ -66,6 +79,12 @@ namespace adria
 		GFX_CHECK_HR(hr);
 		allocation.reset(alloc);
 
+		if (HasFlag(desc.misc_flags, GfxBufferMiscFlag::Shared))
+		{
+			hr = gfx->GetDevice()->CreateSharedHandle(resource.Get(), nullptr, GENERIC_ALL, nullptr, &shared_handle);
+			GFX_CHECK_HR(hr);
+		}
+
 		if (desc.resource_usage == GfxResourceUsage::Readback)
 		{
 			hr = resource->Map(0, nullptr, &mapped_data);
@@ -76,7 +95,6 @@ namespace adria
 			D3D12_RANGE read_range{};
 			hr = resource->Map(0, &read_range, &mapped_data);
 			GFX_CHECK_HR(hr);
-
 			if (initial_data)
 			{
 				memcpy(mapped_data, initial_data, desc.size);
@@ -96,12 +114,13 @@ namespace adria
 				upload_alloc.offset,
 				desc.size);
 
-			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
+			if (HasFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
 			{
 				cmd_list->BufferBarrier(*this, GfxResourceState::CopyDst, GfxResourceState::AllSRV);
 				cmd_list->FlushBarriers();
 			}
 		}
+
 	}
 
 	GfxBuffer::~GfxBuffer()
@@ -153,6 +172,11 @@ namespace adria
 	GfxFormat GfxBuffer::GetFormat() const
 	{
 		return desc.format;
+	}
+
+	void* GfxBuffer::GetSharedHandle() const
+	{
+		return shared_handle;
 	}
 
 	Bool GfxBuffer::IsMapped() const

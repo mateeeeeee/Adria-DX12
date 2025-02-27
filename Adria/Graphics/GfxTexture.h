@@ -122,9 +122,11 @@ namespace adria
 		Uint32 GetWidth() const { return desc.width; }
 		Uint32 GetHeight() const { return desc.height; }
 		Uint32 GetDepth() const { return desc.depth; }
+		Uint32 GetRowPitch(Uint32 mip_level = 0) const;
 		GfxFormat GetFormat() const { return desc.format; }
 		Uint64 GetGpuAddress() const;
 		Bool IsSRGB() const { return (desc.misc_flags & GfxTextureMiscFlag::SRGB) != GfxTextureMiscFlag::None; }
+		void* GetSharedHandle() const { return shared_handle; }
 
 		Bool IsMapped() const;
 		void* GetMappedData() const;
@@ -142,6 +144,7 @@ namespace adria
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		void* mapped_data = nullptr;
 		Bool is_backbuffer = false;
+		HANDLE shared_handle = nullptr;
 	};
 
 	template<typename T>

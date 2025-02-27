@@ -170,6 +170,7 @@ namespace adria
 		GfxDescriptor CreateTextureDSV(GfxTexture const*, GfxTextureDescriptorDesc const* = nullptr);
 
 		Uint64 GetLinearBufferSize(GfxTexture const* texture) const;
+		Uint64 GetLinearBufferSize(GfxBuffer const*  buffer) const;
 
 		void CopyDescriptors(Uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
 		void CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
