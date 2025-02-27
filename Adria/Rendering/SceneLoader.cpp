@@ -6,7 +6,6 @@
 #include "meshoptimizer.h"
 #include "SceneLoader.h"
 #include "Components.h"
-#include "Meshlet.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Logging/Logger.h"
@@ -536,22 +535,6 @@ namespace adria
 		std::unordered_map<cgltf_mesh const*, std::vector<Int32>> mesh_primitives_map; //mesh -> vector of primitive indices
 		Int32 primitive_count = 0;
 
-		struct MeshData
-		{
-			DirectX::BoundingBox bounding_box;
-			Int32 material_index = -1;
-			GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
-
-			std::vector<Vector3> positions_stream;
-			std::vector<Vector3> normals_stream;
-			std::vector<Vector4> tangents_stream;
-			std::vector<Vector2> uvs_stream;
-			std::vector<Uint32>   indices;
-
-			std::vector<Meshlet>		 meshlets;
-			std::vector<Uint32>			 meshlet_vertices;
-			std::vector<MeshletTriangle> meshlet_triangles;
-		};
 		std::vector<MeshData> mesh_datas{};
 		for (Uint32 i = 0; i < gltf_data->meshes_count; ++i)
 		{
@@ -622,95 +605,8 @@ namespace adria
 			}
 		}
 
-		Uint64 total_buffer_size = 0;
-		for (auto& mesh_data : mesh_datas)
-		{
-			std::vector<Uint32> const& indices = mesh_data.indices;
-			Uint64 vertex_count = mesh_data.positions_stream.size();
-
-			Bool has_tangents = !mesh_data.tangents_stream.empty();
-			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
-			if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
-			if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
-
-			if (!has_tangents)
-			{
-				ComputeTangentFrame(mesh_data.indices.data(), mesh_data.indices.size(), mesh_data.positions_stream.data(),
-					mesh_data.normals_stream.data(), mesh_data.uvs_stream.data(), vertex_count, mesh_data.tangents_stream.data());
-			}
-
-			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
-			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(Vector3), 1.05f);
-			std::vector<Uint32> remap(vertex_count);
-			meshopt_optimizeVertexFetchRemap(&remap[0], mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
-			meshopt_remapIndexBuffer(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(Vector3), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(Vector3), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(Vector4), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(Vector2), &remap[0]);
-
-			Uint64 const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
-			mesh_data.meshlets.resize(max_meshlets);
-			mesh_data.meshlet_vertices.resize(max_meshlets * MESHLET_MAX_VERTICES);
-
-			std::vector<Uchar> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
-			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
-
-			Uint64 meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
-				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(Vector3),
-				MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES, 0);
-
-			meshopt_Meshlet const& last = meshlets[meshlet_count - 1];
-			meshlet_triangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
-			meshlets.resize(meshlet_count);
-
-			mesh_data.meshlets.resize(meshlet_count);
-			mesh_data.meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
-			mesh_data.meshlet_triangles.resize(meshlet_triangles.size() / 3);
-
-			Uint32 triangle_offset = 0;
-			for (Uint64 i = 0; i < meshlet_count; ++i)
-			{
-				meshopt_Meshlet const& m = meshlets[i];
-				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
-					m.triangle_count, reinterpret_cast<Float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
-
-				Uchar* src_triangles = meshlet_triangles.data() + m.triangle_offset;
-				for (Uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
-				{
-					MeshletTriangle& tri = mesh_data.meshlet_triangles[triangle_idx + triangle_offset];
-					tri.V0 = *src_triangles++;
-					tri.V1 = *src_triangles++;
-					tri.V2 = *src_triangles++;
-				}
-
-				Meshlet& meshlet = mesh_data.meshlets[i];
-				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(Float) * 3);
-
-				meshlet.radius = meshopt_bounds.radius;
-				meshlet.vertex_count = m.vertex_count;
-				meshlet.triangle_count = m.triangle_count;
-				meshlet.vertex_offset = m.vertex_offset;
-				meshlet.triangle_offset = triangle_offset;
-				triangle_offset += m.triangle_count;
-
-			}
-			mesh_data.meshlet_triangles.resize(triangle_offset);
-
-			total_buffer_size += Align(mesh_data.indices.size() * sizeof(Uint32), 16);
-			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(Vector3), 16);
-			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(Vector2), 16);
-			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(Vector3), 16);
-			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(Vector4), 16);
-			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
-			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(Uint32), 16);
-			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
-
-			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
-		}
-
+		Uint64 const total_buffer_size = CalculateTotalBufferSize(mesh_datas);
 		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
-
 		Uint32 current_offset = 0;
 		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)
 		{
@@ -722,8 +618,7 @@ namespace adria
 		mesh.submeshes.reserve(mesh_datas.size());
 		for (Uint64 i = 0; i < mesh_datas.size(); ++i)
 		{
-			auto const& mesh_data = mesh_datas[i];
-
+			MeshData const& mesh_data = mesh_datas[i];
 			SubMeshGPU& submesh = mesh.submeshes.emplace_back();
 
 			submesh.indices_offset = current_offset;
@@ -894,22 +789,6 @@ namespace adria
 			mesh.materials.push_back(material);
 		}
 
-		struct MeshData
-		{
-			DirectX::BoundingBox bounding_box;
-			Int32 material_index = -1;
-			GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
-
-			std::vector<Vector3> positions_stream;
-			std::vector<Vector3> normals_stream;
-			std::vector<Vector4> tangents_stream;
-			std::vector<Vector2> uvs_stream;
-			std::vector<Uint32>  indices;
-
-			std::vector<Meshlet>		 meshlets;
-			std::vector<Uint32>			 meshlet_vertices;
-			std::vector<MeshletTriangle> meshlet_triangles;
-		};
 		std::vector<MeshData> mesh_datas{};
 		mesh.submeshes.reserve(shapes.size());
 		for (Uint64 s = 0; s < shapes.size(); s++)
@@ -952,8 +831,72 @@ namespace adria
 			}
 		}
 
-		//move this meshlet related stuff to common function?
-		//#todo disable all meshlet stuff if device doesnt support meshlets
+		Bool const supports_meshlets = gfx->GetCapabilities().SupportsMeshShaders();
+		Uint64 const total_buffer_size = CalculateTotalBufferSize(mesh_datas);
+		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
+
+		Uint32 current_offset = 0;
+		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)
+		{
+			Uint64 current_copy_size = _data.size() * sizeof(T);
+			staging_buffer.Update(_data.data(), current_copy_size, current_offset);
+			current_offset += (Uint32)Align(current_copy_size, 16);
+		};
+
+		mesh.submeshes.reserve(mesh_datas.size());
+		mesh.instances.reserve(mesh_datas.size());
+		for (Uint32 i = 0; i < mesh_datas.size(); ++i)
+		{
+			MeshData const& mesh_data = mesh_datas[i];
+			SubMeshGPU& submesh = mesh.submeshes.emplace_back();
+
+			submesh.indices_offset = current_offset;
+			submesh.indices_count = (Uint32)mesh_data.indices.size();
+			CopyData(mesh_data.indices);
+
+			submesh.vertices_count = (Uint32)mesh_data.positions_stream.size();
+			submesh.positions_offset = current_offset;
+			CopyData(mesh_data.positions_stream);
+
+			submesh.uvs_offset = current_offset;
+			CopyData(mesh_data.uvs_stream);
+
+			submesh.normals_offset = current_offset;
+			CopyData(mesh_data.normals_stream);
+
+			submesh.tangents_offset = current_offset;
+			CopyData(mesh_data.tangents_stream);
+
+			submesh.meshlet_offset = current_offset;
+			CopyData(mesh_data.meshlets);
+
+			submesh.meshlet_vertices_offset = current_offset;
+			CopyData(mesh_data.meshlet_vertices);
+
+			submesh.meshlet_triangles_offset = current_offset;
+			CopyData(mesh_data.meshlet_triangles);
+
+			submesh.meshlet_count = (Uint32)mesh_data.meshlets.size();
+
+			submesh.bounding_box = mesh_data.bounding_box;
+			submesh.topology = mesh_data.topology;
+			submesh.material_index = mesh_data.material_index;
+
+			mesh.instances.emplace_back(mesh_entity, i, Matrix::Identity);
+		}
+		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
+
+		reg.emplace<Mesh>(mesh_entity, mesh);
+		reg.emplace<Tag>(mesh_entity, model_name + " mesh");
+		if (gfx->GetCapabilities().SupportsRayTracing()) reg.emplace<RayTracing>(mesh_entity);
+
+		ADRIA_LOG(INFO, "GLTF Model %s successfully loaded!", params.model_path.c_str());
+		return mesh_entity;
+	}
+
+	Uint64 SceneLoader::CalculateTotalBufferSize(std::vector<MeshData>& mesh_datas)
+	{
+		Bool const supports_meshlets = gfx->GetCapabilities().SupportsMeshShaders();
 		Uint64 total_buffer_size = 0;
 		for (auto& mesh_data : mesh_datas)
 		{
@@ -969,6 +912,19 @@ namespace adria
 			{
 				ComputeTangentFrame(mesh_data.indices.data(), mesh_data.indices.size(), mesh_data.positions_stream.data(),
 					mesh_data.normals_stream.data(), mesh_data.uvs_stream.data(), vertex_count, mesh_data.tangents_stream.data());
+			}
+
+			total_buffer_size += Align(mesh_data.indices.size() * sizeof(Uint32), 16);
+			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(Vector3), 16);
+			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(Vector2), 16);
+			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(Vector3), 16);
+			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(Vector4), 16);
+
+			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
+
+			if (!supports_meshlets)
+			{
+				continue;
 			}
 
 			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
@@ -1028,76 +984,11 @@ namespace adria
 
 			}
 			mesh_data.meshlet_triangles.resize(triangle_offset);
-			total_buffer_size += Align(mesh_data.indices.size() * sizeof(Uint32), 16);
-			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(Vector3), 16);
-			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(Vector2), 16);
-			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(Vector3), 16);
-			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(Vector4), 16);
 			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
 			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(Uint32), 16);
 			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
-			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
 		}
-
-		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
-
-		Uint32 current_offset = 0;
-		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)
-		{
-			Uint64 current_copy_size = _data.size() * sizeof(T);
-			staging_buffer.Update(_data.data(), current_copy_size, current_offset);
-			current_offset += (Uint32)Align(current_copy_size, 16);
-		};
-
-		mesh.submeshes.reserve(mesh_datas.size());
-		mesh.instances.reserve(mesh_datas.size());
-		for (Uint32 i = 0; i < mesh_datas.size(); ++i)
-		{
-			auto const& mesh_data = mesh_datas[i];
-			SubMeshGPU& submesh = mesh.submeshes.emplace_back();
-
-			submesh.indices_offset = current_offset;
-			submesh.indices_count = (Uint32)mesh_data.indices.size();
-			CopyData(mesh_data.indices);
-
-			submesh.vertices_count = (Uint32)mesh_data.positions_stream.size();
-			submesh.positions_offset = current_offset;
-			CopyData(mesh_data.positions_stream);
-
-			submesh.uvs_offset = current_offset;
-			CopyData(mesh_data.uvs_stream);
-
-			submesh.normals_offset = current_offset;
-			CopyData(mesh_data.normals_stream);
-
-			submesh.tangents_offset = current_offset;
-			CopyData(mesh_data.tangents_stream);
-
-			submesh.meshlet_offset = current_offset;
-			CopyData(mesh_data.meshlets);
-
-			submesh.meshlet_vertices_offset = current_offset;
-			CopyData(mesh_data.meshlet_vertices);
-
-			submesh.meshlet_triangles_offset = current_offset;
-			CopyData(mesh_data.meshlet_triangles);
-
-			submesh.meshlet_count = (Uint32)mesh_data.meshlets.size();
-
-			submesh.bounding_box = mesh_data.bounding_box;
-			submesh.topology = mesh_data.topology;
-			submesh.material_index = mesh_data.material_index;
-
-			mesh.instances.emplace_back(mesh_entity, i, Matrix::Identity);
-		}
-		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
-
-		reg.emplace<Mesh>(mesh_entity, mesh);
-		reg.emplace<Tag>(mesh_entity, model_name + " mesh");
-		if (gfx->GetCapabilities().SupportsRayTracing()) reg.emplace<RayTracing>(mesh_entity);
-
-		ADRIA_LOG(INFO, "GLTF Model %s successfully loaded!", params.model_path.c_str());
-		return mesh_entity;
+		return total_buffer_size;
 	}
 
 }

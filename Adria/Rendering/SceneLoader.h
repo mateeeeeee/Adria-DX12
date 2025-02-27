@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "Components.h"
+#include "Meshlet.h"
 #include "Math/NormalsUtil.h"
 #include "Utilities/Heightmap.h"
 #include "entt/entity/registry.hpp"
@@ -49,7 +50,6 @@ namespace adria
 	{
 		GridParameters ocean_grid;
 	};
-
     struct LightParameters
     {
         Light light_data;
@@ -67,6 +67,23 @@ namespace adria
 		Bool modify_gbuffer_normals = false;
 		Vector3 position;
 		Vector3 normal;
+	};
+
+	struct MeshData
+	{
+		DirectX::BoundingBox bounding_box;
+		Int32 material_index = -1;
+		GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
+
+		std::vector<Vector3>		 positions_stream;
+		std::vector<Vector3>		 normals_stream;
+		std::vector<Vector4>		 tangents_stream;
+		std::vector<Vector2>		 uvs_stream;
+		std::vector<Uint32>			 indices;
+
+		std::vector<Meshlet>		 meshlets;
+		std::vector<Uint32>			 meshlet_vertices;
+		std::vector<MeshletTriangle> meshlet_triangles;
 	};
 
     class GfxDevice;
@@ -91,6 +108,7 @@ namespace adria
 		ADRIA_NODISCARD std::vector<entt::entity> LoadGrid(GridParameters const&);
 		ADRIA_MAYBE_UNUSED entt::entity LoadModel_GLTF(ModelParameters const&);
 		ADRIA_MAYBE_UNUSED entt::entity LoadModel_OBJ(ModelParameters const&);
+		ADRIA_NODISCARD Uint64 CalculateTotalBufferSize(std::vector<MeshData>& mesh_data);
 	};
 }
 
