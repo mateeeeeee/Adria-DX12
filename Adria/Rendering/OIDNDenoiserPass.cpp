@@ -3,9 +3,6 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 
-#pragma comment(lib, "OpenImageDenoise.lib")
-#pragma comment(lib, "OpenImageDenoise_core.lib")
-
 namespace adria
 {
 	static void OIDNErrorCallback(void* ptr, OIDNError code, const char* message)
@@ -130,13 +127,9 @@ namespace adria
 			oidn_normal_buffer = oidnNewSharedBufferFromWin32Handle(oidn_device, flag, normal_buffer->GetSharedHandle(), nullptr, oidn_buffer_desc.size);
 
 			oidnSetFilterImage(oidn_filter, "color", oidn_color_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
-			OIDNCheck(oidn_device);
 			oidnSetFilterImage(oidn_filter, "albedo", oidn_albedo_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, albedo_texture.GetRowPitch());
-			OIDNCheck(oidn_device);
 			oidnSetFilterImage(oidn_filter, "normal", oidn_normal_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, normal_texture.GetRowPitch());
-			OIDNCheck(oidn_device);
 			oidnSetFilterImage(oidn_filter, "output", oidn_color_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
-			OIDNCheck(oidn_device);
 			oidnSetFilterBool(oidn_filter, "hdr", true);
 			oidnSetFilterBool(oidn_filter, "cleanAux", true);
 			oidnCommitFilter(oidn_filter);

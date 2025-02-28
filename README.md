@@ -9,7 +9,7 @@ Graphics engine written in C++ using DirectX12.
     - Automatic resource bind flags and initial state deduction
 * DDGI
 * GPU-Driven Rendering : GPU frustum culling + 2 phase GPU occlusion culling
-* Reference path tracer 
+* Reference path tracer + OIDN denoiser
 * Temporal upscalers : FSR2, FSR3, XeSS, DLSS3
 * Ultimate Bindless resource binding
 * Variable Rate Shading (FFX)

@@ -603,6 +603,8 @@
     <ClCompile Include="Rendering\VolumetricFogManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\IDenoiserPass.cpp" />
+    <ClCompile Include="Rendering\OIDNDenoiserPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1641,9 +1643,8 @@
     <ClInclude Include="Rendering\VolumetricFogManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\OIDNDenoiser.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="Rendering\IDenoiserPass.h" />
+    <ClInclude Include="Rendering\OIDNDenoiserPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
