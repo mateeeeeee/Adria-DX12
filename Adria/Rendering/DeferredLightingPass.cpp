@@ -8,7 +8,6 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Math/Packing.h"
-#include "Logging/Logger.h"
 
 using namespace DirectX;
 

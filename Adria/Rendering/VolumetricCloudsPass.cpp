@@ -9,7 +9,6 @@
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
-#include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
 

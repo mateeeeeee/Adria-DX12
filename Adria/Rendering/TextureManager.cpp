@@ -1,12 +1,10 @@
 #include "d3dx12.h"
-
 #include "TextureManager.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommon.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxShaderCompiler.h"
-#include "Logging/Logger.h"
 #include "Utilities/Image.h"
 
 

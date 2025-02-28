@@ -1,6 +1,5 @@
 #pragma once
 #include <fstream>
-#include "Logger.h"
 
 namespace adria
 {

@@ -5,7 +5,6 @@
 #include "GfxShader.h"
 #include "GfxDevice.h"
 #include "Rendering/ShaderManager.h"
-#include "Logging/Logger.h"
 #include "Core/Paths.h"
 #include "Utilities/Timer.h"
 

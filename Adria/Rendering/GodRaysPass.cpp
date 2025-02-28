@@ -7,8 +7,6 @@
 #include "Graphics/GfxDevice.h" 
 #include "Graphics/GfxPipelineState.h" 
 #include "RenderGraph/RenderGraph.h"
-#include "Logging/Logger.h"
-
 
 using namespace DirectX;
 

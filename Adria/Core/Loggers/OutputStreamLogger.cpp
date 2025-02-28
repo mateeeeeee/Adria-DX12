@@ -1,5 +1,5 @@
-#include "OutputStreamLogger.h"
 #include <iostream>
+#include "OutputStreamLogger.h"
 
 namespace adria
 {

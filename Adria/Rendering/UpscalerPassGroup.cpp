@@ -5,7 +5,6 @@
 #include "DLSS3Pass.h"
 #include "Core/ConsoleManager.h"
 #include "Editor/GUICommand.h"
-#include "Logging/Logger.h"
 
 namespace adria
 {

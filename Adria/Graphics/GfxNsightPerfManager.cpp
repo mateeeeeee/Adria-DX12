@@ -5,7 +5,6 @@
 #include "GfxCommandList.h"
 #include "Core/Paths.h"
 #include "Core/CommandLineOptions.h"
-#include "Logging/Logger.h"
 #include "nvperf_host_impl.h"
 #define RYML_SINGLE_HDR_DEFINE_NOW
 #include "NvPerfUtility/imports/rapidyaml-0.4.0/ryml_all.hpp"

@@ -1,6 +1,5 @@
 #include <shellapi.h>
 #include "CLIParser.h"
-#include "Logging/Logger.h"
 
 namespace adria
 {

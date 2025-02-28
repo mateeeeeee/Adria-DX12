@@ -5,7 +5,6 @@
 #include "Paths.h"
 #include "CommandLineOptions.h"
 #include "ConsoleManager.h"
-#include "Logging/Logger.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Rendering/Renderer.h"

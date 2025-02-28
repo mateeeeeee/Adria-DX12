@@ -363,6 +363,10 @@
     <ClCompile Include="Core\ConsoleManager.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Input.cpp" />
+    <ClCompile Include="Core\Log.cpp" />
+    <ClCompile Include="Core\Loggers\FileLogger.cpp" />
+    <ClCompile Include="Core\Loggers\OutputDebugStringLogger.cpp" />
+    <ClCompile Include="Core\Loggers\OutputStreamLogger.cpp" />
     <ClCompile Include="Core\Paths.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
@@ -397,10 +401,6 @@
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\GfxTracyProfiler.cpp" />
     <ClCompile Include="Graphics\GfxNsightPerfManager.cpp" />
-    <ClCompile Include="Logging\FileLogger.cpp" />
-    <ClCompile Include="Logging\Logger.cpp" />
-    <ClCompile Include="Logging\OutputDebugStringLogger.cpp" />
-    <ClCompile Include="Logging\OutputStreamLogger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math\Packing.cpp" />
     <ClCompile Include="precomp.cpp">
@@ -661,6 +661,10 @@
     <ClInclude Include="Core\CommandLineOptions.h" />
     <ClInclude Include="Core\ConsoleManager.h" />
     <ClInclude Include="Core\IConsoleManager.h" />
+    <ClInclude Include="Core\Log.h" />
+    <ClInclude Include="Core\Loggers\FileLogger.h" />
+    <ClInclude Include="Core\Loggers\OutputDebugStringLogger.h" />
+    <ClInclude Include="Core\Loggers\OutputStreamLogger.h" />
     <ClInclude Include="Core\Types.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Macros.h" />
@@ -719,10 +723,6 @@
     <ClInclude Include="Graphics\GfxTracyProfiler.h" />
     <ClInclude Include="Graphics\GfxVertexFormat.h" />
     <ClInclude Include="Graphics\GfxNsightPerfManager.h" />
-    <ClInclude Include="Logging\FileLogger.h" />
-    <ClInclude Include="Logging\Logger.h" />
-    <ClInclude Include="Logging\OutputDebugStringLogger.h" />
-    <ClInclude Include="Logging\OutputStreamLogger.h" />
     <ClInclude Include="Math\BoundingVolumeUtil.h" />
     <ClInclude Include="Math\MathCommon.h" />
     <ClInclude Include="Math\NormalsUtil.h" />

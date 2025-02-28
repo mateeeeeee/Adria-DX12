@@ -9,7 +9,6 @@
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
-#include "Logging/Logger.h"
 #include "tracy/Tracy.hpp"
 
 #if GFX_MULTITHREADED

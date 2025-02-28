@@ -16,7 +16,6 @@
 #include "GfxNsightPerfManager.h"
 #include "d3dx12.h"
 #include "pix3.h"
-#include "Logging/Logger.h"
 #include "Core/Window.h"
 #include "Core/ConsoleManager.h"
 #include "Core/CommandLineOptions.h"

@@ -12,7 +12,6 @@
 #include "Utilities/FilesUtil.h"
 #include "Utilities/HashUtil.h"
 #include "Utilities/Ref.h"
-#include "Logging/Logger.h"
 
 
 namespace adria

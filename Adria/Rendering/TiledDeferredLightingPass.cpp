@@ -8,7 +8,6 @@
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Packing.h"
-#include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 

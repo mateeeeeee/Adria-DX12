@@ -5,7 +5,6 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
-#include "Logging/Logger.h"
 #include "Math/Constants.h"
 #include "Core/ConsoleManager.h"
 

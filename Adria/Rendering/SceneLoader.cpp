@@ -8,7 +8,6 @@
 #include "Components.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Logging/Logger.h"
 #include "Math/BoundingVolumeUtil.h"
 #include "Core/Paths.h"
 #include "Utilities/StringUtil.h"

@@ -41,7 +41,7 @@ namespace adria
 		{
 			using AllocatedType = std::conditional_t<std::is_trivial_v<T>, T, NonTrivialAllocatedObject<T>>;
 			void* alloc = Allocate(sizeof(AllocatedType));
-			AllocatedType* allocation = new (alloc) AllocatedType(std::forward<Args&&>(args)...);
+			AllocatedType* allocation = new (alloc) AllocatedType(std::forward<Args>(args)...);
 
 			if constexpr (std::is_trivial_v<T>)
 			{

@@ -1,7 +1,6 @@
 #include <windowsx.h>
 #include "Input.h"
 #include "Window.h"
-#include "Logging/Logger.h"
 
 namespace adria
 {

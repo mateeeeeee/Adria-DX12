@@ -1,7 +1,6 @@
 #include "d3dx12_check_feature_support.h"
 #include "GfxCapabilities.h"
 #include "GfxDevice.h"
-#include "Logging/Logger.h"
 
 namespace adria
 {

@@ -9,7 +9,6 @@
 #include "TextureManager.h"
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
-#include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 
 using namespace DirectX;

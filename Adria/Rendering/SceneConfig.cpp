@@ -1,6 +1,5 @@
 #include "SceneConfig.h"
 #include "Core/Paths.h"
-#include "Logging/Logger.h"
 #include "Math/Constants.h"
 #include "Utilities/JsonUtil.h"
 #include "Utilities/FilesUtil.h"

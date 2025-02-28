@@ -1,5 +1,4 @@
 #include "OIDNDenoiserPass.h"
-#include "Logging/Logger.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 

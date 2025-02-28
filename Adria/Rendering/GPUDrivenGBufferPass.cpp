@@ -7,7 +7,6 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "entt/entity/registry.hpp"
-#include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
 

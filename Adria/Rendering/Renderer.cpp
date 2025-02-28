@@ -20,7 +20,6 @@
 #include "Utilities/Random.h"
 #include "Utilities/ImageWrite.h"
 #include "Math/Constants.h"
-#include "Logging/Logger.h"
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
 #include "entt/entity/registry.hpp"

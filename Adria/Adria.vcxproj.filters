@@ -8,9 +8,6 @@
     <Filter Include="Utilities">
       <UniqueIdentifier>{5f5eb8d6-7ace-4da4-9c09-4c0421c6d88e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Logging">
-      <UniqueIdentifier>{0267d83e-83de-4015-82c3-053aae4c0283}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{1471750e-b525-434b-8cb0-2a8b5be3e67d}</UniqueIdentifier>
     </Filter>
@@ -155,12 +152,12 @@
     <Filter Include="External\ImPlot">
       <UniqueIdentifier>{cadfcff4-f3ad-4fcb-aab0-5b61c7f672f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Loggers">
+      <UniqueIdentifier>{a79d8c43-94f1-4487-9b50-cf1c104c0265}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Logging\Logger.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Engine.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -372,15 +369,6 @@
     <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp">
       <Filter>External\meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="Logging\OutputStreamLogger.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
-    <ClCompile Include="Logging\OutputDebugStringLogger.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
-    <ClCompile Include="Logging\FileLogger.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\HelperPasses.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -437,9 +425,6 @@
     </ClCompile>
     <ClCompile Include="Graphics\GfxNsightAftermathGpuCrashTracker.cpp">
       <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\ReSTIR_DI.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxStateObject.cpp">
       <Filter>Graphics</Filter>
@@ -600,11 +585,30 @@
     <ClCompile Include="Rendering\TransparentPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\VolumetricFogManager.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="Rendering\OIDNDenoiserPass.cpp">
+      <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\IDenoiserPass.cpp" />
-    <ClCompile Include="Rendering\OIDNDenoiserPass.cpp" />
+    <ClCompile Include="Rendering\IDenoiserPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ReSTIR_DI.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\VolumetricFogManager.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Log.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Loggers\FileLogger.cpp">
+      <Filter>Core\Loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Loggers\OutputDebugStringLogger.cpp">
+      <Filter>Core\Loggers</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Loggers\OutputStreamLogger.cpp">
+      <Filter>Core\Loggers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -624,9 +628,6 @@
     </ClInclude>
     <ClInclude Include="Utilities\TemplatesUtil.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Logging\Logger.h">
-      <Filter>Logging</Filter>
     </ClInclude>
     <ClInclude Include="Core\Types.h">
       <Filter>Core</Filter>
@@ -965,15 +966,6 @@
     <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h">
       <Filter>External\FontAwesome</Filter>
     </ClInclude>
-    <ClInclude Include="Logging\OutputStreamLogger.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Logging\OutputDebugStringLogger.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Logging\FileLogger.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\HelperPasses.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
@@ -1054,9 +1046,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxStateObject.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\ReSTIR_DI.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\FogVolumesPass.h">
       <Filter>Rendering\Passes</Filter>
@@ -1640,11 +1629,30 @@
     <ClInclude Include="Rendering\TransparentPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\VolumetricFogManager.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="Rendering\OIDNDenoiserPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\IDenoiserPass.h" />
-    <ClInclude Include="Rendering\OIDNDenoiserPass.h" />
+    <ClInclude Include="Rendering\IDenoiserPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ReSTIR_DI.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\VolumetricFogManager.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Log.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Loggers\FileLogger.h">
+      <Filter>Core\Loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Loggers\OutputDebugStringLogger.h">
+      <Filter>Core\Loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Loggers\OutputStreamLogger.h">
+      <Filter>Core\Loggers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

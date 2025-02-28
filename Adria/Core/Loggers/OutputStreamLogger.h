@@ -1,5 +1,4 @@
 #pragma once
-#include "Logger.h"
 
 namespace adria
 {

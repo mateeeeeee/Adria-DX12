@@ -6,7 +6,6 @@
 #include "GfxCommandList.h"
 #include "GfxQueryHeap.h"
 #include "GfxBuffer.h"
-#include "Logging/Logger.h"
 
 
 namespace adria

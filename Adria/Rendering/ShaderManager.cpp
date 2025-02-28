@@ -6,7 +6,6 @@
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
-#include "Logging/Logger.h"
 #include "Utilities/Timer.h"
 #include "Utilities/FileWatcher.h"
 

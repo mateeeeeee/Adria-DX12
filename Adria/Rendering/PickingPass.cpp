@@ -5,7 +5,6 @@
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Logging/Logger.h"
 
 namespace adria
 {
