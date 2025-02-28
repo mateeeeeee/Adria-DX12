@@ -22,6 +22,15 @@ namespace adria
 		};
 		ADRIA_LOG(ERROR, "%s : %s", code_names[code], message);
 	}
+	static void OIDNCheck(OIDNDevice oidn_device)
+	{
+		OIDNError error = oidnGetDeviceError(oidn_device, nullptr);
+		if (error != OIDN_ERROR_NONE)
+		{
+			ADRIA_LOG(ERROR, "OIDN Error: %d", error);
+			ADRIA_DEBUGBREAK();
+		}
+	}
 
 	OIDNDenoiserPass::OIDNDenoiserPass(GfxDevice* gfx) : gfx(gfx)
 	{
@@ -32,7 +41,7 @@ namespace adria
 			OIDNError error = oidnGetDeviceError(nullptr, &msg);
 			OIDNErrorCallback(nullptr, error, msg);
 			ADRIA_LOG(WARNING, "%s", msg);
-			delete msg;
+			delete[] msg;
 			return;
 		}
 		if ((oidnGetDeviceInt(oidn_device, "type") == OIDN_DEVICE_TYPE_CPU))
@@ -44,7 +53,6 @@ namespace adria
 		oidnSetDeviceErrorFunction(oidn_device, OIDNErrorCallback, nullptr);
 		oidnCommitDevice(oidn_device);
 		oidn_filter = oidnNewFilter(oidn_device, "RT");
-		oidnCommitFilter(oidn_filter);
 
 		oidn_fence.Create(gfx, "OIDN Fence");
 		supported = true;
@@ -52,10 +60,16 @@ namespace adria
 
 	OIDNDenoiserPass::~OIDNDenoiserPass()
 	{
-		gfx->WaitForGPU();
-		ReleaseBuffers();
-		oidnReleaseFilter(oidn_filter);
-		oidnReleaseDevice(oidn_device);
+		if (supported)
+		{
+			gfx->WaitForGPU();
+			normal_buffer.reset();
+			albedo_buffer.reset();
+			color_buffer.reset();
+			ReleaseBuffers();
+			oidnReleaseFilter(oidn_filter);
+			oidnReleaseDevice(oidn_device);
+		}
 	}
 
 	void OIDNDenoiserPass::AddPass(RenderGraph& rg)
@@ -115,12 +129,18 @@ namespace adria
 			oidn_normal_buffer = oidnNewSharedBufferFromWin32Handle(oidn_device, flag, normal_buffer->GetSharedHandle(), nullptr, oidn_buffer_desc.size);
 
 			oidnSetFilterImage(oidn_filter, "color", oidn_color_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
+			OIDNCheck(oidn_device);
 			oidnSetFilterImage(oidn_filter, "albedo", oidn_albedo_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, albedo_texture.GetRowPitch());
+			OIDNCheck(oidn_device);
 			oidnSetFilterImage(oidn_filter, "normal", oidn_normal_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, normal_texture.GetRowPitch());
+			OIDNCheck(oidn_device);
+			oidnSetFilterImage(oidn_filter, "output", oidn_color_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
+			OIDNCheck(oidn_device);
 			oidnSetFilterBool(oidn_filter, "hdr", true);
 			oidnSetFilterBool(oidn_filter, "cleanAux", true);
 			oidnCommitFilter(oidn_filter);
 		}
+
 	}
 
 	void OIDNDenoiserPass::ReleaseBuffers()

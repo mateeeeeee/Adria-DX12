@@ -36,6 +36,7 @@ namespace adria
 		Int32 accumulated_frames = 1;
 		Int32 max_bounces = 3;
 		std::unique_ptr<IDenoiserPass> denoiser_pass;
+		Bool reset_denoiser = false;
 
 	private:
 		void CreateStateObject();

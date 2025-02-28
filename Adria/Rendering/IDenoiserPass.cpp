@@ -12,7 +12,7 @@ namespace adria
 		case DenoiserType_None: denoiser = new DummyDenoiserPass();   break;
 		case DenoiserType_OIDN: denoiser = new OIDNDenoiserPass(gfx); break;
 		}
-		if (!denoiser->IsSupported())
+		if (denoiser && !denoiser->IsSupported())
 		{
 			delete denoiser;
 			denoiser = new DummyDenoiserPass();

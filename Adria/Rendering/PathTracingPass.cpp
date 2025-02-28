@@ -32,6 +32,12 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
+		if (reset_denoiser)
+		{
+			denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
+			OnResize(width, height);
+			reset_denoiser = false;
+		}
 		Bool const denoiser_active = denoiser_pass->GetType() != DenoiserType_None;
 		
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
@@ -138,8 +144,7 @@ namespace adria
 				{
 					if (ImGui::Combo("Denoiser Type", Denoiser.GetPtr(), "None\0OIDN\0SVGF\0", 3))
 					{
-						denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
-						OnResize(width, height);
+						reset_denoiser = true;
 					}
 					ImGui::SliderInt("Max bounces", &max_bounces, 1, 8);
 					ImGui::TreePop();
