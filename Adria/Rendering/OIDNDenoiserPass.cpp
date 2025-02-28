@@ -56,6 +56,7 @@ namespace adria
 
 		oidn_fence.Create(gfx, "OIDN Fence");
 		supported = true;
+		denoised = false;
 	}
 
 	OIDNDenoiserPass::~OIDNDenoiserPass()
@@ -140,7 +141,6 @@ namespace adria
 			oidnSetFilterBool(oidn_filter, "cleanAux", true);
 			oidnCommitFilter(oidn_filter);
 		}
-
 	}
 
 	void OIDNDenoiserPass::ReleaseBuffers()

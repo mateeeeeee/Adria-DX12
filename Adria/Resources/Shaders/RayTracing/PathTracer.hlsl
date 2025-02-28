@@ -64,8 +64,11 @@ void PT_RayGen()
             BrdfData brdfData = GetBrdfData(matProperties);
 
 #if WRITE_GBUFFER
-            albedoColor = float4(matProperties.baseColor, 1.0f);
-            normal = float4(worldNormal * 0.5f + 0.5f, 1.0f);
+            if (i == 0)
+            {
+                albedoColor = float4(matProperties.baseColor, 1.0f);
+                normal = float4(worldNormal * 0.5f + 0.5f, 1.0f);
+            }
 #endif
 
             int lightIndex = 0;
