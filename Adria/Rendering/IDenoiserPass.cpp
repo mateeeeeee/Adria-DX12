@@ -6,13 +6,17 @@ namespace adria
 
 	IDenoiserPass* CreateDenoiser(GfxDevice* gfx, DenoiserType type)
 	{
+		IDenoiserPass* denoiser = nullptr;
 		switch (type)
 		{
-		case DenoiserType_None: return new DummyDenoiserPass();
-		case DenoiserType_OIDN: return new OIDNDenoiserPass(gfx);
+		case DenoiserType_None: denoiser = new DummyDenoiserPass();   break;
+		case DenoiserType_OIDN: denoiser = new OIDNDenoiserPass(gfx); break;
 		}
-		ADRIA_ASSERT(false);
-		return nullptr;
+		if (!denoiser->IsSupported())
+		{
+			delete denoiser;
+			denoiser = new DummyDenoiserPass();
+		}
+		return denoiser;
 	}
-
 }

@@ -31,14 +31,18 @@ namespace adria
 		Uint32 width, height;
 		Bool is_supported;
 		std::unique_ptr<GfxTexture> accumulation_texture = nullptr;
+		std::unique_ptr<GfxTexture> denoiser_albedo_texture = nullptr;
+		std::unique_ptr<GfxTexture> denoiser_normal_texture = nullptr;
 		Int32 accumulated_frames = 1;
 		Int32 max_bounces = 3;
-
 		std::unique_ptr<IDenoiserPass> denoiser_pass;
 
 	private:
 		void CreateStateObject();
 		GfxStateObject* CreateStateObjectCommon(GfxShaderKey const&);
 		void OnLibraryRecompiled(GfxShaderKey const&);
+
+		void CreateAccumulationTexture();
+		void CreateDenoiserTextures();
 	};
 }

@@ -5,6 +5,7 @@
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
+#include "Graphics/GfxCommon.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Core/ConsoleManager.h"
@@ -20,9 +21,9 @@ namespace adria
 		if (IsSupported())
 		{
 			CreateStateObject();
+			denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
 			OnResize(width, height);
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
-			denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
 		}
 	}
 	PathTracingPass::~PathTracingPass() = default;
@@ -32,14 +33,22 @@ namespace adria
 		if (!IsSupported()) return;
 
 		Bool const denoiser_active = denoiser_pass->GetType() != DenoiserType_None;
+		
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct PathTracingPassData
 		{
 			RGTextureReadWriteId output;
 			RGTextureReadWriteId accumulation;
+			RGTextureReadWriteId albedo;
+			RGTextureReadWriteId normal;
 		};
 
 		rg.ImportTexture(RG_NAME(AccumulationTexture), accumulation_texture.get());
+		if (denoiser_active)
+		{
+			rg.ImportTexture(RG_NAME(PT_Albedo), denoiser_albedo_texture.get());
+			rg.ImportTexture(RG_NAME(PT_Normal), denoiser_normal_texture.get());
+		}
 		rg.AddPass<PathTracingPassData>("Path Tracing Pass",
 			[=](PathTracingPassData& data, RGBuilder& builder)
 			{
@@ -52,6 +61,11 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_NAME(PT_Output));
 				data.accumulation = builder.WriteTexture(RG_NAME(AccumulationTexture));
+				if (denoiser_active)
+				{
+					data.albedo = builder.WriteTexture(RG_NAME(PT_Albedo));
+					data.normal = builder.WriteTexture(RG_NAME(PT_Normal));
+				}
 			},
 			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -59,7 +73,9 @@ namespace adria
 				GfxDescriptor src_descriptors[] =
 				{
 					ctx.GetReadWriteTexture(data.accumulation),
-					ctx.GetReadWriteTexture(data.output)
+					ctx.GetReadWriteTexture(data.output),
+					denoiser_active ? ctx.GetReadWriteTexture(data.albedo) : gfxcommon::GetCommonView(GfxCommonViewType::NullTexture2D_UAV),
+					denoiser_active ? ctx.GetReadWriteTexture(data.normal) : gfxcommon::GetCommonView(GfxCommonViewType::NullTexture2D_UAV)
 				};
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
@@ -71,15 +87,17 @@ namespace adria
 					Int32   accumulated_frames;
 					Uint32  accum_idx;
 					Uint32  output_idx;
+					Uint32  albedo_idx;
+					Uint32  normal_idx;
 				} constants =
 				{
 					.bounce_count = max_bounces, .accumulated_frames = accumulated_frames,
-					.accum_idx = i + 0, .output_idx = i + 1
+					.accum_idx = i + 0, .output_idx = i + 1, .albedo_idx = i + 2, .normal_idx = i + 3
 				};
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				auto& table = cmd_list->SetStateObject(path_tracing_so.get());
+				auto& table = cmd_list->SetStateObject(denoiser_active ? path_tracing_so_write_gbuffer.get() : path_tracing_so.get());
 				table.SetRayGenShader("PT_RayGen");
 				cmd_list->DispatchRays(width, height);
 
@@ -97,14 +115,8 @@ namespace adria
 		if (!IsSupported()) return;
 
 		width = w, height = h;
-
-		GfxTextureDesc accum_desc{};
-		accum_desc.width = width;
-		accum_desc.height = height;
-		accum_desc.format = GfxFormat::R32G32B32A32_FLOAT;
-		accum_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
-		accum_desc.initial_state = GfxResourceState::ComputeUAV;
-		accumulation_texture = gfx->CreateTexture(accum_desc);
+		CreateAccumulationTexture();
+		CreateDenoiserTextures();
 	}
 
 	Bool PathTracingPass::IsSupported() const
@@ -122,11 +134,12 @@ namespace adria
 	{
 		QueueGUI([&]()
 			{
-				if (ImGui::TreeNodeEx("Path tracing", ImGuiTreeNodeFlags_None))
+				if (ImGui::TreeNodeEx("Path Tracing Settings", ImGuiTreeNodeFlags_None))
 				{
 					if (ImGui::Combo("Denoiser Type", Denoiser.GetPtr(), "None\0OIDN\0SVGF\0", 3))
 					{
 						denoiser_pass.reset(CreateDenoiser(gfx, (DenoiserType)Denoiser.Get()));
+						OnResize(width, height);
 					}
 					ImGui::SliderInt("Max bounces", &max_bounces, 1, 8);
 					ImGui::TreePop();
@@ -138,7 +151,7 @@ namespace adria
 
 	RGResourceName PathTracingPass::GetFinalOutput() const
 	{
-		return Denoiser.Get() != DenoiserType_None ? RG_NAME(PT_DenoisedOutput) : RG_NAME(PT_Output);
+		return Denoiser.Get() != DenoiserType_None ? RG_NAME(PT_Output) : RG_NAME(PT_Output);
 	}
 
 	void PathTracingPass::CreateStateObject()
@@ -183,6 +196,40 @@ namespace adria
 	void PathTracingPass::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
 		if (key.GetShaderID() == LIB_PathTracing) CreateStateObject();
+	}
+
+	void PathTracingPass::CreateAccumulationTexture()
+	{
+		if (!accumulation_texture || accumulation_texture->GetWidth() != width || accumulation_texture->GetHeight() != height)
+		{
+			GfxTextureDesc accum_desc{};
+			accum_desc.width = width;
+			accum_desc.height = height;
+			accum_desc.format = GfxFormat::R32G32B32A32_FLOAT;
+			accum_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+			accum_desc.initial_state = GfxResourceState::ComputeUAV;
+			accumulation_texture = gfx->CreateTexture(accum_desc);
+		}
+	}
+
+	void PathTracingPass::CreateDenoiserTextures()
+	{
+		if (denoiser_pass->GetType() != DenoiserType_None && (!denoiser_albedo_texture || denoiser_albedo_texture->GetWidth() != width || denoiser_albedo_texture->GetHeight() != height))
+		{
+			GfxTextureDesc history_desc{};
+			history_desc.width = width;
+			history_desc.height = height;
+			history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+			history_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+			history_desc.initial_state = GfxResourceState::ComputeUAV;
+			denoiser_albedo_texture = gfx->CreateTexture(history_desc);
+			denoiser_normal_texture = gfx->CreateTexture(history_desc);
+		}
+		else if (denoiser_pass->GetType() == DenoiserType_None)
+		{
+			denoiser_albedo_texture.reset();
+			denoiser_normal_texture.reset();
+		}
 	}
 
 }

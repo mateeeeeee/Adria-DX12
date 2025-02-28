@@ -6,6 +6,8 @@ struct PathTracingConstants
     int  accumulatedFrames;
     uint accumIdx;
     uint outputIdx;
+    uint albedoIdx;
+    uint normalIdx;
 };
 ConstantBuffer<PathTracingConstants> PathTracingPassCB : register(b1);
 
@@ -39,6 +41,10 @@ void PT_RayGen()
 
     float3 radiance = 0.0f;
     float3 throughput = 1.0f;
+#if WRITE_GBUFFER
+    float4 albedoColor = 0.0f;
+    float4 normal = 0.0f;
+#endif
     float pdf = 1.0;
     for (int i = 0; i < PathTracingPassCB.bounceCount; ++i)
     {
@@ -48,7 +54,6 @@ void PT_RayGen()
 			Instance instanceData = GetInstanceData(info.instanceIndex);
 			Mesh meshData = GetMeshData(instanceData.meshIndex);
 			Material materialData = GetMaterialData(instanceData.materialIdx);
-
 			VertexData vertex = LoadVertexData(meshData, info.primitiveIndex, info.barycentricCoordinates);
 
             float3 worldPosition = mul(vertex.pos, info.objectToWorldMatrix).xyz;
@@ -57,6 +62,11 @@ void PT_RayGen()
             float3 V = -ray.Direction;
             MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);
+
+#if WRITE_GBUFFER
+            albedoColor = float4(matProperties.baseColor, 1.0f);
+            normal = float4(worldNormal * 0.5f + 0.5f, 1.0f);
+#endif
 
             int lightIndex = 0;
             float lightWeight = 0.0f;
@@ -135,6 +145,13 @@ void PT_RayGen()
     {
         radiance = float3(1, 0, 0);
     }
+
+#if WRITE_GBUFFER
+    RWTexture2D<float4> albedoTexture = ResourceDescriptorHeap[PathTracingPassCB.albedoIdx];
+    albedoTexture[DispatchRaysIndex().xy] = albedoColor;
+    RWTexture2D<float4> normalTexture = ResourceDescriptorHeap[PathTracingPassCB.normalIdx];
+    normalTexture[DispatchRaysIndex().xy] = normal;
+#endif
 
     RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PathTracingPassCB.outputIdx];
     accumulationTexture[DispatchRaysIndex().xy] = float4(radiance, 1.0);

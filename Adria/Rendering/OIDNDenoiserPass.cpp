@@ -44,6 +44,7 @@ namespace adria
 		oidnSetDeviceErrorFunction(oidn_device, OIDNErrorCallback, nullptr);
 		oidnCommitDevice(oidn_device);
 		oidn_filter = oidnNewFilter(oidn_device, "RT");
+		oidnCommitFilter(oidn_filter);
 
 		oidn_fence.Create(gfx, "OIDN Fence");
 		supported = true;
@@ -51,6 +52,7 @@ namespace adria
 
 	OIDNDenoiserPass::~OIDNDenoiserPass()
 	{
+		gfx->WaitForGPU();
 		ReleaseBuffers();
 		oidnReleaseFilter(oidn_filter);
 		oidnReleaseDevice(oidn_device);
@@ -71,7 +73,7 @@ namespace adria
 		rg.AddPass<OIDNDenoiserPassData>("OIDN Denoiser Pass",
 			[=](OIDNDenoiserPassData& data, RenderGraphBuilder& builder)
 			{
-				data.color = builder.WriteTexture(RG_NAME(PT_DenoisedOutput));
+				data.color = builder.WriteTexture(RG_NAME(PT_Output));
 				data.albedo = builder.ReadTexture(RG_NAME(PT_Albedo));
 				data.normal = builder.ReadTexture(RG_NAME(PT_Normal));
 			},
@@ -113,9 +115,8 @@ namespace adria
 			oidn_normal_buffer = oidnNewSharedBufferFromWin32Handle(oidn_device, flag, normal_buffer->GetSharedHandle(), nullptr, oidn_buffer_desc.size);
 
 			oidnSetFilterImage(oidn_filter, "color", oidn_color_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
-			oidnSetFilterImage(oidn_filter, "albedo", oidn_albedo_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
-			oidnSetFilterImage(oidn_filter, "normal", oidn_normal_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
-			oidnSetFilterImage(oidn_filter, "output", oidn_color_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, color_texture.GetRowPitch());
+			oidnSetFilterImage(oidn_filter, "albedo", oidn_albedo_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, albedo_texture.GetRowPitch());
+			oidnSetFilterImage(oidn_filter, "normal", oidn_normal_buffer, OIDN_FORMAT_HALF3, width, height, 0, 8, normal_texture.GetRowPitch());
 			oidnSetFilterBool(oidn_filter, "hdr", true);
 			oidnSetFilterBool(oidn_filter, "cleanAux", true);
 			oidnCommitFilter(oidn_filter);
@@ -131,6 +132,7 @@ namespace adria
 
 	void OIDNDenoiserPass::Denoise(GfxCommandList* cmd_list, GfxTexture& color_texture, GfxTexture const& albedo_texture, GfxTexture const& normal_texture)
 	{
+		CreateBuffers(color_texture, albedo_texture, normal_texture);
 		if (!denoised)
 		{
 			denoised = true;
