@@ -4,29 +4,15 @@
 
 namespace adria
 {
+	enum class VolumetricFogType : Uint8;
+
 	class VolumetricFogManager
 	{
-		enum class VolumetricFogType : Uint8
-		{
-			None,
-			Raymarching,
-			FogVolume
-		};
 	public:
 		VolumetricFogManager(GfxDevice* gfx, entt::registry& reg, Uint32 w, Uint32 h);
 		~VolumetricFogManager();
 
-		void AddPass(RenderGraph& rg)
-		{
-			if (volumetric_fog_type == VolumetricFogType::FogVolume)
-			{
-				fog_volumes_pass.AddPasses(rg);
-			}
-			else if (volumetric_fog_type == VolumetricFogType::Raymarching)
-			{
-				ray_marched_volumetric_fog_pass.AddPass(rg);
-			}
-		}
+		void AddPass(RenderGraph& rg);
 		void OnResize(Uint32 w, Uint32 h)
 		{
 			ray_marched_volumetric_fog_pass.OnResize(w, h);

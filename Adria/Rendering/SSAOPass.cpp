@@ -39,6 +39,8 @@ namespace adria
 		}
 		SSAOResolution->AddOnChanged(ConsoleVariableDelegate::CreateLambda([&](IConsoleVariable* cvar) { OnResize(width, height); }));
 	}
+	SSAOPass::~SSAOPass() = default;
+
 	void SSAOPass::AddPass(RenderGraph& rendergraph)
 	{
 		RG_SCOPE(rendergraph, "SSAO");

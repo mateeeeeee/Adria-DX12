@@ -609,6 +609,9 @@
     <ClCompile Include="Core\Loggers\OutputStreamLogger.cpp">
       <Filter>Core\Loggers</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\AmbientOcclusionManager.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1652,6 +1655,9 @@
     </ClInclude>
     <ClInclude Include="Core\Loggers\OutputStreamLogger.h">
       <Filter>Core\Loggers</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\AmbientOcclusionManager.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -16,6 +16,7 @@ namespace adria
 	{
 		CreatePSO();
 	}
+	HBAOPass::~HBAOPass() = default;
 
 	void HBAOPass::AddPass(RenderGraph& rendergraph)
 	{

@@ -24,6 +24,8 @@ namespace adria
 
 	public:
 		HBAOPass(GfxDevice* gfx, Uint32 w, Uint32 h);
+		~HBAOPass();
+
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(Uint32 w, Uint32 h);
 		void OnSceneInitialized();

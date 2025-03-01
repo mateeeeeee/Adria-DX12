@@ -18,6 +18,7 @@ namespace adria
 		static constexpr Uint32 KERNEL_SIZE = 16;
 	public:
 		SSAOPass(GfxDevice* gfx, Uint32 w, Uint32 h);
+		~SSAOPass();
 
 		void AddPass(RenderGraph& rendergraph);
 		void GUI();

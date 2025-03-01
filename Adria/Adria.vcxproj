@@ -423,6 +423,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RenderGraph\RenderGraphEvent.cpp" />
+    <ClCompile Include="Rendering\AmbientOcclusionManager.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPassGroup.cpp" />
     <ClCompile Include="Rendering\FFXVRSPass.cpp" />
@@ -761,6 +762,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Rendering\AmbientOcclusionManager.h" />
     <ClInclude Include="Rendering\DepthOfFieldPass.h" />
     <ClInclude Include="Rendering\FFXVRSPass.h" />
     <ClInclude Include="Rendering\IDenoiserPass.h" />
