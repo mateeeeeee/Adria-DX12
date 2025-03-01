@@ -237,7 +237,6 @@ namespace adria
 
 	void Renderer::UpdateSceneBuffers()
 	{
-		volumetric_lights = 0;
 		for (auto e : reg.view<Batch>()) reg.destroy(e);
 		reg.clear<Batch>();
 
@@ -265,7 +264,6 @@ namespace adria
 			hlsl_light.shadow_texture_index = light.casts_shadows ? light.shadow_texture_index : -1;
 			hlsl_light.shadow_mask_index = light.ray_traced_shadows ? light.shadow_mask_index : -1;
 			hlsl_light.use_cascades = light.use_cascades;
-			if (light.volumetric) ++volumetric_lights;
 		}
 
 		std::vector<MeshGPU> meshes;
@@ -554,10 +552,7 @@ namespace adria
 				case LightingPath::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
 				case LightingPath::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 				}
-				if (volumetric_lights > 0)
-				{
-					volumetric_fog_manager.AddPass(render_graph);
-				}
+				volumetric_fog_manager.AddPass(render_graph);
 			}
 
 			if (ddgi.IsEnabled() && ddgi.Visualize())

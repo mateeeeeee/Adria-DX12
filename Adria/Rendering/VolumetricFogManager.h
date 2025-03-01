@@ -29,6 +29,7 @@ namespace adria
 		void GUI();
 
 	private:
+		entt::registry& reg;
 		VolumetricFogType volumetric_fog_type;
 		RayMarchedVolumetricFogPass ray_marched_volumetric_fog_pass;
 		FogVolumesPass fog_volumes_pass;

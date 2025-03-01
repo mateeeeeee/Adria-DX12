@@ -142,7 +142,7 @@ namespace adria
 		PickingData picking_data;
 
 		LightingPath	 lighting_path = LightingPath::Deferred;
-		RendererOutput		 renderer_output = RendererOutput::Final;
+		RendererOutput	 renderer_output = RendererOutput::Final;
 
 		std::unique_ptr<GfxTexture> overdraw_texture = nullptr;
 		GfxDescriptor				overdraw_texture_uav;
@@ -163,8 +163,6 @@ namespace adria
 		Uint64						screenshot_fence_value = 1;
 		std::unique_ptr<GfxBuffer>  screenshot_buffer;
 
-		//volumetric
-		Uint32			         volumetric_lights = 0;
 		//misc
 		ViewportData			 viewport_data;
 
