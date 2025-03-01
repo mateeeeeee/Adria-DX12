@@ -610,53 +610,47 @@ namespace adria
 			volumetric_fog_manager.GUI();
 			QueueGUI([&]()
 				{
-					if (ImGui::TreeNode("Sun Settings"))
+					if (ImGui::TreeNode("Weather Settings"))
 					{
-						auto lights = reg.view<Light, Transform>();
-						Light* sun_light = nullptr;
-						Transform* sun_transform = nullptr;
-						for (entt::entity light : lights)
+						if (ImGui::TreeNode("Sun Settings"))
 						{
-							Light& light_data = lights.get<Light>(light);
-							if (light_data.type == LightType::Directional && light_data.active)
+							auto lights = reg.view<Light, Transform>();
+							Light* sun_light = nullptr;
+							Transform* sun_transform = nullptr;
+							for (entt::entity light : lights)
 							{
-								sun_light = &light_data;
-								sun_transform = &lights.get<Transform>(light);
-								break;
+								Light& light_data = lights.get<Light>(light);
+								if (light_data.type == LightType::Directional && light_data.active)
+								{
+									sun_light = &light_data;
+									sun_transform = &lights.get<Transform>(light);
+									break;
+								}
 							}
-						}
-						if (sun_light)
-						{
-							static Float sun_elevation = 75.0f;
-							static Float sun_azimuth = 260.0f;
-							static Float sun_temperature = 5900.0f;
-							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
-
-							Bool changed = false;
-							changed |= ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
-							changed |= ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
-							changed |= ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
-							changed |= ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
-
-							if (changed)
+							if (sun_light)
 							{
-								path_tracer.Reset();
-							}
+								static Float sun_elevation = 75.0f;
+								static Float sun_azimuth = 260.0f;
+								ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
 
-							sun_light->color = ConvertTemperatureToColor(sun_temperature);
-							sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
-							sun_light->position = 1e3 * sun_light->direction;
-							sun_light->direction = -sun_light->direction;
-							sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+								Bool changed = false;
+								changed |= ImGui::ColorEdit3("Sun Color", &sun_light->color.x);
+								changed |= ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
+								changed |= ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+								changed |= ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+
+								if (changed)
+								{
+									path_tracer.Reset();
+								}
+								sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
+								sun_light->position = 1e3 * sun_light->direction;
+								sun_light->direction = -sun_light->direction;
+								sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+							}
+							ImGui::TreePop();
 						}
-						ImGui::TreePop();
-					}
-					if (ImGui::TreeNode("Misc"))
-					{
-						if (!ddgi.IsEnabled())
-						{
-							ImGui::ColorEdit3("Ambient Color", ambient_color);
-						}
+						ImGui::ColorEdit3("Ambient Color", ambient_color);
 						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 						ImGui::TreePop();
