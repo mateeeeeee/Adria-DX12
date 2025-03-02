@@ -35,6 +35,8 @@ namespace adria
 
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
+		RG_SCOPE(rg, "Volumetric Clouds");
+
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_NAME(PreviousCloudsOutput), prev_clouds.get());
 
@@ -295,7 +297,7 @@ namespace adria
 				RGTextureCopySrcId copy_src;
 				RGTextureCopyDstId copy_dst;
 			};
-			rg.AddPass<CopyCloudsPassData>("Clouds Copy Pass",
+			rg.AddPass<CopyCloudsPassData>("Volumetric Clouds Copy Pass",
 				[=](CopyCloudsPassData& data, RenderGraphBuilder& builder)
 				{
 					data.copy_dst = builder.WriteCopyDstTexture(RG_NAME(PreviousCloudsOutput));
@@ -319,7 +321,7 @@ namespace adria
 			RGTextureReadOnlyId clouds_src;
 		};
 
-		rendergraph.AddPass<CloudsCombinePassData>("Clouds Combine Pass",
+		rendergraph.AddPass<CloudsCombinePassData>("Volumetric Clouds Combine Pass",
 			[=](CloudsCombinePassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
