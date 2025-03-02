@@ -36,281 +36,13 @@ namespace adria
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg, PostProcessor* postprocessor)
 	{
 		RG_SCOPE(rg, "Volumetric Clouds");
-
-		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_NAME(PreviousCloudsOutput), prev_clouds.get());
-
-		static Bool first_frame = true;
-		if (first_frame || should_generate_textures)
-		{
-			first_frame = false;
-			if (should_generate_textures)
-			{
-				CreateCloudTextures();
-				should_generate_textures = false;
-			}
-			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
-			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get());
-			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get());
-
-			struct CloudNoiseConstants
-			{
-				Float resolution_inv;
-				Uint32 frequency;
-				Uint32 output_idx;
-			};
-
-			for (Uint32 i = 0; i < cloud_shape_noise->GetDesc().mip_levels; ++i)
-			{
-				struct CloudShapePassData
-				{
-					RGTextureReadWriteId shape;
-				};
-
-				rg.AddPass<CloudShapePassData>("Compute Cloud Shape",
-					[=](CloudShapePassData& data, RenderGraphBuilder& builder)
-					{
-						data.shape = builder.WriteTexture(RG_NAME(CloudShape), i, 1);
-					},
-					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
-					{
-						GfxDevice* gfx = cmd_list->GetDevice();
-						Uint32 resolution = cloud_shape_noise->GetDesc().width >> i;
-
-						GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
-						GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.shape) };
-						gfx->CopyDescriptors(dst_handle, src_handles);
-						Uint32 j = dst_handle.GetIndex();
-
-						CloudNoiseConstants constants
-						{
-							.resolution_inv = 1.0f / resolution,
-							.frequency = (Uint32)params.shape_noise_frequency,
-							.output_idx = j
-						};
-						cmd_list->SetPipelineState(clouds_shape_pso.get());
-						cmd_list->SetRootConstants(1, constants);
-						Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
-						cmd_list->Dispatch(dispatch, dispatch, dispatch);
-					}, RGPassType::Compute, RGPassFlags::None);
-			}
-
-			for (Uint32 i = 0; i < cloud_detail_noise->GetDesc().mip_levels; ++i)
-			{
-				struct CloudShapePassData
-				{
-					RGTextureReadWriteId detail;
-				};
-
-				rg.AddPass<CloudShapePassData>("Compute Cloud Detail",
-					[=](CloudShapePassData& data, RenderGraphBuilder& builder)
-					{
-						data.detail = builder.WriteTexture(RG_NAME(CloudDetail), i, 1);
-					},
-					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
-					{
-						GfxDevice* gfx = cmd_list->GetDevice();
-						Uint32 resolution = cloud_detail_noise->GetDesc().width >> i;
-
-						GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
-						GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.detail) };
-						gfx->CopyDescriptors(dst_handle, src_handles);
-						Uint32 j = dst_handle.GetIndex();
-
-						CloudNoiseConstants constants
-						{
-							.resolution_inv = 1.0f / resolution,
-							.frequency = (Uint32)params.detail_noise_frequency,
-							.output_idx = j
-						};
-						cmd_list->SetPipelineState(clouds_detail_pso.get());
-						cmd_list->SetRootConstants(1, constants);
-						Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
-						cmd_list->Dispatch(dispatch, dispatch, dispatch);
-					}, RGPassType::Compute, RGPassFlags::None);
-			}
-
-			struct CloudTypePassData
-			{
-				RGTextureReadWriteId type;
-			};
-
-			rg.AddPass<CloudTypePassData>("Compute Cloud Type",
-				[=](CloudTypePassData& data, RenderGraphBuilder& builder)
-				{
-					data.type = builder.WriteTexture(RG_NAME(CloudType));
-				},
-				[=](CloudTypePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
-				{
-					GfxDevice* gfx = cmd_list->GetDevice();
-					Uint32 resolution = cloud_type->GetDesc().width;
-
-					GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
-					GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.type) };
-					gfx->CopyDescriptors(dst_handle, src_handles);
-					Uint32 j = dst_handle.GetIndex();
-
-					CloudNoiseConstants constants
-					{
-						.resolution_inv = 1.0f / resolution,
-						.output_idx = j
-					};
-					cmd_list->SetPipelineState(clouds_type_pso.get());
-					cmd_list->SetRootConstants(1, constants);
-					Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
-					cmd_list->Dispatch(dispatch, dispatch, dispatch);
-				}, RGPassType::Compute, RGPassFlags::None);
-		}
-		else
-		{
-			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
-			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get());
-			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get());
-		}
-
-		struct VolumetricCloudsPassData
-		{
-			RGTextureReadOnlyId type;
-			RGTextureReadOnlyId shape;
-			RGTextureReadOnlyId detail;
-			RGTextureReadOnlyId prev_output;
-			RGTextureReadWriteId output;
-		};
-		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
-			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc clouds_output_desc{};
-				clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				clouds_output_desc.width = width >> resolution;
-				clouds_output_desc.height = height >> resolution;
-				clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
-				builder.DeclareTexture(RG_NAME(CloudsOutput), clouds_output_desc);
-				data.output = builder.WriteTexture(RG_NAME(CloudsOutput));
-				data.type = builder.ReadTexture(RG_NAME(CloudType), ReadAccess_NonPixelShader);
-				data.shape = builder.ReadTexture(RG_NAME(CloudShape), ReadAccess_NonPixelShader);
-				data.detail = builder.ReadTexture(RG_NAME(CloudDetail), ReadAccess_NonPixelShader);
-				data.prev_output = builder.ReadTexture(RG_NAME(PreviousCloudsOutput), ReadAccess_NonPixelShader);
-			},
-			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxDevice* gfx = cmd_list->GetDevice();
-
-				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.type),
-												context.GetReadOnlyTexture(data.shape),
-												context.GetReadOnlyTexture(data.detail),
-												context.GetReadWriteTexture(data.output),
-												context.GetReadOnlyTexture(data.prev_output) };
-				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
-				gfx->CopyDescriptors(dst_handle, src_handles);
-
-				Uint32 i = dst_handle.GetIndex();
-
-				Float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
-				struct CloudsConstants
-				{
-					Uint32      type_idx;
-					Uint32      shape_idx;
-					Uint32      detail_idx;
-					Uint32      output_idx;
-
-					Uint32      prev_output_idx;
-					Float		cloud_type;
-					Float 	    cloud_min_height;
-					Float 	    cloud_max_height;
-
-					Float 	    shape_noise_scale;
-					Float 	    detail_noise_scale;
-					Float 	    detail_noise_modifier;
-					Float       global_density;
-
-					Float 	    cloud_coverage;
-					Vector3     cloud_base_color;
-					Vector3     cloud_top_color;
-					int	        max_num_steps;
-
-					Vector3     planet_center;
-					Float 	    planet_radius;
-
-					Float 	    light_step_length;
-					Float 	    light_cone_radius;
-					Float 	    precipitation;
-					Float 	    ambient_light_factor;
-
-					Float 	    sun_light_factor;
-					Float 	    henyey_greenstein_g_forward;
-					Float 	    henyey_greenstein_g_backward;
-					Uint32      resolution_factor;
-				} constants =
-				{
-					.type_idx = i + 0,
-					.shape_idx = i + 1,
-					.detail_idx = i + 2,
-					.output_idx = i + 3,
-
-					.prev_output_idx = i + 4,
-					.cloud_type = params.cloud_type,
-					.cloud_min_height = params.cloud_min_height,
-					.cloud_max_height = params.cloud_max_height,
-
-					.shape_noise_scale = noise_scale,
-					.detail_noise_scale = params.detail_noise_scale * noise_scale,
-					.detail_noise_modifier = params.detail_noise_modifier,
-					.global_density = params.global_density,
-
-					.cloud_coverage = params.cloud_coverage,
-					.cloud_base_color = Vector3(params.cloud_base_color),
-					.cloud_top_color = Vector3(params.cloud_top_color),
-					.max_num_steps = params.max_num_steps,
-
-					.planet_center = Vector3(0.0f, -params.planet_radius, 0.0f),
-					.planet_radius = params.planet_radius,
-
-					.light_step_length = params.light_step_length,
-					.light_cone_radius = params.light_cone_radius,
-					.precipitation = params.precipitation * 0.01f,
-					.ambient_light_factor = params.ambient_light_factor,
-
-					.sun_light_factor = params.sun_light_factor,
-					.henyey_greenstein_g_forward = params.henyey_greenstein_g_forward,
-					.henyey_greenstein_g_backward = params.henyey_greenstein_g_backward,
-					.resolution_factor = (Uint32)resolution
-				};
-
-				if (temporal_reprojection)
-				{
-					clouds_psos->AddDefine("REPROJECTION", "1");
-				}
-
-				GfxPipelineState* clouds_pso = clouds_psos->Get();
-				cmd_list->SetPipelineState(clouds_pso);
-				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootCBV(2, constants);
-				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
-
-			}, RGPassType::Compute, RGPassFlags::None);
-
+		AddComputeTexturesPass(rg);
+		AddComputeCloudsPass(rg);
 		if (temporal_reprojection)
 		{
-			struct CopyCloudsPassData
-			{
-				RGTextureCopySrcId copy_src;
-				RGTextureCopyDstId copy_dst;
-			};
-			rg.AddPass<CopyCloudsPassData>("Volumetric Clouds Copy Pass",
-				[=](CopyCloudsPassData& data, RenderGraphBuilder& builder)
-				{
-					data.copy_dst = builder.WriteCopyDstTexture(RG_NAME(PreviousCloudsOutput));
-					data.copy_src = builder.ReadCopySrcTexture(RG_NAME(CloudsOutput));
-				},
-				[=](CopyCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-				{
-					GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-					GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-					cmd_list->CopyTexture(dst_texture, src_texture);
-				}, RGPassType::Copy, RGPassFlags::ForceNoCull);
+			AddCopyPassForTemporalReprojection(rg);
 		}
-
 		AddCombinePass(rg, postprocessor->GetFinalResource());
 	}
 
@@ -502,6 +234,287 @@ namespace adria
 		cloud_type_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
 		cloud_type = gfx->CreateTexture(cloud_type_desc);
+	}
+
+	void VolumetricCloudsPass::AddComputeTexturesPass(RenderGraph& rg)
+	{
+		static Bool first_frame = true;
+		if (first_frame || should_generate_textures)
+		{
+			first_frame = false;
+			if (should_generate_textures)
+			{
+				CreateCloudTextures();
+				should_generate_textures = false;
+			}
+			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
+			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get());
+			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get());
+
+			struct CloudNoiseConstants
+			{
+				Float resolution_inv;
+				Uint32 frequency;
+				Uint32 output_idx;
+			};
+
+			for (Uint32 i = 0; i < cloud_shape_noise->GetDesc().mip_levels; ++i)
+			{
+				struct CloudShapePassData
+				{
+					RGTextureReadWriteId shape;
+				};
+
+				rg.AddPass<CloudShapePassData>("Compute Cloud Shape",
+					[=](CloudShapePassData& data, RenderGraphBuilder& builder)
+					{
+						data.shape = builder.WriteTexture(RG_NAME(CloudShape), i, 1);
+					},
+					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+					{
+						GfxDevice* gfx = cmd_list->GetDevice();
+						Uint32 resolution = cloud_shape_noise->GetDesc().width >> i;
+
+						GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
+						GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.shape) };
+						gfx->CopyDescriptors(dst_handle, src_handles);
+						Uint32 j = dst_handle.GetIndex();
+
+						CloudNoiseConstants constants
+						{
+							.resolution_inv = 1.0f / resolution,
+							.frequency = (Uint32)params.shape_noise_frequency,
+							.output_idx = j
+						};
+						cmd_list->SetPipelineState(clouds_shape_pso.get());
+						cmd_list->SetRootConstants(1, constants);
+						Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
+						cmd_list->Dispatch(dispatch, dispatch, dispatch);
+					}, RGPassType::Compute, RGPassFlags::None);
+			}
+
+			for (Uint32 i = 0; i < cloud_detail_noise->GetDesc().mip_levels; ++i)
+			{
+				struct CloudShapePassData
+				{
+					RGTextureReadWriteId detail;
+				};
+
+				rg.AddPass<CloudShapePassData>("Compute Cloud Detail",
+					[=](CloudShapePassData& data, RenderGraphBuilder& builder)
+					{
+						data.detail = builder.WriteTexture(RG_NAME(CloudDetail), i, 1);
+					},
+					[=](CloudShapePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+					{
+						GfxDevice* gfx = cmd_list->GetDevice();
+						Uint32 resolution = cloud_detail_noise->GetDesc().width >> i;
+
+						GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
+						GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.detail) };
+						gfx->CopyDescriptors(dst_handle, src_handles);
+						Uint32 j = dst_handle.GetIndex();
+
+						CloudNoiseConstants constants
+						{
+							.resolution_inv = 1.0f / resolution,
+							.frequency = (Uint32)params.detail_noise_frequency,
+							.output_idx = j
+						};
+						cmd_list->SetPipelineState(clouds_detail_pso.get());
+						cmd_list->SetRootConstants(1, constants);
+						Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
+						cmd_list->Dispatch(dispatch, dispatch, dispatch);
+					}, RGPassType::Compute, RGPassFlags::None);
+			}
+
+			struct CloudTypePassData
+			{
+				RGTextureReadWriteId type;
+			};
+
+			rg.AddPass<CloudTypePassData>("Compute Cloud Type",
+				[=](CloudTypePassData& data, RenderGraphBuilder& builder)
+				{
+					data.type = builder.WriteTexture(RG_NAME(CloudType));
+				},
+				[=](CloudTypePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+				{
+					GfxDevice* gfx = cmd_list->GetDevice();
+					Uint32 resolution = cloud_type->GetDesc().width;
+
+					GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
+					GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.type) };
+					gfx->CopyDescriptors(dst_handle, src_handles);
+					Uint32 j = dst_handle.GetIndex();
+
+					CloudNoiseConstants constants
+					{
+						.resolution_inv = 1.0f / resolution,
+						.output_idx = j
+					};
+					cmd_list->SetPipelineState(clouds_type_pso.get());
+					cmd_list->SetRootConstants(1, constants);
+					Uint32 const dispatch = DivideAndRoundUp(resolution, 8);
+					cmd_list->Dispatch(dispatch, dispatch, dispatch);
+				}, RGPassType::Compute, RGPassFlags::None);
+		}
+		else
+		{
+			rg.ImportTexture(RG_NAME(CloudShape), cloud_shape_noise.get());
+			rg.ImportTexture(RG_NAME(CloudDetail), cloud_detail_noise.get());
+			rg.ImportTexture(RG_NAME(CloudType), cloud_type.get());
+		}
+	}
+
+	void VolumetricCloudsPass::AddComputeCloudsPass(RenderGraph& rg)
+	{
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct VolumetricCloudsPassData
+		{
+			RGTextureReadOnlyId type;
+			RGTextureReadOnlyId shape;
+			RGTextureReadOnlyId detail;
+			RGTextureReadOnlyId prev_output;
+			RGTextureReadOnlyId depth;
+			RGTextureReadWriteId output;
+		};
+		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Compute Pass",
+			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc clouds_output_desc{};
+				clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				clouds_output_desc.width = width >> resolution;
+				clouds_output_desc.height = height >> resolution;
+				clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+
+				builder.DeclareTexture(RG_NAME(CloudsOutput), clouds_output_desc);
+
+				data.output = builder.WriteTexture(RG_NAME(CloudsOutput));
+				data.depth = builder.ReadTexture(RG_NAME(DepthStencil));
+				data.type = builder.ReadTexture(RG_NAME(CloudType), ReadAccess_NonPixelShader);
+				data.shape = builder.ReadTexture(RG_NAME(CloudShape), ReadAccess_NonPixelShader);
+				data.detail = builder.ReadTexture(RG_NAME(CloudDetail), ReadAccess_NonPixelShader);
+				data.prev_output = builder.ReadTexture(RG_NAME(PreviousCloudsOutput), ReadAccess_NonPixelShader);
+			},
+			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.type),
+												context.GetReadOnlyTexture(data.shape),
+												context.GetReadOnlyTexture(data.detail),
+												context.GetReadOnlyTexture(data.depth),
+												context.GetReadOnlyTexture(data.prev_output),
+												context.GetReadWriteTexture(data.output) };
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+
+				Uint32 i = dst_handle.GetIndex();
+
+				Float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
+				struct CloudsConstants
+				{
+					Uint32      type_idx;
+					Uint32      shape_idx;
+					Uint32      detail_idx;
+					Uint32		depth_output_idx;
+
+					Uint32      prev_output_idx;
+					Uint32      output_idx;
+					Float		cloud_type;
+					Float 	    cloud_min_height;
+
+					Float 	    cloud_max_height;
+					Float 	    shape_noise_scale;
+					Float 	    detail_noise_scale;
+					Float 	    detail_noise_modifier;
+
+					Float 	    cloud_coverage;
+					Vector3     cloud_base_color;
+					Vector3     cloud_top_color;
+					Float       global_density;
+
+					Int	        max_num_steps;
+					Vector3     planet_center;
+
+					Float 	    planet_radius;
+					Float 	    light_step_length;
+					Float 	    light_cone_radius;
+					Float 	    precipitation;
+
+					Float 	    ambient_light_factor;
+					Float 	    sun_light_factor;
+					Float 	    henyey_greenstein_g_forward;
+					Float 	    henyey_greenstein_g_backward;
+					Uint32      resolution_factor;
+				} constants =
+				{
+					.type_idx = i + 0,
+					.shape_idx = i + 1,
+					.detail_idx = i + 2,
+					.depth_output_idx = i + 3,
+
+					.prev_output_idx = i + 4,
+					.output_idx = i + 5,
+					.cloud_type = params.cloud_type,
+					.cloud_min_height = params.cloud_min_height,
+					.cloud_max_height = params.cloud_max_height,
+
+					.shape_noise_scale = noise_scale,
+					.detail_noise_scale = params.detail_noise_scale * noise_scale,
+					.detail_noise_modifier = params.detail_noise_modifier,
+
+					.cloud_coverage = params.cloud_coverage,
+					.cloud_base_color = Vector3(params.cloud_base_color),
+					.cloud_top_color = Vector3(params.cloud_top_color),
+					.global_density = params.global_density,
+
+					.max_num_steps = params.max_num_steps,
+					.planet_center = Vector3(0.0f, -params.planet_radius, 0.0f),
+
+					.planet_radius = params.planet_radius,
+					.light_step_length = params.light_step_length,
+					.light_cone_radius = params.light_cone_radius,
+					.precipitation = params.precipitation * 0.01f,
+
+					.ambient_light_factor = params.ambient_light_factor,
+					.sun_light_factor = params.sun_light_factor,
+					.henyey_greenstein_g_forward = params.henyey_greenstein_g_forward,
+					.henyey_greenstein_g_backward = params.henyey_greenstein_g_backward,
+					.resolution_factor = (Uint32)resolution,
+				};
+				clouds_psos->AddDefine("REPROJECTION", temporal_reprojection ? "1" : "0");
+
+				GfxPipelineState* clouds_pso = clouds_psos->Get();
+				cmd_list->SetPipelineState(clouds_pso);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(2, constants);
+				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
+
+			}, RGPassType::Compute, RGPassFlags::None);
+	}
+
+	void VolumetricCloudsPass::AddCopyPassForTemporalReprojection(RenderGraph& rg)
+	{
+		struct CopyCloudsPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+		rg.AddPass<CopyCloudsPassData>("Volumetric Clouds Copy Pass",
+			[=](CopyCloudsPassData& data, RenderGraphBuilder& builder)
+			{
+				data.copy_dst = builder.WriteCopyDstTexture(RG_NAME(PreviousCloudsOutput));
+				data.copy_src = builder.ReadCopySrcTexture(RG_NAME(CloudsOutput));
+			},
+			[=](CopyCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyTexture(dst_texture, src_texture);
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 
 }

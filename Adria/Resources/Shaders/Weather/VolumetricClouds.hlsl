@@ -1,37 +1,40 @@
 #include "CommonResources.hlsli"
 
 #define BLOCK_SIZE 16
+#define CLOUDS_DEPTH 0.00001f
 
 struct VolumetricCloudsConstants
 {
 	uint      typeIdx;
 	uint      shapeIdx;
 	uint      detailIdx;
-	uint      outputIdx;
-
+	uint      depthOutputIdx;
+	
 	uint      prevOutputIdx;
+	uint      outputIdx;
 	float     cloudType;
 	float 	  cloudMinHeight;
-	float 	  cloudMaxHeight;
 
+	float 	  cloudMaxHeight;
 	float 	  shapeNoiseScale;
 	float 	  detailNoiseScale;
 	float 	  detailNoiseModifier;
-	float     globalDensity;
+
 	
 	float 	  cloudCoverage;
 	float3    cloudBaseColor;
 	float3    cloudTopColor;
+	float     globalDensity;
+	
 	int	      maxNumSteps;
-
 	float3    planetCenter;
-	float 	  planetRadius;
 
+	float 	  planetRadius;
 	float 	  lightStepLength;
 	float 	  lightConeRadius;
 	float 	  precipitation;
-	float 	  ambientLightFactor;
 
+	float 	  ambientLightFactor;
 	float 	  sunLightFactor;
 	float 	  henyeyGreensteinGForward;
 	float 	  henyeyGreensteinGBackward;
@@ -304,6 +307,14 @@ void CloudsCS(CSInput input)
 		outputTexture[threadId.xy] = prevColor;
 		return;
 	}
+#else 
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[VolumetricCloudsPassCB.depthOutputIdx];
+	float depth = depthTexture.Sample(LinearClampSampler, uv);
+	if (depth >= CLOUDS_DEPTH)
+	{
+		outputTexture[threadId.xy] = 0.0f;
+		return;
+	}
 #endif
 
 	float4 rayClipSpace = float4(ToClipSpaceCoord(uv), 1.0);
@@ -339,11 +350,6 @@ void CloudsCS(CSInput input)
 
 	outputTexture[threadId.xy] = clouds;
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-#define CLOUDS_DEPTH 0.00001f
 
 struct VSToPS
 {

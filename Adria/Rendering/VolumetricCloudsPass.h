@@ -81,8 +81,11 @@ namespace adria
 	private:
 		void CreatePSOs();
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
-		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
 
+		void AddComputeTexturesPass(RenderGraph&);
+		void AddComputeCloudsPass(RenderGraph&);
+		void AddCopyPassForTemporalReprojection(RenderGraph&);
+		void AddCombinePass(RenderGraph& rg, RGResourceName render_target);
 	};
 
 }
