@@ -20,6 +20,7 @@ namespace adria::CommandLineOptions
 		Bool pix = false;
 		Bool aftermath = false;
 		Bool perf_report = false;
+		Bool perf_hud = false;
 
 		void RegisterOptions(CLIParser& cli_parser)
 		{
@@ -38,7 +39,8 @@ namespace adria::CommandLineOptions
 			cli_parser.AddArg(false, "-gpuvalidation");
 			cli_parser.AddArg(false, "-pix");
 			cli_parser.AddArg(false, "-aftermath");
-			cli_parser.AddArg(false, "-report");
+			cli_parser.AddArg(false, "-perfreport");
+			cli_parser.AddArg(false, "-perfhud");
 		}
 	}
 
@@ -62,7 +64,8 @@ namespace adria::CommandLineOptions
 		gpu_validation = parse_result["-gpuvalidation"];
 		pix = parse_result["-pix"];
 		aftermath = parse_result["-aftermath"];
-		perf_report = parse_result["-report"];
+		perf_report = parse_result["-perfreport"];
+		perf_hud = parse_result["-perfhud"];
 	}
 
 	std::string const& GetLogFile()
@@ -138,6 +141,11 @@ namespace adria::CommandLineOptions
 	Bool GetPerfReport()
 	{
 		return perf_report;
+	}
+
+	Bool GetPerfHUD()
+	{
+		return perf_hud;
 	}
 
 }

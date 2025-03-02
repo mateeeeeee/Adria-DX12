@@ -16,8 +16,9 @@ namespace adria
 	class GfxNsightPerfReporter;
 	class GfxNsightPerfHUD;
 
-	enum class GfxNsightPerfMode
+	enum class GfxNsightPerfMode : Uint8
 	{
+		None,
 		HTMLReport,
 		HUD
 	};
