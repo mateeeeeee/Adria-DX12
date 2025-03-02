@@ -14,6 +14,7 @@ struct VolumetricLightingConstants
 	uint depthIdx;
 	uint outputIdx;
 	uint resolutionFactor;
+	uint sampleCount;
 };
 ConstantBuffer<VolumetricLightingConstants> VolumetricLightingPassCB : register(b1);
 
@@ -44,7 +45,7 @@ void VolumetricLightingCS(CSInput input)
 	float cameraDistance = length(V);
 	V /= cameraDistance;
 
-	const uint sampleCount = 16;
+	const uint sampleCount = VolumetricLightingPassCB.sampleCount;
 	const float stepSize = cameraDistance / sampleCount;
     viewPosition = viewPosition + V * stepSize * Dither(((float2)input.DispatchThreadId.xy + 0.5f));
 

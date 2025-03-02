@@ -18,8 +18,8 @@ namespace adria
 		RayMarchedVolumetricFogResolution_Quarter = 2
 	};
 
-	static TAutoConsoleVariable<Int> RayMarchedVolumetricFogRes("r.VolumetricFog.RayMarching.Resolution", RayMarchedVolumetricFogResolution_Full,
-		"Specifies in what resolution is ray marched volumetric fog computed: 0 - Full, 1 - Half, 2 - Quarter");
+	static TAutoConsoleVariable<Int>  RayMarchedVolumetricFogRes("r.VolumetricFog.RayMarching.Resolution", RayMarchedVolumetricFogResolution_Full, "Specifies in what resolution is ray marched volumetric fog computed: 0 - Full, 1 - Half, 2 - Quarter");
+	static TAutoConsoleVariable<Int>  RayMarchedVolumetricFogSampleCount("r.VolumetricFog.RayMarching.SampleCount", 16, "How many samples should ray marched volumetric fog use in ray march");
 	static TAutoConsoleVariable<Bool> RayMarchedVolumetricFogUsePCF("r.VolumetricFog.RayMarching.UsePCF", false, "Should the ray marched volumetric fog use PCF when calculating shadow factors");
 
 	RayMarchedVolumetricFogPass::RayMarchedVolumetricFogPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
@@ -71,9 +71,10 @@ namespace adria
 					Uint32 depth_idx;
 					Uint32 output_idx;
 					Uint32 resolution_scale;
+					Uint32 sample_count;
 				} constants =
 				{
-					.depth_idx = i, .output_idx = i + 1, .resolution_scale = (Uint32)resolution
+					.depth_idx = i, .output_idx = i + 1, .resolution_scale = (Uint32)resolution, .sample_count = (Uint32)RayMarchedVolumetricFogSampleCount.Get()
 				};
 
 				Bool const use_pcf = RayMarchedVolumetricFogUsePCF.Get();
@@ -96,6 +97,7 @@ namespace adria
 			{
 				OnResize(width, height);
 			}
+			ImGui::SliderInt("Sample Count", RayMarchedVolumetricFogSampleCount.GetPtr(), 1, 64);
 			ImGui::Checkbox("Use PCF", RayMarchedVolumetricFogUsePCF.GetPtr());
 			ImGui::TreePop();
 			ImGui::Separator();
