@@ -387,8 +387,9 @@ namespace adria
 		}
 		if (!CommandLineOptions::GetDebugDevice() && vendor == GfxVendor::Nvidia)
 		{
-			GfxNsightPerfMode perf_mode = GfxNsightPerfMode::HUD;
+			GfxNsightPerfMode perf_mode = GfxNsightPerfMode::None;
 			if (CommandLineOptions::GetPerfReport()) perf_mode = GfxNsightPerfMode::HTMLReport;
+			if (CommandLineOptions::GetPerfHUD()) perf_mode = GfxNsightPerfMode::HUD;
 			nsight_perf_manager = std::make_unique<GfxNsightPerfManager>(this, perf_mode);
 		}
 	}

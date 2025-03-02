@@ -5,7 +5,6 @@
 #define BLUE_NOISE_TEXTURE_SIZE 128
 #define VOXEL_GRID_SIZE_Z		128
 
-
 struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
@@ -116,7 +115,7 @@ void LightInjectionCS(CSInput input)
 			float attenuation = GetLightAttenuation(lightInfo, worldPosition, L);
 			if(attenuation <= 0.0f) continue;
 
-			float shadowFactor = GetShadowMapFactorWS(lightInfo, worldPosition);
+			float shadowFactor = GetShadowMapFactorWS<false>(lightInfo, worldPosition);
 			attenuation *= shadowFactor;
 			if(attenuation <= 0.0f) continue;
 
@@ -163,6 +162,7 @@ void ScatteringIntegrationCS(CSInput input)
 	float  accumulatedTransmittance = 1.0f;
 	float3 prevWorldPosition = FrameCB.cameraPosition.xyz;
 	
+	[unroll(VOXEL_GRID_SIZE_Z)]
 	for (int z = 0; z < VOXEL_GRID_SIZE_Z; ++z)
 	{
 		uint3  voxelGridCoords = uint3(input.DispatchThreadId.xy, z);

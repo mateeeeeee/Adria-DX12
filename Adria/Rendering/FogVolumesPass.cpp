@@ -84,6 +84,7 @@ namespace adria
 
 	void FogVolumesPass::AddPasses(RenderGraph& rg)
 	{
+		RG_SCOPE(rg, "Fog Volumes");
 		GfxDescriptor fog_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, fog_volume_buffer_srv_gpu, fog_volume_buffer_srv);
 		fog_volume_buffer_idx = fog_volume_buffer_srv_gpu.GetIndex();
