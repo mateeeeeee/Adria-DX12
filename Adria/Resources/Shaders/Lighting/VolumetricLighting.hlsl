@@ -5,6 +5,10 @@
 
 #define BLOCK_SIZE 16
 
+#ifndef USE_PCF
+#define USE_PCF 0
+#endif
+
 struct VolumetricLightingConstants
 {
 	uint depthIdx;
@@ -74,8 +78,11 @@ float GetAttenuation(LightInfo light, float3 P)
 	float3 L;
 	float attenuation = GetLightAttenuation(light, P, L);
 	if(attenuation <= 0.0f) return 0.0f;
-
-	float shadowFactor = GetShadowMapFactor(light, P);
+#if USE_PCF
+	float shadowFactor = GetShadowMapFactor<true>(light, P);
+#else
+	float shadowFactor = GetShadowMapFactor<false>(light, P);
+#endif
 	attenuation *= shadowFactor;
 	return attenuation;
 }

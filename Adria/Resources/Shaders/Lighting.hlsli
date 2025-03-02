@@ -11,6 +11,7 @@
 
 ///Lighting
 
+template<bool UsePCF = true>
 float GetShadowMapFactor(LightInfo light, float3 viewPosition);
 float GetRayTracedShadowsFactor(LightInfo light, float2 uv);
 
@@ -224,6 +225,14 @@ float3 GetIndirectLightingWS(float3 worldPosition, float3 worldNormal, float3 di
 
 ///Shadows
 
+float CalcShadowFactor_NoPCF(SamplerComparisonState shadowSampler,
+	Texture2D<float> shadowMap, float3 uvd, int shadowMapSize)
+{
+	if (uvd.z > 1.0f) return 1.0;
+	float depth = uvd.z;
+    return shadowMap.SampleCmpLevelZero(shadowSampler, uvd.xy, depth);
+}
+
 float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 	Texture2D<float> shadowMap, float3 uvd, int shadowMapSize)
 {
@@ -249,6 +258,7 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
     return percentLit;
 }
 
+template<bool UsePCF = true>
 float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
@@ -275,7 +285,7 @@ float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 					if (viewDepth < FrameCB.cascadeSplits[i])
 					{
 						Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
-						shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
+						shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 2048);
 						break;
 					}
 				}
@@ -288,7 +298,7 @@ float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 				UVD.xy = 0.5 * UVD.xy + 0.5;
 				UVD.y = 1.0 - UVD.y;
 				Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-				shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+				shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 1024);
 			}
 		}
 		break;
@@ -302,7 +312,7 @@ float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 			UVD.xy = 0.5 * UVD.xy + 0.5;
 			UVD.y = 1.0 - UVD.y;
 			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + cubeFaceIndex)];
-			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512);
+			shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 512);
 		}
 		break;
 		case SPOT_LIGHT:
@@ -313,7 +323,7 @@ float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 			UVD.xy = 0.5 * UVD.xy + 0.5;
 			UVD.y = 1.0 - UVD.y;
 			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+			shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 1024);
 		}
 		break;
 		}
@@ -321,6 +331,8 @@ float GetShadowMapFactorWS(LightInfo light, float3 worldPosition)
 	return shadowFactor;
 }
 
+
+template<bool UsePCF>
 float GetShadowMapFactor(LightInfo light, float3 viewPosition)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
@@ -348,7 +360,7 @@ float GetShadowMapFactor(LightInfo light, float3 viewPosition)
 					if (viewDepth < FrameCB.cascadeSplits[i])
 					{
 						Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
-						shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
+						shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 2048);
 						break;
 					}
 				}
@@ -363,7 +375,7 @@ float GetShadowMapFactor(LightInfo light, float3 viewPosition)
 				UVD.xy = 0.5 * UVD.xy + 0.5;
 				UVD.y = 1.0 - UVD.y;
 				Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-				shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+				shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 1024);
 			}
 		}
 		break;
@@ -379,7 +391,7 @@ float GetShadowMapFactor(LightInfo light, float3 viewPosition)
 			UVD.xy = 0.5 * UVD.xy + 0.5;
 			UVD.y = 1.0 - UVD.y;
 			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + cubeFaceIndex)];
-			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512);
+			shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512) : CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 512);
 		}
 		break;
 		case SPOT_LIGHT:
@@ -392,7 +404,7 @@ float GetShadowMapFactor(LightInfo light, float3 viewPosition)
 			UVD.xy = 0.5 * UVD.xy + 0.5;
 			UVD.y = 1.0 - UVD.y;
 			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+			shadowFactor = UsePCF ? CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024): CalcShadowFactor_NoPCF(ShadowWrapSampler, shadowMap, UVD, 1024);
 		}
 		break;
 		}

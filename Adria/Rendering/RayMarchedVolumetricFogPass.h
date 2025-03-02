@@ -10,13 +10,6 @@ namespace adria
 
 	class RayMarchedVolumetricFogPass
 	{
-		enum VolumetricLightingResolution
-		{
-			VolumetricLightingResolution_Full = 0,
-			VolumetricLightingResolution_Half = 1,
-			VolumetricLightingResolution_Quarter = 2
-		};
-
 	public:
 		RayMarchedVolumetricFogPass(GfxDevice* gfx, Uint32 w, Uint32 h);
 		~RayMarchedVolumetricFogPass();
@@ -36,9 +29,9 @@ namespace adria
 		GfxDevice* gfx;
 		CopyToTexturePass copy_to_texture_pass;
 		Uint32 width, height;
-		VolumetricLightingResolution resolution = VolumetricLightingResolution_Full;
 		std::vector<RGResourceName> shadow_textures;
 		std::unique_ptr<GfxComputePipelineState> volumetric_lighting_pso;
+		std::unique_ptr<GfxComputePipelineState> volumetric_lighting_pso_use_pcf;
 
 	private:
 		void CreatePSOs();

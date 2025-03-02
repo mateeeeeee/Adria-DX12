@@ -5,11 +5,22 @@
 #include "ShaderManager.h" 
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleManager.h"
 
 using namespace DirectX;
 
 namespace adria
 {
+	enum RayMarchedVolumetricFogResolution : Int
+	{
+		RayMarchedVolumetricFogResolution_Full = 0,
+		RayMarchedVolumetricFogResolution_Half = 1,
+		RayMarchedVolumetricFogResolution_Quarter = 2
+	};
+
+	static TAutoConsoleVariable<Int> RayMarchedVolumetricFogRes("r.VolumetricFog.RayMarching.Resolution", RayMarchedVolumetricFogResolution_Full,
+		"Specifies in what resolution is ray marched volumetric fog computed: 0 - Full, 1 - Half, 2 - Quarter");
+	static TAutoConsoleVariable<Bool> RayMarchedVolumetricFogUsePCF("r.VolumetricFog.RayMarching.UsePCF", false, "Should the ray marched volumetric fog use PCF when calculating shadow factors");
 
 	RayMarchedVolumetricFogPass::RayMarchedVolumetricFogPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
 	{
@@ -29,6 +40,7 @@ namespace adria
 		};
 
 		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		Int const resolution = RayMarchedVolumetricFogRes.Get();
 		rendergraph.AddPass<LightingPassData>("Ray Marched Volumetric Fog Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
@@ -53,6 +65,7 @@ namespace adria
 				gfx->CopyDescriptors(dst_handle, src_handles);
 				Uint32 i = dst_handle.GetIndex();
 
+				
 				struct VolumetricLightingConstants
 				{
 					Uint32 depth_idx;
@@ -62,8 +75,9 @@ namespace adria
 				{
 					.depth_idx = i, .output_idx = i + 1, .resolution_scale = (Uint32)resolution
 				};
-				
-				cmd_list->SetPipelineState(volumetric_lighting_pso.get());
+
+				Bool const use_pcf = RayMarchedVolumetricFogUsePCF.Get();
+				cmd_list->SetPipelineState(use_pcf ? volumetric_lighting_pso_use_pcf.get() : volumetric_lighting_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
@@ -78,12 +92,11 @@ namespace adria
 	{
 		if (ImGui::TreeNodeEx("Ray Marched Volumetric Fog ", ImGuiTreeNodeFlags_None))
 		{
-			static Int _resolution = (Int)resolution;
-			if (ImGui::Combo("Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
+			if (ImGui::Combo("Resolution", RayMarchedVolumetricFogRes.GetPtr(), "Full\0Half\0Quarter\0", 3))
 			{
-				resolution = (VolumetricLightingResolution)_resolution;
 				OnResize(width, height);
 			}
+			ImGui::Checkbox("Use PCF", RayMarchedVolumetricFogUsePCF.GetPtr());
 			ImGui::TreePop();
 			ImGui::Separator();
 		}
@@ -91,9 +104,15 @@ namespace adria
 
 	void RayMarchedVolumetricFogPass::CreatePSOs()
 	{
+		GfxShaderKey shader_key(CS_VolumetricLighting);
+
 		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_VolumetricLighting;
+		compute_pso_desc.CS = shader_key;
 		volumetric_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		shader_key.AddDefine("USE_PCF", "1");
+		compute_pso_desc.CS = shader_key;
+		volumetric_lighting_pso_use_pcf = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }
