@@ -20,10 +20,10 @@
 namespace adria
 {
 	extern Bool dump_render_graph = false;
-#if GFX_PROFILING
+#if GFX_PROFILING || defined(_DEBUG)
 	static constexpr Bool rg_use_dependency_levels_default = false;
 #else
-	static constexpr Bool rg_use_dependency_levels_default = false;
+	static constexpr Bool rg_use_dependency_levels_default = true;
 #endif
 	static TAutoConsoleVariable<Bool> RGCullPasses("rg.CullPasses", true, "Determines if the render graph should cull unused passes or not");
 	static TAutoConsoleVariable<Bool> RGUseDependencyLevels("rg.UseDependencyLevels", rg_use_dependency_levels_default, "If the render graph should split passes to dependency levels");
@@ -987,7 +987,7 @@ namespace adria
 
 			for (Uint32 event_idx : pass->events_to_start)
 			{
-				PIXBeginEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, rg.events[event_idx].name);
+				PIXBeginEvent(cmd_list->GetNative(), PIX_COLOR(0X00, 0Xff, 0x00), rg.events[event_idx].name);
 				g_GfxProfiler.BeginProfileScope(cmd_list, rg.events[event_idx].name);
 				if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
 				{
