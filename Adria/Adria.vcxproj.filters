@@ -612,6 +612,9 @@
     <ClCompile Include="Rendering\AmbientOcclusionManager.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxScopedEvent.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1623,7 +1626,7 @@
     <ClInclude Include="RenderGraph\RenderGraphAllocator.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxScope.h">
+    <ClInclude Include="Graphics\GfxScopedEvent.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxProfilerFwd.h">

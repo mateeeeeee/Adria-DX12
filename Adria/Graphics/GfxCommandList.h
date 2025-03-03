@@ -57,6 +57,10 @@ namespace adria
 		void SignalAll();
 		void ResetState();
 
+		void BeginEvent(Char const* event_name);
+		void BeginEvent(Char const* event_name, Uint32 event_color);
+		void EndEvent();
+
 		void BeginQuery(GfxQueryHeap& query_heap, Uint32 index);
 		void EndQuery(GfxQueryHeap& query_heap, Uint32 index);
 		void ResolveQueryData(GfxQueryHeap const& query_heap, Uint32 start, Uint32 count, GfxBuffer& dst_buffer, Uint64 dst_offset);

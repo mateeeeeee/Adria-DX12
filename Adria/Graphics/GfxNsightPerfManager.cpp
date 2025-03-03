@@ -216,21 +216,6 @@ namespace adria
 	{
 		perf_reporter->GenerateReport();
 	}
-
-	GfxNsightPerfRangeScope::GfxNsightPerfRangeScope(GfxCommandList* _cmd_list, Char const* _name) : name{ _name }, cmd_list{ _cmd_list }
-	{
-		if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
-		{
-			nsight_perf_manager->PushRange(cmd_list, name.c_str());
-		}
-	}
-	GfxNsightPerfRangeScope::~GfxNsightPerfRangeScope()
-	{
-		if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
-		{
-			nsight_perf_manager->PopRange(cmd_list);
-		}
-	}
 #else
 	GfxNsightPerfManager::GfxNsightPerfManager(GfxDevice* gfx, GfxNsightPerfMode perf_mode) {}
 	GfxNsightPerfManager::~GfxNsightPerfManager() {}

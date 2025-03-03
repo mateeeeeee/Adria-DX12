@@ -4,12 +4,12 @@
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRenderPass.h"
-#include "Graphics/GfxScope.h"
+#include "Graphics/GfxScopedEvent.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
 #include "Core/ConsoleManager.h"
-#include "tracy/Tracy.hpp"
+#include "Graphics/GfxTracyProfiler.h"
 
 #if GFX_MULTITHREADED
 #define RG_MULTITHREADED 1
@@ -20,7 +20,7 @@
 namespace adria
 {
 	extern Bool dump_render_graph = false;
-#if GFX_PROFILING || defined(_DEBUG)
+#if GFX_PROFILING
 	static constexpr Bool rg_use_dependency_levels_default = false;
 #else
 	static constexpr Bool rg_use_dependency_levels_default = true;
@@ -987,12 +987,7 @@ namespace adria
 
 			for (Uint32 event_idx : pass->events_to_start)
 			{
-				PIXBeginEvent(cmd_list->GetNative(), PIX_COLOR(0X00, 0Xff, 0x00), rg.events[event_idx].name);
-				g_GfxProfiler.BeginProfileScope(cmd_list, rg.events[event_idx].name);
-				if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
-				{
-					nsight_perf_manager->PushRange(cmd_list, rg.events[event_idx].name);
-				}
+				cmd_list->BeginEvent(rg.events[event_idx].name, GfxEventColor(0xff, 0xff, 0x00));
 			}
 
 			RenderGraphContext rg_resources(rg, *pass);
@@ -1141,7 +1136,9 @@ namespace adria
 				render_pass_desc.height = pass->viewport_height;
 				render_pass_desc.legacy = pass->UseLegacyRenderPasses();
 
-				GFX_SCOPE(cmd_list, pass->name.c_str());
+				ZoneTransientN(__tracy, pass->name.c_str(), true);
+				AdriaGfxScopedEvent(cmd_list, pass->name.c_str());
+				TracyGfxProfileScope(cmd_list->GetNative(), pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Graphics);
 				cmd_list->BeginRenderPass(render_pass_desc);
 				pass->Execute(rg_resources,cmd_list);
@@ -1149,19 +1146,16 @@ namespace adria
 			}
 			else
 			{
-				GFX_SCOPE(cmd_list, pass->name.c_str());
+				ZoneTransientN(__tracy, pass->name.c_str(), true);
+				AdriaGfxScopedEvent(cmd_list, pass->name.c_str());
+				TracyGfxProfileScope(cmd_list->GetNative(), pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Compute);
 				pass->Execute(rg_resources, cmd_list);
 			}
 
 			for (Uint32 i = 0; i < pass->num_events_to_end; ++i)
 			{
-				if (GfxNsightPerfManager* nsight_perf_manager = cmd_list->GetDevice()->GetNsightPerfManager())
-				{
-					nsight_perf_manager->PopRange(cmd_list);
-				}
-				g_GfxProfiler.EndProfileScope(cmd_list);
-				PIXEndEvent(cmd_list->GetNative());
+				cmd_list->EndEvent();
 			}
 		}
 	}

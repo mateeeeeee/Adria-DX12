@@ -42,17 +42,4 @@ namespace adria
 		std::unique_ptr<GfxNsightPerfHUD>      perf_hud;
 #endif
 	};
-
-#if defined(GFX_ENABLE_NV_PERF)
-	struct GfxNsightPerfRangeScope
-	{
-		GfxNsightPerfRangeScope(GfxCommandList* _cmd_list, Char const* _name);
-		~GfxNsightPerfRangeScope();
-		GfxCommandList* cmd_list;
-		std::string name;
-	};
-#define NsightPerfGfxRangeScope(cmd_list, name) GfxNsightPerfRangeScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name)
-#else
-#define NsightPerfGfxRangeScope(cmd_list, name) 
-#endif
 }

@@ -7,10 +7,14 @@
 #include "GfxPipelineState.h"
 #include "GfxRenderPass.h"
 #include "GfxCommandSignature.h"
+#include "GfxScopedEvent.h"
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRayTracingShaderTable.h"
 #include "GfxStateObject.h"
+#include "GfxProfiler.h"
+#include "GfxNsightPerfManager.h"
+#include "pix3.h"
 #include "Utilities/StringUtil.h"
 
 namespace adria
@@ -215,6 +219,31 @@ namespace adria
 				if (type == GfxCommandListType::Graphics) cmd_list->SetGraphicsRootSignature(common_rs);
 			}
 		}
+	}
+
+	void GfxCommandList::BeginEvent(Char const* event_name)
+	{
+		BeginEvent(event_name, GfxEventColor(0xf0, 0x00, 0xff));
+	}
+
+	void GfxCommandList::BeginEvent(Char const* event_name, Uint32 event_color)
+	{
+		PIXBeginEvent(cmd_list.Get(), event_color, event_name);
+		g_GfxProfiler.BeginProfileScope(this, event_name);
+		if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
+		{
+			nsight_perf_manager->PushRange(this, event_name);
+		}
+	}
+
+	void GfxCommandList::EndEvent()
+	{
+		if (GfxNsightPerfManager* nsight_perf_manager = gfx->GetNsightPerfManager())
+		{
+			nsight_perf_manager->PopRange(this);
+		}
+		g_GfxProfiler.EndProfileScope(this);
+		PIXEndEvent(cmd_list.Get());
 	}
 
 	void GfxCommandList::BeginQuery(GfxQueryHeap& query_heap, Uint32 index)
