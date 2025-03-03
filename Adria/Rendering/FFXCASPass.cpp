@@ -95,7 +95,7 @@ namespace adria
 
 	Bool FFXCASPass::IsGUIVisible(PostProcessor const* postprocessor) const
 	{
-		return postprocessor->HasTAA();
+		return postprocessor->HasTAA() || postprocessor->HasUpscaler();
 	}
 
 	void FFXCASPass::CreateContext()
