@@ -13,7 +13,7 @@
 
 namespace adria
 {
-	static TAutoConsoleVariable<Bool> TAA("r.TAA", true, "Enable or Disable TAA");
+	static TAutoConsoleVariable<Bool> TAA("r.TAA", false, "Enable or Disable TAA");
 
 	TAAPass::TAAPass(GfxDevice* gfx, Uint32 w, Uint32 h) : gfx(gfx), width(w), height(h)
 	{
