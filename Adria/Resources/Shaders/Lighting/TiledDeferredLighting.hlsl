@@ -146,7 +146,7 @@ void TiledDeferredLightingCS(CSInput input)
 	{
 		for (int i = 0; i < TileNumLights; ++i)
 		{
-			LightInfo lightInfo = lightBuffer[TileLightIndices[i]];
+			LightInfo lightInfo = LoadLightInfo(TileLightIndices[i]);
 			if (!lightInfo.active) continue;
             directLighting += DoLight(shadingExtension, lightInfo, brdfData, viewPosition, viewNormal, V, uv, customData);
         }

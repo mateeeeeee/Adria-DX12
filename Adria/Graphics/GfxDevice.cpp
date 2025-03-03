@@ -477,7 +477,6 @@ namespace adria
 			MessageBoxA(nullptr, "Swapchain present failed!", "GPU Crash", MB_OK);
 			std::exit(1);
 		}
-
 		backbuffer_index = swapchain->GetBackbufferIndex();
 		frame_fence.Wait(frame_fence_values[backbuffer_index]);
 

@@ -72,7 +72,7 @@ namespace adria
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				Float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 5),
+				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 6),
 					context.GetReadWriteTexture(data.output), clear);
 
 				struct DeferredLightingConstants

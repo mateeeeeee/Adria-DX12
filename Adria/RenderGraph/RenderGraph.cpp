@@ -20,9 +20,13 @@
 namespace adria
 {
 	extern Bool dump_render_graph = false;
-
+#if GFX_PROFILING
+	static constexpr Bool rg_use_dependency_levels_default = false;
+#else
+	static constexpr Bool rg_use_dependency_levels_default = false;
+#endif
 	static TAutoConsoleVariable<Bool> RGCullPasses("rg.CullPasses", true, "Determines if the render graph should cull unused passes or not");
-	static TAutoConsoleVariable<Bool> RGUseDependencyLevels("rg.UseDependencyLevels", false, "If the render graph should split passes to dependency levels");
+	static TAutoConsoleVariable<Bool> RGUseDependencyLevels("rg.UseDependencyLevels", rg_use_dependency_levels_default, "If the render graph should split passes to dependency levels");
 
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{

@@ -29,9 +29,9 @@ struct LightInfo
     int     padd;
 };
 
-static StructuredBuffer<LightInfo> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
 LightInfo LoadLightInfo(uint lightIndex)
 {
+    StructuredBuffer<LightInfo> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	return lightBuffer[lightIndex];
 }
 

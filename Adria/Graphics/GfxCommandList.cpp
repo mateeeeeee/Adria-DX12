@@ -237,6 +237,7 @@ namespace adria
 	void GfxCommandList::Draw(Uint32 vertex_count, Uint32 instance_count /*= 1*/, Uint32 start_vertex_location /*= 0*/, Uint32 start_instance_location /*= 0*/)
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);
+		if (vertex_count == 0 || instance_count == 0) return;
 		cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 		++command_count;
 	}
@@ -244,6 +245,7 @@ namespace adria
 	void GfxCommandList::DrawIndexed(Uint32 index_count, Uint32 instance_count /*= 1*/, Uint32 index_offset /*= 0*/, Uint32 base_vertex_location /*= 0*/, Uint32 start_instance_location /*= 0*/)
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);
+		if (index_count == 0 || instance_count == 0) return;
 		cmd_list->DrawIndexedInstanced(index_count, instance_count, index_offset, base_vertex_location, start_instance_location);
 		++command_count;
 	}
@@ -251,6 +253,7 @@ namespace adria
 	void GfxCommandList::Dispatch(Uint32 group_count_x, Uint32 group_count_y, Uint32 group_count_z /* = 1*/)
 	{
 		ADRIA_ASSERT(current_context == Context::Compute);
+		if (group_count_x == 0 || group_count_y == 0 || group_count_z == 0) return;
 		cmd_list->Dispatch(group_count_x, group_count_y, group_count_z);
 		++command_count;
 	}
@@ -258,6 +261,7 @@ namespace adria
 	void GfxCommandList::DispatchMesh(Uint32 group_count_x, Uint32 group_count_y, Uint32 group_count_z /*= 1*/)
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);
+		if (group_count_x == 0 || group_count_y == 0 || group_count_z == 0) return;
 		cmd_list->DispatchMesh(group_count_x, group_count_y, group_count_z);
 		++command_count;
 	}
@@ -292,6 +296,8 @@ namespace adria
 
 	void GfxCommandList::DispatchRays(Uint32 dispatch_width, Uint32 dispatch_height, Uint32 dispatch_depth /*= 1*/)
 	{
+		ADRIA_ASSERT(current_context == Context::Compute);
+		if (dispatch_width == 0 || dispatch_height == 0 || dispatch_depth == 0) return;
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 		dispatch_desc.Width = dispatch_width;
 		dispatch_desc.Height = dispatch_height;
