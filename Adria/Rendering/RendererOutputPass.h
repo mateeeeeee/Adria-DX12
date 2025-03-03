@@ -18,6 +18,7 @@ namespace adria
 		ShadingExtension,
 		ViewMipMaps,
 		TriangleOverdraw,
+		MotionVectors,
 		Count
 	};
 

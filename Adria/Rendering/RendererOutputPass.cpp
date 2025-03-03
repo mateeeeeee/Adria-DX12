@@ -29,6 +29,7 @@ namespace adria
 			RGTextureReadOnlyId  gbuffer_custom;
 			RGTextureReadOnlyId  depth;
 			RGTextureReadOnlyId  ambient_occlusion;
+			RGTextureReadOnlyId  motion_vectors;
 			RGTextureReadWriteId output;
 		};
 
@@ -45,6 +46,9 @@ namespace adria
 
 				if (builder.IsTextureDeclared(RG_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
+
+				if (builder.IsTextureDeclared(RG_NAME(VelocityBuffer))) data.motion_vectors = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				else data.motion_vectors.Invalidate();
 			},
 			[=](RendererOutputPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -56,6 +60,7 @@ namespace adria
 												context.GetReadOnlyTexture(data.gbuffer_emissive),
 												context.GetReadOnlyTexture(data.gbuffer_custom),
 												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
+												data.motion_vectors.IsValid()    ? context.GetReadOnlyTexture(data.motion_vectors)    : gfxcommon::GetCommonView(GfxCommonViewType::BlackTexture2D_SRV),
 												context.GetReadWriteTexture(data.output) };
 
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
@@ -73,12 +78,13 @@ namespace adria
 					Uint32 emissive_idx;
 					Uint32 custom_idx;
 					Uint32 ao_idx;
+					Uint32 motion_vectors_idx;
 					Uint32 output_idx;
 					Float  triangle_overdraw_scale;
 				} constants =
 				{
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, 
-					.custom_idx = i + 4, .ao_idx = i + 5, .output_idx = i + 6,
+					.custom_idx = i + 4, .ao_idx = i + 5, .motion_vectors_idx = i + 6, .output_idx = i + 7,
 					.triangle_overdraw_scale = (Float)triangle_overdraw_scale
 				};
 
@@ -96,7 +102,8 @@ namespace adria
 					"OUTPUT_SHADING_EXTENSION",
 					"OUTPUT_CUSTOM",
 					"OUTPUT_MIPMAPS",
-					"OUTPUT_OVERDRAW"
+					"OUTPUT_OVERDRAW",
+					"OUTPUT_MOTION_VECTORS"
 				};
 				renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");
 

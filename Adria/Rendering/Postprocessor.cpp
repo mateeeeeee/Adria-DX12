@@ -71,6 +71,11 @@ namespace adria
 		rg.ExportTexture(RG_NAME(DepthStencil), depth_history.get());
 	}
 
+	void PostProcessor::AddMotionVectorsPass(RenderGraph& rg)
+	{
+		post_effects[PostEffectType_MotionVectors]->AddPass(rg, this);
+	}
+
 	void PostProcessor::AddTonemapPass(RenderGraph& rg, RGResourceName input)
 	{
 		final_resource = input;

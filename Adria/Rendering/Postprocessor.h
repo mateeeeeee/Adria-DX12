@@ -52,6 +52,7 @@ namespace adria
 
 		void AddAmbientOcclusionPass(RenderGraph& rg);
 		void AddPasses(RenderGraph& rg);
+		void AddMotionVectorsPass(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
 		void AddRenderResolutionChangedCallback(RenderResolutionChangedDelegate delegate);
 		void GUI();

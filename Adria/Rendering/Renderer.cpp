@@ -572,6 +572,10 @@ namespace adria
 		}
 		else
 		{
+			if (renderer_output == RendererOutput::MotionVectors)
+			{
+				postprocessor.AddMotionVectorsPass(render_graph);
+			}
 			renderer_output_pass.AddPass(render_graph, renderer_output);
 		}
 	}
@@ -592,71 +596,68 @@ namespace adria
 		{
 			ddgi.GUI();
 		}
-		if (renderer_output == RendererOutput::Final)
+		if (lighting_path == LightingPath::TiledDeferred)
 		{
-			if (lighting_path == LightingPath::TiledDeferred)
+			tiled_deferred_lighting_pass.GUI();
+		}
+		else if (lighting_path == LightingPath::PathTracing)
+		{
+			path_tracer.GUI();
+		}
+		shadow_renderer.GUI();
+		ocean_renderer.GUI();
+		sky_pass.GUI();
+		rain_pass.GUI();
+		transparent_pass.GUI();
+		volumetric_fog_manager.GUI();
+		QueueGUI([&]()
 			{
-				tiled_deferred_lighting_pass.GUI();
-			}
-			else if (lighting_path == LightingPath::PathTracing)
-			{
-				path_tracer.GUI();
-			}
-			shadow_renderer.GUI();
-			ocean_renderer.GUI();
-			sky_pass.GUI();
-			rain_pass.GUI();
-			transparent_pass.GUI();
-			volumetric_fog_manager.GUI();
-			QueueGUI([&]()
+				if (ImGui::TreeNode("Weather Settings"))
 				{
-					if (ImGui::TreeNode("Weather Settings"))
+					if (ImGui::TreeNode("Sun Settings"))
 					{
-						if (ImGui::TreeNode("Sun Settings"))
+						auto lights = reg.view<Light, Transform>();
+						Light* sun_light = nullptr;
+						Transform* sun_transform = nullptr;
+						for (entt::entity light : lights)
 						{
-							auto lights = reg.view<Light, Transform>();
-							Light* sun_light = nullptr;
-							Transform* sun_transform = nullptr;
-							for (entt::entity light : lights)
+							Light& light_data = lights.get<Light>(light);
+							if (light_data.type == LightType::Directional && light_data.active)
 							{
-								Light& light_data = lights.get<Light>(light);
-								if (light_data.type == LightType::Directional && light_data.active)
-								{
-									sun_light = &light_data;
-									sun_transform = &lights.get<Transform>(light);
-									break;
-								}
+								sun_light = &light_data;
+								sun_transform = &lights.get<Transform>(light);
+								break;
 							}
-							if (sun_light)
-							{
-								static Float sun_elevation = 75.0f;
-								static Float sun_azimuth = 260.0f;
-								ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
-
-								Bool changed = false;
-								changed |= ImGui::ColorEdit3("Sun Color", &sun_light->color.x);
-								changed |= ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
-								changed |= ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
-								changed |= ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
-
-								if (changed)
-								{
-									path_tracer.Reset();
-								}
-								sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
-								sun_light->position = 1e3 * sun_light->direction;
-								sun_light->direction = -sun_light->direction;
-								sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
-							}
-							ImGui::TreePop();
 						}
-						ImGui::ColorEdit3("Ambient Color", ambient_color);
-						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
-						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+						if (sun_light)
+						{
+							static Float sun_elevation = 75.0f;
+							static Float sun_azimuth = 260.0f;
+							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
+
+							Bool changed = false;
+							changed |= ImGui::ColorEdit3("Sun Color", &sun_light->color.x);
+							changed |= ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
+							changed |= ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+							changed |= ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+
+							if (changed)
+							{
+								path_tracer.Reset();
+							}
+							sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
+							sun_light->position = 1e3 * sun_light->direction;
+							sun_light->direction = -sun_light->direction;
+							sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+						}
 						ImGui::TreePop();
 					}
-				}, GUICommandGroup_Renderer);
-		}
+					ImGui::ColorEdit3("Ambient Color", ambient_color);
+					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
+					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_Renderer);
 		renderer_output_pass.GUI();
 		postprocessor.GUI();
 	}

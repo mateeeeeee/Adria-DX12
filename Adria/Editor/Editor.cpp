@@ -770,6 +770,7 @@ namespace adria
 					AddRendererOutputMenuItem(ShadingExtension);
 					AddRendererOutputMenuItem(ViewMipMaps);
 					AddRendererOutputMenuItem(TriangleOverdraw);
+					AddRendererOutputMenuItem(MotionVectors);
 					#undef AddRendererOutputMenuItem
 					ImGui::EndMenu();
 				}

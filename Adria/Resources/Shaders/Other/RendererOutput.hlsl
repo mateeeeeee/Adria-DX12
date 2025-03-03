@@ -12,6 +12,7 @@ struct RendererOutputConstants
 	uint emissiveIdx;
 	uint customIdx;
 	uint aoIdx;
+	uint motionVectorsIdx;
 	uint outputIdx;
 	float triangleOverdrawScale;
 };
@@ -138,6 +139,10 @@ void RendererOutputCS(CSInput input)
 	uint overdrawCount = triangleOverdrawTexture.Load(texCoords);
 	float overdrawRatio = overdrawCount / (10 * RendererOutputPassCB.triangleOverdrawScale);
     outputTexture[input.DispatchThreadId.xy] = float4(TurboColormap(overdrawRatio), 1.0f);
+#elif OUTPUT_MOTION_VECTORS
+	Texture2D motionVectorsTexture = ResourceDescriptorHeap[RendererOutputPassCB.motionVectorsIdx];
+	float4    motionVectors	= motionVectorsTexture.Sample(LinearWrapSampler, uv);
+	outputTexture[input.DispatchThreadId.xy] = float4(motionVectors.xy * 100, 0.0f, 1.0f);
 #else 
 	outputTexture[input.DispatchThreadId.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f); 
 #endif
