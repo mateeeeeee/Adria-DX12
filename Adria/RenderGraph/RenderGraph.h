@@ -18,14 +18,14 @@ namespace adria
 			friend RenderGraph;
 		public:
 
-			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
+			DependencyLevel(RenderGraph& rg, Uint32 level_index) : rg(rg), level_index(level_index) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
-			void Execute(GfxDevice* gfx, GfxCommandList* cmd_list);
-			void Execute(GfxDevice* gfx, std::span<GfxCommandList*> const& cmd_lists);
+			void Execute(GfxDevice* gfx);
 
 		private:
 			RenderGraph& rg;
+			Uint32 level_index;
 			std::vector<RenderGraphPassBase*> passes;
 			std::unordered_set<RGTextureId> texture_creates;
 			std::unordered_set<RGTextureId> texture_reads;
@@ -38,6 +38,10 @@ namespace adria
 			std::unordered_set<RGBufferId> buffer_writes;
 			std::unordered_set<RGBufferId> buffer_destroys;
 			std::unordered_map<RGBufferId, GfxResourceState> buffer_state_map;
+
+		private:
+			void PreExecute(GfxDevice* gfx);
+			void PostExecute(GfxDevice* gfx);
 		};
 
 	public:
