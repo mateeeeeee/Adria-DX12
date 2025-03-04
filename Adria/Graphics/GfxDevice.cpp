@@ -365,10 +365,12 @@ namespace adria
 		swapchain = std::make_unique<GfxSwapchain>(this, swapchain_desc);
 
 		frame_fence.Create(this, "Frame Fence");
-		upload_fence.Create(this, "Upload Fence");
-		async_compute_fence.Create(this, "Async Compute Fence");
 		wait_fence.Create(this, "Wait Fence");
 		release_fence.Create(this, "Release Fence");
+
+		graphics_fence.Create(this, "Graphics Fence");
+		copy_fence.Create(this, "Copy Fence");
+		compute_fence.Create(this, "Compute Fence");
 
 		draw_indirect_signature = std::make_unique<DrawIndirectSignature>(this);
 		draw_indexed_indirect_signature = std::make_unique<DrawIndexedIndirectSignature>(this);
@@ -406,9 +408,6 @@ namespace adria
 		graphics_queue.Signal(wait_fence, wait_fence_value);
 		wait_fence.Wait(wait_fence_value);
 		wait_fence_value++;
-		copy_queue.Signal(wait_fence, wait_fence_value);
-		wait_fence.Wait(wait_fence_value);
-		wait_fence_value++;
 	}
 
 	void GfxDevice::OnResize(Uint32 w, Uint32 h)
@@ -430,9 +429,11 @@ namespace adria
 
 	void GfxDevice::Update()
 	{
-		if(nsight_perf_manager) nsight_perf_manager->Update();
+		if (nsight_perf_manager)
+		{
+			nsight_perf_manager->Update();
+		}
 	}
-
 	void GfxDevice::BeginFrame()
 	{
 		ZoneScopedN("GfxDevice::BeginFrame");
@@ -442,13 +443,17 @@ namespace adria
 			first_frame = true;
 			rendering_not_started = false;
 		}
-		if (nsight_perf_manager) nsight_perf_manager->BeginFrame();
+		if (nsight_perf_manager)
+		{
+			nsight_perf_manager->BeginFrame();
+		}
 
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		gpu_descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		dynamic_allocators[backbuffer_index]->Clear();
 
 		graphics_cmd_list_pool[backbuffer_index]->BeginCmdLists();
+		compute_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 		copy_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 	}
 	void GfxDevice::EndFrame()
@@ -458,12 +463,17 @@ namespace adria
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 
 		graphics_cmd_list_pool[backbuffer_index]->EndCmdLists();
+		compute_cmd_list_pool[backbuffer_index]->EndCmdLists();
 		copy_cmd_list_pool[backbuffer_index]->EndCmdLists();
 
 		graphics_queue.ExecuteCommandListPool(*graphics_cmd_list_pool[backbuffer_index]);
+		compute_queue.ExecuteCommandListPool(*compute_cmd_list_pool[backbuffer_index]);
 		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
-		if (nsight_perf_manager) nsight_perf_manager->EndFrame();
+		if (nsight_perf_manager)
+		{
+			nsight_perf_manager->EndFrame();
+		}
 
 		backbuffer_index = swapchain->GetBackbufferIndex();
 		frame_fence_values[backbuffer_index] = frame_fence_value;
@@ -483,7 +493,6 @@ namespace adria
 		++frame_index;
 		gpu_descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
-
 	void GfxDevice::TakePixCapture(Char const* capture_name, Uint32 num_frames)
 	{
 		ADRIA_ASSERT(num_frames != 0);
@@ -511,13 +520,12 @@ namespace adria
 	{
 		return global_root_signature.Get();
 	}
-
-	D3D12MA::Allocator* GfxDevice::GetAllocator() const
+	D3D12MA::Allocator*  GfxDevice::GetAllocator() const
 	{
 		return allocator.get();
 	}
 
-	GfxTexture* GfxDevice::GetBackbuffer() const
+	GfxTexture*		 GfxDevice::GetBackbuffer() const
 	{
 		return swapchain->GetBackbuffer();
 	}
@@ -573,7 +581,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-
 	GfxCommandList* GfxDevice::GetLatestCommandList() const
 	{
 		return GetLatestCommandList(GfxCommandListType::Graphics);
@@ -595,7 +602,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-
 	GfxCommandList* GfxDevice::AllocateCommandList() const
 	{
 		return AllocateCommandList(GfxCommandListType::Graphics);
@@ -617,7 +623,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-
 	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list)
 	{
 		FreeCommandList(cmd_list, GfxCommandListType::Graphics);
@@ -666,11 +671,11 @@ namespace adria
 			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
 	}
 
-	GfxDescriptor GfxDevice::AllocateDescriptorCPU(GfxDescriptorHeapType type)
+	GfxDescriptor	GfxDevice::AllocateDescriptorCPU(GfxDescriptorHeapType type)
 	{
 		return cpu_descriptor_allocators[(Uint64)type]->AllocateDescriptor();
 	}
-	void GfxDevice::FreeDescriptorCPU(GfxDescriptor descriptor, GfxDescriptorHeapType type)
+	void			GfxDevice::FreeDescriptorCPU(GfxDescriptor descriptor, GfxDescriptorHeapType type)
 	{
 		cpu_descriptor_allocators[(Uint64)type]->FreeDescriptor(descriptor);
 	}
@@ -684,11 +689,11 @@ namespace adria
 		return GetDescriptorAllocator()->GetHandle(i);
 	}
 
-	GfxOnlineDescriptorAllocator* GfxDevice::GetDescriptorAllocator() const
+	GfxOnlineDescriptorAllocator*	GfxDevice::GetDescriptorAllocator() const
 	{
 		return gpu_descriptor_allocator.get();
 	}
-	GfxLinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
+	GfxLinearDynamicAllocator*		GfxDevice::GetDynamicAllocator() const
 	{
 		if (rendering_not_started) return dynamic_allocator_on_init.get();
 		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
@@ -703,13 +708,11 @@ namespace adria
 	{
 		return std::make_unique<GfxTexture>(this, desc, backbuffer);
 	}
-
-	std::unique_ptr<adria::GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureData const& data /*= {}*/)
+	std::unique_ptr<GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureData const& data /*= {}*/)
 	{
 		return std::make_unique<GfxTexture>(this, desc, data);
 	}
-
-	std::unique_ptr<adria::GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc)
+	std::unique_ptr<GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc)
 	{
 		return std::make_unique<GfxTexture>(this, desc, GfxTextureData{});
 	}
@@ -718,17 +721,16 @@ namespace adria
 	{
 		return std::make_unique<GfxBuffer>(this, desc, initial_data);
 	}
-
-	std::unique_ptr<GfxBuffer> GfxDevice::CreateBuffer(GfxBufferDesc const& desc)
+	std::unique_ptr<GfxBuffer>	GfxDevice::CreateBuffer(GfxBufferDesc const& desc)
 	{
 		return std::make_unique<GfxBuffer>(this, desc);
 	}
 
-	std::unique_ptr<GfxGraphicsPipelineState> GfxDevice::CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc)
+	std::unique_ptr<GfxGraphicsPipelineState>	GfxDevice::CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc)
 	{
 		return std::make_unique<GfxGraphicsPipelineState>(this, desc);
 	}
-	std::unique_ptr<GfxComputePipelineState> GfxDevice::CreateComputePipelineState(GfxComputePipelineStateDesc const& desc)
+	std::unique_ptr<GfxComputePipelineState>	GfxDevice::CreateComputePipelineState(GfxComputePipelineStateDesc const& desc)
 	{
 		return std::make_unique<GfxComputePipelineState>(this, desc);
 	}
@@ -771,7 +773,6 @@ namespace adria
 		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::SRV, _desc);
 	}
-
 	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture const* texture, GfxTextureDescriptorDesc const* desc)
 	{
 		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
@@ -798,7 +799,6 @@ namespace adria
 		device->GetCopyableFootprints(&d3d12_texture_desc, 0, subresource_count, 0, &texture_footprint, nullptr, nullptr, nullptr);
 		return texture_footprint.Footprint.RowPitch * texture_footprint.Footprint.Height;
 	}
-
 	Uint64 GfxDevice::GetLinearBufferSize(GfxBuffer const* buffer) const
 	{
 		ADRIA_ASSERT(buffer);
@@ -822,13 +822,11 @@ namespace adria
 		gpu_memory_usage.usage = budget.UsageBytes;
 		return gpu_memory_usage;
 	}
-
 	void GfxDevice::SetRenderingNotStarted()
 	{
 		rendering_not_started = true;
 		dynamic_allocator_on_init.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
 	}
-
 	GfxNsightPerfManager* GfxDevice::GetNsightPerfManager() const
 	{
 		return nsight_perf_manager.get();
@@ -893,7 +891,6 @@ namespace adria
 			}
 		}
 	}
-
 	void GfxDevice::SetupOptions(Uint32& dxgi_factory_flags)
 	{
 		if (CommandLineOptions::GetAftermath())
@@ -960,7 +957,6 @@ namespace adria
 			}
 		}
 	}
-
 	void GfxDevice::CreateCommonRootSignature()
 	{
 		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
@@ -1455,7 +1451,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-
 }
 
 

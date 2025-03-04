@@ -13,6 +13,13 @@ namespace adria
 		friend class RenderGraphBuilder;
 		friend class RenderGraphContext;
 
+		struct RenderGraphExecutionContext
+		{
+			GfxCommandList* graphics_cmd_list;
+			GfxCommandList* compute_cmd_list;
+		};
+		using RGExecutionContext = RenderGraphExecutionContext;
+
 		class DependencyLevel
 		{
 			friend RenderGraph;

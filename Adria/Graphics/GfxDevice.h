@@ -226,18 +226,21 @@ namespace adria
 		GfxCommandQueue compute_queue;
 		GfxCommandQueue copy_queue;
 
-		std::unique_ptr<GfxGraphicsCommandListPool> graphics_cmd_list_pool[GFX_BACKBUFFER_COUNT];
 		GfxFence	 frame_fence;
 		Uint64		 frame_fence_value = 0;
 		Uint64       frame_fence_values[GFX_BACKBUFFER_COUNT];
 
+		std::unique_ptr<GfxGraphicsCommandListPool> graphics_cmd_list_pool[GFX_BACKBUFFER_COUNT];
+		GfxFence graphics_fence;
+		Uint64   graphics_fence_value = 0;
+
 		std::unique_ptr<GfxComputeCommandListPool> compute_cmd_list_pool[GFX_BACKBUFFER_COUNT];
-		GfxFence async_compute_fence;
-		Uint64 async_compute_fence_value = 0;
+		GfxFence compute_fence;
+		Uint64   compute_fence_value = 0;
 
 		std::unique_ptr<GfxCopyCommandListPool> copy_cmd_list_pool[GFX_BACKBUFFER_COUNT];
-		GfxFence upload_fence;
-		Uint64   upload_fence_value = 0;
+		GfxFence copy_fence;
+		Uint64   copy_fence_value = 0;
 
 		GfxFence     wait_fence;
 		Uint64       wait_fence_value = 1;
