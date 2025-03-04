@@ -136,7 +136,7 @@ namespace adria
 
 	void Engine::InitializeScene(SceneConfig const& config)
 	{
-		auto cmd_list = gfx->GetLatestCommandList(GfxCommandListType::Graphics);
+		auto cmd_list = gfx->GetLatestGraphicsCommandList();
 		cmd_list->Begin();
 
 		camera = std::make_unique<Camera>(config.camera_params);

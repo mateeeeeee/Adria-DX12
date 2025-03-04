@@ -99,37 +99,51 @@ namespace adria
 		ADRIA_DEFAULT_MOVABLE(GfxDevice)
 		~GfxDevice();
 
-		void WaitForGPU();
-		
 		void OnResize(Uint32 w, Uint32 h);
+		GfxTexture* GetBackbuffer() const;
 		Uint32 GetBackbufferIndex() const;
 		Uint32 GetFrameIndex() const;
+		constexpr Uint32 GetBackbufferCount() const
+		{
+			return GFX_BACKBUFFER_COUNT;
+		}
 
 		void Update();
 		void BeginFrame();
 		void EndFrame();
-		void TakePixCapture(Char const* capture_name, Uint32 num_frames);
 
-		void* GetHwnd() const { return hwnd; }
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
 		D3D12MA::Allocator* GetAllocator() const;
+		void* GetHwnd() const { return hwnd; }
 
 		GfxCapabilities const& GetCapabilities() const { return device_capabilities; }
 		GfxVendor GetVendor() const { return vendor; }
-		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 
-		GfxCommandList* GetCommandList() const;
-		GfxCommandList* GetLatestCommandList() const;
-		GfxCommandList* AllocateCommandList() const;
-		void			FreeCommandList(GfxCommandList*);
-		GfxCommandList* GetCommandList(GfxCommandListType type) const;
-		GfxCommandList* GetLatestCommandList(GfxCommandListType type) const;
-		GfxCommandList* AllocateCommandList(GfxCommandListType type) const;
-		void			FreeCommandList(GfxCommandList*, GfxCommandListType type);
+		void WaitForGPU();
+		GfxCommandQueue& GetGraphicsCommandQueue();
+		GfxCommandQueue& GetComputeCommandQueue();
+		GfxCommandQueue& GetCopyCommandQueue();
+		GfxFence& GetGraphicsFence() { return graphics_fence; }
+		GfxFence& GetComputeFence() { return compute_fence; }
+		GfxFence& GetCopyFence() { return  copy_fence; }
+		Uint64 GetGraphicsFenceValue() const { return graphics_fence_value; }
+		Uint64 GetComputeFenceValue() const { return graphics_fence_value; }
+		Uint64 GetCopyFenceValue() const { return graphics_fence_value; }
 
-		GfxTexture* GetBackbuffer() const;
+		GfxCommandList* GetGraphicsCommandList() const;
+		GfxCommandList* GetLatestGraphicsCommandList() const;
+		GfxCommandList* AllocateGraphicsCommandList() const;
+		void			FreeGraphicsCommandList(GfxCommandList*);
+		GfxCommandList* GetComputeCommandList() const;
+		GfxCommandList* GetLatestComputeCommandList() const;
+		GfxCommandList* AllocateComputeCommandList() const;
+		void			FreeComputeCommandList(GfxCommandList*);
+		GfxCommandList* GetCopyCommandList() const;
+		GfxCommandList* GetLatestCopyCommandList() const;
+		GfxCommandList* AllocateCopyCommandList() const;
+		void			FreeCopyCommandList(GfxCommandList*);
 
 		template<Releasable T>
 		void AddToReleaseQueue(T* alloc)
@@ -139,12 +153,16 @@ namespace adria
 
 		GfxDescriptor AllocateDescriptorCPU(GfxDescriptorHeapType);
 		void FreeDescriptorCPU(GfxDescriptor, GfxDescriptorHeapType);
-
 		GfxDescriptor AllocateDescriptorsGPU(Uint32 count = 1);
 		GfxDescriptor GetDescriptorGPU(Uint32 i) const;
 		void InitShaderVisibleAllocator(Uint32 reserve);
-
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
+		void CopyDescriptors(Uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
+		void CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
+		void CopyDescriptors(
+			std::span<std::pair<GfxDescriptor, Uint32>> dst_range_starts_and_size,
+			std::span<std::pair<GfxDescriptor, Uint32>> src_range_starts_and_size,
+			GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
 
 		std::unique_ptr<GfxTexture> CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
 		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureData const& data);
@@ -157,7 +175,6 @@ namespace adria
 		std::unique_ptr<GfxMeshShaderPipelineState>	CreateMeshShaderPipelineState(GfxMeshShaderPipelineStateDesc const& desc);
 
 		std::unique_ptr<GfxQueryHeap>	   CreateQueryHeap(GfxQueryHeapDesc const& desc);
-
 		std::unique_ptr<GfxRayTracingTLAS> CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags);
 		std::unique_ptr<GfxRayTracingBLAS> CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags);
 
@@ -171,16 +188,6 @@ namespace adria
 
 		Uint64 GetLinearBufferSize(GfxTexture const* texture) const;
 		Uint64 GetLinearBufferSize(GfxBuffer const*  buffer) const;
-
-		void CopyDescriptors(Uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
-		void CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
-		void CopyDescriptors(
-			std::span<std::pair<GfxDescriptor, Uint32>> dst_range_starts_and_size,
-			std::span<std::pair<GfxDescriptor, Uint32>> src_range_starts_and_size,
-			GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
-
-		void GetTimestampFrequency(Uint64& frequency) const;
-		GPUMemoryUsage GetMemoryUsage() const;
 
 		void SetVRSInfo(GfxShadingRateInfo const& info)
 		{
@@ -198,13 +205,10 @@ namespace adria
 
 		void SetRenderingNotStarted();
 		Bool IsFirstFrame() const { return first_frame; }
-
+		void GetTimestampFrequency(Uint64& frequency) const;
+		GPUMemoryUsage GetMemoryUsage() const;
 		GfxNsightPerfManager* GetNsightPerfManager() const;
-
-		static constexpr Uint32 GetBackbufferCount()
-		{
-			return GFX_BACKBUFFER_COUNT;
-		}
+		void TakePixCapture(Char const* capture_name, Uint32 num_frames);
 
 	private:
 		void* hwnd;
@@ -270,7 +274,7 @@ namespace adria
 
 		struct DRED
 		{
-			DRED(GfxDevice* gfx);
+			explicit DRED(GfxDevice* gfx);
 			~DRED();
 
 			GfxFence dred_fence;
@@ -288,6 +292,12 @@ namespace adria
 		void SetupOptions(Uint32& dxgi_factory_flags);
 		void SetInfoQueue();
 		void CreateCommonRootSignature();
+
+		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
+		GfxCommandList*  GetCommandList(GfxCommandListType type) const;
+		GfxCommandList*  GetLatestCommandList(GfxCommandListType type) const;
+		GfxCommandList*  AllocateCommandList(GfxCommandListType type) const;
+		void			 FreeCommandList(GfxCommandList*, GfxCommandListType type);
 
 		void ProcessReleaseQueue();
 		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const;

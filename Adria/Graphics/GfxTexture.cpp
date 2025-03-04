@@ -201,7 +201,7 @@ namespace adria
 		}
 
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
-		auto cmd_list = gfx->GetCommandList();
+		auto cmd_list = gfx->GetGraphicsCommandList();
 		if (data.sub_data != nullptr)
 		{
 			Uint32 subresource_count = data.sub_count;

@@ -21,8 +21,6 @@
 #include "Core/CommandLineOptions.h"
 #include "tracy/Tracy.hpp"
 
-
-
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
 extern "C" { __declspec(dllexport) extern LPCSTR D3D12SDKPath = ".\\D3D12\\"; }
 extern "C" { __declspec(dllexport) extern UINT NvOptimusEnablement = true; }
@@ -241,7 +239,6 @@ namespace adria
 			return "Unknown";
 		}
 	}
-
 	static TAutoConsoleVariable<Bool> VSync("rhi.VSync", false, "0: VSync is disabled. 1: VSync is enabled.");
 
 	GfxDevice::DRED::DRED(GfxDevice* gfx)
@@ -402,14 +399,6 @@ namespace adria
 		frame_fence.Wait(frame_fence_values[swapchain->GetBackbufferIndex()]);
 	}
 
-	void GfxDevice::WaitForGPU()
-	{
-		ZoneScopedN("GfxDevice::WaitForGPU");
-		graphics_queue.Signal(wait_fence, wait_fence_value);
-		wait_fence.Wait(wait_fence_value);
-		wait_fence_value++;
-	}
-
 	void GfxDevice::OnResize(Uint32 w, Uint32 h)
 	{
 		if ((width != w || height != h) && width > 0 && height > 0)
@@ -426,6 +415,10 @@ namespace adria
 		return swapchain->GetBackbufferIndex();
 	}
 	Uint32 GfxDevice::GetFrameIndex() const { return frame_index; }
+	GfxTexture* GfxDevice::GetBackbuffer() const
+	{
+		return swapchain->GetBackbuffer();
+	}
 
 	void GfxDevice::Update()
 	{
@@ -525,9 +518,12 @@ namespace adria
 		return allocator.get();
 	}
 
-	GfxTexture*		 GfxDevice::GetBackbuffer() const
+	void GfxDevice::WaitForGPU()
 	{
-		return swapchain->GetBackbuffer();
+		ZoneScopedN("GfxDevice::WaitForGPU");
+		graphics_queue.Signal(wait_fence, wait_fence_value);
+		wait_fence.Wait(wait_fence_value);
+		wait_fence_value++;
 	}
 	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandListType type)
 	{
@@ -543,6 +539,18 @@ namespace adria
 			return graphics_queue;
 		}
 		ADRIA_UNREACHABLE();
+	}
+	GfxCommandQueue& GfxDevice::GetGraphicsCommandQueue()
+	{
+		return GetCommandQueue(GfxCommandListType::Graphics);
+	}
+	GfxCommandQueue& GfxDevice::GetComputeCommandQueue()
+	{
+		return GetCommandQueue(GfxCommandListType::Compute);
+	}
+	GfxCommandQueue& GfxDevice::GetCopyCommandQueue()
+	{
+		return GetCommandQueue(GfxCommandListType::Copy);
 	}
 
 	GfxCommandList* GfxDevice::GetCommandList(GfxCommandListType type) const
@@ -561,10 +569,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-	GfxCommandList* GfxDevice::GetCommandList() const
-	{
-		return GetCommandList(GfxCommandListType::Graphics);
-	}
 	GfxCommandList* GfxDevice::GetLatestCommandList(GfxCommandListType type) const
 	{
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -581,11 +585,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-	GfxCommandList* GfxDevice::GetLatestCommandList() const
-	{
-		return GetLatestCommandList(GfxCommandListType::Graphics);
-	}
-
 	GfxCommandList* GfxDevice::AllocateCommandList(GfxCommandListType type) const
 	{
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -602,11 +601,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-	GfxCommandList* GfxDevice::AllocateCommandList() const
-	{
-		return AllocateCommandList(GfxCommandListType::Graphics);
-	}
-
 	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list, GfxCommandListType type)
 	{
 		Uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -623,9 +617,53 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list)
+	GfxCommandList* GfxDevice::GetGraphicsCommandList() const
+	{
+		return GetCommandList(GfxCommandListType::Graphics);
+	}
+	GfxCommandList* GfxDevice::GetLatestGraphicsCommandList() const
+	{
+		return GetLatestCommandList(GfxCommandListType::Graphics);
+	}
+	GfxCommandList* GfxDevice::AllocateGraphicsCommandList() const
+	{
+		return AllocateCommandList(GfxCommandListType::Graphics);
+	}
+	void GfxDevice::FreeGraphicsCommandList(GfxCommandList* cmd_list)
 	{
 		FreeCommandList(cmd_list, GfxCommandListType::Graphics);
+	}
+	GfxCommandList* GfxDevice::GetComputeCommandList() const
+	{
+		return GetCommandList(GfxCommandListType::Compute);
+	}
+	GfxCommandList* GfxDevice::GetLatestComputeCommandList() const
+	{
+		return GetLatestCommandList(GfxCommandListType::Compute);
+	}
+	GfxCommandList* GfxDevice::AllocateComputeCommandList() const
+	{
+		return AllocateCommandList(GfxCommandListType::Compute);
+	}
+	void GfxDevice::FreeComputeCommandList(GfxCommandList* cmd_list)
+	{
+		FreeCommandList(cmd_list, GfxCommandListType::Compute);
+	}
+	GfxCommandList* GfxDevice::GetCopyCommandList() const
+	{
+		return GetCommandList(GfxCommandListType::Copy);
+	}
+	GfxCommandList* GfxDevice::GetLatestCopyCommandList() const
+	{
+		return GetLatestCommandList(GfxCommandListType::Copy);
+	}
+	GfxCommandList* GfxDevice::AllocateCopyCommandList() const
+	{
+		return AllocateCommandList(GfxCommandListType::Copy);
+	}
+	void GfxDevice::FreeCopyCommandList(GfxCommandList* cmd_list)
+	{
+		FreeCommandList(cmd_list, GfxCommandListType::Copy);
 	}
 
 	void GfxDevice::CopyDescriptors(Uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
@@ -670,7 +708,6 @@ namespace adria
 		device->CopyDescriptors(dst_ranges_count, dst_handles.data(), dst_range_sizes.data(),
 			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
 	}
-
 	GfxDescriptor	GfxDevice::AllocateDescriptorCPU(GfxDescriptorHeapType type)
 	{
 		return cpu_descriptor_allocators[(Uint64)type]->AllocateDescriptor();
@@ -679,7 +716,6 @@ namespace adria
 	{
 		cpu_descriptor_allocators[(Uint64)type]->FreeDescriptor(descriptor);
 	}
-
 	GfxDescriptor GfxDevice::AllocateDescriptorsGPU(Uint32 count)
 	{
 		return GetDescriptorAllocator()->Allocate(count);
@@ -688,7 +724,6 @@ namespace adria
 	{
 		return GetDescriptorAllocator()->GetHandle(i);
 	}
-
 	GfxOnlineDescriptorAllocator*	GfxDevice::GetDescriptorAllocator() const
 	{
 		return gpu_descriptor_allocator.get();
@@ -698,7 +733,6 @@ namespace adria
 		if (rendering_not_started) return dynamic_allocator_on_init.get();
 		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
 	}
-
 	void GfxDevice::InitShaderVisibleAllocator(Uint32 reserve)
 	{
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
@@ -753,6 +787,456 @@ namespace adria
 		return std::make_unique<GfxRayTracingBLAS>(this, geometries, flags);
 	}
 
+
+	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferDescriptorDesc const& view_desc, GfxBuffer const* uav_counter)
+	{
+		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
+		GfxBufferDesc desc = buffer->GetDesc();
+		GfxFormat format = desc.format;
+		GfxDescriptor heap_descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
+		switch (view_type)
+		{
+		case GfxSubresourceType::SRV:
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
+			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+			Bool is_accel_struct = false;
+			if (format == GfxFormat::UNKNOWN)
+			{
+				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
+				{
+					// This is a Raw Buffer
+					srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
+					srv_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
+					srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+					srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
+				}
+				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
+				{
+					// This is a Structured Buffer
+					srv_desc.Format = DXGI_FORMAT_UNKNOWN;
+					srv_desc.Buffer.FirstElement = (Uint32)view_desc.offset / desc.stride;
+					srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					srv_desc.Buffer.StructureByteStride = desc.stride;
+				}
+				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
+				{
+					is_accel_struct = true;
+					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+					srv_desc.RaytracingAccelerationStructure.Location = buffer->GetGpuAddress();
+				}
+			}
+			else
+			{
+				// This is a Typed Buffer
+				uint32_t stride = GetGfxFormatStride(format);
+				srv_desc.Format = ConvertGfxFormat(format);
+				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+				srv_desc.Buffer.FirstElement = view_desc.offset / stride;
+				srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
+			}
+			device->CreateShaderResourceView(!is_accel_struct ? buffer->GetNative() : nullptr, &srv_desc, heap_descriptor);
+		}
+		break;
+		case GfxSubresourceType::UAV:
+		{
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+			uav_desc.Buffer.FirstElement = 0;
+
+			if (format == GfxFormat::UNKNOWN)
+			{
+				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
+				{
+					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
+					uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
+					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
+				}
+				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
+				{
+					uav_desc.Format = DXGI_FORMAT_UNKNOWN;
+					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / desc.stride;
+					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					uav_desc.Buffer.StructureByteStride = desc.stride;
+				}
+				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))
+				{
+					uav_desc.Format = DXGI_FORMAT_R32_UINT;
+					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
+					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
+
+				}
+			}
+			else
+			{
+				Uint32 stride = GetGfxFormatStride(format);
+				uav_desc.Format = ConvertGfxFormat(format);
+				uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / stride;
+				uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
+			}
+
+			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter ? uav_counter->GetNative() : nullptr, &uav_desc, heap_descriptor);
+		}
+		break;
+		case GfxSubresourceType::RTV:
+		case GfxSubresourceType::DSV:
+		default:
+			ADRIA_ASSERT_MSG(false, "Buffer View can only be UAV or SRV!");
+		}
+		return heap_descriptor;
+	}
+	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureDescriptorDesc const& view_desc)
+	{
+		GfxTextureDesc desc = texture->GetDesc();
+		GfxFormat format = desc.format;
+		switch (view_type)
+		{
+		case GfxSubresourceType::SRV:
+		{
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
+			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
+			srv_desc.Shader4ComponentMapping = view_desc.channel_mapping;
+			switch (format)
+			{
+			case GfxFormat::R16_TYPELESS:
+				srv_desc.Format = DXGI_FORMAT_R16_UNORM;
+				break;
+			case GfxFormat::R32_TYPELESS:
+			case GfxFormat::D32_FLOAT:
+				srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
+				break;
+			case GfxFormat::R24G8_TYPELESS:
+				srv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			case GfxFormat::R32G8X24_TYPELESS:
+				srv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+				break;
+			default:
+				srv_desc.Format = ConvertGfxFormat(format);
+				break;
+			}
+
+			if (desc.type == GfxTextureType_1D)
+			{
+				if (desc.array_size > 1)
+				{
+					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+					srv_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
+					srv_desc.Texture1DArray.ArraySize = view_desc.slice_count;
+					srv_desc.Texture1DArray.MostDetailedMip = view_desc.first_mip;
+					srv_desc.Texture1DArray.MipLevels = view_desc.mip_count;
+				}
+				else
+				{
+					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+					srv_desc.Texture1D.MostDetailedMip = view_desc.first_mip;
+					srv_desc.Texture1D.MipLevels = view_desc.mip_count;
+				}
+			}
+			else if (desc.type == GfxTextureType_2D)
+			{
+				if (desc.array_size > 1)
+				{
+					if (HasAnyFlag(desc.misc_flags, GfxTextureMiscFlag::TextureCube))
+					{
+						if (desc.array_size > 6)
+						{
+							srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+							srv_desc.TextureCubeArray.First2DArrayFace = view_desc.first_slice;
+							srv_desc.TextureCubeArray.NumCubes = std::min<Uint32>(desc.array_size, view_desc.slice_count) / 6;
+							srv_desc.TextureCubeArray.MostDetailedMip = view_desc.first_mip;
+							srv_desc.TextureCubeArray.MipLevels = view_desc.mip_count;
+						}
+						else
+						{
+							srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+							srv_desc.TextureCube.MostDetailedMip = view_desc.first_mip;
+							srv_desc.TextureCube.MipLevels = view_desc.mip_count;
+						}
+					}
+					else
+					{
+						//if (texture->desc.sample_count > 1)
+						//{
+						//	srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
+						//	srv_desc.Texture2DMSArray.FirstArraySlice = firstSlice;
+						//	srv_desc.Texture2DMSArray.ArraySize = sliceCount;
+						//}
+						//else
+						srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+						srv_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
+						srv_desc.Texture2DArray.ArraySize = view_desc.slice_count;
+						srv_desc.Texture2DArray.MostDetailedMip = view_desc.first_mip;
+						srv_desc.Texture2DArray.MipLevels = view_desc.mip_count;
+					}
+				}
+				else
+				{
+					//if (texture->desc.sample_count > 1)
+					//{
+					//	srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+					//}
+					//else
+					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+					srv_desc.Texture2D.MostDetailedMip = view_desc.first_mip;
+					srv_desc.Texture2D.MipLevels = view_desc.mip_count;
+				}
+			}
+			else if (desc.type == GfxTextureType_3D)
+			{
+				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+				srv_desc.Texture3D.MostDetailedMip = view_desc.first_mip;
+				srv_desc.Texture3D.MipLevels = view_desc.mip_count;
+			}
+
+			if (texture->IsSRGB())
+			{
+				auto AdjustFormatSRGB = [](DXGI_FORMAT format)
+					{
+						switch (format)
+						{
+						case DXGI_FORMAT_B8G8R8A8_UNORM:		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+						case DXGI_FORMAT_R8G8B8A8_UNORM:		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+						case DXGI_FORMAT_BC1_UNORM:				return DXGI_FORMAT_BC1_UNORM_SRGB;
+						case DXGI_FORMAT_BC2_UNORM:				return DXGI_FORMAT_BC2_UNORM_SRGB;
+						case DXGI_FORMAT_BC3_UNORM:				return DXGI_FORMAT_BC3_UNORM_SRGB;
+						case DXGI_FORMAT_BC7_UNORM:				return DXGI_FORMAT_BC7_UNORM_SRGB;
+						};
+						return format;
+					};
+				srv_desc.Format = AdjustFormatSRGB(srv_desc.Format);
+			}
+
+			device->CreateShaderResourceView(texture->GetNative(), &srv_desc, descriptor);
+			return descriptor;
+		}
+		break;
+		case GfxSubresourceType::UAV:
+		{
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+			switch (format)
+			{
+			case GfxFormat::R16_TYPELESS:
+				uav_desc.Format = DXGI_FORMAT_R16_UNORM;
+				break;
+			case GfxFormat::R32_TYPELESS:
+				uav_desc.Format = DXGI_FORMAT_R32_FLOAT;
+				break;
+			case GfxFormat::R24G8_TYPELESS:
+				uav_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			case GfxFormat::R32G8X24_TYPELESS:
+				uav_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+				break;
+			default:
+				uav_desc.Format = ConvertGfxFormat(format);
+				break;
+			}
+
+			if (desc.type == GfxTextureType_1D)
+			{
+				if (desc.array_size > 1)
+				{
+					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+					uav_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
+					uav_desc.Texture1DArray.ArraySize = view_desc.slice_count;
+					uav_desc.Texture1DArray.MipSlice = view_desc.first_mip;
+				}
+				else
+				{
+					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+					uav_desc.Texture1D.MipSlice = view_desc.first_mip;
+				}
+			}
+			else if (desc.type == GfxTextureType_2D)
+			{
+				if (desc.array_size > 1)
+				{
+					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+					uav_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
+					uav_desc.Texture2DArray.ArraySize = view_desc.slice_count;
+					uav_desc.Texture2DArray.MipSlice = view_desc.first_mip;
+				}
+				else
+				{
+					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+					uav_desc.Texture2D.MipSlice = view_desc.first_mip;
+				}
+			}
+			else if (desc.type == GfxTextureType_3D)
+			{
+				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+				uav_desc.Texture3D.MipSlice = view_desc.first_mip;
+				uav_desc.Texture3D.FirstWSlice = 0;
+				uav_desc.Texture3D.WSize = -1;
+			}
+
+			device->CreateUnorderedAccessView(texture->GetNative(), nullptr, &uav_desc, descriptor);
+			return descriptor;
+		}
+		break;
+		case GfxSubresourceType::RTV:
+		{
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::RTV);
+			D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
+			switch (format)
+			{
+			case GfxFormat::R16_TYPELESS:
+				rtv_desc.Format = DXGI_FORMAT_R16_UNORM;
+				break;
+			case GfxFormat::R32_TYPELESS:
+				rtv_desc.Format = DXGI_FORMAT_R32_FLOAT;
+				break;
+			case GfxFormat::R24G8_TYPELESS:
+				rtv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				break;
+			case GfxFormat::R32G8X24_TYPELESS:
+				rtv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+				break;
+			default:
+				rtv_desc.Format = ConvertGfxFormat(format);
+				break;
+			}
+
+			if (desc.type == GfxTextureType_1D)
+			{
+				if (desc.array_size > 1)
+				{
+					rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
+					rtv_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
+					rtv_desc.Texture1DArray.ArraySize = view_desc.slice_count;
+					rtv_desc.Texture1DArray.MipSlice = view_desc.first_mip;
+				}
+				else
+				{
+					rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
+					rtv_desc.Texture1D.MipSlice = view_desc.first_mip;
+				}
+			}
+			else if (desc.type == GfxTextureType_2D)
+			{
+				if (desc.array_size > 1)
+				{
+					if (desc.sample_count > 1)
+					{
+						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
+						rtv_desc.Texture2DMSArray.FirstArraySlice = view_desc.first_slice;
+						rtv_desc.Texture2DMSArray.ArraySize = view_desc.slice_count;
+					}
+					else
+					{
+						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+						rtv_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
+						rtv_desc.Texture2DArray.ArraySize = view_desc.slice_count;
+						rtv_desc.Texture2DArray.MipSlice = view_desc.first_mip;
+					}
+				}
+				else
+				{
+					if (desc.sample_count > 1)
+					{
+						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+					}
+					else
+					{
+						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+						rtv_desc.Texture2D.MipSlice = view_desc.first_mip;
+					}
+				}
+			}
+			else if (desc.type == GfxTextureType_3D)
+			{
+				rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
+				rtv_desc.Texture3D.MipSlice = view_desc.first_mip;
+				rtv_desc.Texture3D.FirstWSlice = 0;
+				rtv_desc.Texture3D.WSize = -1;
+			}
+			device->CreateRenderTargetView(texture->GetNative(), &rtv_desc, descriptor);
+			return descriptor;
+		}
+		break;
+		case GfxSubresourceType::DSV:
+		{
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::DSV);
+			D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
+			switch (format)
+			{
+			case GfxFormat::R16_TYPELESS:
+				dsv_desc.Format = DXGI_FORMAT_D16_UNORM;
+				break;
+			case GfxFormat::R32_TYPELESS:
+				dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
+				break;
+			case GfxFormat::R24G8_TYPELESS:
+				dsv_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+				break;
+			case GfxFormat::R32G8X24_TYPELESS:
+				dsv_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+				break;
+			default:
+				dsv_desc.Format = ConvertGfxFormat(format);
+				break;
+			}
+			if (view_desc.flags & GfxTextureDescriptorFlag_DepthReadOnly) dsv_desc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+			else dsv_desc.Flags = D3D12_DSV_FLAG_NONE;
+
+			if (desc.type == GfxTextureType_1D)
+			{
+				if (desc.array_size > 1)
+				{
+					dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
+					dsv_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
+					dsv_desc.Texture1DArray.ArraySize = view_desc.slice_count;
+					dsv_desc.Texture1DArray.MipSlice = view_desc.first_mip;
+				}
+				else
+				{
+					dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
+					dsv_desc.Texture1D.MipSlice = view_desc.first_mip;
+				}
+			}
+			else if (desc.type == GfxTextureType_2D)
+			{
+				if (desc.array_size > 1)
+				{
+					if (desc.sample_count > 1)
+					{
+						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
+						dsv_desc.Texture2DMSArray.FirstArraySlice = view_desc.first_slice;
+						dsv_desc.Texture2DMSArray.ArraySize = view_desc.slice_count;
+					}
+					else
+					{
+						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+						dsv_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
+						dsv_desc.Texture2DArray.ArraySize = view_desc.slice_count;
+						dsv_desc.Texture2DArray.MipSlice = view_desc.first_mip;
+					}
+				}
+				else
+				{
+					if (desc.sample_count > 1)
+					{
+						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
+					}
+					else
+					{
+						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+						dsv_desc.Texture2D.MipSlice = view_desc.first_mip;
+					}
+				}
+			}
+
+			device->CreateDepthStencilView(texture->GetNative(), &dsv_desc, descriptor);
+			return descriptor;
+		}
+		break;
+		}
+		ADRIA_UNREACHABLE();
+	}
 	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferDescriptorDesc const* desc)
 	{
 		GfxBufferDescriptorDesc _desc = desc ? *desc : GfxBufferDescriptorDesc{};
@@ -1000,456 +1484,6 @@ namespace adria
 		GFX_CHECK_HR(hr);
 		hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(global_root_signature.GetAddressOf()));
 		GFX_CHECK_HR(hr);
-	}
-
-	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferDescriptorDesc const& view_desc, GfxBuffer const* uav_counter)
-	{
-		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
-		GfxBufferDesc desc = buffer->GetDesc();
-		GfxFormat format = desc.format;
-		GfxDescriptor heap_descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
-		switch (view_type)
-		{
-		case GfxSubresourceType::SRV:
-		{
-			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-			Bool is_accel_struct = false;
-			if (format == GfxFormat::UNKNOWN)
-			{
-				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
-				{
-					// This is a Raw Buffer
-					srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-					srv_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
-					srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-					srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
-				{
-					// This is a Structured Buffer
-					srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-					srv_desc.Buffer.FirstElement = (Uint32)view_desc.offset / desc.stride;
-					srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
-					srv_desc.Buffer.StructureByteStride = desc.stride;
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
-				{
-					is_accel_struct = true;
-					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-					srv_desc.RaytracingAccelerationStructure.Location = buffer->GetGpuAddress();
-				}
-			}
-			else
-			{
-				// This is a Typed Buffer
-				uint32_t stride = GetGfxFormatStride(format);
-				srv_desc.Format = ConvertGfxFormat(format);
-				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-				srv_desc.Buffer.FirstElement = view_desc.offset / stride;
-				srv_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
-			}
-			device->CreateShaderResourceView(!is_accel_struct ? buffer->GetNative() : nullptr, &srv_desc, heap_descriptor);
-		}
-		break;
-		case GfxSubresourceType::UAV:
-		{
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-			uav_desc.Buffer.FirstElement = 0;
-
-			if (format == GfxFormat::UNKNOWN)
-			{
-				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
-				{
-					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-					uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
-					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
-				{
-					uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / desc.stride;
-					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
-					uav_desc.Buffer.StructureByteStride = desc.stride;
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))
-				{
-					uav_desc.Format = DXGI_FORMAT_R32_UINT;
-					uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / sizeof(Uint32);
-					uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(Uint32);
-
-				}
-			}
-			else
-			{
-				Uint32 stride = GetGfxFormatStride(format);
-				uav_desc.Format = ConvertGfxFormat(format);
-				uav_desc.Buffer.FirstElement = (Uint32)view_desc.offset / stride;
-				uav_desc.Buffer.NumElements = (Uint32)std::min<Uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
-			}
-
-			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter ? uav_counter->GetNative() : nullptr, &uav_desc, heap_descriptor);
-		}
-		break;
-		case GfxSubresourceType::RTV:
-		case GfxSubresourceType::DSV:
-		default:
-			ADRIA_ASSERT_MSG(false, "Buffer View can only be UAV or SRV!");
-		}
-		return heap_descriptor;
-	}
-	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureDescriptorDesc const& view_desc)
-	{
-		GfxTextureDesc desc = texture->GetDesc();
-		GfxFormat format = desc.format;
-		switch (view_type)
-		{
-		case GfxSubresourceType::SRV:
-		{
-			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
-			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-			srv_desc.Shader4ComponentMapping = view_desc.channel_mapping;
-			switch (format)
-			{
-			case GfxFormat::R16_TYPELESS:
-				srv_desc.Format = DXGI_FORMAT_R16_UNORM;
-				break;
-			case GfxFormat::R32_TYPELESS:
-			case GfxFormat::D32_FLOAT:
-				srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-				break;
-			case GfxFormat::R24G8_TYPELESS:
-				srv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-				break;
-			case GfxFormat::R32G8X24_TYPELESS:
-				srv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-				break;
-			default:
-				srv_desc.Format = ConvertGfxFormat(format);
-				break;
-			}
-
-			if (desc.type == GfxTextureType_1D)
-			{
-				if (desc.array_size > 1)
-				{
-					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
-					srv_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
-					srv_desc.Texture1DArray.ArraySize = view_desc.slice_count;
-					srv_desc.Texture1DArray.MostDetailedMip = view_desc.first_mip;
-					srv_desc.Texture1DArray.MipLevels = view_desc.mip_count;
-				}
-				else
-				{
-					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
-					srv_desc.Texture1D.MostDetailedMip = view_desc.first_mip;
-					srv_desc.Texture1D.MipLevels = view_desc.mip_count;
-				}
-			}
-			else if (desc.type == GfxTextureType_2D)
-			{
-				if (desc.array_size > 1)
-				{
-					if (HasAnyFlag(desc.misc_flags, GfxTextureMiscFlag::TextureCube))
-					{
-						if (desc.array_size > 6)
-						{
-							srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
-							srv_desc.TextureCubeArray.First2DArrayFace = view_desc.first_slice;
-							srv_desc.TextureCubeArray.NumCubes = std::min<Uint32>(desc.array_size, view_desc.slice_count) / 6;
-							srv_desc.TextureCubeArray.MostDetailedMip = view_desc.first_mip;
-							srv_desc.TextureCubeArray.MipLevels = view_desc.mip_count;
-						}
-						else
-						{
-							srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-							srv_desc.TextureCube.MostDetailedMip = view_desc.first_mip;
-							srv_desc.TextureCube.MipLevels = view_desc.mip_count;
-						}
-					}
-					else
-					{
-						//if (texture->desc.sample_count > 1)
-						//{
-						//	srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
-						//	srv_desc.Texture2DMSArray.FirstArraySlice = firstSlice;
-						//	srv_desc.Texture2DMSArray.ArraySize = sliceCount;
-						//}
-						//else
-						srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-						srv_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
-						srv_desc.Texture2DArray.ArraySize = view_desc.slice_count;
-						srv_desc.Texture2DArray.MostDetailedMip = view_desc.first_mip;
-						srv_desc.Texture2DArray.MipLevels = view_desc.mip_count;
-					}
-				}
-				else
-				{
-					//if (texture->desc.sample_count > 1)
-					//{
-					//	srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
-					//}
-					//else
-					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-					srv_desc.Texture2D.MostDetailedMip = view_desc.first_mip;
-					srv_desc.Texture2D.MipLevels = view_desc.mip_count;
-				}
-			}
-			else if (desc.type == GfxTextureType_3D)
-			{
-				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-				srv_desc.Texture3D.MostDetailedMip = view_desc.first_mip;
-				srv_desc.Texture3D.MipLevels = view_desc.mip_count;
-			}
-
-			if (texture->IsSRGB())
-			{
-				auto AdjustFormatSRGB = [](DXGI_FORMAT format)
-				{
-					switch (format)
-					{
-					case DXGI_FORMAT_B8G8R8A8_UNORM:		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-					case DXGI_FORMAT_R8G8B8A8_UNORM:		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-					case DXGI_FORMAT_BC1_UNORM:				return DXGI_FORMAT_BC1_UNORM_SRGB;
-					case DXGI_FORMAT_BC2_UNORM:				return DXGI_FORMAT_BC2_UNORM_SRGB;
-					case DXGI_FORMAT_BC3_UNORM:				return DXGI_FORMAT_BC3_UNORM_SRGB;
-					case DXGI_FORMAT_BC7_UNORM:				return DXGI_FORMAT_BC7_UNORM_SRGB;
-					};
-					return format;
-				};
-				srv_desc.Format = AdjustFormatSRGB(srv_desc.Format);
-			}
-
-			device->CreateShaderResourceView(texture->GetNative(), &srv_desc, descriptor);
-			return descriptor;
-		}
-		break;
-		case GfxSubresourceType::UAV:
-		{
-			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			switch (format)
-			{
-			case GfxFormat::R16_TYPELESS:
-				uav_desc.Format = DXGI_FORMAT_R16_UNORM;
-				break;
-			case GfxFormat::R32_TYPELESS:
-				uav_desc.Format = DXGI_FORMAT_R32_FLOAT;
-				break;
-			case GfxFormat::R24G8_TYPELESS:
-				uav_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-				break;
-			case GfxFormat::R32G8X24_TYPELESS:
-				uav_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-				break;
-			default:
-				uav_desc.Format = ConvertGfxFormat(format);
-				break;
-			}
-
-			if (desc.type == GfxTextureType_1D)
-			{
-				if (desc.array_size > 1)
-				{
-					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
-					uav_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
-					uav_desc.Texture1DArray.ArraySize = view_desc.slice_count;
-					uav_desc.Texture1DArray.MipSlice = view_desc.first_mip;
-				}
-				else
-				{
-					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
-					uav_desc.Texture1D.MipSlice = view_desc.first_mip;
-				}
-			}
-			else if (desc.type == GfxTextureType_2D)
-			{
-				if (desc.array_size > 1)
-				{
-					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-					uav_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
-					uav_desc.Texture2DArray.ArraySize = view_desc.slice_count;
-					uav_desc.Texture2DArray.MipSlice = view_desc.first_mip;
-				}
-				else
-				{
-					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-					uav_desc.Texture2D.MipSlice = view_desc.first_mip;
-				}
-			}
-			else if (desc.type == GfxTextureType_3D)
-			{
-				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-				uav_desc.Texture3D.MipSlice = view_desc.first_mip;
-				uav_desc.Texture3D.FirstWSlice = 0;
-				uav_desc.Texture3D.WSize = -1;
-			}
-
-			device->CreateUnorderedAccessView(texture->GetNative(), nullptr, &uav_desc, descriptor);
-			return descriptor;
-		}
-		break;
-		case GfxSubresourceType::RTV:
-		{
-			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::RTV);
-			D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
-			switch (format)
-			{
-			case GfxFormat::R16_TYPELESS:
-				rtv_desc.Format = DXGI_FORMAT_R16_UNORM;
-				break;
-			case GfxFormat::R32_TYPELESS:
-				rtv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-				break;
-			case GfxFormat::R24G8_TYPELESS:
-				rtv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-				break;
-			case GfxFormat::R32G8X24_TYPELESS:
-				rtv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-				break;
-			default:
-				rtv_desc.Format = ConvertGfxFormat(format);
-				break;
-			}
-
-			if (desc.type == GfxTextureType_1D)
-			{
-				if (desc.array_size > 1)
-				{
-					rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
-					rtv_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
-					rtv_desc.Texture1DArray.ArraySize = view_desc.slice_count;
-					rtv_desc.Texture1DArray.MipSlice = view_desc.first_mip;
-				}
-				else
-				{
-					rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
-					rtv_desc.Texture1D.MipSlice = view_desc.first_mip;
-				}
-			}
-			else if (desc.type == GfxTextureType_2D)
-			{
-				if (desc.array_size > 1)
-				{
-					if (desc.sample_count > 1)
-					{
-						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
-						rtv_desc.Texture2DMSArray.FirstArraySlice = view_desc.first_slice;
-						rtv_desc.Texture2DMSArray.ArraySize = view_desc.slice_count;
-					}
-					else
-					{
-						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-						rtv_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
-						rtv_desc.Texture2DArray.ArraySize = view_desc.slice_count;
-						rtv_desc.Texture2DArray.MipSlice = view_desc.first_mip;
-					}
-				}
-				else
-				{
-					if (desc.sample_count > 1)
-					{
-						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
-					}
-					else
-					{
-						rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-						rtv_desc.Texture2D.MipSlice = view_desc.first_mip;
-					}
-				}
-			}
-			else if (desc.type == GfxTextureType_3D)
-			{
-				rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
-				rtv_desc.Texture3D.MipSlice = view_desc.first_mip;
-				rtv_desc.Texture3D.FirstWSlice = 0;
-				rtv_desc.Texture3D.WSize = -1;
-			}
-			device->CreateRenderTargetView(texture->GetNative(), &rtv_desc, descriptor);
-			return descriptor;
-		}
-		break;
-		case GfxSubresourceType::DSV:
-		{
-			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::DSV);
-			D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
-			switch (format)
-			{
-			case GfxFormat::R16_TYPELESS:
-				dsv_desc.Format = DXGI_FORMAT_D16_UNORM;
-				break;
-			case GfxFormat::R32_TYPELESS:
-				dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
-				break;
-			case GfxFormat::R24G8_TYPELESS:
-				dsv_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				break;
-			case GfxFormat::R32G8X24_TYPELESS:
-				dsv_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-				break;
-			default:
-				dsv_desc.Format = ConvertGfxFormat(format);
-				break;
-			}
-			if (view_desc.flags & GfxTextureDescriptorFlag_DepthReadOnly) dsv_desc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
-			else dsv_desc.Flags = D3D12_DSV_FLAG_NONE;
-
-			if (desc.type == GfxTextureType_1D)
-			{
-				if (desc.array_size > 1)
-				{
-					dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
-					dsv_desc.Texture1DArray.FirstArraySlice = view_desc.first_slice;
-					dsv_desc.Texture1DArray.ArraySize = view_desc.slice_count;
-					dsv_desc.Texture1DArray.MipSlice = view_desc.first_mip;
-				}
-				else
-				{
-					dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
-					dsv_desc.Texture1D.MipSlice = view_desc.first_mip;
-				}
-			}
-			else if (desc.type == GfxTextureType_2D)
-			{
-				if (desc.array_size > 1)
-				{
-					if (desc.sample_count > 1)
-					{
-						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
-						dsv_desc.Texture2DMSArray.FirstArraySlice = view_desc.first_slice;
-						dsv_desc.Texture2DMSArray.ArraySize = view_desc.slice_count;
-					}
-					else
-					{
-						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-						dsv_desc.Texture2DArray.FirstArraySlice = view_desc.first_slice;
-						dsv_desc.Texture2DArray.ArraySize = view_desc.slice_count;
-						dsv_desc.Texture2DArray.MipSlice = view_desc.first_mip;
-					}
-				}
-				else
-				{
-					if (desc.sample_count > 1)
-					{
-						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
-					}
-					else
-					{
-						dsv_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-						dsv_desc.Texture2D.MipSlice = view_desc.first_mip;
-					}
-				}
-			}
-
-			device->CreateDepthStencilView(texture->GetNative(), &dsv_desc, descriptor);
-			return descriptor;
-		}
-		break;
-		}
-		ADRIA_UNREACHABLE();
 	}
 }
 

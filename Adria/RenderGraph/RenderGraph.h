@@ -17,8 +17,11 @@ namespace adria
 		{
 			GfxCommandList* graphics_cmd_list;
 			GfxCommandList* compute_cmd_list;
+			GfxFence* graphics_fence;
+			GfxFence* compute_fence;
+			Uint64 graphics_fence_value;
+			Uint64 compute_fence_value;
 		};
-		using RGExecutionContext = RenderGraphExecutionContext;
 
 		class DependencyLevel
 		{
@@ -28,7 +31,7 @@ namespace adria
 			DependencyLevel(RenderGraph& rg, Uint32 level_index) : rg(rg), level_index(level_index) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
-			void Execute(GfxDevice* gfx);
+			void Execute(RenderGraphExecutionContext const& exec_ctx);
 
 		private:
 			RenderGraph& rg;
@@ -47,8 +50,8 @@ namespace adria
 			std::unordered_map<RGBufferId, GfxResourceState> buffer_state_map;
 
 		private:
-			void PreExecute(GfxDevice* gfx);
-			void PostExecute(GfxDevice* gfx);
+			void PreExecute(GfxCommandList*);
+			void PostExecute(GfxCommandList*);
 		};
 
 	public:

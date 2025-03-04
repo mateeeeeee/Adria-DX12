@@ -166,16 +166,25 @@ namespace adria
 	void RenderGraph::Execute_Singlethreaded()
 	{
 		pool.Tick();
+
+		RenderGraphExecutionContext exec_ctx{};
+		exec_ctx.graphics_cmd_list = gfx->GetGraphicsCommandList();
+		exec_ctx.compute_cmd_list = gfx->GetComputeCommandList();
+		exec_ctx.graphics_fence = &gfx->GetGraphicsFence();
+		exec_ctx.compute_fence = &gfx->GetComputeFence();
+		exec_ctx.graphics_fence_value = gfx->GetGraphicsFenceValue();
+		exec_ctx.compute_fence_value = gfx->GetComputeFenceValue();
+
 		for (Uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
-			dependency_level.Execute(gfx);
+			dependency_level.Execute(exec_ctx);
 		}
 	}
 
 	void RenderGraph::Execute_Multithreaded()
 	{
-		ADRIA_ASSERT_MSG(false, "Not implemented!");
+		ADRIA_ASSERT_MSG(false, "Not yet implemented!");
 	}
 
 	void RenderGraph::AddExportBufferCopyPass(RGResourceName export_buffer, GfxBuffer* buffer)
@@ -887,14 +896,14 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx)
+	void RenderGraph::DependencyLevel::Execute(RenderGraphExecutionContext const& exec_ctx)
 	{
-		PreExecute(gfx);
+		PreExecute(exec_ctx.graphics_cmd_list);
 		for (auto& pass : passes)
 		{
 			if (pass->IsCulled()) continue;
 
-			GfxCommandList* cmd_list = gfx->GetCommandList();
+			GfxCommandList* cmd_list = pass->type == RGPassType::ComputeAsync ? exec_ctx.compute_cmd_list : exec_ctx.graphics_cmd_list;
 
 			for (Uint32 event_idx : pass->events_to_start)
 			{
@@ -1069,12 +1078,11 @@ namespace adria
 				cmd_list->EndEvent();
 			}
 		} 
-		PostExecute(gfx);
+		PostExecute(exec_ctx.graphics_cmd_list);
 	}
 
-	void RenderGraph::DependencyLevel::PreExecute(GfxDevice* gfx)
+	void RenderGraph::DependencyLevel::PreExecute(GfxCommandList* cmd_list)
 	{
-		GfxCommandList* cmd_list = gfx->GetCommandList();
 		for (auto tex_id : texture_creates)
 		{
 			RGTexture* rg_texture = rg.GetRGTexture(tex_id);
@@ -1151,9 +1159,8 @@ namespace adria
 		cmd_list->FlushBarriers();
 	}
 
-	void RenderGraph::DependencyLevel::PostExecute(GfxDevice* gfx)
+	void RenderGraph::DependencyLevel::PostExecute(GfxCommandList* cmd_list)
 	{
-		GfxCommandList* cmd_list = gfx->GetCommandList();
 		for (RGTextureId tex_id : texture_destroys)
 		{
 			RGTexture* rg_texture = rg.GetRGTexture(tex_id);

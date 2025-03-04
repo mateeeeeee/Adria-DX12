@@ -31,7 +31,7 @@ namespace adria
 		fullscreen_desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		fullscreen_desc.Windowed = desc.fullscreen_windowed;
 
-		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandListType::Graphics);
+		GfxCommandQueue& graphics_queue = gfx->GetGraphicsCommandQueue();
 		Ref<IDXGISwapChain1> swapchain1 = nullptr;
 
 		GFX_CHECK_HR(gfx->GetFactory()->CreateSwapChainForHwnd(

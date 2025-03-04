@@ -12,7 +12,7 @@ namespace adria
 	void GfxTracyProfiler::Initialize(GfxDevice* gfx)
 	{
 #if GFX_PROFILING_USE_TRACY
-		_tracy_ctx = TracyD3D12Context(gfx->GetDevice(), gfx->GetCommandQueue(GfxCommandListType::Graphics));
+		_tracy_ctx = TracyD3D12Context(gfx->GetDevice(), gfx->GetGraphicsCommandQueue());
 #endif
 	}
 
