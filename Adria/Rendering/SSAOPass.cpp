@@ -110,6 +110,7 @@ namespace adria
 
 			}, RGPassType::AsyncCompute);
 
+		blur_pass.SetAsyncCompute(true);
 		blur_pass.AddPass(rendergraph, RG_NAME(SSAO_Output), RG_NAME(AmbientOcclusion), " SSAO");
 	}
 

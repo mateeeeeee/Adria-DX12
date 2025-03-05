@@ -12,6 +12,7 @@ namespace adria
 		Roughness,
 		Metallic,
 		Emissive,
+		MaterialID,
 		AmbientOcclusion,
 		IndirectLighting,
 		Custom,

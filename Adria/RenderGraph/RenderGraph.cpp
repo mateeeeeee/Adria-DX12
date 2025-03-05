@@ -21,7 +21,7 @@ ADRIA_DEBUGZONE_BEGIN
 
 namespace adria
 {
-	extern Bool dump_render_graph = false;
+	extern Bool g_DumpRenderGraph = false;
 #if GFX_PROFILING
 	static constexpr Bool g_UseDependencyLevels = false;
 #else
@@ -29,7 +29,7 @@ namespace adria
 #endif
 
 	static TAutoConsoleVariable<Bool> RGCullPasses("rg.CullPasses", true, "Determines if the render graph should cull unused passes or not");
-	static TAutoConsoleVariable<Bool> RGAsyncCompute("rg.AsyncCompute", GFX_ASYNC_COMPUTE, "If the async compute is enabled or not");
+	static TAutoConsoleVariable<Bool> RGAsyncCompute("rg.AsyncCompute", false, "Determines if the async compute is enabled or not");
 
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
@@ -152,7 +152,7 @@ namespace adria
 		{
 			dependency_level.Setup();
 		}
-		if (dump_render_graph) Dump("rendergraph.gv");
+		if (g_DumpRenderGraph) Dump("rendergraph.gv");
 	}
 
 	void RenderGraph::Execute()

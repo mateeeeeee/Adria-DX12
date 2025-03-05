@@ -59,7 +59,7 @@ void RendererOutputCS(CSInput input)
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 	
-#if OUTPUT_DIFFUSE || OUTPUT_MIPMAPS
+#if OUTPUT_DIFFUSE || OUTPUT_MIPMAPS  || OUTPUT_MATERIAL_ID
 	float4 albedoRoughness	= diffuseRT.Sample(LinearWrapSampler, uv);
 	float3 albedo = albedoRoughness.rgb;
 	outputTexture[input.DispatchThreadId.xy] = float4(albedo, 1.0f);
@@ -71,7 +71,7 @@ void RendererOutputCS(CSInput input)
 	outputTexture[input.DispatchThreadId.xy] = float4(worldNormal, 1.0f);
 
 #elif OUTPUT_DEPTH 
-	float  depth		    = depthTexture.Sample(LinearWrapSampler, uv);
+	float  depth = depthTexture.Sample(LinearWrapSampler, uv);
 	float linearDepth = LinearizeDepth(depth);
 	float normalizedLinearDepth = linearDepth / FrameCB.cameraNear;
 	outputTexture[input.DispatchThreadId.xy] = float4(normalizedLinearDepth, normalizedLinearDepth, normalizedLinearDepth, 1.0f);

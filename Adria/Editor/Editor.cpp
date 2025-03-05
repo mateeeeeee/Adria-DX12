@@ -31,7 +31,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	extern Bool dump_render_graph;
+	extern Bool g_DumpRenderGraph;
 
 	struct ProfilerState
 	{
@@ -764,6 +764,7 @@ namespace adria
 					AddRendererOutputMenuItem(Roughness);
 					AddRendererOutputMenuItem(Metallic);
 					AddRendererOutputMenuItem(Emissive);
+					AddRendererOutputMenuItem(MaterialID);
 					AddRendererOutputMenuItem(AmbientOcclusion);
 					AddRendererOutputMenuItem(IndirectLighting);
 					AddRendererOutputMenuItem(Custom);
@@ -1170,7 +1171,7 @@ namespace adria
 
 			if (ImGui::TreeNode("Render Graph"))
 			{
-				dump_render_graph = ImGui::Button("Dump render graph");
+				g_DumpRenderGraph = ImGui::Button("Dump render graph");
 				ImGui::TreePop();
 			}
 

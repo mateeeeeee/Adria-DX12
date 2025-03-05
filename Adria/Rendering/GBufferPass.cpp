@@ -89,6 +89,7 @@ namespace adria
 	{
 		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
 		triangle_overdraw = (renderer_output == RendererOutput::TriangleOverdraw);
+		material_ids = (renderer_output == RendererOutput::MaterialID);
 	}
 
 	void GBufferPass::CreatePSOs()
@@ -117,9 +118,10 @@ namespace adria
 		auto GetPSO = [this](ShadingExtension extension, MaterialAlphaMode alpha_mode)
 			{
 				using enum GfxShaderStage;
-				if (debug_mipmaps) gbuffer_psos->AddDefine<PS>("VIEW_MIPMAPS", "1");
 				if (raining) gbuffer_psos->AddDefine<PS>("RAIN", "1");
+				if (debug_mipmaps) gbuffer_psos->AddDefine<PS>("VIEW_MIPMAPS", "1");
 				if (triangle_overdraw) gbuffer_psos->AddDefine<PS>("TRIANGLE_OVERDRAW", "1");
+				if (material_ids) gbuffer_psos->AddDefine<PS>("MATERIAL_ID", "1");
 
 				switch (extension)
 				{

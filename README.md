@@ -7,7 +7,7 @@ Graphics engine written in C++ using DirectX12.
     - Automatic resource barriers
     - Resource reuse using resource pool
     - Automatic resource bind flags and initial state deduction
-    - Async Compute (wip)
+    - Async Compute
 * DDGI
 * GPU-Driven Rendering : GPU frustum culling + 2 phase GPU occlusion culling
 * Reference path tracer + OIDN denoiser
@@ -42,7 +42,7 @@ Graphics engine written in C++ using DirectX12.
     - Shader debug printf
     - Nsight Aftermath SDK, Nsight Perf SDK
     - Debug Outputs: Diffuse, Normal, Depth, Roughness, Metallic, Emissive, AO, GI, \
-      Custom, Shading Extension, View Mipmaps, Triangle Overdraw
+      Custom, Shading Extension, View Mipmaps, Triangle Overdraw, Material ID, Motion Vectors
 
 ## TODO
 * ReSTIR DI

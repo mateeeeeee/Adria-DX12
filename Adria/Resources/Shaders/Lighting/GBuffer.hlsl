@@ -79,6 +79,15 @@ PSOutput GBufferPS(VSToPS input)
 	output.DiffuseRT = float4(mipColors[mipColorIndex], 1.0f);
 	return output;
 #endif
+#if MATERIAL_ID
+	const uint materialId = instanceData.materialIdx;
+	float3 materialIdColor = float3(
+			(materialId * 37) % 255 / 255.0, 
+			(materialId * 59) % 255 / 255.0,
+			(materialId * 97) % 255 / 255.0);
+	output.DiffuseRT = float4(materialIdColor, 1.0f);
+	return output;
+#endif
 	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 	if (albedoColor.a < materialData.alphaCutoff) discard;
 

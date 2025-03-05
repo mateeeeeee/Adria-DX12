@@ -71,7 +71,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(src_desc.width, 1024), src_desc.height, 1);
-			}, RGPassType::Compute, RGPassFlags::None);
+			}, async_compute ? RGPassType::AsyncCompute : RGPassType::Compute, RGPassFlags::None);
 
 		rendergraph.AddPass<BlurPassData>(vertical_name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
@@ -109,7 +109,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(src_desc.width, DivideAndRoundUp(src_desc.height, 1024), 1);
 
-			}, RGPassType::Compute, RGPassFlags::None);
+			}, async_compute ? RGPassType::AsyncCompute : RGPassType::Compute, RGPassFlags::None);
 
 	}
 
