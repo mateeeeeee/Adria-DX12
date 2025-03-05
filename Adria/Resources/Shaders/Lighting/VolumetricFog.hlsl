@@ -152,7 +152,7 @@ struct ScatteringIntegrationConstants
 };
 ConstantBuffer<ScatteringIntegrationConstants> ScatteringIntegrationPassCB : register(b1);
 
-[numthreads(8, 8, 8)]
+[numthreads(8, 8, 1)]
 void ScatteringIntegrationCS(CSInput input)
 {
 	Texture3D<float4> lightInjectionTarget = ResourceDescriptorHeap[ScatteringIntegrationPassCB.lightInjectionTargetIdx];

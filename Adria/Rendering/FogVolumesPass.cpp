@@ -212,8 +212,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(light_injection_target_history->GetWidth(), 8),
-					DivideAndRoundUp(light_injection_target_history->GetHeight(), 8),
-					DivideAndRoundUp(light_injection_target_history->GetDepth(), 8));
+					DivideAndRoundUp(light_injection_target_history->GetHeight(), 8));
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
