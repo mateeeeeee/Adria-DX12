@@ -15,6 +15,7 @@ namespace adria
 
 		struct RenderGraphExecutionContext
 		{
+			GfxDevice* gfx;
 			GfxCommandList* graphics_cmd_list;
 			GfxCommandList* compute_cmd_list;
 			GfxFence* graphics_fence;
@@ -84,11 +85,11 @@ namespace adria
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
-		void Dump(Char const* graph_file_name);
-		void DumpDebugData();
-
 		void PushEvent(Char const* name);
 		void PopEvent();
+
+		void Dump(Char const* graph_file_name);
+		void DumpDebugData();
 
 	private:
 		RGResourcePool& pool;
@@ -125,6 +126,7 @@ namespace adria
 		void CullPasses();
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(Uint64 i, std::vector<Bool>& visited, std::vector<Uint64>& sort);
+		void ResolveAsync();
 		void ResolveEvents();
 		Uint32 AddEvent(Char const* name)
 		{

@@ -129,8 +129,11 @@ namespace adria
 		GfxFence& GetComputeFence() { return compute_fence; }
 		GfxFence& GetCopyFence() { return  copy_fence; }
 		Uint64 GetGraphicsFenceValue() const { return graphics_fence_value; }
-		Uint64 GetComputeFenceValue() const { return graphics_fence_value; }
-		Uint64 GetCopyFenceValue() const { return graphics_fence_value; }
+		Uint64 GetComputeFenceValue() const { return compute_fence_value; }
+		Uint64 GetCopyFenceValue() const { return copy_fence_value; }
+		void SetGraphicsFenceValue(Uint64 value) { graphics_fence_value = value; }
+		void SetComputeFenceValue(Uint64 value) { compute_fence_value = value; }
+		void SetCopyFenceValue(Uint64 value) { copy_fence_value = value; }
 
 		GfxCommandList* GetGraphicsCommandList() const;
 		GfxCommandList* GetLatestGraphicsCommandList() const;

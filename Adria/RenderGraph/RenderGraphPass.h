@@ -11,7 +11,7 @@ namespace adria
 	{
 		Graphics,
 		Compute,
-		ComputeAsync,
+		AsyncCompute,
 		Copy
 	};
 
@@ -96,7 +96,9 @@ namespace adria
 
 	public:
 		explicit RenderGraphPassBase(Char const* name, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
-			: name(name), type(type), flags(flags) {}
+			: name(name), type(type), flags(flags), id(0) 
+		{
+		}
 		virtual ~RenderGraphPassBase() = default;
 
 	protected:
@@ -105,8 +107,8 @@ namespace adria
 		virtual void Execute(RenderGraphContext&, GfxCommandList*) const = 0;
 
 		Bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
-		Bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
-		Bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPass); }
+		Bool CanBeCulled() const { return !HasFlag(flags, RGPassFlags::ForceNoCull); }
+		Bool UseLegacyRenderPasses() const { return HasFlag(flags, RGPassFlags::LegacyRenderPass); }
 
 	private:
 		std::string const name;
@@ -133,6 +135,11 @@ namespace adria
 
 		std::vector<Uint32>				events_to_start;
 		Uint32							num_events_to_end = 0;
+
+		Uint64 wait_graphics_pass_id	= UINT64_MAX;
+		Uint64 signal_graphics_pass_id	= UINT64_MAX;
+		Uint64 signal_value				= UINT64_MAX;
+		Uint64 wait_value				= UINT64_MAX;
 	};
 	using RGPassBase = RenderGraphPassBase;
 
@@ -218,7 +225,7 @@ namespace adria
 		{
 		case RGPassType::Graphics: return "Graphics";
 		case RGPassType::Compute: return "Compute";
-		case RGPassType::ComputeAsync: return "ComputeAsync";
+		case RGPassType::AsyncCompute: return "ComputeAsync";
 		case RGPassType::Copy: return "Copy";
 		}
 		return "Invalid";

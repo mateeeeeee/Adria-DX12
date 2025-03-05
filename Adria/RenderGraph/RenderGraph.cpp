@@ -17,6 +17,8 @@
 #define RG_MULTITHREADED 0
 #endif
 
+ADRIA_DEBUGZONE_BEGIN
+
 namespace adria
 {
 	extern Bool dump_render_graph = false;
@@ -25,7 +27,9 @@ namespace adria
 #else
 	static constexpr Bool g_UseDependencyLevels = true;
 #endif
+
 	static TAutoConsoleVariable<Bool> RGCullPasses("rg.CullPasses", true, "Determines if the render graph should cull unused passes or not");
+	static TAutoConsoleVariable<Bool> RGAsyncCompute("rg.AsyncCompute", GFX_ASYNC_COMPUTE, "If the async compute is enabled or not");
 
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
@@ -140,10 +144,8 @@ namespace adria
 				dependency_levels[i].AddPass(passes[i]);
 			}
 		}
-		if (RGCullPasses.Get())
-		{
-			CullPasses();
-		}
+		CullPasses();
+		ResolveAsync();
 		ResolveEvents();
 		CalculateResourcesLifetime();
 		for (DependencyLevel& dependency_level : dependency_levels)
@@ -168,13 +170,13 @@ namespace adria
 		pool.Tick();
 
 		RenderGraphExecutionContext exec_ctx{};
+		exec_ctx.gfx = gfx;
 		exec_ctx.graphics_cmd_list = gfx->GetGraphicsCommandList();
 		exec_ctx.compute_cmd_list = gfx->GetComputeCommandList();
 		exec_ctx.graphics_fence = &gfx->GetGraphicsFence();
 		exec_ctx.compute_fence = &gfx->GetComputeFence();
 		exec_ctx.graphics_fence_value = gfx->GetGraphicsFenceValue();
 		exec_ctx.compute_fence_value = gfx->GetComputeFenceValue();
-
 		for (Uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
@@ -324,6 +326,11 @@ namespace adria
 			}
 		}
 
+		if (!RGCullPasses.Get())
+		{
+			return;
+		}
+
 		std::stack<RenderGraphResource*> zero_ref_resources;
 		for (auto& texture : textures) if (texture->ref_count == 0) zero_ref_resources.push(texture.get());
 		for (auto& buffer : buffers)   if (buffer->ref_count == 0) zero_ref_resources.push(buffer.get());
@@ -405,6 +412,109 @@ namespace adria
 			if (!visited[j]) DepthFirstSearch(j, visited, topologically_sorted_passes);
 		}
 		topologically_sorted_passes.push_back(i);
+	}
+
+	void RenderGraph::ResolveAsync()
+	{
+#if GFX_ASYNC_COMPUTE
+		if (!RGAsyncCompute.Get())
+		{
+			return;
+		}
+		std::vector<RGPassBase*> compute_queue_passes;
+		std::vector<RGPassBase*> pre_graphics_queue_passes;
+		std::vector<RGPassBase*> post_graphics_queue_passes;
+		Uint64 compute_fence = 0;
+		Uint64 graphics_fence = 0;
+		for (RGPassBase* pass : passes)
+		{
+			if (pass->IsCulled()) continue;
+
+			if (pass->type == RGPassType::AsyncCompute)
+			{
+				for (RGTextureId read_texture : pass->texture_reads)
+				{
+					RGTexture* texture = GetRGTexture(read_texture);
+					if (texture->writer && !texture->writer->IsCulled() && texture->writer->type != RGPassType::AsyncCompute)
+					{
+						pre_graphics_queue_passes.push_back(texture->writer);
+					}
+				}
+				for (RGBufferId read_buffer : pass->buffer_reads)
+				{
+					RGBuffer* buffer = GetRGBuffer(read_buffer);
+					if (buffer->writer && !buffer->writer->IsCulled() && buffer->writer->type != RGPassType::AsyncCompute)
+					{
+						pre_graphics_queue_passes.push_back(buffer->writer);
+					}
+				}
+				for (RGTextureId write_texture : pass->texture_writes)
+				{
+					for (RGPassBase* other_pass : passes)
+					{
+						if (other_pass->IsCulled() || other_pass->type == RGPassType::AsyncCompute) continue;
+						if (other_pass->texture_reads.find(write_texture) != other_pass->texture_reads.end())
+						{
+							post_graphics_queue_passes.push_back(other_pass);
+						}
+					}
+				}
+				for (RGBufferId write_buffer : pass->buffer_writes)
+				{
+					for (RGPassBase* other_pass : passes)
+					{
+						if (other_pass->IsCulled() || other_pass->type == RGPassType::AsyncCompute) continue;
+
+						if (other_pass->buffer_reads.find(write_buffer) != other_pass->buffer_reads.end())
+						{
+							post_graphics_queue_passes.push_back(other_pass);
+						}
+					}
+				}
+				compute_queue_passes.push_back(pass);
+			}
+			else if (!compute_queue_passes.empty())
+			{
+				if (!pre_graphics_queue_passes.empty())
+				{
+					RGPassBase* last_pre_pass = *std::max_element(
+						pre_graphics_queue_passes.begin(),
+						pre_graphics_queue_passes.end(),
+						[](RGPassBase* a, RGPassBase* b) { return a->id < b->id; }
+					);
+
+					if (last_pre_pass->signal_value == Uint64(-1))
+					{
+						last_pre_pass->signal_value = ++graphics_fence;
+					}
+					RGPassBase* first_compute_pass = compute_queue_passes.front();
+					first_compute_pass->wait_value = last_pre_pass->signal_value;
+					first_compute_pass->wait_graphics_pass_id = last_pre_pass->id;
+				}
+
+				if (!post_graphics_queue_passes.empty())
+				{
+					RGPassBase* first_post_pass = *std::min_element(
+						post_graphics_queue_passes.begin(),
+						post_graphics_queue_passes.end(),
+						[](RGPassBase* a, RGPassBase* b) { return a->id < b->id; }
+					);
+
+					RGPassBase* last_compute_pass = compute_queue_passes.back();
+					if (last_compute_pass->signal_value == Uint64(-1))
+					{
+						last_compute_pass->signal_value = ++compute_fence;
+					}
+
+					first_post_pass->wait_value = last_compute_pass->signal_value;
+					last_compute_pass->signal_graphics_pass_id = first_post_pass->id;
+				}
+				compute_queue_passes.clear();
+				pre_graphics_queue_passes.clear();
+				post_graphics_queue_passes.clear();
+			}
+		}
+#endif
 	}
 
 	void RenderGraph::ResolveEvents()
@@ -903,7 +1013,25 @@ namespace adria
 		{
 			if (pass->IsCulled()) continue;
 
-			GfxCommandList* cmd_list = pass->type == RGPassType::ComputeAsync ? exec_ctx.compute_cmd_list : exec_ctx.graphics_cmd_list;
+#if GFX_ASYNC_COMPUTE
+			GfxCommandList* cmd_list = pass->type == RGPassType::AsyncCompute && RGAsyncCompute.Get() ? exec_ctx.compute_cmd_list : exec_ctx.graphics_cmd_list;
+#else
+			GfxCommandList* cmd_list = exec_ctx.graphics_cmd_list;
+#endif
+			if (pass->wait_value != UINT64_MAX)
+			{
+				cmd_list->End();
+				cmd_list->Submit();
+				cmd_list->Begin();
+				if (pass->type == RGPassType::AsyncCompute)
+				{
+					cmd_list->Wait(*exec_ctx.graphics_fence, exec_ctx.graphics_fence_value + pass->wait_value);
+				}
+				else
+				{
+					cmd_list->Wait(*exec_ctx.compute_fence, exec_ctx.compute_fence_value + pass->wait_value);
+				}
+			}
 
 			for (Uint32 event_idx : pass->events_to_start)
 			{
@@ -1077,6 +1205,23 @@ namespace adria
 			{
 				cmd_list->EndEvent();
 			}
+
+			if (pass->signal_value != UINT64_MAX)
+			{
+				cmd_list->End();
+				if (pass->type == RGPassType::AsyncCompute)
+				{
+					cmd_list->Signal(*exec_ctx.compute_fence, exec_ctx.compute_fence_value + pass->signal_value);
+					exec_ctx.gfx->SetComputeFenceValue(exec_ctx.compute_fence_value + pass->signal_value);
+				}
+				else
+				{
+					cmd_list->Signal(*exec_ctx.graphics_fence, exec_ctx.graphics_fence_value + pass->signal_value);
+					exec_ctx.gfx->SetGraphicsFenceValue(exec_ctx.graphics_fence_value + pass->signal_value);
+				}
+				cmd_list->Submit();
+				cmd_list->Begin();
+			}
 		} 
 		PostExecute(exec_ctx.graphics_cmd_list);
 	}
@@ -1183,6 +1328,25 @@ namespace adria
 		cmd_list->FlushBarriers();
 	}
 
+	void RenderGraph::PushEvent(Char const* name)
+	{
+		if (g_UseDependencyLevels) return;
+		pending_event_indices.push_back(AddEvent(name));
+	}
+
+	void RenderGraph::PopEvent()
+	{
+		if (g_UseDependencyLevels) return;
+		if (!pending_event_indices.empty())
+		{
+			pending_event_indices.pop_back();
+		}
+		else
+		{
+			passes.back()->num_events_to_end++;
+		}
+	}
+
 	void RenderGraph::Dump(Char const* graph_file_name)
 	{
 		static struct GraphVizStyle
@@ -1224,46 +1388,46 @@ namespace adria
 		graphviz.defaults += std::format("node [shape=record, fontname=\"{}\", fontsize={}, margin=\"0.2,0.03\"]\n", style.font.name, style.font.size);
 
 		auto PairHash = [](std::pair<Uint64, Uint64> const& p)
-		{
-			return std::hash<Uint64>{}(p.first) + std::hash<Uint64>{}(p.second);
-		};
+			{
+				return std::hash<Uint64>{}(p.first) + std::hash<Uint64>{}(p.second);
+			};
 		std::unordered_set<std::pair<Uint64, Uint64>, decltype(PairHash)> declared_buffers;
 		std::unordered_set<std::pair<Uint64, Uint64>, decltype(PairHash)> declared_textures;
-		auto DeclareBuffer  = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
-		{
-			auto decl_pair = std::make_pair(buffer->id, buffer->version);
-			if (!declared_buffers.contains(decl_pair))
+		auto DeclareBuffer = [&declared_buffers, &graphviz, this](RGBuffer* buffer)
 			{
-				buffer->desc.size;
-				graphviz.declarations += std::format("B{}_{} ", buffer->id, buffer->version);
-				std::string label = std::format("<{}<br/>dimension: Buffer<br/>size: {} bytes <br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
-					buffer->name, buffer->desc.size, GfxFormatToString(buffer->desc.format), buffer->version, buffer->ref_count, buffer->imported ? "Imported" : "Transient");
-				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", buffer->imported ? style.color.resource.imported : style.color.resource.transient, label);
-				declared_buffers.insert(decl_pair);
-			}
-		};
-		auto DeclareTexture = [&declared_textures, &graphviz, this](RGTexture* texture)
-		{
-			auto decl_pair = std::make_pair(texture->id, texture->version);
-			if (!declared_textures.contains(decl_pair))
-			{
-				std::string dimensions;
-				switch (texture->desc.type)
+				auto decl_pair = std::make_pair(buffer->id, buffer->version);
+				if (!declared_buffers.contains(decl_pair))
 				{
-				case GfxTextureType_1D:  dimensions += std::format("width = {}", texture->desc.width); break;
-				case GfxTextureType_2D:  dimensions += std::format("width = {}, height = {}", texture->desc.width, texture->desc.height); break;
-				case GfxTextureType_3D:  dimensions += std::format("width = {}, height = {}, depth = {}", texture->desc.width, texture->desc.height, texture->desc.depth); break;
+					buffer->desc.size;
+					graphviz.declarations += std::format("B{}_{} ", buffer->id, buffer->version);
+					std::string label = std::format("<{}<br/>dimension: Buffer<br/>size: {} bytes <br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>",
+						buffer->name, buffer->desc.size, GfxFormatToString(buffer->desc.format), buffer->version, buffer->ref_count, buffer->imported ? "Imported" : "Transient");
+					graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", buffer->imported ? style.color.resource.imported : style.color.resource.transient, label);
+					declared_buffers.insert(decl_pair);
 				}
+			};
+		auto DeclareTexture = [&declared_textures, &graphviz, this](RGTexture* texture)
+			{
+				auto decl_pair = std::make_pair(texture->id, texture->version);
+				if (!declared_textures.contains(decl_pair))
+				{
+					std::string dimensions;
+					switch (texture->desc.type)
+					{
+					case GfxTextureType_1D:  dimensions += std::format("width = {}", texture->desc.width); break;
+					case GfxTextureType_2D:  dimensions += std::format("width = {}, height = {}", texture->desc.width, texture->desc.height); break;
+					case GfxTextureType_3D:  dimensions += std::format("width = {}, height = {}, depth = {}", texture->desc.width, texture->desc.height, texture->desc.depth); break;
+					}
 
-				if (texture->desc.array_size > 1)  dimensions += std::format(", array size = {}", texture->desc.array_size);
-				
-				graphviz.declarations += std::format("T{}_{} ", texture->id, texture->version);
-				std::string label = std::format("<{} <br/>dimension: {}<br/>{}<br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
-					texture->name, GfxTextureTypeToString(texture->desc.type), dimensions, GfxFormatToString(texture->desc.format), texture->version, texture->ref_count, texture->imported ? "Imported" : "Transient");
-				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", texture->imported ? style.color.resource.imported : style.color.resource.transient, label);
-				declared_textures.insert(decl_pair);
-			}
-		};
+					if (texture->desc.array_size > 1)  dimensions += std::format(", array size = {}", texture->desc.array_size);
+
+					graphviz.declarations += std::format("T{}_{} ", texture->id, texture->version);
+					std::string label = std::format("<{} <br/>dimension: {}<br/>{}<br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>",
+						texture->name, GfxTextureTypeToString(texture->desc.type), dimensions, GfxFormatToString(texture->desc.format), texture->version, texture->ref_count, texture->imported ? "Imported" : "Transient");
+					graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", texture->imported ? style.color.resource.imported : style.color.resource.transient, label);
+					declared_textures.insert(decl_pair);
+				}
+			};
 
 		for (auto const& dependency_level : dependency_levels)
 		{
@@ -1272,9 +1436,9 @@ namespace adria
 				graphviz.declarations += std::format("P{} ", pass->id);
 				std::string label = std::format("<{}<br/> type: {}<br/> refs: {}<br/> culled: {}>", pass->name, RGPassTypeToString(pass->type), pass->ref_count, pass->IsCulled() ? "Yes" : "No");
 				graphviz.declarations += std::format("[shape=\"ellipse\", style=\"rounded,filled\",fillcolor={}, label={}] \n",
-					                                  pass->IsCulled() ?  style.color.pass.culled : style.color.pass.executed, label);
+					pass->IsCulled() ? style.color.pass.culled : style.color.pass.executed, label);
 
-				std::string read_dependencies = "{"; 
+				std::string read_dependencies = "{";
 				std::string write_dependencies = "{";
 
 				for (auto const& buffer_read : pass->buffer_reads)
@@ -1290,7 +1454,7 @@ namespace adria
 					DeclareTexture(texture);
 					read_dependencies += std::format("T{}_{},", texture->id, texture->version);
 				}
-				
+
 				for (auto const& buffer_write : pass->buffer_writes)
 				{
 					RGBuffer* buffer = GetRGBuffer(buffer_write);
@@ -1307,7 +1471,7 @@ namespace adria
 					write_dependencies += std::format("T{}_{},", texture->id, texture->version);
 				}
 
-				if (read_dependencies.back() == ',') read_dependencies.pop_back(); 
+				if (read_dependencies.back() == ',') read_dependencies.pop_back();
 				read_dependencies += "}";
 				if (write_dependencies.back() == ',') write_dependencies.pop_back();
 				write_dependencies += "}";
@@ -1373,7 +1537,7 @@ namespace adria
 		{
 			auto& level = dependency_levels[i];
 			render_graph_data += std::format("Dependency level {}: \n", i);
-			for(auto pass : level.passes) render_graph_data += std::format("{}\n", pass->name);
+			for (auto pass : level.passes) render_graph_data += std::format("{}\n", pass->name);
 			render_graph_data += "\nTexture usage:\n";
 			for (auto [tex_id, state] : level.texture_state_map)
 			{
@@ -1400,26 +1564,6 @@ namespace adria
 		}
 		ADRIA_LOG(DEBUG, "[RenderGraph]\n%s", render_graph_data.c_str());
 	}
-
-	void RenderGraph::PushEvent(Char const* name)
-	{
-		if (g_UseDependencyLevels) return;
-		pending_event_indices.push_back(AddEvent(name));
-	}
-
-	void RenderGraph::PopEvent()
-	{
-		if (g_UseDependencyLevels) return;
-		if (!pending_event_indices.empty())
-		{
-			pending_event_indices.pop_back();
-		}
-		else
-		{
-			passes.back()->num_events_to_end++;
-		}
-	}
-
 }
 
  

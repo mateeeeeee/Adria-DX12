@@ -46,7 +46,6 @@ namespace adria
 
 	class AutoConsoleObject
 	{
-
 	public:
 		virtual ~AutoConsoleObject()
 		{

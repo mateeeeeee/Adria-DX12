@@ -72,7 +72,6 @@ namespace adria
 	class IConsoleManager
 	{
 	public:
-
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Bool default_value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Int default_value, Char const* help) = 0;
 		virtual IConsoleVariable* RegisterConsoleVariable(Char const* name, Float default_value, Char const* help) = 0;
