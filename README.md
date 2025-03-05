@@ -7,6 +7,7 @@ Graphics engine written in C++ using DirectX12.
     - Automatic resource barriers
     - Resource reuse using resource pool
     - Automatic resource bind flags and initial state deduction
+    - Async Compute (wip)
 * DDGI
 * GPU-Driven Rendering : GPU frustum culling + 2 phase GPU occlusion culling
 * Reference path tracer + OIDN denoiser

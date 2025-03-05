@@ -108,7 +108,7 @@ namespace adria
 				cmd_list->SetRootCBV(2, ssao_kernel);
 				cmd_list->Dispatch(DivideAndRoundUp(ssao_width, 16), DivideAndRoundUp(ssao_height, 16), 1);
 
-			}, RGPassType::Compute);
+			}, RGPassType::AsyncCompute);
 
 		blur_pass.AddPass(rendergraph, RG_NAME(SSAO_Output), RG_NAME(AmbientOcclusion), " SSAO");
 	}

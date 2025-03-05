@@ -128,10 +128,10 @@ namespace adria
 	void RenderGraph::Compile()
 	{
 		ZoneScopedN("RenderGraph::Compile");
+		BuildAdjacencyLists();
+		TopologicalSort();
 		if (g_UseDependencyLevels)
 		{
-			BuildAdjacencyLists();
-			TopologicalSort();
 			BuildDependencyLevels();
 		}
 		else
@@ -179,7 +179,7 @@ namespace adria
 		exec_ctx.compute_fence_value = gfx->GetComputeFenceValue();
 		for (Uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
-			auto& dependency_level = dependency_levels[i];
+			DependencyLevel& dependency_level = dependency_levels[i];
 			dependency_level.Execute(exec_ctx);
 		}
 	}
@@ -233,13 +233,13 @@ namespace adria
 		adjacency_lists.resize(passes.size());
 		for (Uint64 i = 0; i < passes.size(); ++i)
 		{
-			auto& pass = passes[i];
+			RGPassBase* pass = passes[i];
 			std::vector<Uint64>& pass_adjacency_list = adjacency_lists[i];
 			for (Uint64 j = i + 1; j < passes.size(); ++j)
 			{
-				auto& other_pass = passes[j];
+				RGPassBase* other_pass = passes[j];
 				Bool depends = false;
-				for (auto other_node_read : other_pass->texture_reads)
+				for (RGTextureId other_node_read : other_pass->texture_reads)
 				{
 					if (pass->texture_writes.find(other_node_read) != pass->texture_writes.end())
 					{
@@ -250,7 +250,7 @@ namespace adria
 				}
 				if (depends) continue;
 
-				for (auto other_node_read : other_pass->buffer_reads)
+				for (RGBufferId other_node_read : other_pass->buffer_reads)
 				{
 					if (pass->buffer_writes.find(other_node_read) != pass->buffer_writes.end())
 					{
@@ -279,7 +279,7 @@ namespace adria
 		for (Uint64 u = 0; u < topologically_sorted_passes.size(); ++u)
 		{
 			Uint64 i = topologically_sorted_passes[u];
-			for (auto v : adjacency_lists[i])
+			for (Uint64 v : adjacency_lists[i])
 			{
 				if (distances[v] < distances[i] + 1) distances[v] = distances[i] + 1;
 			}
@@ -300,28 +300,28 @@ namespace adria
 
 	void RenderGraph::CullPasses()
 	{
-		for (auto& pass : passes)
+		for (RGPassBase* pass : passes)
 		{
 			pass->ref_count = pass->texture_writes.size() + pass->buffer_writes.size();
-			for (auto id : pass->texture_reads)
+			for (RGTextureId id : pass->texture_reads)
 			{
-				auto* consumed = GetRGTexture(id);
+				RGTexture* consumed = GetRGTexture(id);
 				++consumed->ref_count;
 			}
-			for (auto id : pass->buffer_reads)
+			for (RGBufferId id : pass->buffer_reads)
 			{
-				auto* consumed = GetRGBuffer(id);
+				RGBuffer* consumed = GetRGBuffer(id);
 				++consumed->ref_count;
 			}
 
-			for (auto id : pass->texture_writes)
+			for (RGTextureId id : pass->texture_writes)
 			{
-				auto* written = GetRGTexture(id);
+				RGTexture* written = GetRGTexture(id);
 				written->writer = pass;
 			}
-			for (auto id : pass->buffer_writes)
+			for (RGBufferId id : pass->buffer_writes)
 			{
-				auto* written = GetRGBuffer(id);
+				RGBuffer* written = GetRGBuffer(id);
 				written->writer = pass;
 			}
 		}
@@ -339,18 +339,18 @@ namespace adria
 		{
 			RenderGraphResource* unreferenced_resource = zero_ref_resources.top();
 			zero_ref_resources.pop();
-			auto* writer = unreferenced_resource->writer;
+			RGPassBase* writer = unreferenced_resource->writer;
 			if (writer == nullptr || !writer->CanBeCulled()) continue;
 			if (--writer->ref_count == 0)
 			{
-				for (auto id : writer->texture_reads)
+				for (RGTextureId id : writer->texture_reads)
 				{
-					auto* texture = GetRGTexture(id);
+					RGTexture* texture = GetRGTexture(id);
 					if (--texture->ref_count == 0) zero_ref_resources.push(texture);
 				}
-				for (auto id : writer->buffer_reads)
+				for (RGBufferId id : writer->buffer_reads)
 				{
-					auto* buffer = GetRGBuffer(id);
+					RGBuffer* buffer = GetRGBuffer(id);
 					if (--buffer->ref_count == 0) zero_ref_resources.push(buffer);
 				}
 			}
@@ -361,29 +361,29 @@ namespace adria
 	{
 		for (auto& dependency_level : dependency_levels)
 		{
-			for (auto& pass : dependency_level.passes)
+			for (RGPassBase* pass : dependency_level.passes)
 			{
 				if (pass->IsCulled()) continue;
-				for (auto id : pass->texture_writes)
+				for (RGTextureId id : pass->texture_writes)
 				{
 					if (!pass->texture_state_map.contains(id)) continue;
 					RGTexture* rg_texture = GetRGTexture(id);
 					rg_texture->last_used_by = pass;
 				}
-				for (auto id : pass->buffer_writes)
+				for (RGBufferId id : pass->buffer_writes)
 				{
 					if (!pass->buffer_state_map.contains(id)) continue;
 					RGBuffer* rg_buffer = GetRGBuffer(id);
 					rg_buffer->last_used_by = pass;
 				}
 
-				for (auto id : pass->texture_reads)
+				for (RGTextureId id : pass->texture_reads)
 				{
 					if (!pass->texture_state_map.contains(id)) continue;
 					RGTexture* rg_texture = GetRGTexture(id);
 					rg_texture->last_used_by = pass;
 				}
-				for (auto id : pass->buffer_reads)
+				for (RGBufferId id : pass->buffer_reads)
 				{
 					if (!pass->buffer_state_map.contains(id)) continue;
 					RGBuffer* rg_buffer = GetRGBuffer(id);
@@ -421,53 +421,73 @@ namespace adria
 		{
 			return;
 		}
+
 		std::vector<RGPassBase*> compute_queue_passes;
-		std::vector<RGPassBase*> pre_graphics_queue_passes;
-		std::vector<RGPassBase*> post_graphics_queue_passes;
+		std::unordered_set<RGPassBase*> pre_graphics_queue_passes;
+		std::unordered_set<RGPassBase*> post_graphics_queue_passes;
 		Uint64 compute_fence = 0;
 		Uint64 graphics_fence = 0;
-		for (RGPassBase* pass : passes)
+
+		for (Uint64 pass_index : topologically_sorted_passes)
 		{
+			RGPassBase* pass = passes[pass_index];
 			if (pass->IsCulled()) continue;
 
 			if (pass->type == RGPassType::AsyncCompute)
 			{
 				for (RGTextureId read_texture : pass->texture_reads)
 				{
-					RGTexture* texture = GetRGTexture(read_texture);
-					if (texture->writer && !texture->writer->IsCulled() && texture->writer->type != RGPassType::AsyncCompute)
+					for (Int64 i = (Int64)pass_index - 1; i >= 0; --i)
 					{
-						pre_graphics_queue_passes.push_back(texture->writer);
+						RGPassBase* pre_pass = passes[i];
+						if (pre_pass->IsCulled() || pre_pass->type == RGPassType::AsyncCompute) continue;
+
+						if (pre_pass->texture_writes.find(read_texture) != pre_pass->texture_writes.end())
+						{
+							pre_graphics_queue_passes.insert(pre_pass);
+							break;
+						}
 					}
 				}
 				for (RGBufferId read_buffer : pass->buffer_reads)
 				{
-					RGBuffer* buffer = GetRGBuffer(read_buffer);
-					if (buffer->writer && !buffer->writer->IsCulled() && buffer->writer->type != RGPassType::AsyncCompute)
+					for (Int64 i = (Int64)pass_index - 1; i >= 0; --i)
 					{
-						pre_graphics_queue_passes.push_back(buffer->writer);
+						RGPassBase* pre_pass = passes[i];
+						if (pre_pass->IsCulled() || pre_pass->type == RGPassType::AsyncCompute) continue;
+
+						if (pre_pass->buffer_writes.find(read_buffer) != pre_pass->buffer_writes.end())
+						{
+							pre_graphics_queue_passes.insert(pre_pass);
+							break;
+						}
 					}
 				}
 				for (RGTextureId write_texture : pass->texture_writes)
 				{
-					for (RGPassBase* other_pass : passes)
+					for (Uint64 i = pass_index + 1; i < passes.size(); ++i)
 					{
-						if (other_pass->IsCulled() || other_pass->type == RGPassType::AsyncCompute) continue;
-						if (other_pass->texture_reads.find(write_texture) != other_pass->texture_reads.end())
+						RGPassBase* post_pass = passes[i];
+						if (post_pass->IsCulled() || post_pass->type == RGPassType::AsyncCompute) continue;
+
+						if (post_pass->texture_reads.find(write_texture) != post_pass->texture_reads.end())
 						{
-							post_graphics_queue_passes.push_back(other_pass);
+							post_graphics_queue_passes.insert(post_pass);
+							break;
 						}
 					}
 				}
 				for (RGBufferId write_buffer : pass->buffer_writes)
 				{
-					for (RGPassBase* other_pass : passes)
+					for (Uint64 i = pass_index + 1; i < passes.size(); ++i)
 					{
-						if (other_pass->IsCulled() || other_pass->type == RGPassType::AsyncCompute) continue;
+						RGPassBase* post_pass = passes[i];
+						if (post_pass->IsCulled() || post_pass->type == RGPassType::AsyncCompute) continue;
 
-						if (other_pass->buffer_reads.find(write_buffer) != other_pass->buffer_reads.end())
+						if (post_pass->buffer_reads.find(write_buffer) != post_pass->buffer_reads.end())
 						{
-							post_graphics_queue_passes.push_back(other_pass);
+							pre_graphics_queue_passes.insert(post_pass);
+							break;
 						}
 					}
 				}
@@ -522,7 +542,7 @@ namespace adria
 		std::vector<Uint32> events_to_start;
 		Uint32 events_to_add = 0;
 		RGPassBase* last_active_pass = nullptr;
-		for (auto const& pass : passes)
+		for (RGPassBase* const pass : passes)
 		{
 			if (pass->IsCulled())
 			{
@@ -986,7 +1006,7 @@ namespace adria
 
 	void RenderGraph::DependencyLevel::Setup()
 	{
-		for (auto& pass : passes)
+		for (RGPassBase* pass : passes)
 		{
 			if (pass->IsCulled()) continue;
 
@@ -1228,14 +1248,14 @@ namespace adria
 
 	void RenderGraph::DependencyLevel::PreExecute(GfxCommandList* cmd_list)
 	{
-		for (auto tex_id : texture_creates)
+		for (RGTextureId tex_id : texture_creates)
 		{
 			RGTexture* rg_texture = rg.GetRGTexture(tex_id);
 			rg_texture->resource = rg.pool.AllocateTexture(rg_texture->desc);
 			rg.CreateTextureViews(tex_id);
 			rg_texture->SetName();
 		}
-		for (auto buf_id : buffer_creates)
+		for (RGBufferId buf_id : buffer_creates)
 		{
 			RGBuffer* rg_buffer = rg.GetRGBuffer(buf_id);
 			rg_buffer->resource = rg.pool.AllocateBuffer(rg_buffer->desc);
@@ -1528,7 +1548,7 @@ namespace adria
 		render_graph_data += "\nTopologically sorted passes: \n";
 		for (Uint64 i = 0; i < topologically_sorted_passes.size(); ++i)
 		{
-			auto& topologically_sorted_pass = topologically_sorted_passes[i];
+			Uint64& topologically_sorted_pass = topologically_sorted_passes[i];
 			render_graph_data += std::format("{}. : {}\n", i, passes[topologically_sorted_pass]->name);
 		}
 
