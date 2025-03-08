@@ -186,7 +186,7 @@ namespace adria
 					ImGui::Checkbox("Enable", DLSS3.GetPtr());
 					if (DLSS3.Get())
 					{
-						if (ImGui::Combo("Performance Quality", (int*)&perf_quality, "Max Performance\0Balanced\0Max Quality\0Ultra Performance\0UltraQuality\0", 5))
+						if (ImGui::Combo("Performance Quality", (Int*)&perf_quality, "Max Performance\0Balanced\0Max Quality\0Ultra Performance\0", 4))
 						{
 							RecreateRenderResolution();
 							needs_create = true;
