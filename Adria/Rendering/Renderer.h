@@ -23,7 +23,7 @@
 #include "PathTracingPass.h"
 #include "TransparentPass.h"
 #include "VolumetricFogManager.h"
-#include "RendererOutputPass.h"
+#include "RendererDebugViewPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
 #include "RenderGraph/RenderGraphResourcePool.h"
@@ -65,10 +65,10 @@ namespace adria
 		PickingData const& GetPickingData() const { return picking_data; }
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
 
-		RendererOutput GetRendererOutput() const { return renderer_output; }
-		LightingPath GetLightingPath() const { return lighting_path; }
-		void SetRendererOutput(RendererOutput type);
 		void SetLightingPath(LightingPath path);
+		LightingPath GetLightingPath() const { return lighting_path; }
+		void SetDebugView(RendererDebugView debug_view);
+		RendererDebugView GetDebugView() const { return renderer_debug_view_pass.GetDebugView(); }
 		void SetViewportData(ViewportData const& vp);
 
 	private:
@@ -127,7 +127,7 @@ namespace adria
 		DDGIPass		  ddgi;
 		ReSTIR_DI		  restir_di;
 		PathTracingPass path_tracer;
-		RendererOutputPass renderer_output_pass;
+		RendererDebugViewPass renderer_debug_view_pass;
 		GPUDebugPrinter gpu_debug_printer;
 		TransparentPass transparent_pass;
 		VolumetricFogManager volumetric_fog_manager;
@@ -141,8 +141,7 @@ namespace adria
 		Bool update_picking_data = false;
 		PickingData picking_data;
 
-		LightingPath	 lighting_path = LightingPath::Deferred;
-		RendererOutput	 renderer_output = RendererOutput::Final;
+		LightingPath		lighting_path = LightingPath::Deferred;
 
 		std::unique_ptr<GfxTexture> overdraw_texture = nullptr;
 		GfxDescriptor				overdraw_texture_uav;

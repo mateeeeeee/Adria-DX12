@@ -11,7 +11,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 	class GfxBuffer;
-	enum class RendererOutput : Uint32;
+	enum class RendererDebugView : Uint32;
 
 	class GPUDrivenGBufferPass
 	{
@@ -48,7 +48,7 @@ namespace adria
 		{
 			rain_active = enabled;
 		}
-		void OnRendererOutputChanged(RendererOutput renderer_output);
+		void OnDebugViewChanged(RendererDebugView renderer_output);
 		void OnTransparentChanged(Bool transparent)
 		{
 			skip_alpha_blended = transparent;

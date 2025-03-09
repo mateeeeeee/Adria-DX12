@@ -431,7 +431,7 @@
     <ClCompile Include="Rendering\IDenoiserPass.cpp" />
     <ClCompile Include="Rendering\OIDNDenoiserPass.cpp" />
     <ClCompile Include="Rendering\ReflectionPassGroup.cpp" />
-    <ClCompile Include="Rendering\RendererOutputPass.cpp" />
+    <ClCompile Include="Rendering\RendererDebugViewPass.cpp" />
     <ClCompile Include="Rendering\FilmEffectsPass.cpp" />
     <ClCompile Include="Rendering\FFXCACAOPass.cpp" />
     <ClCompile Include="Rendering\FFXCASPass.cpp" />
@@ -774,7 +774,7 @@
     <ClInclude Include="Rendering\DepthOfFieldPassGroup.h" />
     <ClInclude Include="Rendering\PostEffect.h" />
     <ClInclude Include="Rendering\ReflectionPassGroup.h" />
-    <ClInclude Include="Rendering\RendererOutputPass.h" />
+    <ClInclude Include="Rendering\RendererDebugViewPass.h" />
     <ClInclude Include="Rendering\FilmEffectsPass.h" />
     <ClInclude Include="Rendering\FFXCACAOPass.h" />
     <ClInclude Include="Rendering\FFXCASPass.h" />
@@ -1137,7 +1137,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Other\RendererOutput.hlsl">
+    <FxCompile Include="Resources\Shaders\Other\RendererDebugView.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</ExcludedFromBuild>

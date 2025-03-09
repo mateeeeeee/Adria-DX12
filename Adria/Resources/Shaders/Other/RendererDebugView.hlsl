@@ -4,7 +4,7 @@
 
 #define BLOCK_SIZE 16
 
-struct RendererOutputConstants
+struct RendererDebugViewConstants
 {
 	uint normalMetallicIdx;
 	uint diffuseIdx;
@@ -16,7 +16,7 @@ struct RendererOutputConstants
 	uint outputIdx;
 	float triangleOverdrawScale;
 };
-ConstantBuffer<RendererOutputConstants> RendererOutputPassCB : register(b1);
+ConstantBuffer<RendererDebugViewConstants> RendererDebugViewPassCB : register(b1);
 
 
 float3 TurboColormap(float x)
@@ -50,12 +50,12 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void RendererOutputCS(CSInput input)
+void RendererDebugViewCS(CSInput input)
 {
-	Texture2D               normalRT		= ResourceDescriptorHeap[RendererOutputPassCB.normalMetallicIdx];
-	Texture2D               diffuseRT		= ResourceDescriptorHeap[RendererOutputPassCB.diffuseIdx];
-	Texture2D<float>        depthTexture	= ResourceDescriptorHeap[RendererOutputPassCB.depthIdx];
-	RWTexture2D<float4> outputTexture		= ResourceDescriptorHeap[RendererOutputPassCB.outputIdx];
+	Texture2D               normalRT		= ResourceDescriptorHeap[RendererDebugViewPassCB.normalMetallicIdx];
+	Texture2D               diffuseRT		= ResourceDescriptorHeap[RendererDebugViewPassCB.diffuseIdx];
+	Texture2D<float>        depthTexture	= ResourceDescriptorHeap[RendererDebugViewPassCB.depthIdx];
+	RWTexture2D<float4> outputTexture		= ResourceDescriptorHeap[RendererDebugViewPassCB.outputIdx];
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 	
@@ -86,13 +86,13 @@ void RendererOutputCS(CSInput input)
 	outputTexture[input.DispatchThreadId.xy] = float4(metallic, metallic, metallic, 1.0f);
 
 #elif OUTPUT_EMISSIVE
-	Texture2D emissiveTexture = ResourceDescriptorHeap[RendererOutputPassCB.emissiveIdx];
+	Texture2D emissiveTexture = ResourceDescriptorHeap[RendererDebugViewPassCB.emissiveIdx];
 	float4 emissiveData = emissiveTexture.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	outputTexture[input.DispatchThreadId.xy] = float4(emissiveColor, 1.0f);
 
 #elif OUTPUT_AO
-	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[RendererOutputPassCB.aoIdx];
+	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[RendererDebugViewPassCB.aoIdx];
 	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	outputTexture[input.DispatchThreadId.xy] = float4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
 
@@ -107,14 +107,14 @@ void RendererOutputCS(CSInput input)
 	float  depth		    = depthTexture.Sample(LinearWrapSampler, uv);
 	float3 viewPosition		= GetViewPosition(uv, depth);
 
-	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[RendererOutputPassCB.aoIdx];
+	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[RendererDebugViewPassCB.aoIdx];
 	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	outputTexture[input.DispatchThreadId.xy] = float4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
 	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting * M_PI / brdfData.Diffuse, 1.0f); 
 
 #elif OUTPUT_CUSTOM
-	Texture2D customTexture = ResourceDescriptorHeap[RendererOutputPassCB.customIdx];
+	Texture2D customTexture = ResourceDescriptorHeap[RendererDebugViewPassCB.customIdx];
 	float4    customData	= customTexture.Sample(LinearWrapSampler, uv);
 	outputTexture[input.DispatchThreadId.xy] = customData;
 
@@ -137,10 +137,10 @@ void RendererOutputCS(CSInput input)
 	RWTexture2D<uint> triangleOverdrawTexture = ResourceDescriptorHeap[FrameCB.triangleOverdrawIdx];
 	uint2 texCoords = uint2(uv * FrameCB.renderResolution);
 	uint overdrawCount = triangleOverdrawTexture.Load(texCoords);
-	float overdrawRatio = overdrawCount / (10 * RendererOutputPassCB.triangleOverdrawScale);
+	float overdrawRatio = overdrawCount / (10 * RendererDebugViewPassCB.triangleOverdrawScale);
     outputTexture[input.DispatchThreadId.xy] = float4(TurboColormap(overdrawRatio), 1.0f);
 #elif OUTPUT_MOTION_VECTORS
-	Texture2D motionVectorsTexture = ResourceDescriptorHeap[RendererOutputPassCB.motionVectorsIdx];
+	Texture2D motionVectorsTexture = ResourceDescriptorHeap[RendererDebugViewPassCB.motionVectorsIdx];
 	float4    motionVectors	= motionVectorsTexture.Sample(LinearWrapSampler, uv);
 	outputTexture[input.DispatchThreadId.xy] = float4(motionVectors.xy * 100, 0.0f, 1.0f);
 #else 

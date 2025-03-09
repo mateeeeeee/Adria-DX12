@@ -41,7 +41,7 @@ namespace adria
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
 		decals_pass(reg, gfx, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, gfx, width, height),
-		shadow_renderer(reg, gfx, width, height), renderer_output_pass(gfx, width, height),
+		shadow_renderer(reg, gfx, width, height), renderer_debug_view_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), restir_di(gfx, width, height), gpu_debug_printer(gfx),
 		transparent_pass(reg, gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing()),
 		volumetric_fog_manager(gfx, reg, width, height)
@@ -64,11 +64,12 @@ namespace adria
 		gfxcommon::Destroy();
 	}
 
-	void Renderer::SetRendererOutput(RendererOutput type)
+	void Renderer::SetDebugView(RendererDebugView debug_view)
 	{
-		renderer_output = type;
-		gbuffer_pass.OnRendererOutputChanged(type);
-		gpu_driven_renderer.OnRendererOutputChanged(type);
+		renderer_debug_view_pass.SetDebugView(debug_view);
+		//renderer_debug_view = type;
+		//gbuffer_pass.OnDebugViewChanged(type);
+		//gpu_driven_renderer.OnDebugViewChanged(type);
 	}
 
 	void Renderer::SetLightingPath(LightingPath path)
@@ -115,7 +116,7 @@ namespace adria
 			postprocessor.OnResize(w, h);
 			g_DebugRenderer.OnResize(w, h);
 			path_tracer.OnResize(w, h);
-			renderer_output_pass.OnResize(w, h);
+			renderer_debug_view_pass.OnResize(w, h);
 		}
 	}
 	void Renderer::OnRenderResolutionChanged(Uint32 w, Uint32 h)
@@ -193,6 +194,9 @@ namespace adria
 
 		transparent_pass.GetTransparentChangedEvent().AddMember(&GPUDrivenGBufferPass::OnTransparentChanged, gpu_driven_renderer);
 		transparent_pass.GetTransparentChangedEvent().AddMember(&GBufferPass::OnTransparentChanged, gbuffer_pass);
+
+		renderer_debug_view_pass.GetDebugViewChangedEvent().AddMember(&GPUDrivenGBufferPass::OnDebugViewChanged, gpu_driven_renderer);
+		renderer_debug_view_pass.GetDebugViewChangedEvent().AddMember(&GBufferPass::OnDebugViewChanged, gbuffer_pass);
 
 		LightingPathType->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) { lighting_path = static_cast<LightingPath>(cvar->GetInt()); }));
 	}
@@ -430,7 +434,7 @@ namespace adria
 		{
 			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
 		}
-		if (renderer_output == RendererOutput::TriangleOverdraw)
+		if (renderer_debug_view_pass.GetDebugView() == RendererDebugView::TriangleOverdraw)
 		{
 			overdraw_texture_uav_gpu = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, overdraw_texture_uav_gpu, overdraw_texture_uav);
@@ -524,7 +528,7 @@ namespace adria
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
 		}
-		if(renderer_output == RendererOutput::TriangleOverdraw)
+		if(renderer_debug_view_pass.GetDebugView() == RendererDebugView::TriangleOverdraw)
 		{
 			ClearTriangleOverdrawTexture(render_graph);
 		}
@@ -542,7 +546,7 @@ namespace adria
 			shadow_renderer.AddRayTracingShadowPasses(render_graph);
 		}
 
-		if (renderer_output == RendererOutput::Final)
+		if (renderer_debug_view_pass.GetDebugView() == RendererDebugView::Final)
 		{
 			{
 				RG_SCOPE(render_graph, "Lighting");
@@ -572,11 +576,11 @@ namespace adria
 		}
 		else
 		{
-			if (renderer_output == RendererOutput::MotionVectors)
+			if (renderer_debug_view_pass.GetDebugView() == RendererDebugView::MotionVectors)
 			{
 				postprocessor.AddMotionVectorsPass(render_graph);
 			}
-			renderer_output_pass.AddPass(render_graph, renderer_output);
+			renderer_debug_view_pass.AddPass(render_graph);
 		}
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
@@ -658,7 +662,7 @@ namespace adria
 					ImGui::TreePop();
 				}
 			}, GUICommandGroup_Renderer);
-		renderer_output_pass.GUI();
+		renderer_debug_view_pass.GUI();
 		postprocessor.GUI();
 	}
 

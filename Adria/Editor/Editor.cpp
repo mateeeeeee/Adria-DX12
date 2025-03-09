@@ -748,32 +748,32 @@ namespace adria
 					#undef AddLightingPathMenuItem
 					ImGui::EndMenu();
 				}
-				if (ImGui::BeginMenu("Renderer Output"))
+				if (ImGui::BeginMenu("Debug View"))
 				{
-					RendererOutput current_output = engine->renderer->GetRendererOutput();
-					auto AddMenuItem = [&](RendererOutput output, Char const* item_name)
+					RendererDebugView current_debug_view = engine->renderer->GetDebugView();
+					auto AddMenuItem = [&](RendererDebugView output, Char const* item_name)
 					{
-						if (ImGui::MenuItem(item_name, nullptr, output == current_output)) { engine->renderer->SetRendererOutput(output); }
+						if (ImGui::MenuItem(item_name, nullptr, output == current_debug_view)) { engine->renderer->SetDebugView(output); }
 					};
 
-					#define AddRendererOutputMenuItem(name) AddMenuItem(RendererOutput::##name, #name)
-					AddRendererOutputMenuItem(Final);
-					AddRendererOutputMenuItem(Diffuse);
-					AddRendererOutputMenuItem(WorldNormal);
-					AddRendererOutputMenuItem(Depth);
-					AddRendererOutputMenuItem(Roughness);
-					AddRendererOutputMenuItem(Metallic);
-					AddRendererOutputMenuItem(Emissive);
-					AddRendererOutputMenuItem(MaterialID);
-					AddRendererOutputMenuItem(MeshletID);
-					AddRendererOutputMenuItem(AmbientOcclusion);
-					AddRendererOutputMenuItem(IndirectLighting);
-					AddRendererOutputMenuItem(Custom);
-					AddRendererOutputMenuItem(ShadingExtension);
-					AddRendererOutputMenuItem(ViewMipMaps);
-					AddRendererOutputMenuItem(TriangleOverdraw);
-					AddRendererOutputMenuItem(MotionVectors);
-					#undef AddRendererOutputMenuItem
+					#define AddDebugViewMenuItem(name) AddMenuItem(RendererDebugView::##name, #name)
+					AddDebugViewMenuItem(Final);
+					AddDebugViewMenuItem(Diffuse);
+					AddDebugViewMenuItem(WorldNormal);
+					AddDebugViewMenuItem(Depth);
+					AddDebugViewMenuItem(Roughness);
+					AddDebugViewMenuItem(Metallic);
+					AddDebugViewMenuItem(Emissive);
+					AddDebugViewMenuItem(MaterialID);
+					AddDebugViewMenuItem(MeshletID);
+					AddDebugViewMenuItem(AmbientOcclusion);
+					AddDebugViewMenuItem(IndirectLighting);
+					AddDebugViewMenuItem(Custom);
+					AddDebugViewMenuItem(ShadingExtension);
+					AddDebugViewMenuItem(ViewMipMaps);
+					AddDebugViewMenuItem(TriangleOverdraw);
+					AddDebugViewMenuItem(MotionVectors);
+					#undef AddDebugViewMenuItem
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenuBar();

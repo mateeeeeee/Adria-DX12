@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
-#include "RendererOutputPass.h"
+#include "RendererDebugViewPass.h"
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxTracyProfiler.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
@@ -85,11 +85,11 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void GBufferPass::OnRendererOutputChanged(RendererOutput renderer_output)
+	void GBufferPass::OnDebugViewChanged(RendererDebugView renderer_output)
 	{
-		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
-		triangle_overdraw = (renderer_output == RendererOutput::TriangleOverdraw);
-		material_ids = (renderer_output == RendererOutput::MaterialID);
+		debug_mipmaps = (renderer_output == RendererDebugView::ViewMipMaps);
+		triangle_overdraw = (renderer_output == RendererDebugView::TriangleOverdraw);
+		material_ids = (renderer_output == RendererDebugView::MaterialID);
 	}
 
 	void GBufferPass::CreatePSOs()

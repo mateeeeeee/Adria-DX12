@@ -135,7 +135,7 @@ namespace adria
 			case CS_ReSTIR_DI_SpatialResampling:
 			case CS_VolumetricFog_LightInjection:
 			case CS_VolumetricFog_ScatteringIntegration:
-			case CS_RendererOutput:
+			case CS_RendererDebugView:
 			case CS_DepthOfField_ComputeCoC:
 			case CS_DepthOfField_ComputeSeparatedCoC:
 			case CS_DepthOfField_DownsampleCoC:
@@ -330,8 +330,8 @@ namespace adria
 				return "ReSTIR/DI/TemporalResampling.hlsl";
 			case CS_ReSTIR_DI_SpatialResampling:
 				return "ReSTIR/DI/SpatialResampling.hlsl";
-			case CS_RendererOutput:
-				return "Other/RendererOutput.hlsl";
+			case CS_RendererDebugView:
+				return "Other/RendererDebugView.hlsl";
 			case CS_DepthOfField_ComputeCoC:
 			case CS_DepthOfField_ComputeSeparatedCoC:
 			case CS_DepthOfField_DownsampleCoC:
@@ -540,8 +540,8 @@ namespace adria
 				return "TemporalResamplingCS";
 			case CS_ReSTIR_DI_SpatialResampling:
 				return "SpatialResamplingCS";
-			case CS_RendererOutput:
-				return "RendererOutputCS";
+			case CS_RendererDebugView:
+				return "RendererDebugViewCS";
 			case CS_DepthOfField_ComputeCoC:
 				return "ComputeCircleOfConfusionCS";
 			case CS_DepthOfField_ComputeSeparatedCoC:

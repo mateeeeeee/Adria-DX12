@@ -444,7 +444,7 @@
     <ClCompile Include="Rendering\SunPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RendererOutputPass.cpp">
+    <ClCompile Include="Rendering\RendererDebugViewPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\DDGIPass.cpp">
@@ -1077,7 +1077,7 @@
     <ClInclude Include="Rendering\SunPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RendererOutputPass.h">
+    <ClInclude Include="Rendering\RendererDebugViewPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Core\ConsoleManager.h">
@@ -1964,7 +1964,7 @@
     <FxCompile Include="Resources\Shaders\Lighting\VolumetricFog.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Other\RendererOutput.hlsl">
+    <FxCompile Include="Resources\Shaders\Other\RendererDebugView.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField\CircleOfConfusion.hlsl">

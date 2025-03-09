@@ -8,7 +8,7 @@ namespace adria
 	class GfxDevice;
 	class GfxCommandList;
 	class RenderGraph;
-	enum class RendererOutput : Uint32;
+	enum class RendererDebugView : Uint32;
 
 	class GBufferPass
 	{
@@ -22,7 +22,7 @@ namespace adria
 		{
 			raining = enabled;
 		}
-		void OnRendererOutputChanged(RendererOutput renderer_output);
+		void OnDebugViewChanged(RendererDebugView renderer_output);
 		void OnTransparentChanged(Bool skip)
 		{
 			skip_alpha_blended = skip;

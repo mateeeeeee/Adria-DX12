@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
-#include "RendererOutputPass.h"
+#include "RendererDebugViewPass.h"
 #include "Graphics/GfxReflection.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"

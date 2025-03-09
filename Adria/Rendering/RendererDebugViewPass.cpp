@@ -1,4 +1,4 @@
-#include "RendererOutputPass.h"
+#include "RendererDebugViewPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
 #include "Graphics/GfxDevice.h"
@@ -6,22 +6,29 @@
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 
 namespace adria
 {
+	static TAutoConsoleVariable<Int> DebugView("r.DebugView", (Int)RendererDebugView::Final, "Which debug view should renderer display, if any. See enum class RendererDebugView for all possible values");
 
-	RendererOutputPass::RendererOutputPass(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
+	RendererDebugViewPass::RendererDebugViewPass(GfxDevice* gfx, Uint32 width, Uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		CreatePSOs();
+		DebugView->AddOnChanged(ConsoleVariableDelegate::CreateLambda([this](IConsoleVariable* cvar) 
+			{ 
+				debug_view = (RendererDebugView)cvar->GetInt(); 
+				debug_view_changed_event.Broadcast(debug_view);
+			}));
 	}
 
-	RendererOutputPass::~RendererOutputPass() {}
+	RendererDebugViewPass::~RendererDebugViewPass() {}
 
-	void RendererOutputPass::AddPass(RenderGraph& rg, RendererOutput type)
+	void RendererDebugViewPass::AddPass(RenderGraph& rg)
 	{
-		ADRIA_ASSERT(type != RendererOutput::Final); 
+		ADRIA_ASSERT(debug_view != RendererDebugView::Final);
 
-		struct RendererOutputPassData
+		struct RendererDebugViewPassData
 		{
 			RGTextureReadOnlyId  gbuffer_normal;
 			RGTextureReadOnlyId  gbuffer_albedo;
@@ -34,8 +41,8 @@ namespace adria
 		};
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.AddPass<RendererOutputPassData>("Renderer Output Pass",
-			[=](RendererOutputPassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<RendererDebugViewPassData>("Renderer Debug View Pass",
+			[=](RendererDebugViewPassData& data, RenderGraphBuilder& builder)
 			{
 				data.output = builder.WriteTexture(RG_NAME(FinalTexture));
 				data.gbuffer_normal = builder.ReadTexture(RG_NAME(GBufferNormal), ReadAccess_NonPixelShader);
@@ -50,7 +57,7 @@ namespace adria
 				if (builder.IsTextureDeclared(RG_NAME(VelocityBuffer))) data.motion_vectors = builder.ReadTexture(RG_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 				else data.motion_vectors.Invalidate();
 			},
-			[=](RendererOutputPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=](RendererDebugViewPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
@@ -70,7 +77,7 @@ namespace adria
 				Float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 5), context.GetReadWriteTexture(data.output), clear);
 
-				struct RendererOutputConstants
+				struct RendererDebugViewConstants
 				{
 					Uint32 normal_metallic_idx;
 					Uint32 diffuse_idx;
@@ -88,7 +95,7 @@ namespace adria
 					.triangle_overdraw_scale = (Float)triangle_overdraw_scale
 				};
 
-				static std::array<Char const*, (Uint32)RendererOutput::Count> OutputDefines =
+				static std::array<Char const*, (Uint32)RendererDebugView::Count> OutputDefines =
 				{
 					"",
 					"OUTPUT_DIFFUSE",
@@ -107,7 +114,7 @@ namespace adria
 					"OUTPUT_OVERDRAW",
 					"OUTPUT_MOTION_VECTORS"
 				};
-				renderer_output_psos->AddDefine(OutputDefines[(Uint32)type], "1");
+				renderer_output_psos->AddDefine(OutputDefines[(Uint32)debug_view], "1");
 
 				cmd_list->SetPipelineState(renderer_output_psos->Get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
@@ -116,7 +123,7 @@ namespace adria
 			}, RGPassType::Compute);
 	}
 
-	void RendererOutputPass::GUI()
+	void RendererDebugViewPass::GUI()
 	{
 		QueueGUI([&]()
 			{
@@ -129,10 +136,15 @@ namespace adria
 			}, GUICommandGroup_Renderer);
 	}
 
-	void RendererOutputPass::CreatePSOs()
+	void RendererDebugViewPass::SetDebugView(RendererDebugView value)
+	{
+		DebugView->Set((Int)value);
+	}
+
+	void RendererDebugViewPass::CreatePSOs()
 	{
 		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_RendererOutput;
+		compute_pso_desc.CS = CS_RendererDebugView;
 		renderer_output_psos = std::make_unique<GfxComputePipelineStatePermutations>(gfx, compute_pso_desc);
 	}
 

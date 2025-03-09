@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
-#include "RendererOutputPass.h"
+#include "RendererDebugViewPass.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxPipelineStatePermutations.h"
 #include "entt/entity/registry.hpp"
@@ -51,12 +51,12 @@ namespace adria
 		return GpuDrivenRendering.Get();
 	}
 
-	void GPUDrivenGBufferPass::OnRendererOutputChanged(RendererOutput renderer_output)
+	void GPUDrivenGBufferPass::OnDebugViewChanged(RendererDebugView renderer_output)
 	{
-		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
-		triangle_overdraw = (renderer_output == RendererOutput::TriangleOverdraw);
-		material_ids = (renderer_output == RendererOutput::MaterialID);
-		meshlet_ids = (renderer_output == RendererOutput::MeshletID);
+		debug_mipmaps = (renderer_output == RendererDebugView::ViewMipMaps);
+		triangle_overdraw = (renderer_output == RendererDebugView::TriangleOverdraw);
+		material_ids = (renderer_output == RendererDebugView::MaterialID);
+		meshlet_ids = (renderer_output == RendererDebugView::MeshletID);
 	}
 
 	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
