@@ -75,6 +75,7 @@ namespace adria
 		Bool debug_mipmaps = false;
 		Bool triangle_overdraw = false;
 		Bool material_ids = false;
+		Bool meshlet_ids = false;
 		std::unique_ptr<GfxMeshShaderPipelineStatePermutations> draw_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	cull_meshlets_psos;
 		std::unique_ptr<GfxComputePipelineStatePermutations>	cull_instances_psos;

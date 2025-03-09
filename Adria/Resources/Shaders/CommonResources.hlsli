@@ -142,4 +142,23 @@ float GetCameraAspectRatio()
     return fx / fy;
 }
 
+float3 UintToColor(uint id)
+{
+    id = (id ^ 61) ^ (id >> 16);
+    id = id + (id << 3);
+    id = id ^ (id >> 4);
+    id = id * 0x27d4eb2d;
+    id = id ^ (id >> 15);
+    
+    float r = float((id & 0xFF)) / 255.0f;
+    float g = float((id >> 8) & 0xFF) / 255.0f;
+    float b = float((id >> 16) & 0xFF) / 255.0f;
+    
+    r = lerp(0.2f, 1.0f, r);
+    g = lerp(0.2f, 1.0f, g);
+    b = lerp(0.2f, 1.0f, b);
+    
+    return float3(r, g, b);
+}
+
 #endif

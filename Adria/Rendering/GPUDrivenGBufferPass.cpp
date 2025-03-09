@@ -56,6 +56,7 @@ namespace adria
 		debug_mipmaps = (renderer_output == RendererOutput::ViewMipMaps);
 		triangle_overdraw = (renderer_output == RendererOutput::TriangleOverdraw);
 		material_ids = (renderer_output == RendererOutput::MaterialID);
+		meshlet_ids = (renderer_output == RendererOutput::MeshletID);
 	}
 
 	void GPUDrivenGBufferPass::AddPasses(RenderGraph& rg)
@@ -567,6 +568,7 @@ namespace adria
 				draw_psos->AddDefine("RAIN", rain_active ? "1" : "0");
 				draw_psos->AddDefine("TRIANGLE_OVERDRAW", triangle_overdraw ? "1" : "0");
 				draw_psos->AddDefine("MATERIAL_ID", material_ids ? "1" : "0");
+				draw_psos->AddDefine("MESHLET_ID", meshlet_ids ? "1" : "0");
 
 				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);
@@ -874,6 +876,7 @@ namespace adria
 				draw_psos->AddDefine("RAIN", rain_active ? "1" : "0");
 				draw_psos->AddDefine("TRIANGLE_OVERDRAW", triangle_overdraw ? "1" : "0");
 				draw_psos->AddDefine("MATERIAL_ID", material_ids ? "1" : "0");
+				draw_psos->AddDefine("MESHLET_ID", meshlet_ids ? "1" : "0");
 
 				GfxPipelineState* pso = draw_psos->Get();
 				cmd_list->SetPipelineState(pso);

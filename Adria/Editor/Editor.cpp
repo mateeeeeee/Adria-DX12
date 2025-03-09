@@ -765,6 +765,7 @@ namespace adria
 					AddRendererOutputMenuItem(Metallic);
 					AddRendererOutputMenuItem(Emissive);
 					AddRendererOutputMenuItem(MaterialID);
+					AddRendererOutputMenuItem(MeshletID);
 					AddRendererOutputMenuItem(AmbientOcclusion);
 					AddRendererOutputMenuItem(IndirectLighting);
 					AddRendererOutputMenuItem(Custom);

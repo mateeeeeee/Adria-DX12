@@ -13,6 +13,7 @@ namespace adria
 		Metallic,
 		Emissive,
 		MaterialID,
+		MeshletID,
 		AmbientOcclusion,
 		IndirectLighting,
 		Custom,
