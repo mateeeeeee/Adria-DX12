@@ -521,9 +521,18 @@ namespace adria
 	void GfxDevice::WaitForGPU()
 	{
 		ZoneScopedN("GfxDevice::WaitForGPU");
+
 		graphics_queue.Signal(wait_fence, wait_fence_value);
 		wait_fence.Wait(wait_fence_value);
 		wait_fence_value++;
+
+        compute_queue.Signal(wait_fence, wait_fence_value);
+        wait_fence.Wait(wait_fence_value);
+        wait_fence_value++;
+
+        copy_queue.Signal(wait_fence, wait_fence_value);
+        wait_fence.Wait(wait_fence_value);
+        wait_fence_value++;
 	}
 	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandListType type)
 	{
